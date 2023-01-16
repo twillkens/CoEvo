@@ -1,0 +1,4 @@
+data/*
+*.jld2
+.ipynb_checkpoints/
+todo/*
