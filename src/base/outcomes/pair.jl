@@ -11,8 +11,13 @@ end
 
 struct ScalarResult
     key::String
+    testkey::String
     role::Symbol
     score::Union{Float64, Nothing}
+end
+
+function ScalarResult(genokey::String, role::Symbol, score::Union{Float64, Nothing})
+    ScalarResult(genokey, "", role, score)
 end
 
 struct ScalarOutcome <: Outcome

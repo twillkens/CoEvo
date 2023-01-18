@@ -6,6 +6,7 @@ using StatsBase
 using Combinatorics
 using Distributions
 using JLD2
+using DataStructures
 
 const KEY_SPLIT_TOKEN = "-"
 

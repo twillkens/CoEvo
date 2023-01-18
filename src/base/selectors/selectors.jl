@@ -43,3 +43,4 @@ end
 
 include("truncation.jl")
 include("roulette.jl")
+include("nsga.jl")
