@@ -1,5 +1,5 @@
 export DefaultBitstringConfig, RandomBitstringConfig, BitstringReproducer
-export BitstringGeno
+export BitstringGeno, BitstringMutator
 
 struct BitstringGeno <: Genotype
     key::String
@@ -38,6 +38,16 @@ function(r::BitstringReproducer)(key::String, parent::BitstringGeno)
     BitstringGeno(key, new_genes, Set([parent.key]))
 end
 
+Base.@kwdef struct BitstringMutator <: Reproducer
+    rng::AbstractRNG
+    mutrate::Float64
+end
+
+function(m::BitstringMutator)(key::String, parent::BitstringGeno)
+    new_genes = [rand(m.rng) < m.mutrate ?
+        rand(m.rng, Bool) : bit for bit in parent.genes]
+    BitstringGeno(key, new_genes, Set([parent.key]))
+end
 # Base.@kwdef struct SlowBitstringReproducer <: Reproducer
 #     rng::AbstractRNG
 #     mutrate::Float64

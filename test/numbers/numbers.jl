@@ -506,19 +506,6 @@ end
         tests_key = "A",
         n_samples = 15,
         rng = rng)
-    ## Orders ##
-    # domain = NGGradient()
-    # pheno_cfg = IntPhenoConfig()
-    # orderA = SamplerOrder(
-    #     domain=domain, outcome=ScalarOutcome,
-    #     subjects_key="A", subjects_cfg=pheno_cfg,
-    #     tests_key="B", tests_cfg=pheno_cfg,
-    #     n_samples=15, rng=rng)
-    # orderB = SamplerOrder(
-    #     domain=domain, outcome=ScalarOutcome,
-    #     subjects_key="B", subjects_cfg=pheno_cfg,
-    #     tests_key="A", tests_cfg=pheno_cfg,
-    #     n_samples=15, rng=rng)
     orders = Set([orderA, orderB])
 
     ## Spawners ##

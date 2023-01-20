@@ -62,6 +62,7 @@ function(c::CoevConfig)(gen::Int, pops::Set{<:Population})
     Set([spawner(pops, outcomes) for spawner in c.spawners])
 end
 
+
 struct FitnessLogger <: Logger
     key::String
 end

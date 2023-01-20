@@ -112,7 +112,6 @@ end
 
 
 function crowding_distance_assignment!(selector::NSGAiiSelector, recs::Vector{NSGAiiRecord})
-        
     for rec in recs
         rec.crowding = 0.0
     end
@@ -134,75 +133,21 @@ function crowding_distance_assignment!(selector::NSGAiiSelector, recs::Vector{NS
         end
     end
     sort(recs, by = rec -> rec.crowding, rev = true, alg = Base.Sort.QuickSort)
-    recs
+    nothing
 end
 
-# function nsga!(recs::Vector{GNARLIndividual}, sense::Sense)
-#     discos = map(rec -> rec.disco, recs)
-#     fast_non_dominated_sort!(discos, sense)
-#     sort!(recs, by=rec -> rec.disco.rank, alg=Base.Sort.QuickSort)
-#     fronts = SortedDict{UInt16, Vector{GNARLIndividual}}()
-#     for rec in recs 
-#         if haskey(fronts, rec.disco.rank)
-#             a = fronts[rec.disco.rank]
-#             push!(a, rec)
-#         else
-#             fronts[rec.disco.rank] = [rec]
-#         end
-#     end
-#     sorted_recs = Vector{GNARLIndividual}()
-#     for front in values(fronts)
-#         discos = map(rec -> rec.disco, front)
-#         crowding_distance_assignment!(discos)
-#         sort!(front, by=rec -> rec.disco.crowding,
-#               rev=true, alg=Base.Sort.QuickSort)
-#         append!(sorted_recs, front)
-#     end
-#     sorted_recs
-# end
-
+function crowding_distance_assignment!(selector::NSGAiiSelector,
+        fronts::SortedDict{UInt16, Vector{NSGAiiRecord}})
+    [crowding_distance_assignment!(selector, records) for records in values(fronts)]
+end
 
 function nsga(s::NSGAiiSelector, records::Vector{NSGAiiRecord{T}}) where T
     fast_non_dominated_sort!(records, s.sense)
-    fronts = SortedDict{UInt16, Vector{NSGAiiRecord}}()
-    for r in records 
-        if haskey(fronts, r.rank)
-            push!(fronts[r.rank], r)
-        else
-            fronts[r.rank] = [r]
-        end
-    end
-    sorted_recs = [crowding_distance_assignment!(s, front)
-                   for front in values(fronts)]
-    # for (n, front) in fronts
-    #     println("--------")
-    #     println(n)
-    #     for r in front
-    #         println(r)
-    #     end
-    # end
-    vs = reduce(vcat, sorted_recs)
-    # println("------------")
-    # for v in vs
-    #     println(v)
-    # end
-    vs
-end
-
-function(s::NSGAiiSelector)(records::Vector{NSGAiiRecord{T}}) where T
-    fast_non_dominated_sort!(records, s.sense)
-    fronts = SortedDict{UInt16, Vector{NSGAiiRecord}}()
-    for r in records 
-        if haskey(fronts, r.rank)
-            push!(fronts[r.rank], r)
-        else
-            fronts[r.rank] = [r]
-        end
-    end
-    sorted_recs = [crowding_distance_assignment!(s, front)
-                   for front in values(fronts)]
-    vs = reduce(vcat, sorted_recs)
-    vs
+    fronts = SortedDict([r.rank => NSGAiiRecord[] for r in records])
+    [push!(fronts[r.rank], r) for r in records]
+    crowding_distance_assignment!(s, fronts)
+    records = reduce(vcat, values(fronts))
+    #[r.geno for r in records]
 end
 
 function make_records(genos::Set{<:Genotype}, outcomes::Set{ScalarOutcome}) 
@@ -223,5 +168,5 @@ end
 
 function(s::NSGAiiSelector)(genos::Set{<:Genotype}, outcomes::Set{ScalarOutcome})
     records = make_records(genos, outcomes)
-    s(records)
+    [record.geno for record in s(records)]
 end

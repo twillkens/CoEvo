@@ -5,6 +5,7 @@ include("jobs/jobs.jl")
 include("outcomes/outcomes.jl")
 include("selectors/selectors.jl")
 include("reproducers/reproducers.jl")
+include("spawners/spawners.jl")
 include("coevs/coevs.jl")
 
 
