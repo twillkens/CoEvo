@@ -7,6 +7,7 @@ using Combinatorics
 using Distributions
 using JLD2
 using DataStructures
+using LRUCache
 
 const KEY_SPLIT_TOKEN = "-"
 

@@ -1,2 +1,2 @@
 include("bitstring.jl")
-include("vector.jl")
+#include("vector.jl")

@@ -7,6 +7,8 @@ export Job, JobConfig
 export GenoConfig, PopConfig, OrderConfig, PhenoConfig
 export Selections, Reproducer, Record, Selector, PairOutcome
 export Result
+export Variator
+export Individual
 
 # top level
 abstract type Entity end
@@ -72,6 +74,7 @@ abstract type Reproducer end
 abstract type Selections end
 abstract type Logger end
 abstract type PairOutcome <: Outcome end
-abstract type Variator end
 abstract type Result end
 abstract type Archiver end
+abstract type Variator end
+abstract type Individual end

@@ -15,11 +15,11 @@ function EntityRole(geno::Genotype, poprole::PopRole{C}) where {C <: PhenoConfig
     EntityRole(geno.key, poprole.role, poprole.phenocfg)
 end
 
-struct MixRecipe{D <: Domain, C <: PhenoConfig} <: Recipe
+struct MixRecipe{D <: Domain} <: Recipe
     n::Int
     domain::D
     outcome::Type{<:Outcome}
-    entityroles::Set{EntityRole{C}}
+    entityroles::Set{<:EntityRole}
 end
 
 function MixRecipe(n::Int, o::Order, entityroles::Set{EntityRole{C}}) where {C <: PhenoConfig}

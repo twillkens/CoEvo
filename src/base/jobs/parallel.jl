@@ -2,6 +2,7 @@ export ParallelJob, ParallelJobsConfig
 
 Base.@kwdef struct ParallelJobsConfig <: JobConfig
     n_jobs::Int
+    # lru::LRUCache = LRU{}
 end
 
 struct ParallelJob <: Job
