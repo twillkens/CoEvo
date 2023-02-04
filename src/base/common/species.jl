@@ -1,4 +1,4 @@
-export Species, ScoreOutcome
+export Species
 
 struct Species{I <: Individual}
     spkey::String

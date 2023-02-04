@@ -4,13 +4,14 @@ export VectorPhenoConfig, VectorPheno
 Base.@kwdef struct IntPhenoConfig <: PhenoConfig end
 
 struct IntPheno <: Phenotype
-    key::String
-    traits::Int
+    spkey::String
+    iid::Int
+    val::Int
 end
 
-function(::IntPhenoConfig)(geno::BitstringGeno)
-    traits = sum(geno.genes)
-    IntPheno(geno.key, traits)
+function(::IntPhenoConfig)(geno::VectorGeno)
+    val = sum(geno.genes)
+    IntPheno(geno.key, val)
 end
 
 Base.@kwdef struct VectorPhenoConfig <: PhenoConfig

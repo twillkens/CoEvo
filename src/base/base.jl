@@ -1,18 +1,6 @@
-# include("abstract/abstract.jl")
-# include("orders/orders.jl")
-# include("jobs/jobs.jl")
-# include("selectors/selectors.jl")
-include("spawners/base.jl")
-
-
-
-
-# include("genotypes/genotypes.jl")
-# include("phenotypes/phenotypes.jl")
-# include("pops/pops.jl")
-# include("mixes/mixes.jl")
-# include("recipes/recipes.jl")
-# include("outcomes/outcomes.jl")
-# include("stats/stats.jl")
-# include("coevs/coevs.jl")
-# include("step/step.jl")
+include("common/common.jl")
+include("jobs/jobs.jl")
+include("reproduction/reproduction.jl")
+include("indivs/indivs.jl")
+include("archive/archive.jl")
+include("coev/coev.jl")

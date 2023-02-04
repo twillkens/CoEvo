@@ -11,20 +11,20 @@ function(m::Mix)()
     m.outcome(m.n, m.domain; m.rolephenos...) 
 end
 
-function add_pheno!(entityrole::EntityRole,
+function add_pheno!(irole::IndivRole,
                     genodict::Dict{String, Genotype},
                     phenodict::Dict{String, Phenotype},)
-    if entityrole.key ∉ keys(phenodict)
-        geno = genodict[entityrole.key]
-        pheno = (entityrole.phenocfg)(geno)
-        phenodict[entityrole.key] = pheno
+    if irole.key ∉ keys(phenodict)
+        geno = genodict[irole.key]
+        pheno = (irole.phenocfg)(geno)
+        phenodict[irole.key] = pheno
     end
 end
 
 function add_pheno!(recipe::Recipe,
                     genodict::Dict{String, Genotype},
                     phenodict::Dict{String, Phenotype},)
-    [add_pheno!(entityrole, genodict, phenodict) for entityrole in recipe.entityroles]
+    [add_pheno!(irole, genodict, phenodict) for irole in recipe.iroles]
 end
 
 function add_pheno!(key::String,

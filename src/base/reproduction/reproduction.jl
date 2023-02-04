@@ -1,0 +1,6 @@
+include("variator.jl")
+include("replacers.jl")
+include("selectors.jl")
+include("recombiners.jl")
+include("mutators.jl")
+include("spawner.jl")

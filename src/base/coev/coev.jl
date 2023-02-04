@@ -1,6 +1,6 @@
-export VCoevConfig
+export CoevConfig
 
-struct VCoevConfig{O <: Order, S <: Spawner, L <: Logger} <: Config
+struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
     key::String
     trial::Int
     rng::AbstractRNG
@@ -11,7 +11,7 @@ struct VCoevConfig{O <: Order, S <: Spawner, L <: Logger} <: Config
     jld2file::JLD2.JLDFile
 end
 
-function VCoevConfig(;
+function CoevConfig(;
         key::String,
         trial::Int,
         job_cfg::JobConfig, 
@@ -25,7 +25,7 @@ function VCoevConfig(;
     jld2file["trial"] = trial
     jld2file["seed"] = seed
     rng = StableRNG(seed)
-    VCoevConfig(key, trial, rng, job_cfg, orders, spawners, loggers, jld2file)
+    CoevConfig(key, trial, rng, job_cfg, orders, spawners, loggers, jld2file)
 end
 
 function make_indivdict(sp::Species)
@@ -40,7 +40,7 @@ function assign_outcomes!(allspecies::Set{Species}, job_outcomes::Set{<:Outcome}
     end
 end
 
-function(c::VCoevConfig)(gen::Int, allspecies::Set{<:Species})
+function(c::CoevConfig)(gen::Int, allspecies::Set{<:Species})
     jobs = c.job_cfg(c.orders, allspecies)
     job_outcomes = Set{Outcome}(jobs)
     assign_outcomes!(speciesd, job_outcomes)

@@ -1,7 +1,7 @@
 using Test
 using Random
 using StableRNGs
-include("../../src/Coevolutionary.jl")
+include("../src/Coevolutionary.jl")
 using .Coevolutionary
 # include("util.jl")
 
@@ -9,25 +9,24 @@ using .Coevolutionary
 @testset "Individual" begin
     rng = StableRNG(42)
     # genome initialization with default value 0
-    icfg = VectorIndivConfig(rng, Bool, 5)
-    indiv = icfg(1, collect(1:5), fill(false, 5))
+    indiv = VectorIndiv("A", 1, collect(1:5), fill(false, 5))
     @test typeof(indiv) == VectorIndiv{ScalarGene{Bool}}
     @test indiv.iid == 1
     @test [g.gid for g in indiv.genes] == collect(1:5)
     @test [g.iid for g in indiv.genes] == fill(1, 5)
     @test [g.val for g in indiv.genes] == fill(false, 5)
     @test [g.gen for g in indiv.genes] == fill(1, 5)
-    @test make_genotype(indiv).genes == fill(false, 5)
+    @test genotype(indiv).genes == fill(false, 5)
 
     # genome initialization with default value 1
-    indiv = icfg(2, collect(6:10), fill(true, 5))
+    indiv = VectorIndiv("A", 2, collect(6:10), fill(true, 5))
     @test typeof(indiv) == VectorIndiv{ScalarGene{Bool}}
     @test indiv.iid == 2
     @test [g.gid for g in indiv.genes] == collect(6:10)
     @test [g.iid for g in indiv.genes] == fill(2, 5)
     @test [g.val for g in indiv.genes] == fill(true, 5)
     @test [g.gen for g in indiv.genes] == fill(1, 5)
-    @test make_genotype(indiv).genes == fill(false, 5)
+    @test genotype(indiv).genes == fill(true, 5)
 
 end
 

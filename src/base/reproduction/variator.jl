@@ -1,12 +1,12 @@
-export VVariator
+export Variator
 export gid!, iid!, gids!, iids!
 
-Base.@kwdef mutable struct VVariator{R <: Recombiner, M <: Mutator} <: Variator
+Base.@kwdef mutable struct Variator{R <: Recombiner, M <: Mutator}
     λ::Int
     iid::Int = 1
     gid::Int = 1
-    recombiner::R = IdentityRecombiner()
-    mutators::Vector{M} = [IdentityMutator()]
+    recombiner::R 
+    mutators::Vector{M}
 end
 
 function(v::Variator)(gen::Int, parents::Vector{<:Individual})
