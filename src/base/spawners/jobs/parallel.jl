@@ -9,15 +9,11 @@ struct ParallelJob <: Job
     recipes::Set{Recipe}
     genodict::Dict{String, Genotype}
     function ParallelJob(recipes::Set{Recipe}, genodict::Dict{String, Genotype})
-        pairs = [key => genodict[key] for recipe in recipes for key in Set{String}(recipe)]
-        job_genodict = Dict(pairs)
+        pairs = Dict([key => genodict[key] for recipe in recipes for key in Set{String}(recipe)])
         new(recipes, job_genodict)
     end
 end
 
-function Set{Recipe}(orders::Set{<:Order}, pops::Set{<:Population})
-    union([(order)(pops) for order in orders]...)
-end
 
 function Set{Set{Recipe}}(recipes::Set{<:Recipe}, n_subsets::Int)
     n_mix = div(length(recipes), n_subsets)
@@ -32,18 +28,22 @@ function Set{Set{Recipe}}(recipes::Set{<:Recipe}, n_subsets::Int)
     Set([Set{Recipe}(rvec) for rvec in recipe_vecs])
 end
 
-function Set{Set{Recipe}}(order::Order, pops::Set{<:Population}, n_jobs::Int)
-    recipes = (order)(pops)
+function Set{Set{Recipe}}(order::Order, allsp::Set{<:Species}, n_jobs::Int)
+    recipes = order(allsp)
     Set{Set{Recipe}}(recipes, n_jobs)
 end
 
-function Set{Set{Recipe}}(orders::Set{<:Order}, pops::Set{<:Population}, n_jobs::Int)
-    recipes = Set{Recipe}(orders, pops)
+function Set{Recipe}(orders::Set{<:Order}, allsp::Set{<:Species})
+    union([order(allsp) for order in orders]...)
+end
+
+function Set{Set{Recipe}}(orders::Set{<:Order}, allsp::Set{<:Species}, n_jobs::Int)
+    recipes = Set{Recipe}(orders, allsp)
     Set{Set{Recipe}}(recipes, n_jobs)
 end
 
-function(cfg::ParallelJobsConfig)(orders::Set{<:Order}, pops::Set{<:Population})
-    recipe_sets = Set{Set{Recipe}}(orders, pops, cfg.n_jobs)
+function(cfg::ParallelJobsConfig)(orders::Set{<:Order}, allsp::Set{<:Species})
+    recipe_sets = Set{Set{Recipe}}(orders, allsp, cfg.n_jobs)
     genodict = Dict{String, Genotype}(pops)
     Set([ParallelJob(recipes, genodict) for recipes in recipe_sets])
 end

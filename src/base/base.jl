@@ -1,12 +1,8 @@
-include("abstract/abstract.jl")
-include("pops/pops.jl")
-include("orders/orders.jl")
-include("jobs/jobs.jl")
-include("outcomes/outcomes.jl")
-include("selectors/selectors.jl")
-include("reproducers/reproducers.jl")
+# include("abstract/abstract.jl")
+# include("orders/orders.jl")
+# include("jobs/jobs.jl")
+# include("selectors/selectors.jl")
 include("spawners/base.jl")
-include("coevs/coevs.jl")
 
 
 

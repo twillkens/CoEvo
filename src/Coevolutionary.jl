@@ -12,7 +12,7 @@ using LRUCache
 const KEY_SPLIT_TOKEN = "-"
 
 include("base/base.jl")
-include("genotypes/genotypes.jl")
+#include("genotypes/genotypes.jl")
 include("domains/domains.jl")
 
 end # end of module

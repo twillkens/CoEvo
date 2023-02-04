@@ -1,4 +1,4 @@
-export VectorIndiv, VectorGene, VectorIndiv, VectorVariator, VectorGeno
+export VectorIndiv, VectorIndiv, VectorGeno
 export make_genotype
 export ScalarGene
 export VectorIndivConfig
@@ -15,12 +15,12 @@ struct VectorGeno{T <: Real} <: Genotype
     genes::Vector{T}
 end
 
-struct VectorIndiv{G <: ScalarGene, O <: Outcome} <: Individual
+struct VectorIndiv{G <: ScalarGene} <: Individual
     iid::Int
     gen::Int
     genes::Vector{G}
     pids::Set{Int}
-    outcomes::Set{O}
+    outcomes::Set{ScalarOutcome}
 end
 
 function genokey(spkey::String, iid::Int)
@@ -32,7 +32,7 @@ function genotype(spkey::String, indiv::VectorIndiv)
     VectorGeno(genokey(spkey, indiv.iid), genes)
 end
 
-struct VectorIndivConfig
+Base.@kwdef struct VectorIndivConfig <: IndividualConfig
     rng::AbstractRNG
     dtype::Type{<:Real}
     width::Int

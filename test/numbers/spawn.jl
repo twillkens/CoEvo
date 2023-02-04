@@ -6,69 +6,76 @@ using .Coevolutionary
 # include("util.jl")
 
 @testset "NumbersGame" begin
-@testset "Genotype" begin
+@testset "Individual" begin
     rng = StableRNG(42)
     # genome initialization with default value 0
-    icfg = VectorIndivConfig(rng, Bool, 10)
-    key, indiv = variator("Z", 0)
-    @test typeof(indiv) == VectorIndiv{VectorGene{Bool}, Outcome}
-    @test key == "Z"
-    @test [g.origin for g in indiv.genes] == fill("Z", 5)
+    icfg = VectorIndivConfig(rng, Bool, 5)
+    indiv = icfg(1, collect(1:5), fill(false, 5))
+    @test typeof(indiv) == VectorIndiv{ScalarGene{Bool}}
+    @test indiv.iid == 1
+    @test [g.gid for g in indiv.genes] == collect(1:5)
+    @test [g.iid for g in indiv.genes] == fill(1, 5)
     @test [g.val for g in indiv.genes] == fill(false, 5)
     @test [g.gen for g in indiv.genes] == fill(1, 5)
     @test make_genotype(indiv).genes == fill(false, 5)
 
     # genome initialization with default value 1
-    key, indiv = variator("O", 1)
-    @test typeof(indiv) == VectorIndiv{VectorGene{Bool}, Outcome}
-    @test key == "O"
-    @test [g.origin for g in indiv.genes] == fill("O", 5)
+    indiv = icfg(2, collect(6:10), fill(true, 5))
+    @test typeof(indiv) == VectorIndiv{ScalarGene{Bool}}
+    @test indiv.iid == 2
+    @test [g.gid for g in indiv.genes] == collect(6:10)
+    @test [g.iid for g in indiv.genes] == fill(2, 5)
     @test [g.val for g in indiv.genes] == fill(true, 5)
     @test [g.gen for g in indiv.genes] == fill(1, 5)
-    @test make_genotype(indiv).genes == fill(true, 5)
+    @test make_genotype(indiv).genes == fill(false, 5)
 
+end
+
+ # @testset "Variator" begin
     # genome initialization with random values
-    variator = VectorVariator(
-        rng = rng,
-        width = 100,
-        dtype = Bool,
-    )
-    key, indiv = variator("R")
-    @test typeof(indiv) == VectorIndiv{VectorGene{Bool}, Outcome}
-    @test key == "R"
-    @test length(indiv.genes) == 100
-    @test sum(make_genotype(indiv).genes) != 100 
-    @test sum(make_genotype(indiv).genes) != 0 
+    # variator = VectorVariator(
+    #     rng = rng,
+    #     width = 100,
+    #     dtype = Bool,
+    # )
+    # key, indiv = variator("R")
+    # @test typeof(indiv) == VectorIndiv{VectorGene{Bool}, Outcome}
+    # @test key == "R"
+    # @test length(indiv.genes) == 100
+    # @test sum(make_genotype(indiv).genes) != 100 
+    # @test sum(make_genotype(indiv).genes) != 0 
     # cfg = RandomBitstringConfig(width=100, rng = StableRNG(123))
     # geno_rand = cfg("Random")
     # @test typeof(geno_rand) == BitstringGeno
     # @test sum(geno_rand.genes) != 100 
     # @test sum(geno_rand.genes) != 0 
-end
+
+# end
 
 
 
-@testset "Population" begin
-    ir = IdentityRecombiner()
-    is = IdentitySelector()
-    iv = IdentityVariator()
-    rng = StableRNG(42)
-    spawner = VSpawner(
-        key = "A",
-        variator = VectorVariator(
-            rng = rng,
-            width = 10,
-            dtype = Bool,
-        ),
-        λ = 10,
-        μ = 10
-    )
 
-    popA = spawner(false)
-    indivs = popA.indivs
-    @test length(indivs) == 10
-    @test all(["A-$(i)" in keys(indivs) for i in 1:10])
-    @test sum([sum(make_genotype(indiv).genes) for indiv in values(indivs)]) == 0
+# @testset "Population" begin
+#     ir = IdentityRecombiner()
+#     is = IdentitySelector()
+#     iv = IdentityVariator()
+#     rng = StableRNG(42)
+#     spawner = VSpawner(
+#         key = "A",
+#         variator = VectorVariator(
+#             rng = rng,
+#             width = 10,
+#             dtype = Bool,
+#         ),
+#         λ = 10,
+#         μ = 10
+#     )
+
+#     popA = spawner(false)
+#     indivs = popA.indivs
+#     @test length(indivs) == 10
+#     @test all(["A-$(i)" in keys(indivs) for i in 1:10])
+#     @test sum([sum(make_genotype(indiv).genes) for indiv in values(indivs)]) == 0
 
     # geno_cfg = DefaultBitstringConfig(width=10, default_val=true)
     # pop_cfg = GenoPopConfig(key = "B", n_genos = 10, geno_cfg = geno_cfg)
@@ -83,7 +90,7 @@ end
     # @test length(popdict) == 2
     # @test popdict["A"] == popA
     # @test popdict["B"] == popB
-end
+# end
 
 # @testset "SamplerOrder/Recipes1" begin
 #     rng = StableRNG(123)

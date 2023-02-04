@@ -1,4 +1,6 @@
-export CoevConfig, StatFeatures, FitnessLogger, BasicGeneLogger
+export FitnessLogger
+export BasicGeneLogger
+export StatFeatures
 
 Base.@kwdef struct StatFeatures
     mean::Float64
@@ -24,44 +26,6 @@ function StatFeatures(vec::Vector{<:Real})
         maximum = max_,
     )
 end
-
-struct CoevConfig{O <: Order, S <: Spawner, L <: Logger} <: Config
-    key::String
-    trial::Int
-    rng::AbstractRNG
-    job_cfg::JobConfig
-    orders::Set{O}
-    spawners::Set{S}
-    loggers::Set{L}
-    jld2file::JLD2.JLDFile
-end
-
-function CoevConfig(;
-        key::String,
-        trial::Int,
-        job_cfg::JobConfig, 
-        orders::Set{<:Order},
-        spawners::Set{<:Spawner},
-        loggers::Set{<:Logger},
-        logpath::String = "log.jld2",
-        seed::UInt64=rand(UInt64))
-    jld2file = jldopen(logpath, "w")
-    jld2file["key"] = key
-    jld2file["trial"] = trial
-    jld2file["seed"] = seed
-    rng = StableRNG(seed)
-    CoevConfig(key, trial, rng, job_cfg, orders, spawners, loggers, jld2file)
-end
-
-function(c::CoevConfig)(gen::Int, pops::Set{<:Population})
-    jobs = c.job_cfg(c.orders, pops)
-    outcomes = Set{Outcome}(jobs)
-    gen_group = JLD2.Group(c.jld2file, string(gen))
-    gen_group["rng"] = copy(c.rng)
-    [logger(gen_group, pops, outcomes) for logger in c.loggers]
-    Set([spawner(pops, outcomes) for spawner in c.spawners])
-end
-
 
 struct FitnessLogger <: Logger
     key::String

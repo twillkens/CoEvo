@@ -1,13 +1,13 @@
-export PairMix, SetMix
+export Mix
 
-struct SetMix{D <: Domain, P <: Phenotype} <: Mix
+struct Mix{D <: Domain, P <: Phenotype}
     n::Int
     domain::D
     outcome::Type{<:Outcome}
     rolephenos::Dict{Symbol, P}
 end
 
-function(m::SetMix)()
+function(m::Mix)()
     m.outcome(m.n, m.domain; m.rolephenos...) 
 end
 
@@ -21,22 +21,10 @@ function add_pheno!(entityrole::EntityRole,
     end
 end
 
-function add_pheno!(recipe::MixRecipe,
+function add_pheno!(recipe::Recipe,
                     genodict::Dict{String, Genotype},
                     phenodict::Dict{String, Phenotype},)
     [add_pheno!(entityrole, genodict, phenodict) for entityrole in recipe.entityroles]
-end
-
-struct PairMix{D <: Domain, S <: Phenotype, T <: Phenotype} <: Mix
-    n::Int
-    domain::D
-    outcome::Type{<:PairOutcome}
-    subject::S
-    test::T
-end
-
-function(p::PairMix)()
-    p.outcome(p.n, p.domain, p.subject, p.test)
 end
 
 function add_pheno!(key::String,
@@ -50,12 +38,6 @@ function add_pheno!(key::String,
     end
 end
 
-function add_pheno!(recipe::PairRecipe,
-                    genodict::Dict{String, Genotype},
-                    phenodict::Dict{String, Phenotype},)
-    add_pheno!(recipe.subject_key, recipe.subject_cfg, genodict, phenodict)
-    add_pheno!(recipe.test_key, recipe.test_cfg, genodict, phenodict)
-end
 
 function Dict{String, Phenotype}(recipes::Set{<:Recipe}, genodict::Dict{String, Genotype},)
     phenodict = Dict{String, Phenotype}()
@@ -64,7 +46,7 @@ function Dict{String, Phenotype}(recipes::Set{<:Recipe}, genodict::Dict{String, 
 end
 
 function Set{Mix}(recipes::Set{<:Recipe}, phenodict::Dict{String, Phenotype},)
-    Set([(recipe)(phenodict) for recipe in recipes])
+    Set([recipe(phenodict) for recipe in recipes])
 end
 
 function Set{Mix}(recipes::Set{<:Recipe},
@@ -72,6 +54,3 @@ function Set{Mix}(recipes::Set{<:Recipe},
     phenodict = Dict{String, Phenotype}(recipes, genodict)
     Set{Mix}(recipes, phenodict)
 end
-
-include("serial.jl")
-include("parallel.jl")
