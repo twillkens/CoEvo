@@ -2,12 +2,13 @@ export AllvsAllOrder, getroles
 export PopRole, IndivRole, Recipe
 
 function getroles(o::Order, sp::Species) 
-    return [IndivRole(indiv.geno, o.roles[sp.key]) for indiv in union(sp.pop, sp.children)]
+    return [IndivRole(indiv.geno, o.roles[sp.key])
+    for indiv in union(sp.pop, sp.children)]
 end
 
-Base.@kwdef struct AllvsAllOrder{D <: Domain, P <: PhenoConfig} <: Order
+Base.@kwdef struct AllvsAllOrder{D <: Domain, O <: ObsConfig, P <: PhenoConfig} <: Order
     domain::D
-    outcome::Type{<:Outcome}
+    obscfg::O
     roles::Dict{String, PopRole{P}}
 end
 
@@ -16,6 +17,6 @@ function(o::AllvsAllOrder)(sp1::Species, sp2::Species)
     roles2 = getroles(o, sp2)
     pairs = unique(Set, Iterators.filter(allunique,
                    Iterators.product([roles1, roles2])))
-    Set([MixRecipe(mixn, o, Set(entity_roleset))
+    Set([Recipe(mixn, o, Set(entity_roleset))
         for (mixn, entity_roleset) in enumerate(pairs)])
 end

@@ -9,7 +9,10 @@ struct ParallelJob <: Job
     recipes::Set{Recipe}
     genodict::Dict{String, Genotype}
     function ParallelJob(recipes::Set{Recipe}, genodict::Dict{String, Genotype})
-        pairs = Dict([key => genodict[key] for recipe in recipes for key in Set{String}(recipe)])
+        pairs = [key => genodict[key] 
+        for recipe in recipes
+            for key in Set{String}(recipe)]
+        pairs = Dict(pairs)
         new(recipes, job_genodict)
     end
 end

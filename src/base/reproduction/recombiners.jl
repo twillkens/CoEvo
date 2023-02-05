@@ -1,9 +1,19 @@
 export IdentityRecombiner, NPointCrossoverRecombiner
+export CloneRecombiner
 
-struct IdentityRecombiner <: Recombiner end
+Base.@kwdef struct IdentityRecombiner <: Recombiner end
 
-function(r::IdentityRecombiner)(::Variator, gen::Int, iids::Vector{Int}, parents::Vector{<:Individual})
-    [clone(iid, gen, p,) for (iid, p) in zip(iids, parents)]
+
+function(r::IdentityRecombiner)(::Int, parents::Vector{<:Individual})
+    Set(parents)
+end
+
+Base.@kwdef struct CloneRecombiner <: Recombiner
+    sc::SpawnCounter
+end
+
+function(r::CloneRecombiner)(gen::Int, parents::Vector{<:Individual})
+    Set([clone(iid, gen, p,) for (iid, p) in zip(iids!(r.sc, length(parents)), parents)])
 end
 
 struct NPointCrossoverRecombiner <: Recombiner

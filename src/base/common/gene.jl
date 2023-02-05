@@ -6,3 +6,7 @@ struct ScalarGene{T <: Real} <: Gene
     gen::Int
     val::T
 end
+
+function ScalarGene(gid::Int, iid::Int, val::Real)
+    ScalarGene(gid, iid, 1, val)
+end

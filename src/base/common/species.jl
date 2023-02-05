@@ -6,3 +6,7 @@ struct Species{I <: Individual}
     parents::Vector{I}
     children::Set{I}
 end
+
+function Species(spkey::String, pop::Set{I}) where {I <: Individual}
+    Species(spkey, pop, I[], Set{I}())
+end

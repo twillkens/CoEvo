@@ -1,20 +1,26 @@
 export ScalarResult
-export ScalarOutcome, ScoreOutcome
+export Outcome
 
-struct ScalarResult <: Result
+struct ScalarResult{T} <: Result
+    spkey::String
+    iid::Int
     tkey::String
-    score::Float64
+    score::T
 end
 
-struct ScalarOutcome <: Outcome
+function ScalarResult(A::Phenotype, B::Phenotype, score::Real)
+    ScalarResult(A.spkey, A.iid, testkey(B), score)
+end
+
+struct Outcome{O <: Observation}
     rid::UInt64
-    results::Dict{String, ScalarResult}
+    results::Set{ScalarResult}
+    obs::O
 end
 
-struct ScoreOutcome <: Outcome
-    mixn::Int
-    genokey::String
-    testkey::String
-    role::Symbol
-    score::Float64
+struct NullObs <: Observation
+end
+
+function Outcome(rid::UInt64, results::Dict{String, ScalarResult})
+    Outcome(rid, results, NullObs())
 end

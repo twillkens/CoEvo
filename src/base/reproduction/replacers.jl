@@ -4,7 +4,7 @@ export PlusReplacer, CommaReplacer
 struct IdentityReplacer <: Replacer end
 
 function(r::IdentityReplacer)(species::Species)
-    collect(values(species.pop))
+    species.pop
 end
 
 struct TruncationReplacer <: Replacer end

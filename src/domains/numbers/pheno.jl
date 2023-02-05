@@ -1,32 +1,36 @@
-export IntPhenoConfig, IntPheno
-export VectorPhenoConfig, VectorPheno
+export SumPhenoConfig
+export ScalarPheno
+export VectorPheno
+export SubvecPhenoConfig
 
-Base.@kwdef struct IntPhenoConfig <: PhenoConfig end
-
-struct IntPheno <: Phenotype
+struct ScalarPheno{T <: Real} <: Phenotype
     spkey::String
     iid::Int
-    val::Int
+    val::T
 end
 
-function(::IntPhenoConfig)(geno::VectorGeno)
+Base.@kwdef struct SumPhenoConfig <: PhenoConfig end
+
+function(::SumPhenoConfig)(geno::VectorGeno)
     val = sum(geno.genes)
-    IntPheno(geno.key, val)
+    ScalarPheno(geno.spkey, geno.iid, val)
 end
 
-Base.@kwdef struct VectorPhenoConfig <: PhenoConfig
-    subvector_width::Int
+struct VectorPheno{T <: Real} <: Phenotype
+    spkey::String
+    iid::Int
+    vec::Vector{T}
 end
 
-struct VectorPheno <: Phenotype
-    key::String
-    traits::Vector{Int}
+Base.@kwdef struct SubvecPhenoConfig <: PhenoConfig
+    subvec_width::Int
 end
 
-function(cfg::VectorPhenoConfig)(geno::BitstringGeno)
-    if mod(length(geno.genes), cfg.subvector_width) != 0
+function(cfg::SubvecPhenoConfig)(geno::VectorGeno)
+    if mod(length(geno.genes), cfg.subvec_width) != 0
         error("Invalid subvector width for given genome width")
     end
-    traits = [sum(part) for part in Iterators.partition(geno.genes, cfg.subvector_width)]
-    VectorPheno(geno.key, traits)
+    vec = [sum(part) for part in
+        Iterators.partition(geno.genes, cfg.subvec_width)]
+    VectorPheno(geno.spkey, geno.iid, vec)
 end

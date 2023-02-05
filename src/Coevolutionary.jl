@@ -17,6 +17,6 @@ const KEY_SPLIT_TOKEN = "-"
 # const testscores_lru = LRU{Individual, SortedDict{String, Float64}}(maxsize=1000)
 
 include("base/base.jl")
-# include("domains/domains.jl")
+include("domains/domains.jl")
 
 end # end of module

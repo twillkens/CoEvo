@@ -1,22 +1,7 @@
-Base.@kwdef struct PopRole{C <: PhenoConfig}
-    role::Symbol
-    phenocfg::C
-end
 
-struct IndivRole{C <: PhenoConfig} 
-    key::String
-    role::Symbol
-    phenocfg::C
-end
-
-function IndivRole(geno::Genotype, poprole::PopRole{C}) where {C <: PhenoConfig}
-    IndivRole(geno.key, poprole.role, poprole.phenocfg)
-end
-
-struct Recipe{D <: Domain}
-    rid::Int
+struct Recipe{D <: Domain, O <: ObsConfig}
     domain::D
-    outcome::Type{<:Outcome}
+    obscfg::O
     iroles::Set{<:IndivRole}
 end
 

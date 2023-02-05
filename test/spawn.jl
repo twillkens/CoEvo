@@ -30,91 +30,129 @@ using .Coevolutionary
 
 end
 
- # @testset "Variator" begin
+ @testset "VectorIndivConfig" begin
     # genome initialization with random values
-    # variator = VectorVariator(
-    #     rng = rng,
-    #     width = 100,
-    #     dtype = Bool,
-    # )
-    # key, indiv = variator("R")
-    # @test typeof(indiv) == VectorIndiv{VectorGene{Bool}, Outcome}
-    # @test key == "R"
-    # @test length(indiv.genes) == 100
-    # @test sum(make_genotype(indiv).genes) != 100 
-    # @test sum(make_genotype(indiv).genes) != 0 
-    # cfg = RandomBitstringConfig(width=100, rng = StableRNG(123))
-    # geno_rand = cfg("Random")
-    # @test typeof(geno_rand) == BitstringGeno
-    # @test sum(geno_rand.genes) != 100 
-    # @test sum(geno_rand.genes) != 0 
+    rng = StableRNG(42)
+    sc = SpawnCounter()
 
-# end
+    icfg = VectorIndivConfig(
+        spkey = "A",
+        sc = sc,
+        rng = rng,
+        dtype = Bool,
+        width = 100
+    )
+    indivs = sort(collect(icfg(10, false)), by = i -> i.iid)
+
+    indiv = indivs[1]
+    @test length(indiv.genes) == 100
+    @test sum(genotype(indiv).genes) == 0
+
+    indiv = indivs[10]
+    @test indiv.iid == 10
+    @test indiv.genes[1].gid == 901
+    @test indiv.genes[100].gid == 1000
+    @test sum(genotype(indiv).genes) == 0
+
+    indivs = sort(collect(icfg(10, true)), by = i -> i.iid)
+    indiv = indivs[1]
+    @test sum(genotype(indiv).genes) == 100
+
+    indivs = icfg(5)
+    for indiv in indivs
+        @test sum(genotype(indiv).genes) != 0
+        @test sum(genotype(indiv).genes) != 100
+    end
+
+end
 
 
+@testset "Spawner" begin
+    rng = StableRNG(42)
+    sc = SpawnCounter()
 
+    spawner = Spawner(
+        spkey = "A",
+        n_pop = 10,
+        icfg = VectorIndivConfig(
+            spkey = "A",
+            sc = sc,
+            rng = rng,
+            dtype = Bool,
+            width = 10
+        ),
+        replacer = IdentityReplacer(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(sc = sc),
+        mutators = Mutator[]
+    )
 
-# @testset "Population" begin
-#     ir = IdentityRecombiner()
-#     is = IdentitySelector()
-#     iv = IdentityVariator()
-#     rng = StableRNG(42)
-#     spawner = VSpawner(
-#         key = "A",
-#         variator = VectorVariator(
-#             rng = rng,
-#             width = 10,
-#             dtype = Bool,
-#         ),
-#         λ = 10,
-#         μ = 10
-#     )
+    species = spawner(false)
+    indivs = sort(collect(species.pop), by = i -> i.iid)
+    @test length(indivs) == 10
+    @test all(["A" == indivs[i].spkey for i in 1:10])
+    @test sum([sum(genotype(indiv).genes) for indiv in values(indivs)]) == 0
 
-#     popA = spawner(false)
-#     indivs = popA.indivs
-#     @test length(indivs) == 10
-#     @test all(["A-$(i)" in keys(indivs) for i in 1:10])
-#     @test sum([sum(make_genotype(indiv).genes) for indiv in values(indivs)]) == 0
+    species = spawner(2, species)
+    @test length(species.children) == 10
+    @test sort(collect([indiv.iid for indiv in species.children])) == collect(11:20)
+end
 
-    # geno_cfg = DefaultBitstringConfig(width=10, default_val=true)
-    # pop_cfg = GenoPopConfig(key = "B", n_genos = 10, geno_cfg = geno_cfg)
-    # popB = (pop_cfg)()
-    # genos = Dict{String, Genotype}(popB)
-    # @test length(genos) == 10
-    # @test all(["B-$(i)" in keys(genos) for i in 1:10])
-    # @test sum([sum(g.genes) for g in values(genos)]) == 100
+@testset "AllvsAllOrder" begin
+    rng = StableRNG(42)
+    sc = SpawnCounter()
 
-    # pops = Set([popA, popB])
-    # popdict = Dict{String, Population}(pops)
-    # @test length(popdict) == 2
-    # @test popdict["A"] == popA
-    # @test popdict["B"] == popB
-# end
+    spkey = "A"
+    spawnerA = Spawner(
+        spkey = spkey,
+        n_pop = 10,
+        icfg = VectorIndivConfig(
+            spkey = spkey,
+            sc = sc,
+            rng = rng,
+            dtype = Bool,
+            width = 10
+        ),
+        replacer = IdentityReplacer(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(sc = sc),
+        mutators = Mutator[]
+    )
 
-# @testset "SamplerOrder/Recipes1" begin
-#     rng = StableRNG(123)
-#     popA = GenoPopConfig(key="A", n_genos=10,
-#                          geno_cfg=DefaultBitstringConfig(width=10, default_val=true))()
-#     popB = GenoPopConfig(key="B", n_genos=10,
-#                          geno_cfg=DefaultBitstringConfig(width=10, default_val=false))()
-#     pops = Set([popA, popB])
-#     pheno_cfg = IntPhenoConfig()
-#     order = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(role = :subject, phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(role = :test, phenocfg = IntPhenoConfig())
-#         ),
-#         subjects_key = "A",
-#         tests_key = "B",
-#         n_samples = 5,
-#         rng = rng)
-#     recipes = (order)(pops)
-#     @test length(recipes) == 50
-#     recipe_set = Set{Set{Recipe}}(order, pops, 5)
-#     @test all([length(recipes) == 10 for recipes in recipe_set])
-# end
+    spkey = "B"
+    spawnerA = Spawner(
+        spkey = spkey,
+        n_pop = 10,
+        icfg = VectorIndivConfig(
+            spkey = spkey,
+            sc = sc,
+            rng = rng,
+            dtype = Bool,
+            width = 10
+        ),
+        replacer = IdentityReplacer(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(sc = sc),
+        mutators = Mutator[]
+    )
+    speciesA = spawnerA(true)
+    speciesB = spawnerB(false)
+    allspecies = Set([speciesA, speciesB])
+
+    pheno_cfg = IntPhenoConfig()
+    order = AllvsAllOrder(
+        domain = NGGradient(),
+        outcome = ScalarOutcome,
+        roles = Dict(
+            "A" => PopRole(role = :A, phenocfg = SumPhenoConfig()),
+            "B" => PopRole(role = :B, phenocfg = SumPhenoConfig())
+        ),
+    )
+    recipes = (order)(pops)
+    @test length(recipes) == 50
+    recipe_set = Set{Set{Recipe}}(order, pops, 5)
+    @test all([length(recipes) == 10 for recipes in recipe_set])
+end
 
 # @testset "SamplerOrder/Recipes2" begin
 #     rng = StableRNG(123)

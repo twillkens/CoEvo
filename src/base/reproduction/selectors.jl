@@ -2,11 +2,10 @@ export IdentitySelector, VRouletteSelector
 
 # abstract type Selector end
 struct IdentitySelector <: Selector
-    μ::Int
 end
 
-function(s::IdentitySelector)(::Int, pop::Set{<:Individual})
-    collect(pop)[:s.μ]
+function(s::IdentitySelector)(pop::Set{<:Individual})
+    collect(pop)
 end
 
 Base.@kwdef struct VRouletteSelector <: Selector
