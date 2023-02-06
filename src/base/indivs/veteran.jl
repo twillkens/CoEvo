@@ -5,7 +5,7 @@ struct Veteran{I <: Individual, R <: Result}
     results::Set{R}
 end
 
-struct VetSpecies{V::Veteran}
+struct VetSpecies{V <: Veteran}
     spkey::String
     pop::Set{V}
     parents::Vector{Int}

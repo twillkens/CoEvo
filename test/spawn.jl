@@ -137,7 +137,7 @@ end
         mutators = Mutator[]
     )
     speciesA = Species("A", spawnerA.icfg(5, false), spawnerA.icfg(5, true))
-    speciesA = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
+    speciesB = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
     allsp = Set([speciesA, speciesB])
 
     order = AllvsAllOrder(
@@ -153,8 +153,6 @@ end
     jobcfg = SerialJobConfig()
     job = jobcfg(Set([order]), allsp)
     outcomes = perform(job)
-    println(outcomes)
-
     @test length(outcomes) == 100
     # recipe_set = Set{Set{Recipe}}(order, pops, 5)
     # @test all([length(recipes) == 10 for recipes in recipe_set])
