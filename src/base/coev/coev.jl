@@ -1,4 +1,5 @@
 export CoevConfig
+export makevets
 
 struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
     key::String
@@ -29,30 +30,23 @@ function CoevConfig(;
 end
 
 function make_indivdict(sp::Species)
-    Dict([indiv.iid => indiv for indiv in union(sp.pop, sp.children)])
-end
-
-function assign_outcomes!(allspecies::Set{Species}, job_outcomes::Set{<:Outcome})
-    sp_indiv_dict = Dict([sp.spkey => make_indivdict(sp) for sp in allspecies])
-    for o in job_outcomes
-        indiv = sp_indiv_dict[o.spkey][o.iid]
-        push!(indiv.outcomes, o)
-    end
+    Dict(indiv.iid => indiv for indiv in union(sp.pop, sp.children))
 end
 
 function makevets(indivs::Set{<:Individual}, allresults::Set{<:Result})
-    fn = r -> r.spkey == indiv.spkey && r.iid == indiv.iid
-    Set(Veteran(indiv, filter(fn, allresults)) for indiv in indivs)
+    Set(Veteran(indiv,
+        filter(r -> r.spkey == indiv.spkey && r.iid == indiv.iid, allresults))
+    for indiv in indivs)
 end
 
 function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
     results = union([o.results for o in outcomes]...)
-    Dict([sp.spkey => VetSpecies(
+    Dict(sp.spkey => VetSpecies(
         sp.spkey,
         makevets(sp.pop, results),
-        [i.iid for i in sp.parents],
+        Int[i.iid for i in sp.parents],
         makevets(sp.children, results))
-    for sp in allsp])
+    for sp in allsp)
 end
 
 function(c::CoevConfig)(gen::Int, allsp::Set{<:Species})

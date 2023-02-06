@@ -4,15 +4,15 @@ export CommaReplacer
 
 struct IdentityReplacer <: Replacer end
 
-function(r::IdentityReplacer)(species::Species)
-    species.pop
+function(r::IdentityReplacer)(sp::VetSpecies)
+    sp.pop
 end
 
 struct TruncationReplacer <: Replacer end
 
-function(r::TruncationReplacer)(species::Species)
-    n_pop = length(species.pop)
-    pop = collect(union(species.pop, species.children))
+function(r::TruncationReplacer)(sp::VetSpecies)
+    n_pop = length(sp.pop)
+    pop = collect(union(sp.pop, sp.children))
     Set(sort(pop, by = i -> getfitness(i), rev = true)[1:n_pop])
 end
 
@@ -23,9 +23,9 @@ end
 function(r::GenerationalReplacer)(species::Species)
     n_pop = length(species.pop)
     elites = sort(collect(species.pop),
-        by = i -> getfitness(i), rev = true)[1:r.n_elite]
+        by = i -> fitness(i), rev = true)[1:r.n_elite]
     Set(sort([elites; collect(species.children)],
-        by = i -> getfitness(i), rev = true)[1:n_pop])
+        by = i -> fitness(i), rev = true)[1:n_pop])
 end
 
 # Base.@kwdef struct PlusReplacer <: Replacer end

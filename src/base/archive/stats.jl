@@ -1,15 +1,15 @@
-export getfitness, gettestscores
+export fitness, testscores
 
 
-function getfitness(indiv::Individual)
-    get!(fitness_lru, indiv) do
-        sum([o.score for o in values(indiv.outcomes)])
+function fitness(vet::Veteran)
+    get!(fitness_lru, vet) do
+        sum(r.score for r in vet.results)
     end
 end
 
 
-function gettestscores(indiv::Individual)
-    get!(testscores_lru, indiv) do
-        SortedDict([o.testkey => o.score for o in values(indiv.outcomes)])
+function testscores(vet::Individual)
+    get!(testscores_lru, vet) do
+        SortedDict(r.testkey => r.score for r in vet.results)
     end
 end

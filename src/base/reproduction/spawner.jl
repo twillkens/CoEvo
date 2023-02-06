@@ -14,7 +14,7 @@ export ScoreOutcome, IdentitySelector, Replacer
     mutators::Vector{M}
 end
 
-function(s::Spawner)(gen::Int, sp::Species,)
+function(s::Spawner)(gen::Int, sp::VetSpecies)
     pop = s.replacer(sp)
     parents = s.selector(pop)
     children = s.recombiner(gen, parents)
@@ -22,7 +22,11 @@ function(s::Spawner)(gen::Int, sp::Species,)
         children = mutator(gen, children)
     end
     children
-    Species(s.spkey, pop, parents, children)
+    Species(
+        s.spkey,
+        Set(vet.indiv for vet in pop),
+        [iid(p) for p in parents],
+        children)
 end
 
 function(s::Spawner)(args...)

@@ -4,7 +4,7 @@ export IdentitySelector, VRouletteSelector
 struct IdentitySelector <: Selector
 end
 
-function(s::IdentitySelector)(pop::Set{<:Individual})
+function(s::IdentitySelector)(pop::Set{<:Veteran})
     collect(pop)
 end
 

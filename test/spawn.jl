@@ -93,7 +93,9 @@ end
     @test all(["A" == indivs[i].spkey for i in 1:10])
     @test sum([sum(genotype(indiv).genes) for indiv in values(indivs)]) == 0
 
-    species = spawner(2, species)
+    vets = dummyvets(species)
+
+    species = spawner(2, vets)
     @test length(species.children) == 10
     @test sort(collect([indiv.iid for indiv in species.children])) == collect(11:20)
 end
@@ -154,6 +156,10 @@ end
     job = jobcfg(Set([order]), allsp)
     outcomes = perform(job)
     @test length(outcomes) == 100
+    allvets = makevets(allsp, outcomes)
+    println("done")
+    @test all([fitness(vet) == 0 for vet in allvets["A"].pop])
+
     # recipe_set = Set{Set{Recipe}}(order, pops, 5)
     # @test all([length(recipes) == 10 for recipes in recipe_set])
 end

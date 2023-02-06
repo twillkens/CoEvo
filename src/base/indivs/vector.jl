@@ -18,15 +18,14 @@ struct VectorIndiv{G <: ScalarGene} <: Individual
     gen::Int
     genes::Vector{G}
     pids::Set{Int}
-    outcomes::Set{Outcome}
 end
 
 function VectorIndiv(spkey::String, iid::Int, genes::Vector{<:ScalarGene}, )
-    VectorIndiv(spkey, iid, 1, genes, Set{Int}(), Set{Outcome}())
+    VectorIndiv(spkey, iid, 1, genes, Set{Int}())
 end
 
 function clone(iid::Int, gen::Int, parent::VectorIndiv)
-    VectorIndiv(parent.spkey, iid, gen, parent.genes, Set([parent.iid]), Set{Outcome}())
+    VectorIndiv(parent.spkey, iid, gen, parent.genes, Set([parent.iid]))
 end
 
 struct VectorGeno{T <: Real} <: Genotype
@@ -68,18 +67,6 @@ function(cfg::VectorIndivConfig)(n_indiv::Int, val::Real)
     for _ in 1:n_indiv])
 end
 
-function(m::BitflipMutator)(indiv::VectorIndiv)
-    newgenes = ScalarGene{Bool}[]
-    for gene in indiv.genes
-        if rand(m.rng) < m.mutrate
-            newgene = ScalarGene(gid!(m.sc), indiv.iid, indiv.gen, !gene.val)
-            push!(newgenes, newgene)
-        else
-            push!(newgenes, gene)
-        end
-    end
-    VectorIndiv(indiv.spkey, indiv.iid, indiv.gen, newgenes, indiv.pids, indiv.outcomes)
-end
 
 # function(r::NPointCrossoverRecombiner)(variator::Variator, gen::Int,
 #         childkeys::Vector{String}, parents::Dict{String, I}) where {I <: Individual}
