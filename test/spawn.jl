@@ -113,7 +113,7 @@ end
             dtype = Bool,
             width = 10
         ),
-        replacer = IdentityReplacer(),
+        replacer = TruncationReplacer(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(sc = sc),
         mutators = Mutator[]
@@ -131,13 +131,13 @@ end
             dtype = Bool,
             width = 10
         ),
-        replacer = IdentityReplacer(),
+        replacer = TruncationReplacer(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(sc = sc),
         mutators = Mutator[]
     )
-    speciesA = spawnerA(true)
-    speciesB = spawnerB(false)
+    speciesA = Species("A", spawnerA.icfg(5, false), spawnerA.icfg(5, true))
+    speciesA = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
     allsp = Set([speciesA, speciesB])
 
     order = AllvsAllOrder(
@@ -149,10 +149,8 @@ end
         ),
     )
     recipes = order(speciesA, speciesB)
-    jobcfg = SerialJobConfig()
-
     @test length(recipes) == 100
-
+    jobcfg = SerialJobConfig()
     job = jobcfg(Set([order]), allsp)
     outcomes = perform(job)
     println(outcomes)

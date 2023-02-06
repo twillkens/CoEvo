@@ -40,12 +40,28 @@ function assign_outcomes!(allspecies::Set{Species}, job_outcomes::Set{<:Outcome}
     end
 end
 
-function(c::CoevConfig)(gen::Int, allspecies::Set{<:Species})
-    jobs = c.job_cfg(c.orders, allspecies)
-    job_outcomes = Set{Outcome}(jobs)
-    assign_outcomes!(speciesd, job_outcomes)
+function makevets(indivs::Set{<:Individual}, allresults::Set{<:Result})
+    fn = r -> r.spkey == indiv.spkey && r.iid == indiv.iid
+    Set(Veteran(indiv, filter(fn, allresults)) for indiv in indivs)
+end
+
+function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
+    results = union([o.results for o in outcomes]...)
+    Dict([sp.spkey => VetSpecies(
+        sp.spkey,
+        makevets(sp.pop, results),
+        [i.iid for i in sp.parents],
+        makevets(sp.children, results))
+    for sp in allsp])
+end
+
+function(c::CoevConfig)(gen::Int, allsp::Set{<:Species})
+    recipes = makerecipes(c.orders, allsp)
+    jobs = c.job_cfg(recipes, allsp)
+    outcomes = perform(jobs)
+    allvets = makevets(allsp, outcomes)
     gen_species = JLD2.Group(c.jld2file, string(gen))
     gen_species["rng"] = copy(c.rng)
-    [logger(gen_species, speciesd) for logger in c.loggers]
-    [spawner(gen, speciesd[spawner.key]) for spawner in c.spawners]
+    [logger(gen_species, allvets) for logger in c.loggers]
+    [spawner(gen, allvets[spawner.spkey]) for spawner in c.spawners]
 end
