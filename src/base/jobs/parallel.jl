@@ -51,17 +51,17 @@ function(cfg::ParallelJobsConfig)(orders::Set{<:Order}, allsp::Set{<:Species})
     Set([ParallelJob(recipes, genodict) for recipes in recipe_sets])
 end
 
-function Set{Mix}(job::ParallelJob)
-    Set{Mix}(job.recipes, job.genodict)
+function getmixes(job::ParallelJob)
+    getmixes(job.recipes, job.genodict)
 end
 
-function Set{Outcome}(job::ParallelJob)
-    mixes = Set{Mix}(job.recipes, job.genodict)
-    Set([(mix)() for mix in mixes])
+function perform(job::ParallelJob)
+    mixes = getmixes(job.recipes, job.genodict)
+    Set([mix() for mix in mixes])
 end
 
-function Set{Outcome}(jobs::Set{ParallelJob})
-    futures = [remotecall(Set{Outcome}, i, job) for (i, job) in enumerate(jobs)]
+function perform(jobs::Set{ParallelJob})
+    futures = [remotecall(perform, i, job) for (i, job) in enumerate(jobs)]
     outcomes = [fetch(f) for f in futures]
     union(outcomes...)
 end

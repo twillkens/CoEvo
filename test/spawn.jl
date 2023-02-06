@@ -100,9 +100,9 @@ end
 
 @testset "AllvsAllOrder" begin
     rng = StableRNG(42)
-    sc = SpawnCounter()
 
     spkey = "A"
+    sc = SpawnCounter()
     spawnerA = Spawner(
         spkey = spkey,
         n_pop = 10,
@@ -120,7 +120,8 @@ end
     )
 
     spkey = "B"
-    spawnerA = Spawner(
+    sc = SpawnCounter()
+    spawnerB = Spawner(
         spkey = spkey,
         n_pop = 10,
         icfg = VectorIndivConfig(
@@ -137,21 +138,28 @@ end
     )
     speciesA = spawnerA(true)
     speciesB = spawnerB(false)
-    allspecies = Set([speciesA, speciesB])
+    allsp = Set([speciesA, speciesB])
 
-    pheno_cfg = IntPhenoConfig()
     order = AllvsAllOrder(
         domain = NGGradient(),
-        outcome = ScalarOutcome,
-        roles = Dict(
-            "A" => PopRole(role = :A, phenocfg = SumPhenoConfig()),
-            "B" => PopRole(role = :B, phenocfg = SumPhenoConfig())
+        obscfg = NGObsConfig(),
+        phenocfgs = Dict(
+            "A" => SumPhenoConfig(role = :A),
+            "B" => SumPhenoConfig(role = :B),
         ),
     )
-    recipes = (order)(pops)
-    @test length(recipes) == 50
-    recipe_set = Set{Set{Recipe}}(order, pops, 5)
-    @test all([length(recipes) == 10 for recipes in recipe_set])
+    recipes = order(speciesA, speciesB)
+    jobcfg = SerialJobConfig()
+
+    @test length(recipes) == 100
+
+    job = jobcfg(Set([order]), allsp)
+    outcomes = perform(job)
+    println(outcomes)
+
+    @test length(outcomes) == 100
+    # recipe_set = Set{Set{Recipe}}(order, pops, 5)
+    # @test all([length(recipes) == 10 for recipes in recipe_set])
 end
 
 # @testset "SamplerOrder/Recipes2" begin

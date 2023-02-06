@@ -1,19 +1,5 @@
-function stir(
-    rid::UInt64, ::NGControl, ::NGObsConfig; A::Phenotype, B::Phenotype
-)
-    r1 = ScalarResult(A, B, true)
-    r2 = ScalarResult(B, A, true)
-    Outcome(rid, Set([r1, r2]))
-end
-
-function stir(
-    rid::UInt64, ::NGGradient, ::NGObsConfig; A::IntPheno, B::IntPheno
-)
-    result = A.val > B.val
-    r1 = ScalarResult(A, B, result)
-    r2 = ScalarResult(B, A, !result)
-    Outcome(rid, Set([r1, r2]))
-end
+export stir
+export NGObsConfig, NGObs
 
 struct NGObsConfig <: ObsConfig end
 
@@ -25,7 +11,25 @@ struct NGObs <: Observation
 end
 
 function stir(
-    rid::UInt64, ::NGFocusing, ::NGObsConfig;
+    rid::Int, ::NGControl, ::NGObsConfig; A::Phenotype, B::Phenotype
+)
+    r1 = ScalarResult(A, B, true)
+    r2 = ScalarResult(B, A, true)
+    Outcome(rid, Set([r1, r2]))
+end
+
+function stir(
+    rid::Int, ::NGGradient, ::NGObsConfig; A::ScalarPheno, B::ScalarPheno
+)
+    result = A.val > B.val
+    r1 = ScalarResult(A, B, result)
+    r2 = ScalarResult(B, A, !result)
+    Outcome(rid, Set([r1, r2]))
+end
+
+
+function stir(
+    rid::Int, ::NGFocusing, ::NGObsConfig;
     A::VectorPheno, B::VectorPheno
 )
     v1, v2 = A.vec, B.vec
@@ -37,7 +41,7 @@ function stir(
 end
 
 function stir(
-    rid::UInt64, ::NGRelativism, ::NGObsConfig;
+    rid::Int, ::NGRelativism, ::NGObsConfig;
     A::VectorPheno, B::VectorPheno
 )
     v1, v2 = subject.traits, test.traits

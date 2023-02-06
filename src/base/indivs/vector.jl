@@ -18,19 +18,15 @@ struct VectorIndiv{G <: ScalarGene} <: Individual
     gen::Int
     genes::Vector{G}
     pids::Set{Int}
-    outcomes::Set{ScalarOutcome}
+    outcomes::Set{Outcome}
 end
 
 function VectorIndiv(spkey::String, iid::Int, genes::Vector{<:ScalarGene}, )
-    VectorIndiv(spkey, iid, 1, genes, Set{Int}(), Set{ScalarOutcome}())
-end
-
-function testkey(indiv::VectorIndiv)
-    string(indiv.spkey, KEY_SPLIT_TOKEN, indiv.iid)
+    VectorIndiv(spkey, iid, 1, genes, Set{Int}(), Set{Outcome}())
 end
 
 function clone(iid::Int, gen::Int, parent::VectorIndiv)
-    VectorIndiv(parent.spkey, iid, gen, parent.genes, Set([parent.iid]), Set{ScalarOutcome}())
+    VectorIndiv(parent.spkey, iid, gen, parent.genes, Set([parent.iid]), Set{Outcome}())
 end
 
 struct VectorGeno{T <: Real} <: Genotype

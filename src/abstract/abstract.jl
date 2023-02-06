@@ -1,5 +1,6 @@
 export Gene, Individual, IndivConfig, Genotype, Phenotype, PhenoConfig
 export Domain, Order, Job, JobConfig, Result #, Outcome
+export Observation, ObsConfig
 export Replacer, Selector, Recombiner, Mutator
 export Logger, Coevolution
 
@@ -17,6 +18,8 @@ abstract type Order end
 abstract type JobConfig end
 abstract type Job end
 abstract type Result end
+abstract type Observation end
+abstract type ObsConfig end
 #abstract type Outcome end
 
 # reproduction
@@ -28,3 +31,5 @@ abstract type Mutator end
 # coev
 abstract type Logger end
 abstract type Coevolution end
+
+

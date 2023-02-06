@@ -1,56 +1,33 @@
 export Mix
+export stir, getmixes
 
-struct Mix{D <: Domain, P <: Phenotype}
-    n::Int
+struct Mix{D <: Domain, O <: ObsConfig, P <: Phenotype}
+    rid::Int
     domain::D
-    outcome::Type{<:Outcome}
-    rolephenos::Dict{Symbol, P}
+    obscfg::O
+    phenos::Dict{Symbol, P}
 end
 
-function(m::Mix)()
-    m.outcome(m.n, m.domain; m.rolephenos...) 
+function stir(m::Mix)
+    stir(m.rid, m.domain, m.obscfg; m.phenos...) 
 end
 
-function add_pheno!(irole::IndivRole,
-                    genodict::Dict{String, Genotype},
-                    phenodict::Dict{String, Phenotype},)
-    if irole.key ∉ keys(phenodict)
-        geno = genodict[irole.key]
-        pheno = (irole.phenocfg)(geno)
-        phenodict[irole.key] = pheno
-    end
+function(r::Recipe)(
+    phenodict::Dict{I, P}) where {I <: Ingredient, P <: Phenotype
+}
+    phenos = Dict([ingred.pcfg.role => phenodict[ingred]
+        for ingred in r.ingredients])
+    Mix(r.rid, r.domain, r.obscfg, phenos)
 end
 
-function add_pheno!(recipe::Recipe,
-                    genodict::Dict{String, Genotype},
-                    phenodict::Dict{String, Phenotype},)
-    [add_pheno!(irole, genodict, phenodict) for irole in recipe.iroles]
+function getmixes(
+    recipes::Set{<:Recipe}, phenodict::Dict{I, P}) where
+{I <: Ingredient, P <: Phenotype}
+    Set(r(phenodict) for r in recipes)
 end
 
-function add_pheno!(key::String,
-                    pheno_cfg::PhenoConfig,
-                    genodict::Dict{String, Genotype},
-                    phenodict::Dict{String, Phenotype},)
-    if key ∉ keys(phenodict)
-        geno = genodict[key]
-        pheno = (pheno_cfg)(geno)
-        phenodict[key] = pheno
-    end
-end
-
-
-function Dict{String, Phenotype}(recipes::Set{<:Recipe}, genodict::Dict{String, Genotype},)
-    phenodict = Dict{String, Phenotype}()
-    [add_pheno!(recipe, genodict, phenodict) for recipe in recipes]
-    phenodict
-end
-
-function Set{Mix}(recipes::Set{<:Recipe}, phenodict::Dict{String, Phenotype},)
-    Set([recipe(phenodict) for recipe in recipes])
-end
-
-function Set{Mix}(recipes::Set{<:Recipe},
+function getmixes(recipes::Set{<:Recipe},
                   genodict::Dict{String, Genotype},)
-    phenodict = Dict{String, Phenotype}(recipes, genodict)
-    Set{Mix}(recipes, phenodict)
+    phenodict = makephenodict(recipes, genodict)
+    getmixes(recipes, phenodict)
 end

@@ -1,26 +1,11 @@
-export ScalarResult
 export Outcome
 
-struct ScalarResult{T} <: Result
-    spkey::String
-    iid::Int
-    tkey::String
-    score::T
-end
-
-function ScalarResult(A::Phenotype, B::Phenotype, score::Real)
-    ScalarResult(A.spkey, A.iid, testkey(B), score)
-end
-
-struct Outcome{O <: Observation}
-    rid::UInt64
-    results::Set{ScalarResult}
+struct Outcome{R <: Result, O <: Observation}
+    rid::Int
+    results::Set{R}
     obs::O
 end
 
-struct NullObs <: Observation
-end
-
-function Outcome(rid::UInt64, results::Dict{String, ScalarResult})
+function Outcome(rid::Int, results::Set{<:Result})
     Outcome(rid, results, NullObs())
 end

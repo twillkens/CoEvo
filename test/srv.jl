@@ -1,12 +1,5 @@
-function shufflesrv(x::Vector{String})
-    for i in 1:length(x) - 1
-        if x[i] == ""
-            x[i] = x[i + 1]
-            x[i + 1] = ""
-        end
-    end
-    x
+function makegenodict(allsp::Set{<:GSpecies})
+    Dict([sp.spkey => Dict([indiv.iid => indiv
+        for indiv in union(sp.pop, sp.children)])
+        for sp in allsp])
 end
-
-x = shufflesrv(["", "b", "c"])
-println(x)

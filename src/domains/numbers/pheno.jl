@@ -9,7 +9,9 @@ struct ScalarPheno{T <: Real} <: Phenotype
     val::T
 end
 
-Base.@kwdef struct SumPhenoConfig <: PhenoConfig end
+Base.@kwdef struct SumPhenoConfig <: PhenoConfig
+    role::Symbol
+end
 
 function(::SumPhenoConfig)(geno::VectorGeno)
     val = sum(geno.genes)
@@ -23,6 +25,7 @@ struct VectorPheno{T <: Real} <: Phenotype
 end
 
 Base.@kwdef struct SubvecPhenoConfig <: PhenoConfig
+    role::Symbol
     subvec_width::Int
 end
 
