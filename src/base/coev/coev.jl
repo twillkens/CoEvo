@@ -5,7 +5,7 @@ struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
     key::String
     trial::Int
     rng::AbstractRNG
-    job_cfg::JobConfig
+    jobcfg::JobConfig
     orders::Set{O}
     spawners::Set{S}
     loggers::Set{L}
@@ -15,7 +15,7 @@ end
 function CoevConfig(;
         key::String,
         trial::Int,
-        job_cfg::JobConfig, 
+        jobcfg::JobConfig, 
         orders::Set{<:Order},
         spawners::Set{<:Spawner},
         loggers::Set{<:Logger},
@@ -27,7 +27,7 @@ function CoevConfig(;
     jld2file["trial"] = trial
     jld2file["seed"] = seed
     rng = StableRNG(seed)
-    CoevConfig(key, trial, rng, job_cfg, orders, spawners, loggers, jld2file)
+    CoevConfig(key, trial, rng, jobcfg, orders, spawners, loggers, jld2file)
 end
 
 function make_indivdict(sp::Species)
@@ -47,10 +47,10 @@ end
 
 function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
     results = union([o.results for o in outcomes]...)
-    Dict(sp.spkey => Species(
+    Set(Species(
         sp.spkey,
         makevets(sp.pop, results),
-        Int[i.iid for i in sp.parents],
+        sp.parents,
         makevets(sp.children, results))
     for sp in allsp)
 end
@@ -66,12 +66,11 @@ end
 
 function(c::CoevConfig)(gen::Int, allsp::Set{<:Species})
     recipes = makerecipes(c.orders, allsp)
-
-    work = c.job_cfg(recipes, allsp)
+    work = c.jobcfg(recipes, allsp)
     outcomes = perform(work)
     allvets = makevets(allsp, outcomes)
     gen_species = JLD2.Group(c.jld2file, string(gen))
     gen_species["rng"] = copy(c.rng)
-    [logger(gen_species, allvets) for logger in c.loggers]
-    Set(spawner(gen, allvets[spawner.spkey]) for spawner in c.spawners)
+    [logger(gen_species, allvets, outcomes) for logger in c.loggers]
+    Set(spawner(gen, allvets) for spawner in c.spawners)
 end

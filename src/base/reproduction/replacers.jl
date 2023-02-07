@@ -21,6 +21,9 @@ Base.@kwdef struct GenerationalReplacer <: Replacer
 end
 
 function(r::GenerationalReplacer)(species::Species)
+    if length(species.children) == 0
+        return species.pop
+    end
     n_pop = length(species.pop)
     elites = sort(collect(species.pop),
         by = i -> fitness(i), rev = true)[1:r.n_elite]
@@ -41,6 +44,9 @@ Base.@kwdef struct CommaReplacer <: Replacer
 end
 
 function(r::CommaReplacer)(species::Species)
+    if length(species.children) == 0
+        return species.pop
+    end
     n_pop = length(species.pop)
     pop = collect(values(species.children))
     pop = sort(pop, by = i -> getfitness(i), rev = true)[1:n_pop]

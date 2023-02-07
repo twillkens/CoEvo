@@ -6,7 +6,7 @@ function(r::IdentityMutator)(::Int, children::Vector{<:Individual})
     children
 end
 
-struct BitflipMutator <: Mutator
+Base.@kwdef struct BitflipMutator <: Mutator
     rng::AbstractRNG
     sc::SpawnCounter
     mutrate::Float64
@@ -23,4 +23,8 @@ function(m::BitflipMutator)(indiv::VectorIndiv{ScalarGene{Bool}})
         end
     end
     VectorIndiv(indiv.spkey, indiv.iid, indiv.gen, newgenes, indiv.pids)
+end
+
+function(m::Mutator)(indivs::Set{<:Individual})
+    Set(m(indiv) for indiv in indivs)
 end

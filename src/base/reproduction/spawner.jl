@@ -19,15 +19,20 @@ function(s::Spawner)(gen::Int, sp::Species{<:Veteran})
     parents = s.selector(pop)
     children = s.recombiner(gen, parents)
     for mutator in s.mutators
-        children = mutator(gen, children)
+        children = mutator(children)
     end
-    children
     Species(
         s.spkey,
         Set(vet.indiv for vet in pop),
         [iid(p) for p in parents],
         children)
 end
+
+function(s::Spawner)(gen::Int, allsp::Set{<:Species{<:Veteran}})
+    spd = Dict(sp.spkey => sp for sp in allsp)
+    s(gen, spd[s.spkey])
+end
+
 
 function(s::Spawner)(args...)
     pop = s.icfg(s.n_pop, args...)

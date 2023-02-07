@@ -13,7 +13,6 @@ using AutoHashEquals
 include("abstract/abstract.jl")
 
 const KEY_SPLIT_TOKEN = "-"
-const TestKey = Tuple{String, Int}
 
 include("base/base.jl")
 include("domains/domains.jl")

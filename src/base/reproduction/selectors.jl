@@ -41,6 +41,6 @@ end
 function(s::RouletteSelector)(pop::Set{<:Veteran})
     pop = collect(pop)
     fits = [fitness(vet) for vet in pop]
-    pidxs = roulette(s.rng, μ, fits)
+    pidxs = roulette(s.rng, s.μ, fits)
     [pop[i] for i in pidxs]
 end

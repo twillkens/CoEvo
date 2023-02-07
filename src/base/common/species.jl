@@ -12,6 +12,11 @@ function allindivs(sp::Species)
     union(sp.pop, sp.children)
 end
 
+function allindivs(allsp::Set{<:Species}, spkey::String)
+    spd = Dict(sp.spkey => sp for sp in allsp)
+    allindivs(spd[spkey])
+end
+
 function Species(spkey::String, pop::Set{I}) where {I <: Individual}
     Species(spkey, pop, Int[], Set{I}())
 end

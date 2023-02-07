@@ -24,6 +24,25 @@ function testspawner(rng::AbstractRNG, spkey::String; n_pop = 10, width = 10)
     )
 end
 
+function roulettespawner(rng::AbstractRNG, spkey::String; n_pop = 50, width = 100)
+    sc = SpawnCounter()
+    Spawner(
+        spkey = spkey,
+        n_pop = n_pop,
+        icfg = VectorIndivConfig(
+            spkey = spkey,
+            sc = sc,
+            rng = rng,
+            dtype = Bool,
+            width = width
+        ),
+        replacer = GenerationalReplacer(n_elite = 10),
+        selector =  RouletteSelector(rng = rng, μ = n_pop),
+        recombiner = CloneRecombiner(sc = sc),
+        mutators = [BitflipMutator(rng = rng, sc = sc, mutrate = 0.05)]
+    )
+end
+
 function testorder()
     AllvsAllOrder(
         domain = NGGradient(),
@@ -107,118 +126,6 @@ end
 
 end
 
-@testset "Spawner" begin
-    rng = StableRNG(42)
-    sc = SpawnCounter()
-    spawner = testspawner(rng, "A")
-    species = spawner(false)
-    indivs = sort(collect(species.pop), by = i -> i.iid)
-    @test length(indivs) == 10
-    @test all(["A" == indivs[i].spkey for i in 1:10])
-    @test sum([sum(genotype(indiv).genes) for indiv in values(indivs)]) == 0
-
-    vets = dummyvets(species)
-
-    species = spawner(2, vets)
-    @test length(species.children) == 10
-    @test sort(collect([indiv.iid for indiv in species.children])) == collect(11:20)
-end
-
-@testset "AllvsAllOrder/SerialConfig" begin
-    rng = StableRNG(42)
-
-    spkey = "A"
-    sc = SpawnCounter()
-    spawnerA = testspawner(rng, "A")
-    spawnerB = testspawner(rng, "B")
-
-    speciesA = Species("A", spawnerA.icfg(5, false), spawnerA.icfg(5, true))
-    speciesB = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
-    allsp = Set([speciesA, speciesB])
-    spawners = Set([spawnerA, spawnerB])
-
-    order = testorder()
-    recipes = order(speciesA, speciesB)
-    @test length(recipes) == 100
-    jobcfg = SerialJobConfig()
-    job = jobcfg(allsp, recipes)
-    outcomes = perform(job)
-    @test length(outcomes) == 100
-    allvets = makevets(allsp, outcomes)
-    @test all(fitness(vet) == 5 for vet in allvets["A"].children)
-    @test all(fitness(vet) == 0 for vet in allvets["B"].pop)
-    @test all(fitness(vet) == 5 for vet in allvets["B"].children)
-
-    newsp = spawnerA(2, allvets["A"])
-    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
-    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
-    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
-
-    newsp = spawnerB(2, allvets["B"])
-    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
-    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
-    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
-end
-
-
-@testset "AllvsAllOrder/ParallelJobConfig" begin
-    rng = StableRNG(42)
-
-    spawnerA = testspawner(rng, "A")
-    spawnerB = testspawner(rng, "B")
-    speciesA = Species("A", spawnerA.icfg(5, false), spawnerA.icfg(5, true))
-    speciesB = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
-    allsp = Set([speciesA, speciesB])
-    spawners = Set([spawnerA, spawnerB])
-    order = testorder()
-    recipes = order(allsp)
-    @test length(recipes) == 100
-
-    jobcfg = ParallelJobConfig(n_jobs = 5)
-    jobs = jobcfg(allsp, recipes)
-    @test length(jobs) == 5
-    @test all(length(job.recipes) == 20 for job in jobs)
-    outcomes = union([perform(job) for job in jobs]...)
-    @test length(outcomes) == 100
-    allvets = makevets(allsp, outcomes)
-    @test all(fitness(vet) == 5 for vet in allvets["A"].children)
-    @test all(fitness(vet) == 0 for vet in allvets["B"].pop)
-    @test all(fitness(vet) == 5 for vet in allvets["B"].children)
-
-    newsp = spawnerA(2, allvets["A"])
-    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
-    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
-    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
-
-    newsp = spawnerB(2, allvets["B"])
-    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
-    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
-    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
-end
-
-
-@testset "Outcomes: Vector Pheno" begin
-    rng = StableRNG(123)
-
-    spawnerA = testspawner(rng, "A"; n_pop = 10, width = 100)
-    spawnerB = testspawner(rng, "B"; n_pop = 10, width = 100)
-    speciesA = Species("A", spawnerA.icfg(10, true))
-    speciesB = Species("B", spawnerB.icfg(10, false))
-    allsp = Set([speciesA, speciesB])
-    spawners = Set([spawnerA, spawnerB])
-    order = vecorder()
-    recipes = order(allsp)
-    @test length(recipes) == 100
-
-    jobcfg = SerialJobConfig()
-    work = jobcfg(allsp, recipes)
-    outcomes = perform(work)
-    @test length(outcomes) == 100
-    allvets = makevets(allsp, outcomes)
-    @test sum(fitness(vet) for vet in allindivs(allvets["A"])) == 100
-    @test sum(fitness(vet) for vet in allindivs(allvets["B"])) == 0
-end
-
 @testset "NGGradient" begin
     domain = NGGradient()
     obscfg = NGObsConfig()
@@ -283,75 +190,169 @@ end
 
 end
 
-# @testset "NGRelativism" begin
-#     domain = NGRelativism()
+@testset "NGRelativism" begin
+    domain = NGRelativism()
+    obscfg = NGObsConfig()
 
-#     a = VectorPheno("a", [1, 6])
-#     b = VectorPheno("b", [4, 5])
-#     c = VectorPheno("c", [2, 4])
+    a = VectorPheno("A", 1, [1, 6])
+    b = VectorPheno("B", 1, [4, 5])
+    c = VectorPheno("C", 1, [2, 4])
 
-#     mix = SetMix(1, domain, ScalarOutcome, Dict(:subject => a, :test => b))
-#     o = (mix)()
-#     @test getscore(:subject, o) == true
+    o = stir(Mix(1, domain, obscfg, Dict(:A => a, :B => b)))
+    @test getscore("A", 1, o) == true
 
-#     mix = SetMix(1, domain, ScalarOutcome, Dict(:subject => b, :test => c))
-#     o = (mix)()
-#     @test getscore(:subject, o) == true
+    o = stir(Mix(1, domain, obscfg, Dict(:A => b, :B => c)))
+    @test getscore("B", 1, o) == true
 
-#     mix = SetMix(1, domain, ScalarOutcome, Dict(:subject => c, :test => a))
-#     o = (mix)()
-#     @test getscore(:subject, o) == true
-# end
+    o = stir(Mix(1, domain, obscfg, Dict(:A => c, :B => a)))
+    @test getscore("C", 1, o) == true
+end
 
-# @testset "Roulette/Reproduce/Elitism" begin
-#     rng = StableRNG(123)
-#     winners = Set([BitstringGeno(string("A-", x), ones(Bool, 10), Set{String}()) for x in 1:5])
-#     losers = Set([BitstringGeno(string("A-", x), zeros(Bool, 10), Set{String}()) for x in 6:10])
-#     popA = GenoPop("A", 11, union(winners, losers))
-#     geno_cfg = DefaultBitstringConfig(width=10, default_val=false)
-#     popB = GenoPopConfig(key="B", n_genos=10, geno_cfg=geno_cfg)()
-#     pops = Set([popA, popB])
-#     orderA = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(
-#                 role = :subject,
-#                 phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(
-#                 role = :test,
-#                 phenocfg = IntPhenoConfig()),
-#         ),
-#         subjects_key = "A",
-#         tests_key = "B",
-#         n_samples = 5,
-#         rng = rng)
-#     # orderA = SamplerOrder(domain=domain, outcome=TestPairOutcome, subjects_key="A", subjects_cfg=pheno_cfg,
-#     #                       tests_key="B", tests_cfg=pheno_cfg, n_samples=5, rng=rng)
-#     orders = Set([orderA])
-#     cfg = SerialJobConfig()
-#     job = cfg(orders, pops)
-#     outcomes = Set{Outcome}(job)
-#     selector = RouletteSelector(rng=rng, n_elite=5, n_singles=5, n_couples=0)
-#     selections = (selector)(popA, outcomes)
-#     @test Set(selections.elites) == winners
-#     reproducer = BitstringReproducer(rng, 0.05)
-#     newpop = (reproducer)(GenoPop, popA, outcomes, selections)
-#     @test length(newpop.genos) == 10
-#     flag = true
-#     genokeys = keys(Dict{String, Genotype}(newpop))
-#     for s in [string("A-", x) for x in 1:5]
-#         if s ∉ genokeys
-#             flag = false
-#         end
-#     end
-#     for s in [string("A-", x) for x in 11:15]
-#         if s ∉ genokeys
-#             flag = false
-#         end
-#     end
-#     @test flag
-# end
+@testset "Spawner" begin
+    rng = StableRNG(42)
+    sc = SpawnCounter()
+    spawner = testspawner(rng, "A")
+    species = spawner(false)
+    indivs = sort(collect(species.pop), by = i -> i.iid)
+    @test length(indivs) == 10
+    @test all(["A" == indivs[i].spkey for i in 1:10])
+    @test sum([sum(genotype(indiv).genes) for indiv in values(indivs)]) == 0
+
+    vets = dummyvets(species)
+
+    species = spawner(2, vets)
+    @test length(species.children) == 10
+    @test sort(collect([indiv.iid for indiv in species.children])) == collect(11:20)
+end
+
+@testset "AllvsAllOrder/SerialConfig" begin
+    rng = StableRNG(42)
+
+    spkey = "A"
+    sc = SpawnCounter()
+    spawnerA = testspawner(rng, "A")
+    spawnerB = testspawner(rng, "B")
+
+    speciesA = Species("A", spawnerA.icfg(5, false), spawnerA.icfg(5, true))
+    speciesB = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
+    allsp = Set([speciesA, speciesB])
+    spawners = Set([spawnerA, spawnerB])
+
+    order = testorder()
+    recipes = order(speciesA, speciesB)
+    @test length(recipes) == 100
+    jobcfg = SerialJobConfig()
+    job = jobcfg(allsp, recipes)
+    outcomes = perform(job)
+    @test length(outcomes) == 100
+    allvets = makevets(allsp, outcomes)
+    vetdict = Dict(sp.spkey => sp for sp in allvets)
+    @test all(fitness(vet) == 5 for vet in vetdict["A"].children)
+    @test all(fitness(vet) == 0 for vet in vetdict["B"].pop)
+    @test all(fitness(vet) == 5 for vet in vetdict["B"].children)
+
+    newsp = spawnerA(2, allvets)
+    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
+    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
+    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
+
+    newsp = spawnerB(2, allvets)
+    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
+    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
+    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
+end
+
+
+@testset "AllvsAllOrder/ParallelJobConfig" begin
+    rng = StableRNG(42)
+
+    spawnerA = testspawner(rng, "A")
+    spawnerB = testspawner(rng, "B")
+    speciesA = Species("A", spawnerA.icfg(5, false), spawnerA.icfg(5, true))
+    speciesB = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
+    allsp = Set([speciesA, speciesB])
+    spawners = Set([spawnerA, spawnerB])
+    order = testorder()
+    recipes = order(allsp)
+    @test length(recipes) == 100
+
+    jobcfg = ParallelJobConfig(n_jobs = 5)
+    jobs = jobcfg(allsp, recipes)
+    @test length(jobs) == 5
+    @test all(length(job.recipes) == 20 for job in jobs)
+    outcomes = union([perform(job) for job in jobs]...)
+    @test length(outcomes) == 100
+    allvets = makevets(allsp, outcomes)
+    vetdict = Dict(sp.spkey => sp for sp in allvets)
+    @test all(fitness(vet) == 5 for vet in vetdict["A"].children)
+    @test all(fitness(vet) == 0 for vet in vetdict["B"].pop)
+    @test all(fitness(vet) == 5 for vet in vetdict["B"].children)
+
+    newsp = spawnerA(2, allvets)
+    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
+    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
+    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
+
+    newsp = spawnerB(2, allvets)
+    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
+    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
+    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
+end
+
+
+@testset "Outcomes: Vector Pheno" begin
+    rng = StableRNG(123)
+
+    spawnerA = testspawner(rng, "A"; n_pop = 10, width = 100)
+    spawnerB = testspawner(rng, "B"; n_pop = 10, width = 100)
+    speciesA = Species("A", spawnerA.icfg(10, true))
+    speciesB = Species("B", spawnerB.icfg(10, false))
+    allsp = Set([speciesA, speciesB])
+    spawners = Set([spawnerA, spawnerB])
+    order = vecorder()
+    recipes = order(allsp)
+    @test length(recipes) == 100
+
+    jobcfg = SerialJobConfig()
+    work = jobcfg(allsp, recipes)
+    outcomes = perform(work)
+    @test length(outcomes) == 100
+    allvets = makevets(allsp, outcomes)
+    @test sum(fitness(vet) for vet in allindivs(allvets, "A")) == 100
+    @test sum(fitness(vet) for vet in allindivs(allvets, "B")) == 0
+end
+
+
+@testset "Generational/Roulette/Bitflip" begin
+    rng = StableRNG(42)
+    spawnerA = roulettespawner(rng, "A", n_pop = 50, width = 100)
+    spawnerB = roulettespawner(rng, "B", n_pop = 50, width = 100)
+    spawners = Set([spawnerA, spawnerB])
+    order = testorder()
+    speciesA = spawnerA(false)
+    speciesB = spawnerB(false)
+    
+    allsp = Set([speciesA, speciesB])
+    recipes = order(allsp)
+    @test length(recipes) == 2500
+    jobcfg = SerialJobConfig()
+    work = jobcfg(allsp, recipes)
+    outcomes = perform(work)
+    allvets = makevets(allsp, outcomes)
+    newspA = spawnerA(2, allvets)
+    newspB = spawnerB(2, allvets)
+
+    allsp = Set([newspA, newspB])
+    recipes = order(allsp)
+    @test length(recipes) == 10000
+    work = jobcfg(allsp, recipes)
+    outcomes = perform(work)
+    allvets = makevets(allsp, outcomes)
+    newspA = spawnerA(3, allvets)
+    newspB = spawnerB(3, allvets)
+    @test length(newspA.pop) == 50
+    @test length(newspA.children) == 50
+end
 
 # @testset "Coev" begin
 #     # RNG #
