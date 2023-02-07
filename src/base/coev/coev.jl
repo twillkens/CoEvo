@@ -40,9 +40,14 @@ function makevets(indivs::Set{<:Individual}, allresults::Set{<:Result})
     for indiv in indivs)
 end
 
+function makevets(indivs::Set{<:Individual}, outcomes::Set{<:Outcome})
+    results = union([o.results for o in outcomes]...)
+    makevets(indivs, results)
+end
+
 function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
     results = union([o.results for o in outcomes]...)
-    Dict(sp.spkey => VetSpecies(
+    Dict(sp.spkey => Species(
         sp.spkey,
         makevets(sp.pop, results),
         Int[i.iid for i in sp.parents],

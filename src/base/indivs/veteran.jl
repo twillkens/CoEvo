@@ -2,16 +2,9 @@ export Veteran, VetSpecies
 export dummyvets, clone
 export iid, spkey
 
-struct Veteran{I <: Individual, R <: Result}
+struct Veteran{I <: Individual, R <: Result} <: Individual
     indiv::I
     results::Set{R}
-end
-
-struct VetSpecies{V <: Veteran}
-    spkey::String
-    pop::Set{V}
-    parents::Vector{Int}
-    children::Set{V}
 end
 
 function dummyvets(indivs::Set{<:Individual})
@@ -20,7 +13,7 @@ function dummyvets(indivs::Set{<:Individual})
 end
 
 function dummyvets(sp::Species)
-    VetSpecies(sp.spkey, dummyvets(sp.pop), sp.parents, dummyvets(sp.children))
+    Species(sp.spkey, dummyvets(sp.pop), sp.parents, dummyvets(sp.children))
 end
 
 function clone(iid::Int, gen::Int, parent::Veteran)

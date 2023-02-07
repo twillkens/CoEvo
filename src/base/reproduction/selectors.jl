@@ -1,4 +1,4 @@
-export IdentitySelector, VRouletteSelector
+export IdentitySelector, RouletteSelector
 
 # abstract type Selector end
 struct IdentitySelector <: Selector
@@ -8,9 +8,9 @@ function(s::IdentitySelector)(pop::Set{<:Veteran})
     collect(pop)
 end
 
-Base.@kwdef struct VRouletteSelector <: Selector
-    μ::Int
+Base.@kwdef struct RouletteSelector <: Selector
     rng::AbstractRNG
+    μ::Int
 end
 
 function vroulette(rng::AbstractRNG, n_samples::Int, fitness::Vector{<:Real})
@@ -18,10 +18,29 @@ function vroulette(rng::AbstractRNG, n_samples::Int, fitness::Vector{<:Real})
     sample(rng, 1:length(probs), Weights(probs), n_samples)
 end
 
-function(s::VRouletteSelector)(pop::Set{<:Individual})
-    indivfits = collect(zip(pop, [getfitness(indiv) for indiv in pop]))
-    sort!(indivfits, by = cf -> cf[2], rev = true, alg = Base.Sort.QuickSort)
-    cands, fitnesses = collect(zip(cfits...))
-    parent_idxs = vroulette(s.rng, μ, fitnesses)
-    [cands[i] for i in parent_idxs]
+function pselection(rng::AbstractRNG, μ::Int, prob::Vector{<:Real})
+    cp = cumsum(prob)
+    selected = Array{Int}(undef, μ)
+    for i in 1:μ
+        j = 1
+        r = rand(rng)
+        while cp[j] < r
+            j += 1
+        end
+        selected[i] = j
+    end
+    selected
+end
+
+function roulette(rng::AbstractRNG, μ::Int, fits::Vector{<:Real})
+    absf = abs.(fits)
+    prob = absf./sum(absf)
+    pselection(rng, μ, prob)
+end
+
+function(s::RouletteSelector)(pop::Set{<:Veteran})
+    pop = collect(pop)
+    fits = [fitness(vet) for vet in pop]
+    pidxs = roulette(s.rng, μ, fits)
+    [pop[i] for i in pidxs]
 end

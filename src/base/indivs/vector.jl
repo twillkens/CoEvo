@@ -2,7 +2,7 @@ export VectorIndiv, VectorGeno
 export make_genotype
 export ScalarGene
 export VectorIndivConfig
-export genotype, clone, testkey
+export genotype, clone
 
 Base.@kwdef struct VectorIndivConfig <: IndivConfig
     spkey::String

@@ -5,17 +5,17 @@ include("../src/Coevolutionary.jl")
 using .Coevolutionary
 # include("util.jl")
 
-function testspawner(rng::AbstractRNG, spkey::String)
+function testspawner(rng::AbstractRNG, spkey::String; n_pop = 10, width = 10)
     sc = SpawnCounter()
     Spawner(
         spkey = spkey,
-        n_pop = 10,
+        n_pop = n_pop,
         icfg = VectorIndivConfig(
             spkey = spkey,
             sc = sc,
             rng = rng,
             dtype = Bool,
-            width = 10
+            width = width
         ),
         replacer = TruncationReplacer(),
         selector = IdentitySelector(),
@@ -31,6 +31,17 @@ function testorder()
         phenocfgs = Dict(
             "A" => SumPhenoConfig(role = :A),
             "B" => SumPhenoConfig(role = :B),
+        ),
+    )
+end
+
+function vecorder()
+    AllvsAllOrder(
+        domain = NGFocusing(),
+        obscfg = NGObsConfig(),
+        phenocfgs = Dict(
+            "A" => SubvecPhenoConfig(role = :A, subvec_width = 10),
+            "B" => SubvecPhenoConfig(role = :B, subvec_width = 10),
         ),
     )
 end
@@ -148,7 +159,6 @@ end
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
     @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
-    println("done")
 end
 
 
@@ -185,159 +195,68 @@ end
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
     @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
-    println("done")
 end
 
-# @testset "Outcomes: Int Pheno" begin
-#     rng = StableRNG(123)
-#     geno_cfg = DefaultBitstringConfig(width=10, default_val=true)
-#     popA = GenoPopConfig(key="A", n_genos=10, geno_cfg=geno_cfg)()
-#     geno_cfg = DefaultBitstringConfig(width=10, default_val=false)
-#     popB = GenoPopConfig(key="B", n_genos=10, geno_cfg=geno_cfg)()
-#     pops = Set([popA, popB])
-#     domain = NGGradient()
-#     pheno_cfg = IntPhenoConfig()
-#     orderA = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(role = :subject, phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(role = :test, phenocfg = IntPhenoConfig())
-#         ),
-#         subjects_key = "A",
-#         tests_key = "B",
-#         n_samples = 5,
-#         rng = rng)
-#     orderB = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "B" => PopRole(role = :subject, phenocfg = IntPhenoConfig()),
-#             "A" => PopRole(role = :test, phenocfg = IntPhenoConfig()),
-#         ),
-#         subjects_key = "B",
-#         tests_key = "A",
-#         n_samples = 5,
-#         rng = rng)
-#     orders = Set([orderA, orderB])
-#     cfg = SerialJobConfig()
-#     job = cfg(orders, pops)
-#     outcomes = Set{Outcome}(job)
-#     @test length(outcomes) == 100
-#     flag = true
-#     for outcome in outcomes
-#         for result in outcome.results
-#             if occursin("A", result.key) &&
-#                     result.role == :subject &&
-#                     result.score == 0
-#                 flag = false
-#             end
-#             if occursin("B", result.key) &&
-#                     result.role == :subject &&
-#                     result.score == 1
-#                 flag = false
-#             end
-#         end
-#     end
-#     @test flag
-# end
 
-# @testset "Outcomes: Vector Pheno" begin
-#     rng = StableRNG(123)
-#     geno_cfg = DefaultBitstringConfig(width=10, default_val=true)
-#     popA = GenoPopConfig(key="A", n_genos=10, geno_cfg=geno_cfg)()
-#     geno_cfg = DefaultBitstringConfig(width=10, default_val=false)
-#     popB = GenoPopConfig(key="B", n_genos=10, geno_cfg=geno_cfg)()
-#     pops = Set([popA, popB])
-#     domain = NGGradient()
-#     pheno_cfg = VectorPhenoConfig(subvector_width=10)
-#     orderA = SamplerMixOrder(
-#         domain = NGFocusing(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(
-#                 role = :subject,
-#                 phenocfg = VectorPhenoConfig(subvector_width=10)),
-#             "B" => PopRole(
-#                 role = :test,
-#                 phenocfg = VectorPhenoConfig(subvector_width=10)),
-#         ),
-#         subjects_key = "A",
-#         tests_key = "B",
-#         n_samples = 5,
-#         rng = rng)
-#     orderB = SamplerMixOrder(
-#         domain = NGFocusing(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "B" => PopRole(
-#                 role = :subject,
-#                 phenocfg = VectorPhenoConfig(subvector_width=10)),
-#             "A" => PopRole(
-#                 role = :test,
-#                 phenocfg = VectorPhenoConfig(subvector_width=10)),
-#         ),
-#         subjects_key = "B",
-#         tests_key = "A",
-#         n_samples = 5,
-#         rng = rng)
-#     orders = Set([orderA, orderB])
-#     cfg = SerialJobConfig()
-#     job = cfg(orders, pops)
-#     outcomes = Set{Outcome}(job)
-#     @test length(outcomes) == 100
-#     flag = true
-#     for outcome in outcomes
-#         for result in outcome.results
-#             if occursin("A", result.key) &&
-#                     result.role == :subject &&
-#                     result.score == 0
-#                 flag = false
-#             end
-#             if occursin("B", result.key) &&
-#                     result.role == :subject &&
-#                     result.score == 1
-#                 flag = false
-#             end
-#         end
-#     end
-#     @test flag
-# end
+@testset "Outcomes: Vector Pheno" begin
+    rng = StableRNG(123)
 
-# @testset "NGGradient" begin
-#     domain = NGGradient()
-#     a = IntPheno("a", 4)
-#     b = IntPheno("b", 5)
-#     rolephenos = Dict(:subject => a, :test => b)
-#     mix = SetMix(1, domain, ScalarOutcome, rolephenos)
-#     o = (mix)()
-#     @test getscore("a", o) == false
+    spawnerA = testspawner(rng, "A"; n_pop = 10, width = 100)
+    spawnerB = testspawner(rng, "B"; n_pop = 10, width = 100)
+    speciesA = Species("A", spawnerA.icfg(10, true))
+    speciesB = Species("B", spawnerB.icfg(10, false))
+    allsp = Set([speciesA, speciesB])
+    spawners = Set([spawnerA, spawnerB])
+    order = vecorder()
+    recipes = order(allsp)
+    @test length(recipes) == 100
 
-#     Sₐ = Set([IntPheno(string(x), x) for x in 1:3])
-#     Sᵦ = Set([IntPheno(string(x), x) for x in 6:8])
+    jobcfg = SerialJobConfig()
+    work = jobcfg(allsp, recipes)
+    outcomes = perform(work)
+    @test length(outcomes) == 100
+    allvets = makevets(allsp, outcomes)
+    @test sum(fitness(vet) for vet in allindivs(allvets["A"])) == 100
+    @test sum(fitness(vet) for vet in allindivs(allvets["B"])) == 0
+end
+
+@testset "NGGradient" begin
+    domain = NGGradient()
+    obscfg = NGObsConfig()
+    phenoA = ScalarPheno("A", 1, 4)
+    phenoB = ScalarPheno("B", 1, 5) 
+    phenos = Dict(
+        :A => phenoA,
+        :B => phenoB
+    )
+    mix = Mix(1, domain, obscfg, phenos)
+    o = stir(mix)
+    @test getscore("A", 1, o) == false
+    @test getscore("B", 1, o) == true
+
+    Sₐ = Set(ScalarPheno("C", i, x) for (i, x) in enumerate(1:3))
+    Sᵦ = Set(ScalarPheno("D", i, x) for (i, x) in enumerate(6:8))
     
-#     fitness_a = 0
-#     for other ∈ Sₐ
-#         rolephenos = Dict(:subject => a, :test => other)
-#         mix = SetMix(1, domain, ScalarOutcome, rolephenos)
-#         #mix = PairMix(1, domain, TestPairOutcome, a, other)
-#         o = (mix)()
-#         fitness_a += getscore("a", o)
-#     end
+    fitnessA = 0
+    for other ∈ Sₐ
+        phenos = Dict(:A => phenoA, :B => other)
+        mix = Mix(2, domain, obscfg, phenos)
+        o = stir(mix)
+        fitnessA += getscore("A", 1, o)
+    end
 
-#     @test fitness_a == 3
+    @test fitnessA == 3
 
-#     fitness_b = 0
-#     for other ∈ Sᵦ
-#         rolephenos = Dict(:subject => b, :test => other)
-#         mix = SetMix(1, domain, ScalarOutcome, rolephenos)
-#         #mix = PairMix(1, domain, TestPairOutcome, b, other)
-#         o = (mix)()
-#         fitness_b += getscore(:subject, o)
-#     end
+    fitnessB = 0
+    for other ∈ Sᵦ
+        phenos = Dict(:A => phenoB, :B => other)
+        mix = Mix(3, domain, obscfg, phenos)
+        o = stir(mix)
+        fitnessB += getscore("B", 1, o)
+    end
 
-#     @test fitness_b == 0
-# end
+    @test fitnessB == 0
+end
 
 # @testset "NGFocusing" begin
 #     domain = NGFocusing()

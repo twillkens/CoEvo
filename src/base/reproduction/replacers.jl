@@ -4,13 +4,13 @@ export CommaReplacer
 
 struct IdentityReplacer <: Replacer end
 
-function(r::IdentityReplacer)(sp::VetSpecies)
+function(r::IdentityReplacer)(sp::Species{<:Veteran})
     sp.pop
 end
 
 struct TruncationReplacer <: Replacer end
 
-function(r::TruncationReplacer)(sp::VetSpecies)
+function(r::TruncationReplacer)(sp::Species{<:Veteran})
     n_pop = length(sp.pop)
     pop = collect(union(sp.pop, sp.children))
     Set(sort(pop, by = i -> fitness(i), rev = true)[1:n_pop])
