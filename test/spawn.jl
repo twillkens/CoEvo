@@ -107,7 +107,6 @@ end
 
 end
 
-
 @testset "Spawner" begin
     rng = StableRNG(42)
     sc = SpawnCounter()
@@ -258,33 +257,31 @@ end
     @test fitnessB == 0
 end
 
-# @testset "NGFocusing" begin
-#     domain = NGFocusing()
+@testset "NGFocusing" begin
+    domain = NGFocusing()
+    obscfg = NGObsConfig()
 
-#     a = VectorPheno("a", [4, 16])
-#     b = VectorPheno("b", [5, 14])
+    phenoA = VectorPheno("A", 1, [4, 16])
+    phenoB = VectorPheno("B", 1, [5, 14])
+    phenos = Dict(:A => phenoA, :B => phenoB)
+    mix = Mix(1, domain, obscfg, phenos)
+    o = stir(mix)
+    @test getscore("A", 1, o) == true
 
-#     rolephenos = Dict(:subject => a, :test => b)
-#     mix = SetMix(1, domain, ScalarOutcome, rolephenos)
-#     #mix = PairMix(1, domain, TestPairOutcome, a, b)
-#     o = (mix)()
-#     @test getscore(:subject, o) == true
+    phenoB = VectorPheno("B", 1, [5, 16])
+    phenos = Dict(:A => phenoA, :B => phenoB)
+    mix = Mix(1, domain, obscfg, phenos)
+    o = stir(mix)
+    @test getscore("A", 1, o) == false
 
-#     a = VectorPheno("a", [4, 16])
-#     b = VectorPheno("b", [5, 16])
-#     rolephenos = Dict(:subject => a, :test => b)
-#     mix = SetMix(1, domain, ScalarOutcome, rolephenos)
-#     #mix = PairMix(1, domain, TestPairOutcome, a, b)
-#     o = (mix)()
-#     @test getscore(:subject, o) == false
+    phenoA = VectorPheno("A", 1, [5, 16, 8])
+    phenoB = VectorPheno("B", 1, [4, 16, 6])
+    phenos = Dict(:A => phenoA, :B => phenoB)
+    mix = Mix(1, domain, obscfg, phenos)
+    o = stir(mix)
+    @test getscore("A", 1, o) == true
 
-#     a = VectorPheno("a", [5, 16, 8])
-#     b = VectorPheno("b", [4, 16, 6])
-#     rolephenos = Dict(:subject => a, :test => b)
-#     mix = SetMix(1, domain, ScalarOutcome, rolephenos)
-#     o = (mix)()
-#     @test getscore(:subject, o) == true
-# end
+end
 
 # @testset "NGRelativism" begin
 #     domain = NGRelativism()
