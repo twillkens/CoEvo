@@ -5,6 +5,36 @@ include("../src/Coevolutionary.jl")
 using .Coevolutionary
 # include("util.jl")
 
+function testspawner(rng::AbstractRNG, spkey::String)
+    sc = SpawnCounter()
+    Spawner(
+        spkey = spkey,
+        n_pop = 10,
+        icfg = VectorIndivConfig(
+            spkey = spkey,
+            sc = sc,
+            rng = rng,
+            dtype = Bool,
+            width = 10
+        ),
+        replacer = TruncationReplacer(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(sc = sc),
+        mutators = Mutator[]
+    )
+end
+
+function testorder()
+    AllvsAllOrder(
+        domain = NGGradient(),
+        obscfg = NGObsConfig(),
+        phenocfgs = Dict(
+            "A" => SumPhenoConfig(role = :A),
+            "B" => SumPhenoConfig(role = :B),
+        ),
+    )
+end
+
 @testset "NumbersGame" begin
 @testset "Individual" begin
     rng = StableRNG(42)
@@ -70,23 +100,7 @@ end
 @testset "Spawner" begin
     rng = StableRNG(42)
     sc = SpawnCounter()
-
-    spawner = Spawner(
-        spkey = "A",
-        n_pop = 10,
-        icfg = VectorIndivConfig(
-            spkey = "A",
-            sc = sc,
-            rng = rng,
-            dtype = Bool,
-            width = 10
-        ),
-        replacer = IdentityReplacer(),
-        selector = IdentitySelector(),
-        recombiner = CloneRecombiner(sc = sc),
-        mutators = Mutator[]
-    )
-
+    spawner = testspawner(rng, "A")
     species = spawner(false)
     indivs = sort(collect(species.pop), by = i -> i.iid)
     @test length(indivs) == 10
@@ -100,198 +114,79 @@ end
     @test sort(collect([indiv.iid for indiv in species.children])) == collect(11:20)
 end
 
-@testset "AllvsAllOrder" begin
+@testset "AllvsAllOrder/SerialConfig" begin
     rng = StableRNG(42)
 
     spkey = "A"
     sc = SpawnCounter()
-    spawnerA = Spawner(
-        spkey = spkey,
-        n_pop = 10,
-        icfg = VectorIndivConfig(
-            spkey = spkey,
-            sc = sc,
-            rng = rng,
-            dtype = Bool,
-            width = 10
-        ),
-        replacer = TruncationReplacer(),
-        selector = IdentitySelector(),
-        recombiner = CloneRecombiner(sc = sc),
-        mutators = Mutator[]
-    )
+    spawnerA = testspawner(rng, "A")
+    spawnerB = testspawner(rng, "B")
 
-    spkey = "B"
-    sc = SpawnCounter()
-    spawnerB = Spawner(
-        spkey = spkey,
-        n_pop = 10,
-        icfg = VectorIndivConfig(
-            spkey = spkey,
-            sc = sc,
-            rng = rng,
-            dtype = Bool,
-            width = 10
-        ),
-        replacer = TruncationReplacer(),
-        selector = IdentitySelector(),
-        recombiner = CloneRecombiner(sc = sc),
-        mutators = Mutator[]
-    )
     speciesA = Species("A", spawnerA.icfg(5, false), spawnerA.icfg(5, true))
     speciesB = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
     allsp = Set([speciesA, speciesB])
+    spawners = Set([spawnerA, spawnerB])
 
-    order = AllvsAllOrder(
-        domain = NGGradient(),
-        obscfg = NGObsConfig(),
-        phenocfgs = Dict(
-            "A" => SumPhenoConfig(role = :A),
-            "B" => SumPhenoConfig(role = :B),
-        ),
-    )
+    order = testorder()
     recipes = order(speciesA, speciesB)
     @test length(recipes) == 100
     jobcfg = SerialJobConfig()
-    job = jobcfg(Set([order]), allsp)
+    job = jobcfg(allsp, recipes)
     outcomes = perform(job)
     @test length(outcomes) == 100
     allvets = makevets(allsp, outcomes)
-    println("done")
-    @test all([fitness(vet) == 0 for vet in allvets["A"].pop])
+    @test all(fitness(vet) == 5 for vet in allvets["A"].children)
+    @test all(fitness(vet) == 0 for vet in allvets["B"].pop)
+    @test all(fitness(vet) == 5 for vet in allvets["B"].children)
 
-    # recipe_set = Set{Set{Recipe}}(order, pops, 5)
-    # @test all([length(recipes) == 10 for recipes in recipe_set])
+    newsp = spawnerA(2, allvets["A"])
+    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
+    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
+    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
+
+    newsp = spawnerB(2, allvets["B"])
+    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
+    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
+    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
+    println("done")
 end
 
-# @testset "SamplerOrder/Recipes2" begin
-#     rng = StableRNG(123)
-#     popA = GenoPopConfig(key="A", n_genos=10,
-#                          geno_cfg=DefaultBitstringConfig(width=10, default_val=true))()
-#     popB = GenoPopConfig(key="B", n_genos=10,
-#                          geno_cfg=DefaultBitstringConfig(width=10, default_val=false))()
-#     pops = Set([popA, popB])
-#     order = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(role = :subject, phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(role = :test, phenocfg = IntPhenoConfig())
-#         ),
-#         subjects_key = "A",
-#         tests_key = "B",
-#         n_samples = 1,
-#         rng = rng)
-#     recipes = (order)(pops)
-#     @test length(recipes) == 10
-#     recipe_set = Set{Set{Recipe}}(order, pops, 5)
-#     @test all([length(recipes) == 2 for recipes in recipe_set])
-# end
 
-# @testset "AllvsAllOrder" begin
-#     rng = StableRNG(123)
-#     popA = GenoPopConfig(key="A", n_genos=10,
-#                             geno_cfg=DefaultBitstringConfig(width=10, default_val=true))()
-#     popB = GenoPopConfig(key="B", n_genos=10,
-#                             geno_cfg=DefaultBitstringConfig(width=10, default_val=false))()
-#     pops = Set([popA, popB])
-#     pheno_cfg = IntPhenoConfig()
-#     order = AllvsAllMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(role = :subject, phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(role = :test, phenocfg = IntPhenoConfig()),))
-#     recipes = (order)(pops)
-#     @test length(recipes) == 100
-# end
+@testset "AllvsAllOrder/ParallelJobConfig" begin
+    rng = StableRNG(42)
 
+    spawnerA = testspawner(rng, "A")
+    spawnerB = testspawner(rng, "B")
+    speciesA = Species("A", spawnerA.icfg(5, false), spawnerA.icfg(5, true))
+    speciesB = Species("B", spawnerB.icfg(5, false), spawnerB.icfg(5, true))
+    allsp = Set([speciesA, speciesB])
+    spawners = Set([spawnerA, spawnerB])
+    order = testorder()
+    recipes = order(allsp)
+    @test length(recipes) == 100
 
+    jobcfg = ParallelJobConfig(n_jobs = 5)
+    jobs = jobcfg(allsp, recipes)
+    @test length(jobs) == 5
+    @test all(length(job.recipes) == 20 for job in jobs)
+    outcomes = union([perform(job) for job in jobs]...)
+    @test length(outcomes) == 100
+    allvets = makevets(allsp, outcomes)
+    @test all(fitness(vet) == 5 for vet in allvets["A"].children)
+    @test all(fitness(vet) == 0 for vet in allvets["B"].pop)
+    @test all(fitness(vet) == 5 for vet in allvets["B"].children)
 
-# @testset "ParallelJob" begin
-#     rng = StableRNG(123)
-#     geno_cfg = DefaultBitstringConfig(width=100, default_val=true)
-#     popA = GenoPopConfig(key="A", n_genos=10, geno_cfg=geno_cfg)()
-#     geno_cfg = DefaultBitstringConfig(width=100, default_val=false)
-#     popB = GenoPopConfig(key="B", n_genos=10, geno_cfg=geno_cfg)()
-#     pops = Set([popA, popB])
-#     pheno_cfg = IntPhenoConfig()
-#     orderA = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(role = :subject, phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(role = :test, phenocfg = IntPhenoConfig())
-#         ),
-#         subjects_key = "A",
-#         tests_key = "B",
-#         n_samples = 5,
-#         rng = rng)
-#     orderB = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "B" => PopRole(role = :subject, phenocfg = IntPhenoConfig()),
-#             "A" => PopRole(role = :test, phenocfg = IntPhenoConfig()),
-#         ),
-#         subjects_key = "B",
-#         tests_key = "A",
-#         n_samples = 5,
-#         rng = rng)
-#     orders = Set([orderA, orderB])
-#     cfg = ParallelJobsConfig(n_jobs=5)
-#     jobs = cfg(orders, pops)
-#     @test all([length(job.recipes) == 20 for job in jobs])
-#     flag = true
-#     for job in jobs
-#         for recipe in job.recipes
-#             for key in Set{String}(recipe)
-#                 if key ∉ keys(job.genodict)
-#                     flag = false
-#                 end
-#             end
-#         end
-#     end
-#     @test flag
-# end
+    newsp = spawnerA(2, allvets["A"])
+    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
+    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
+    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
 
-# @testset "Phenotypes" begin
-#     geno = DefaultBitstringConfig(width=100, default_val=true)("test")
-
-#     pheno_cfg = IntPhenoConfig()
-#     pheno = pheno_cfg(geno)
-#     @test typeof(pheno) == IntPheno
-#     @test pheno.traits == 100
-
-#     pheno_cfg = VectorPhenoConfig(subvector_width=10)
-#     pheno = pheno_cfg(geno)
-#     @test length(pheno.traits) == 10
-#     @test sum([sum(subv) for subv in pheno.traits]) == 100
-# end
-
-# @testset "Mixes" begin
-#     rng = StableRNG(123)
-#     geno_cfg = DefaultBitstringConfig(width=10, default_val=true)
-#     popA = GenoPopConfig(key="A", n_genos=10, geno_cfg=geno_cfg)()
-#     geno_cfg = DefaultBitstringConfig(width=10, default_val=false)
-#     popB = GenoPopConfig(key="B", n_genos=10, geno_cfg=geno_cfg)()
-#     pops = Set([popA, popB])
-#     orderA = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(role = :subject, phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(role = :test, phenocfg = IntPhenoConfig())
-#         ),
-#         subjects_key = "A",
-#         tests_key = "B",
-#         n_samples = 5,
-#         rng = rng)
-#     cfg = SerialJobConfig()
-#     job = cfg(Set([orderA]), pops)
-#     mixes = Set{Mix}(job)
-#     @test length(job.recipes) == length(mixes)
-# end
+    newsp = spawnerB(2, allvets["B"])
+    @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
+    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
+    @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
+    println("done")
+end
 
 # @testset "Outcomes: Int Pheno" begin
 #     rng = StableRNG(123)

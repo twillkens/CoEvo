@@ -12,15 +12,15 @@ struct BitflipMutator <: Mutator
     mutrate::Float64
 end
 
-function(m::BitflipMutator)(indiv::VectorIndiv)
+function(m::BitflipMutator)(indiv::VectorIndiv{ScalarGene{Bool}})
     newgenes = ScalarGene{Bool}[]
     for gene in indiv.genes
         if rand(m.rng) < m.mutrate
-            newgene = ScalarGene(gid!(m.sc), indiv.iid, indiv.gen, !gene.val)
+            newgene = ScalarGene(indiv.spkey, gid!(m.sc), indiv.iid, indiv.gen, !gene.val)
             push!(newgenes, newgene)
         else
             push!(newgenes, gene)
         end
     end
-    VectorIndiv(indiv.spkey, indiv.iid, indiv.gen, newgenes, indiv.pids, indiv.outcomes)
+    VectorIndiv(indiv.spkey, indiv.iid, indiv.gen, newgenes, indiv.pids)
 end

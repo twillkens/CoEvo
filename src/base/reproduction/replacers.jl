@@ -13,7 +13,7 @@ struct TruncationReplacer <: Replacer end
 function(r::TruncationReplacer)(sp::VetSpecies)
     n_pop = length(sp.pop)
     pop = collect(union(sp.pop, sp.children))
-    Set(sort(pop, by = i -> getfitness(i), rev = true)[1:n_pop])
+    Set(sort(pop, by = i -> fitness(i), rev = true)[1:n_pop])
 end
 
 Base.@kwdef struct GenerationalReplacer <: Replacer

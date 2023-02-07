@@ -11,7 +11,8 @@ struct NGObs <: Observation
 end
 
 function stir(
-    rid::Int, ::NGControl, ::NGObsConfig; A::Phenotype, B::Phenotype
+    rid::Int, ::NGControl, ::NGObsConfig;
+    A::Phenotype, B::Phenotype
 )
     r1 = ScalarResult(A, B, true)
     r2 = ScalarResult(B, A, true)
@@ -19,12 +20,12 @@ function stir(
 end
 
 function stir(
-    rid::Int, ::NGGradient, ::NGObsConfig; A::ScalarPheno, B::ScalarPheno
+    rid::Int, ::NGGradient, ::NGObsConfig;
+    A::ScalarPheno, B::ScalarPheno
 )
-    result = A.val > B.val
-    r1 = ScalarResult(A, B, result)
-    r2 = ScalarResult(B, A, !result)
-    Outcome(rid, Set([r1, r2]))
+    r1 = ScalarResult(A, B, A.val > B.val)
+    r2 = ScalarResult(B, A, B.val > A.val)
+    Outcome(rid, r1, r2)
 end
 
 
@@ -34,21 +35,21 @@ function stir(
 )
     v1, v2 = A.vec, B.vec
     maxdiff, idx = findmax([abs(x1 - x2) for (x1, x2) in zip(v1, v2)])
-    result = v1[idx] > v2[idx]
-    r1 = ScalarResult(A, B, result)
-    r2 = ScalarResult(B, A, !result)
-    Outcome(rid, Set([r1, r2]), NGObs(A, B, maxdiff, idx))
+    r1 = ScalarResult(A, B, v1[idx] > v2[idx])
+    r2 = ScalarResult(B, A, v2[idx] > v1[idx])
+    obs = NGObs(A, B, maxdiff, idx)
+    Outcome(rid, r1, r2, obs)
 end
 
 function stir(
     rid::Int, ::NGRelativism, ::NGObsConfig;
     A::VectorPheno, B::VectorPheno
 )
-    v1, v2 = subject.traits, test.traits
+    v1, v2 = A.vec, B.vec
     maxdiff, idx = findmin([abs(x1 - x2) for (x1, x2) in zip(v1, v2)])
-    result = v1[idx] > v2[idx]
-    r1 = ScalarResult(A, B, result)
-    r2 = ScalarResult(B, A, !result)
-    Outcome(rid, Set([r1, r2]), NGObs(A, B, maxdiff, idx))
+    r1 = ScalarResult(A, B, v1[idx] > v2[idx])
+    r2 = ScalarResult(B, A, v2[idx] > v1[idx])
+    obs = NGObs(A, B, maxdiff, idx)
+    Outcome(rid, r1, r2, obs)
 end
 

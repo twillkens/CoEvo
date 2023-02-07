@@ -25,9 +25,3 @@ function getmixes(
 {I <: Ingredient, P <: Phenotype}
     Set(r(phenodict) for r in recipes)
 end
-
-function getmixes(recipes::Set{<:Recipe},
-                  genodict::Dict{String, Genotype},)
-    phenodict = makephenodict(recipes, genodict)
-    getmixes(recipes, phenodict)
-end

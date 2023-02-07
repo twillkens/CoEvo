@@ -14,7 +14,6 @@ struct VetSpecies{V <: Veteran}
     children::Set{V}
 end
 
-
 function dummyvets(indivs::Set{<:Individual})
     Set(Veteran(indiv, Set([ScalarResult(indiv.spkey, indiv.iid, "dummy", 1)]))
     for indiv in indivs)

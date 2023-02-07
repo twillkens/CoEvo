@@ -20,7 +20,8 @@ function CoevConfig(;
         spawners::Set{<:Spawner},
         loggers::Set{<:Logger},
         logpath::String = "log.jld2",
-        seed::UInt64 = rand(UInt64))
+        seed::UInt64 = rand(UInt64)
+        )
     jld2file = jldopen(logpath, "w")
     jld2file["key"] = key
     jld2file["trial"] = trial
@@ -49,13 +50,23 @@ function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
     for sp in allsp)
 end
 
+function checkcache(cache::Dict{Recipe, Outcome}, recipes::Set{<:Recipe})
+    cache = filter(((k,v),) -> k ∈ recipes, cache)
+    for r in recipes
+        if r in keys(cache)
+
+        end
+    end
+end
+
 function(c::CoevConfig)(gen::Int, allsp::Set{<:Species})
     recipes = makerecipes(c.orders, allsp)
-    jobs = c.job_cfg(recipes, allsp)
-    outcomes = perform(jobs)
+
+    work = c.job_cfg(recipes, allsp)
+    outcomes = perform(work)
     allvets = makevets(allsp, outcomes)
     gen_species = JLD2.Group(c.jld2file, string(gen))
     gen_species["rng"] = copy(c.rng)
     [logger(gen_species, allvets) for logger in c.loggers]
-    [spawner(gen, allvets[spawner.spkey]) for spawner in c.spawners]
+    Set(spawner(gen, allvets[spawner.spkey]) for spawner in c.spawners)
 end
