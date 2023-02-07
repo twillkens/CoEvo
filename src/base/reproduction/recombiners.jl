@@ -4,7 +4,7 @@ export CloneRecombiner
 Base.@kwdef struct IdentityRecombiner <: Recombiner end
 
 
-function(r::IdentityRecombiner)(::Int, parents::Vector{<:Veteran})
+function(r::IdentityRecombiner)(::UInt16, parents::Vector{<:Veteran})
     Set(parents)
 end
 
@@ -12,7 +12,7 @@ Base.@kwdef struct CloneRecombiner <: Recombiner
     sc::SpawnCounter
 end
 
-function(r::CloneRecombiner)(gen::Int, parents::Vector{<:Veteran})
+function(r::CloneRecombiner)(gen::UInt16, parents::Vector{<:Veteran})
     Set(clone(iid, gen, p)
     for (iid, p) in zip(iids!(r.sc, length(parents)), parents))
 end

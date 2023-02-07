@@ -2,10 +2,14 @@ export Mix
 export stir, getmixes
 
 struct Mix{D <: Domain, O <: ObsConfig, P <: Phenotype}
-    rid::Int
+    rid::UInt64
     domain::D
     obscfg::O
     phenos::Dict{Symbol, P}
+end
+
+function Mix(domain::Domain, obscfg::ObsConfig, phenos::Dict{Symbol, <:Phenotype})
+    Mix(UInt64(0), domain, obscfg, phenos)
 end
 
 function stir(m::Mix)

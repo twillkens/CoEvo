@@ -11,8 +11,8 @@ function(o::AllvsAllOrder)(sp1::Species, sp2::Species)
     i2 = ingredients(o, sp2)
     ingredpairs = unique(Set, Iterators.filter(allunique,
                    Iterators.product(i1, i2)))
-    Set([Recipe(mixn, o, Set(ipair))
-        for (mixn, ipair) in enumerate(ingredpairs)])
+    Set(Recipe(o, Set(ipair)) for ipair in ingredpairs)
+        
 end
 
 function(o::AllvsAllOrder)(allsp::Set{<:Species})

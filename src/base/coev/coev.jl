@@ -10,24 +10,26 @@ struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
     spawners::Set{S}
     loggers::Set{L}
     jld2file::JLD2.JLDFile
+    cache::Dict{UInt64, Outcome}
 end
 
 function CoevConfig(;
         key::String,
         trial::Int,
+        seed::UInt64,
+        rng::AbstractRNG,
         jobcfg::JobConfig, 
         orders::Set{<:Order},
         spawners::Set{<:Spawner},
         loggers::Set{<:Logger},
         logpath::String = "log.jld2",
-        seed::UInt64 = rand(UInt64)
         )
     jld2file = jldopen(logpath, "w")
     jld2file["key"] = key
     jld2file["trial"] = trial
     jld2file["seed"] = seed
-    rng = StableRNG(seed)
-    CoevConfig(key, trial, rng, jobcfg, orders, spawners, loggers, jld2file)
+    CoevConfig(key, trial, rng, jobcfg, orders, spawners,
+        loggers, jld2file, Dict{UInt64, Outcome}())
 end
 
 function make_indivdict(sp::Species)
@@ -55,22 +57,31 @@ function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
     for sp in allsp)
 end
 
-function checkcache(cache::Dict{Recipe, Outcome}, recipes::Set{<:Recipe})
-    cache = filter(((k,v),) -> k ∈ recipes, cache)
-    for r in recipes
-        if r in keys(cache)
-
-        end
-    end
+function prune!(cache::Dict{UInt64, Outcome}, recipes::Set{<:Recipe})
+    rids = Set(r.rid for r in recipes)
+    filter!(((rid, _),) -> rid ∈ rids, cache)
 end
 
-function(c::CoevConfig)(gen::Int, allsp::Set{<:Species})
+function update!(cache::Dict{UInt64, Outcome}, outcomes::Set{<:Outcome})
+    merge!(cache, Dict(o.rid => o for o in outcomes))
+end
+
+function(c::CoevConfig)(gen::UInt16, allsp::Set{<:Species})
     recipes = makerecipes(c.orders, allsp)
-    work = c.jobcfg(recipes, allsp)
-    outcomes = perform(work)
+    prune!(c.cache, recipes)
+    cached_outcomes = Set(values(c.cache))
+    work = c.jobcfg(allsp, recipes)
+    work_outcomes = perform(work)
+    update!(c.cache, work_outcomes)
+    outcomes = union(cached_outcomes, work_outcomes)
     allvets = makevets(allsp, outcomes)
     gen_species = JLD2.Group(c.jld2file, string(gen))
     gen_species["rng"] = copy(c.rng)
-    [logger(gen_species, allvets, outcomes) for logger in c.loggers]
+    obs = Set(o.obs for o in outcomes)
+    [logger(gen_species, allvets, obs) for logger in c.loggers]
     Set(spawner(gen, allvets) for spawner in c.spawners)
+end
+
+function(c::CoevConfig)()
+    Set(spawner() for spawner in c.spawners)
 end

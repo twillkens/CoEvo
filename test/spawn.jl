@@ -69,23 +69,23 @@ end
 @testset "Individual" begin
     rng = StableRNG(42)
     # genome initialization with default value 0
-    indiv = VectorIndiv("A", 1, collect(1:5), fill(false, 5))
+    indiv = VectorIndiv("A", UInt32(1), collect(UInt32, 1:5), fill(false, 5))
     @test typeof(indiv) == VectorIndiv{ScalarGene{Bool}}
     @test indiv.iid == 1
-    @test [g.gid for g in indiv.genes] == collect(1:5)
-    @test [g.iid for g in indiv.genes] == fill(1, 5)
+    @test [g.gid for g in indiv.genes] == collect(UInt32, 1:5)
+    @test [g.iid for g in indiv.genes] == fill(UInt32(1), 5)
     @test [g.val for g in indiv.genes] == fill(false, 5)
-    @test [g.gen for g in indiv.genes] == fill(1, 5)
+    @test [g.gen for g in indiv.genes] == fill(UInt16(1), 5)
     @test genotype(indiv).genes == fill(false, 5)
 
     # genome initialization with default value 1
-    indiv = VectorIndiv("A", 2, collect(6:10), fill(true, 5))
+    indiv = VectorIndiv("A", UInt32(2), collect(UInt32, 6:10), fill(true, 5))
     @test typeof(indiv) == VectorIndiv{ScalarGene{Bool}}
     @test indiv.iid == 2
-    @test [g.gid for g in indiv.genes] == collect(6:10)
-    @test [g.iid for g in indiv.genes] == fill(2, 5)
+    @test [g.gid for g in indiv.genes] == collect(UInt32, 6:10)
+    @test [g.iid for g in indiv.genes] == fill(UInt32(2), 5)
     @test [g.val for g in indiv.genes] == fill(true, 5)
-    @test [g.gen for g in indiv.genes] == fill(1, 5)
+    @test [g.gen for g in indiv.genes] == fill(UInt16(1), 5)
     @test genotype(indiv).genes == fill(true, 5)
 
 end
@@ -129,26 +129,26 @@ end
 @testset "NGGradient" begin
     domain = NGGradient()
     obscfg = NGObsConfig()
-    phenoA = ScalarPheno("A", 1, 4)
-    phenoB = ScalarPheno("B", 1, 5) 
+    phenoA = ScalarPheno("A", UInt32(1), 4)
+    phenoB = ScalarPheno("B", UInt32(1), 5) 
     phenos = Dict(
         :A => phenoA,
         :B => phenoB
     )
-    mix = Mix(1, domain, obscfg, phenos)
+    mix = Mix(domain, obscfg, phenos)
     o = stir(mix)
-    @test getscore("A", 1, o) == false
-    @test getscore("B", 1, o) == true
+    @test getscore("A", UInt32(1), o) == false
+    @test getscore("B", UInt32(1), o) == true
 
-    Sₐ = Set(ScalarPheno("C", i, x) for (i, x) in enumerate(1:3))
-    Sᵦ = Set(ScalarPheno("D", i, x) for (i, x) in enumerate(6:8))
+    Sₐ = Set(ScalarPheno("C", UInt32(i), x) for (i, x) in enumerate(1:3))
+    Sᵦ = Set(ScalarPheno("D", UInt32(i), x) for (i, x) in enumerate(6:8))
     
     fitnessA = 0
     for other ∈ Sₐ
         phenos = Dict(:A => phenoA, :B => other)
-        mix = Mix(2, domain, obscfg, phenos)
+        mix = Mix(domain, obscfg, phenos)
         o = stir(mix)
-        fitnessA += getscore("A", 1, o)
+        fitnessA += getscore("A", UInt32(1), o)
     end
 
     @test fitnessA == 3
@@ -156,9 +156,9 @@ end
     fitnessB = 0
     for other ∈ Sᵦ
         phenos = Dict(:A => phenoB, :B => other)
-        mix = Mix(3, domain, obscfg, phenos)
+        mix = Mix(domain, obscfg, phenos)
         o = stir(mix)
-        fitnessB += getscore("B", 1, o)
+        fitnessB += getscore("B", UInt32(1), o)
     end
 
     @test fitnessB == 0
@@ -168,25 +168,25 @@ end
     domain = NGFocusing()
     obscfg = NGObsConfig()
 
-    phenoA = VectorPheno("A", 1, [4, 16])
-    phenoB = VectorPheno("B", 1, [5, 14])
+    phenoA = VectorPheno("A", UInt32(1), [4, 16])
+    phenoB = VectorPheno("B", UInt32(1), [5, 14])
     phenos = Dict(:A => phenoA, :B => phenoB)
-    mix = Mix(1, domain, obscfg, phenos)
+    mix = Mix(domain, obscfg, phenos)
     o = stir(mix)
-    @test getscore("A", 1, o) == true
+    @test getscore("A", UInt32(1), o) == true
 
-    phenoB = VectorPheno("B", 1, [5, 16])
+    phenoB = VectorPheno("B", UInt32(1), [5, 16])
     phenos = Dict(:A => phenoA, :B => phenoB)
-    mix = Mix(1, domain, obscfg, phenos)
+    mix = Mix(domain, obscfg, phenos)
     o = stir(mix)
-    @test getscore("A", 1, o) == false
+    @test getscore("A", UInt32(1), o) == false
 
-    phenoA = VectorPheno("A", 1, [5, 16, 8])
-    phenoB = VectorPheno("B", 1, [4, 16, 6])
+    phenoA = VectorPheno("A", UInt32(1), [5, 16, 8])
+    phenoB = VectorPheno("B", UInt32(1), [4, 16, 6])
     phenos = Dict(:A => phenoA, :B => phenoB)
-    mix = Mix(1, domain, obscfg, phenos)
+    mix = Mix(domain, obscfg, phenos)
     o = stir(mix)
-    @test getscore("A", 1, o) == true
+    @test getscore("A", UInt32(1), o) == true
 
 end
 
@@ -194,18 +194,18 @@ end
     domain = NGRelativism()
     obscfg = NGObsConfig()
 
-    a = VectorPheno("A", 1, [1, 6])
-    b = VectorPheno("B", 1, [4, 5])
-    c = VectorPheno("C", 1, [2, 4])
+    a = VectorPheno("A", UInt32(1), [1, 6])
+    b = VectorPheno("B", UInt32(1), [4, 5])
+    c = VectorPheno("C", UInt32(1), [2, 4])
 
-    o = stir(Mix(1, domain, obscfg, Dict(:A => a, :B => b)))
-    @test getscore("A", 1, o) == true
+    o = stir(Mix(domain, obscfg, Dict(:A => a, :B => b)))
+    @test getscore("A", UInt32(1), o) == true
 
-    o = stir(Mix(1, domain, obscfg, Dict(:A => b, :B => c)))
-    @test getscore("B", 1, o) == true
+    o = stir(Mix(domain, obscfg, Dict(:A => b, :B => c)))
+    @test getscore("B", UInt32(1), o) == true
 
-    o = stir(Mix(1, domain, obscfg, Dict(:A => c, :B => a)))
-    @test getscore("C", 1, o) == true
+    o = stir(Mix(domain, obscfg, Dict(:A => c, :B => a)))
+    @test getscore("C", UInt32(1), o) == true
 end
 
 @testset "Spawner" begin
@@ -220,7 +220,7 @@ end
 
     vets = dummyvets(species)
 
-    species = spawner(2, vets)
+    species = spawner(UInt16(2), vets)
     @test length(species.children) == 10
     @test sort(collect([indiv.iid for indiv in species.children])) == collect(11:20)
 end
@@ -251,12 +251,12 @@ end
     @test all(fitness(vet) == 0 for vet in vetdict["B"].pop)
     @test all(fitness(vet) == 5 for vet in vetdict["B"].children)
 
-    newsp = spawnerA(2, allvets)
+    newsp = spawnerA(UInt16(2), allvets)
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
     @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
 
-    newsp = spawnerB(2, allvets)
+    newsp = spawnerB(UInt16(2), allvets)
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
     @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
@@ -288,12 +288,12 @@ end
     @test all(fitness(vet) == 0 for vet in vetdict["B"].pop)
     @test all(fitness(vet) == 5 for vet in vetdict["B"].children)
 
-    newsp = spawnerA(2, allvets)
+    newsp = spawnerA(UInt16(2), allvets)
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
     @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
 
-    newsp = spawnerB(2, allvets)
+    newsp = spawnerB(UInt16(2), allvets)
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
     @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
@@ -339,8 +339,8 @@ end
     work = jobcfg(allsp, recipes)
     outcomes = perform(work)
     allvets = makevets(allsp, outcomes)
-    newspA = spawnerA(2, allvets)
-    newspB = spawnerB(2, allvets)
+    newspA = spawnerA(UInt16(2), allvets)
+    newspB = spawnerB(UInt16(2), allvets)
 
     allsp = Set([newspA, newspB])
     recipes = order(allsp)
@@ -348,90 +348,38 @@ end
     work = jobcfg(allsp, recipes)
     outcomes = perform(work)
     allvets = makevets(allsp, outcomes)
-    newspA = spawnerA(3, allvets)
-    newspB = spawnerB(3, allvets)
+    newspA = spawnerA(UInt16(3), allvets)
+    newspB = spawnerB(UInt16(3), allvets)
     @test length(newspA.pop) == 50
     @test length(newspA.children) == 50
 end
 
-# @testset "Coev" begin
-#     # RNG #
-#     coev_key = "NG: Control"
-#     trial = 1
-#     rng = StableRNG(123)
+@testset "Coev" begin
+    # RNG #
+    coev_key = "NG: Gradient"
+    trial = 1
+    seed = UInt64(42)
+    rng = StableRNG(seed)
 
-#     ## Populations ##
-#     width = 100
-#     n_genos = 25
-#     popA = GenoPopConfig(
-#         key="A", n_genos=n_genos,
-#         geno_cfg=DefaultBitstringConfig(width=width, default_val=true))()
-#     popB = GenoPopConfig(
-#         key="B", n_genos=n_genos,
-#         geno_cfg=DefaultBitstringConfig(width=width, default_val=false))()
-#     pops = Set([popA, popB])
-
-#     ## Job ##
-#     job_cfg = SerialJobConfig()
-
-#     orderA = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(
-#                 role = :subject,
-#                 phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(
-#                 role = :test,
-#                 phenocfg = IntPhenoConfig()),
-#         ),
-#         subjects_key = "A",
-#         tests_key = "B",
-#         n_samples = 15,
-#         rng = rng)
-#     orderB = SamplerMixOrder(
-#         domain = NGGradient(),
-#         outcome = ScalarOutcome,
-#         poproles = Dict(
-#             "A" => PopRole(
-#                 role = :test,
-#                 phenocfg = IntPhenoConfig()),
-#             "B" => PopRole(
-#                 role = :subject,
-#                 phenocfg = IntPhenoConfig()),
-#         ),
-#         subjects_key = "B",
-#         tests_key = "A",
-#         n_samples = 15,
-#         rng = rng)
-#     orders = Set([orderA, orderB])
-
-#     ## Spawners ##
-#     mutrate = 0.05
-#     selectorA = RouletteSelector(rng=rng, n_elite=0, n_singles=n_genos, n_couples=0)
-#     reproducerA = BitstringReproducer(rng=rng, mutrate=mutrate)
-#     spawnerA = Spawner("A", selectorA, reproducerA, GenoPop)
-#     selectorB = RouletteSelector(rng=rng, n_elite=0, n_singles=n_genos, n_couples=0)
-#     reproducerB = BitstringReproducer(rng=rng, mutrate=mutrate)
-#     spawnerB = Spawner("B", selectorB, reproducerB, GenoPop)
-#     spawners = Set([spawnerA, spawnerB])
-
-#     ## Loggers ##
-#     loggers = Set([BasicGeneLogger("A"), FitnessLogger("A"),
-#                    BasicGeneLogger("B"), FitnessLogger("B")])
-#     coev_cfg = CoevConfig(;
-#         key=coev_key,
-#         trial=trial,
-#         job_cfg=job_cfg,
-#         orders=orders, 
-#         spawners=spawners,
-#         loggers=loggers,)
-#     gen = 1
-#     while gen < 200
-#         gen += 1
-#         pops = coev_cfg(gen, pops)
-#     end
-# end
+    coev_cfg = CoevConfig(;
+        key = "Coev Test",
+        trial = 1,
+        seed = seed,
+        rng = rng,
+        jobcfg = SerialJobConfig(),
+        orders = Set([testorder()]), 
+        spawners = Set([
+            testspawner(rng, "A", n_pop = 50, width = 100),
+            testspawner(rng, "B", n_pop = 50, width = 100),
+        ]),
+        loggers = Set([SpeciesLogger()]))
+    gen = UInt16(1)
+    allsp = coev_cfg()
+    while gen < 200
+        allsp = coev_cfg(gen, allsp)
+        gen += UInt16(1)
+    end
+end
 
 
 

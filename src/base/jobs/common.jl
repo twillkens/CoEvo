@@ -14,7 +14,7 @@ function makeallgenos(allsp::Set{<:Species})
 end
 
 function makegenodict(
-    allgenos::Dict{Tuple{String, Int}, G}, recipes::Set{<:Recipe}) where {G <: Genotype
+    allgenos::Dict{Tuple{String, UInt32}, G}, recipes::Set{<:Recipe}) where {G <: Genotype
 }
     Dict(ingred => allgenos[(ingred.spkey, ingred.iid)]
     for ingred in union([recipe.ingredients for recipe in recipes]...))

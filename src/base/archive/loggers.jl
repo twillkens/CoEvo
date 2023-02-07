@@ -1,8 +1,10 @@
 export FitnessLogger
 export BasicGeneLogger
 export StatFeatures
+export SpeciesLogger
 
 Base.@kwdef struct StatFeatures
+    sum::Float64
     mean::Float64
     variance::Float64
     std::Float64
@@ -27,11 +29,14 @@ function StatFeatures(vec::Vector{<:Real})
     )
 end
 
+struct SpeciesLogger <: Logger
+end
+
 struct FitnessLogger <: Logger
     key::String
 end
 
-struct BasicGeneLogger <: Logger
+struct GeneLogger <: Logger
     key::String
 end
 
@@ -44,32 +49,34 @@ end
 #     geno_group["genes"] = geno.genes
 #     geno_group["gene_stats"] = StatFeatures(geno.genes)
 # end
-# 
+
 # function(l::BasicGeneLogger)(gen_group::JLD2.Group, pop::Population, ::Set{<:Outcome})
 #     pop_group = make_group!(gen_group, pop.key) 
 #     [l(pop_group, geno) for geno in pop.genos]
 # end
-# 
+
 # function(l::FitnessLogger)(pop_group::JLD2.Group, geno::Genotype, scorevec::Vector{Float64})
 #     geno_group = make_group!(pop_group, geno.key)
 #     geno_group["fitness_stats"] = StatFeatures(scorevec)
 # end
-# 
-# function(l::FitnessLogger)(gen_group::JLD2.Group, pop::Population, outcomes::Set{<:Outcome})
-#     pop_group = make_group!(gen_group, pop.key) 
-#     scorevec_dict = Dict{String, Vector{Float64}}(outcomes)
+
+# function(l::FitnessLogger)(gen_group::JLD2.Group, sp::Species{<:Veteran}, ::Set{<:Outcome})
+#     sp_group = make_group!(gen_group, sp.spkey) 
 #     [l(pop_group, geno, scorevec_dict[geno.key]) for geno in pop.genos]
 # end
-# 
-# function(l::Logger)(pops_group::JLD2.Group, pop::Population, outcomes::Set{<:Outcome})
-#     pop_group = make_group!(pops_group, pop.key) 
-#     [l(pop_group, geno, outcomes) for geno in pop.genos]
+
+# function(l::Logger)(allsp_group::JLD2.Group, sp::Species{<:Veteran}, outcomes::Set{<:Outcome})
+#     sp_group = make_group!(allsp_group, sp.key) 
+#     [l(sp_group, geno, outcomes) for geno in pop.genos]
 # end
-# 
-# function(l::Logger)(gen_group::JLD2.Group, pops::Set{<:Population}, outcomes::Set{<:Outcome})
-#     pops_group = make_group!(gen_group, "pops")
-#     popdict = Dict{String, Population}(pops)
-#     pop = popdict[l.key]
-#     l(pops_group, pop, outcomes)
+
+# function(l::Logger)(gen_group::JLD2.Group, allsp::Set{Species{<:Veteran}}, outcomes::Set{<:Outcome})
+#     allsp_group = make_group!(gen_group, "species")
+#     [l(allsp_group, sp, outcomes) for sp in allsp]
 # end
-# 
+function(l::SpeciesLogger)(gen_group::JLD2.Group, allsp::Set{<:Species}, ::Set{<:Observation})
+    allsp_group = make_group!(gen_group, "species")
+    for sp in allsp
+        allsp_group[sp.spkey] = sp
+    end
+end

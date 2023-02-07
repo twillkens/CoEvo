@@ -11,7 +11,7 @@ struct NGObs <: Observation
 end
 
 function stir(
-    rid::Int, ::NGControl, ::NGObsConfig;
+    rid::UInt64, ::NGControl, ::NGObsConfig;
     A::Phenotype, B::Phenotype
 )
     r1 = ScalarResult(A, B, true)
@@ -20,7 +20,7 @@ function stir(
 end
 
 function stir(
-    rid::Int, ::NGGradient, ::NGObsConfig;
+    rid::UInt64, ::NGGradient, ::NGObsConfig;
     A::ScalarPheno, B::ScalarPheno
 )
     r1 = ScalarResult(A, B, A.val > B.val)
@@ -30,7 +30,7 @@ end
 
 
 function stir(
-    rid::Int, ::NGFocusing, ::NGObsConfig;
+    rid::UInt64, ::NGFocusing, ::NGObsConfig;
     A::VectorPheno, B::VectorPheno
 )
     v1, v2 = A.vec, B.vec
@@ -42,7 +42,7 @@ function stir(
 end
 
 function stir(
-    rid::Int, ::NGRelativism, ::NGObsConfig;
+    rid::UInt64, ::NGRelativism, ::NGObsConfig;
     A::VectorPheno, B::VectorPheno
 )
     v1, v2 = A.vec, B.vec

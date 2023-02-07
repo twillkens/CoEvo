@@ -4,7 +4,7 @@ export allindivs
 struct Species{I <: Individual}
     spkey::String
     pop::Set{I}
-    parents::Vector{Int}
+    parents::Vector{UInt32}
     children::Set{I}
 end
 
@@ -18,10 +18,10 @@ function allindivs(allsp::Set{<:Species}, spkey::String)
 end
 
 function Species(spkey::String, pop::Set{I}) where {I <: Individual}
-    Species(spkey, pop, Int[], Set{I}())
+    Species(spkey, pop, UInt32[], Set{I}())
 end
 
 function Species(spkey::String, pop::Set{I}, children::Set{I}) where {I <: Individual}
-    Species(spkey, pop, Int[], children)
+    Species(spkey, pop, UInt32[], children)
 end
 

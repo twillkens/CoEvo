@@ -2,7 +2,7 @@ export Ingredient, ingredients
 
 struct Ingredient{P <: PhenoConfig}
     spkey::String
-    iid::Int
+    iid::UInt32
     pcfg::P
 end
 

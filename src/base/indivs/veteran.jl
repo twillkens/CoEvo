@@ -7,6 +7,10 @@ struct Veteran{I <: Individual, R <: Result} <: Individual
     results::Set{R}
 end
 
+function Veteran(indiv::Individual, results::Set{<:ScalarResult})
+    Veteran(indiv, Set(MinScalarResult(result) for result in results))
+end
+
 function dummyvets(indivs::Set{<:Individual})
     Set(Veteran(indiv, Set([ScalarResult(indiv.spkey, indiv.iid, "dummy", 1)]))
     for indiv in indivs)
@@ -16,7 +20,7 @@ function dummyvets(sp::Species)
     Species(sp.spkey, dummyvets(sp.pop), sp.parents, dummyvets(sp.children))
 end
 
-function clone(iid::Int, gen::Int, parent::Veteran)
+function clone(iid::UInt32, gen::UInt16, parent::Veteran)
     clone(iid, gen, parent.indiv)
 end
 

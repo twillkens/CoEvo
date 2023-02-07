@@ -5,7 +5,7 @@ export SubvecPhenoConfig
 
 struct ScalarPheno{T <: Real} <: Phenotype
     spkey::String
-    iid::Int
+    iid::UInt32
     val::T
 end
 
@@ -20,7 +20,7 @@ end
 
 struct VectorPheno{T <: Real} <: Phenotype
     spkey::String
-    iid::Int
+    iid::UInt32
     vec::Vector{T}
 end
 

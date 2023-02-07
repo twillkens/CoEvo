@@ -2,8 +2,8 @@ export SpawnCounter
 export gid!, iid!, gids!, iids!
 
 mutable struct SpawnCounter
-    gid::Int
-    iid::Int
+    gid::UInt32
+    iid::UInt32
     function SpawnCounter()
         new(1, 1)
     end
