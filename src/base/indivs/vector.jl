@@ -40,7 +40,7 @@ function genotype(indiv::VectorIndiv{<:ScalarGene})
 end
 
 function VectorIndiv(spkey::String, iid::UInt32, gids::Vector{UInt32}, vals::Vector{<:Real})
-    genes = [ScalarGene(gid, iid, val) for (gid, val) in zip(gids, vals)]
+    genes = [ScalarGene(gid, val) for (gid, val) in zip(gids, vals)]
     VectorIndiv(spkey, iid, genes,)
 end
 

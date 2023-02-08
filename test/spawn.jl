@@ -372,10 +372,11 @@ end
             testspawner(rng, "A", n_pop = 50, width = 100),
             testspawner(rng, "B", n_pop = 50, width = 100),
         ]),
-        loggers = Set([SpeciesLogger()]))
+        loggers = Set(Logger[]))
     gen = UInt16(1)
     allsp = coev_cfg()
     while gen < 200
+        println(gen)
         allsp = coev_cfg(gen, allsp)
         gen += UInt16(1)
     end

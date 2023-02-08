@@ -16,7 +16,7 @@ function(m::BitflipMutator)(indiv::VectorIndiv{ScalarGene{Bool}})
     newgenes = ScalarGene{Bool}[]
     for gene in indiv.genes
         if rand(m.rng) < m.mutrate
-            newgene = ScalarGene(gid!(m.sc), indiv.iid, indiv.gen, !gene.val)
+            newgene = ScalarGene(gid!(m.sc), !gene.val)
             push!(newgenes, newgene)
         else
             push!(newgenes, gene)

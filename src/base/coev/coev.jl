@@ -60,6 +60,7 @@ end
 function prune!(cache::Dict{UInt64, Outcome}, recipes::Set{<:Recipe})
     rids = Set(r.rid for r in recipes)
     filter!(((rid, _),) -> rid ∈ rids, cache)
+    filter(r -> r.rid ∉ keys(cache), recipes), Set(values(cache))
 end
 
 function update!(cache::Dict{UInt64, Outcome}, outcomes::Set{<:Outcome})
@@ -68,20 +69,24 @@ end
 
 function(c::CoevConfig)(gen::UInt16, allsp::Set{<:Species})
     recipes = makerecipes(c.orders, allsp)
-    prune!(c.cache, recipes)
-    cached_outcomes = Set(values(c.cache))
-    work = c.jobcfg(allsp, recipes)
+    work_recipes, cached_outcomes = prune!(c.cache, recipes)
+    println("cache: ", length(cached_outcomes))
+    work = c.jobcfg(allsp, work_recipes)
     work_outcomes = perform(work)
+    println("work: ", length(work_outcomes))
     update!(c.cache, work_outcomes)
     outcomes = union(cached_outcomes, work_outcomes)
     allvets = makevets(allsp, outcomes)
     gen_species = JLD2.Group(c.jld2file, string(gen))
     gen_species["rng"] = copy(c.rng)
     obs = Set(o.obs for o in outcomes)
-    [logger(gen_species, allvets, obs) for logger in c.loggers]
+    [logger(c.jld2file, allvets, obs) for logger in c.loggers]
     Set(spawner(gen, allvets) for spawner in c.spawners)
 end
 
 function(c::CoevConfig)()
     Set(spawner() for spawner in c.spawners)
 end
+
+
+

@@ -80,3 +80,8 @@ function(l::SpeciesLogger)(gen_group::JLD2.Group, allsp::Set{<:Species}, ::Set{<
         allsp_group[sp.spkey] = sp
     end
 end
+
+
+function(l::GeneLogger)(jld2::JLD2.JLDFile, allsp::Set{<:Species}, ::Set{<:Observation})
+    gene_group = make_group!(jld2, "genes")
+end
