@@ -5,7 +5,7 @@ export VectorIndivConfig
 export genotype, clone
 
 Base.@kwdef struct VectorIndivConfig <: IndivConfig
-    spkey::String
+    spid::Symbol
     sc::SpawnCounter
     rng::AbstractRNG
     dtype::Type{<:Real}
@@ -13,40 +13,37 @@ Base.@kwdef struct VectorIndivConfig <: IndivConfig
 end
 
 struct VectorIndiv{G <: ScalarGene} <: Individual
-    spkey::String
-    iid::UInt32
-    gen::UInt16
+    ikey::IndivKey
     genes::Vector{G}
     pids::Set{UInt32}
 end
 
-function VectorIndiv(spkey::String, iid::UInt32, genes::Vector{<:ScalarGene}, )
-    VectorIndiv(spkey, iid, UInt16(1), genes, Set{UInt32}())
+function VectorIndiv(spid::Symbol, iid::UInt32, genes::Vector{<:ScalarGene}, )
+    VectorIndiv(IndivKey(spid, iid), genes, Set{UInt32}())
 end
 
-function clone(iid::UInt32, gen::UInt16, parent::VectorIndiv)
-    VectorIndiv(parent.spkey, iid, gen, parent.genes, Set([parent.iid]))
+function clone(iid::UInt32, parent::VectorIndiv)
+    VectorIndiv(parent.spid, iid, parent.genes, Set([parent.iid]))
 end
 
 struct VectorGeno{T <: Real} <: Genotype
-    spkey::String
-    iid::UInt32
+    ikey::IndivKey
     genes::Vector{T}
 end
 
 function genotype(indiv::VectorIndiv{<:ScalarGene})
     genes = [g.val for g in indiv.genes]
-    VectorGeno(indiv.spkey, indiv.iid, genes)
+    VectorGeno(indiv.ikey, genes)
 end
 
-function VectorIndiv(spkey::String, iid::UInt32, gids::Vector{UInt32}, vals::Vector{<:Real})
+function VectorIndiv(spid::Symbol, iid::UInt32, gids::Vector{UInt32}, vals::Vector{<:Real})
     genes = [ScalarGene(gid, val) for (gid, val) in zip(gids, vals)]
-    VectorIndiv(spkey, iid, genes,)
+    VectorIndiv(spid, iid, genes)
 end
 
 function(cfg::VectorIndivConfig)()
     VectorIndiv(
-        cfg.spkey,
+        cfg.spid,
         iid!(cfg.sc),
         gids!(cfg.sc, cfg.width),
         rand(cfg.rng, cfg.dtype, cfg.width))
@@ -57,12 +54,12 @@ function(cfg::VectorIndivConfig)(n_indiv::Int)
 end
 
 function(cfg::VectorIndivConfig)(n_indiv::Int, vec::Vector{<:Real})
-    Set([VectorIndiv(spkey, iid!(cfg.sc), gids!(cfg.sc, cfg.width), vec)
+    Set([VectorIndiv(spid, iid!(cfg.sc), gids!(cfg.sc, cfg.width), vec)
     for _ in 1:n_indiv])
 end
 
 function(cfg::VectorIndivConfig)(n_indiv::Int, val::Real)
-    Set([VectorIndiv(cfg.spkey, iid!(cfg.sc),
+    Set([VectorIndiv(cfg.spid, iid!(cfg.sc),
         gids!(cfg.sc, cfg.width), fill(val, cfg.width))
     for _ in 1:n_indiv])
 end

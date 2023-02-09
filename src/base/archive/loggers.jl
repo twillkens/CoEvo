@@ -61,7 +61,7 @@ end
 # end
 
 # function(l::FitnessLogger)(gen_group::JLD2.Group, sp::Species{<:Veteran}, ::Set{<:Outcome})
-#     sp_group = make_group!(gen_group, sp.spkey) 
+#     sp_group = make_group!(gen_group, sp.spid) 
 #     [l(pop_group, geno, scorevec_dict[geno.key]) for geno in pop.genos]
 # end
 
@@ -77,7 +77,7 @@ end
 function(l::SpeciesLogger)(gen_group::JLD2.Group, allsp::Set{<:Species}, ::Set{<:Observation})
     allsp_group = make_group!(gen_group, "species")
     for sp in allsp
-        allsp_group[sp.spkey] = sp
+        allsp_group[sp.spid] = sp
     end
 end
 

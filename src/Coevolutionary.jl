@@ -9,6 +9,7 @@ using JLD2
 using DataStructures
 using LRUCache
 using AutoHashEquals
+using FieldProperties
 
 include("abstract/abstract.jl")
 

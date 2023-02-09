@@ -5,13 +5,13 @@ include("../src/Coevolutionary.jl")
 using .Coevolutionary
 # include("util.jl")
 
-function testspawner(rng::AbstractRNG, spkey::String; n_pop = 10, width = 10)
+function testspawner(rng::AbstractRNG, spid::Symbol; n_pop = 10, width = 10)
     sc = SpawnCounter()
     Spawner(
-        spkey = spkey,
+        spid = spid,
         n_pop = n_pop,
         icfg = VectorIndivConfig(
-            spkey = spkey,
+            spid = spid,
             sc = sc,
             rng = rng,
             dtype = Bool,
@@ -24,13 +24,13 @@ function testspawner(rng::AbstractRNG, spkey::String; n_pop = 10, width = 10)
     )
 end
 
-function roulettespawner(rng::AbstractRNG, spkey::String; n_pop = 50, width = 100)
+function roulettespawner(rng::AbstractRNG, spid::Symbol; n_pop = 50, width = 100)
     sc = SpawnCounter()
     Spawner(
-        spkey = spkey,
+        spid = spid,
         n_pop = n_pop,
         icfg = VectorIndivConfig(
-            spkey = spkey,
+            spid = spid,
             sc = sc,
             rng = rng,
             dtype = Bool,
@@ -48,8 +48,8 @@ function testorder()
         domain = NGGradient(),
         obscfg = NGObsConfig(),
         phenocfgs = Dict(
-            "A" => SumPhenoConfig(role = :A),
-            "B" => SumPhenoConfig(role = :B),
+            :A => SumPhenoConfig(role = :A),
+            :B => SumPhenoConfig(role = :B),
         ),
     )
 end
@@ -59,8 +59,8 @@ function vecorder()
         domain = NGFocusing(),
         obscfg = NGObsConfig(),
         phenocfgs = Dict(
-            "A" => SubvecPhenoConfig(role = :A, subvec_width = 10),
-            "B" => SubvecPhenoConfig(role = :B, subvec_width = 10),
+            :A => SubvecPhenoConfig(role = :A, subvec_width = 10),
+            :B => SubvecPhenoConfig(role = :B, subvec_width = 10),
         ),
     )
 end
@@ -96,7 +96,7 @@ end
     sc = SpawnCounter()
 
     icfg = VectorIndivConfig(
-        spkey = "A",
+        spid = "A",
         sc = sc,
         rng = rng,
         dtype = Bool,
@@ -215,7 +215,7 @@ end
     species = spawner(false)
     indivs = sort(collect(species.pop), by = i -> i.iid)
     @test length(indivs) == 10
-    @test all(["A" == indivs[i].spkey for i in 1:10])
+    @test all(["A" == indivs[i].spid for i in 1:10])
     @test sum([sum(genotype(indiv).genes) for indiv in values(indivs)]) == 0
 
     vets = dummyvets(species)
@@ -228,7 +228,7 @@ end
 @testset "AllvsAllOrder/SerialConfig" begin
     rng = StableRNG(42)
 
-    spkey = "A"
+    spid = "A"
     sc = SpawnCounter()
     spawnerA = testspawner(rng, "A")
     spawnerB = testspawner(rng, "B")
@@ -246,7 +246,7 @@ end
     outcomes = perform(job)
     @test length(outcomes) == 100
     allvets = makevets(allsp, outcomes)
-    vetdict = Dict(sp.spkey => sp for sp in allvets)
+    vetdict = Dict(sp.spid => sp for sp in allvets)
     @test all(fitness(vet) == 5 for vet in vetdict["A"].children)
     @test all(fitness(vet) == 0 for vet in vetdict["B"].pop)
     @test all(fitness(vet) == 5 for vet in vetdict["B"].children)
@@ -283,7 +283,7 @@ end
     outcomes = union([perform(job) for job in jobs]...)
     @test length(outcomes) == 100
     allvets = makevets(allsp, outcomes)
-    vetdict = Dict(sp.spkey => sp for sp in allvets)
+    vetdict = Dict(sp.spid => sp for sp in allvets)
     @test all(fitness(vet) == 5 for vet in vetdict["A"].children)
     @test all(fitness(vet) == 0 for vet in vetdict["B"].pop)
     @test all(fitness(vet) == 5 for vet in vetdict["B"].children)

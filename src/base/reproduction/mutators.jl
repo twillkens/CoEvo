@@ -22,7 +22,7 @@ function(m::BitflipMutator)(indiv::VectorIndiv{ScalarGene{Bool}})
             push!(newgenes, gene)
         end
     end
-    VectorIndiv(indiv.spkey, indiv.iid, indiv.gen, newgenes, indiv.pids)
+    VectorIndiv(indiv.spid, indiv.iid, indiv.gen, newgenes, indiv.pids)
 end
 
 function(m::Mutator)(indivs::Set{<:Individual})

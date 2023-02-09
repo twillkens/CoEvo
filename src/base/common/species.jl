@@ -2,7 +2,7 @@ export Species
 export allindivs
 
 struct Species{I <: Individual}
-    spkey::String
+    spid::Symbol
     pop::Set{I}
     parents::Vector{UInt32}
     children::Set{I}
@@ -12,16 +12,20 @@ function allindivs(sp::Species)
     union(sp.pop, sp.children)
 end
 
-function allindivs(allsp::Set{<:Species}, spkey::String)
-    spd = Dict(sp.spkey => sp for sp in allsp)
-    allindivs(spd[spkey])
+function allindivs(allsp::Set{<:Species})
+    union([allindivs(sp) for sp in allsp]...)
 end
 
-function Species(spkey::String, pop::Set{I}) where {I <: Individual}
-    Species(spkey, pop, UInt32[], Set{I}())
+function allindivs(allsp::Set{<:Species}, spid::Symbol)
+    spd = Dict(sp.spid => sp for sp in allsp)
+    allindivs(spd[spid])
 end
 
-function Species(spkey::String, pop::Set{I}, children::Set{I}) where {I <: Individual}
-    Species(spkey, pop, UInt32[], children)
+function Species(spid::Symbol, pop::Set{I}) where {I <: Individual}
+    Species(spid, pop, UInt32[], Set{I}())
+end
+
+function Species(spid::Symbol, pop::Set{I}, children::Set{I}) where {I <: Individual}
+    Species(spid, pop, UInt32[], children)
 end
 

@@ -1,16 +1,15 @@
-export Ingredient, ingredients
+# export Ingredient, ingredients
 
-struct Ingredient{P <: PhenoConfig}
-    spkey::String
-    iid::UInt32
-    pcfg::P
-end
+# struct Ingredient{P <: PhenoConfig}
+#     ikey::IndivKey
+#     pcfg::Symbol
+# end
 
-function ingredients(o::Order, sp::Species) 
-    return [Ingredient(indiv.spkey, indiv.iid, o.phenocfgs[indiv.spkey])
-    for indiv in union(sp.pop, sp.children)]
-end
+# function ingredients(o::Order, sp::Species) 
+#     return [Ingredient(indiv.ikey, Symbol(o.phenocfgs[indiv.spid]))
+#     for indiv in union(sp.pop, sp.children)]
+# end
 
-function testkey(ingred::Ingredient)
-    ingred.spkey, ingred.iid
-end
+# function testkey(ingred::Ingredient)
+#     ingred.spid, ingred.iid
+# end

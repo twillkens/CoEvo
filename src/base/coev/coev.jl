@@ -38,7 +38,7 @@ end
 
 function makevets(indivs::Set{<:Individual}, allresults::Set{<:Result})
     Set(Veteran(indiv,
-        filter(r -> r.spkey == indiv.spkey && r.iid == indiv.iid, allresults))
+        filter(r -> r.spid == indiv.spid && r.iid == indiv.iid, allresults))
     for indiv in indivs)
 end
 
@@ -50,7 +50,7 @@ end
 function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
     results = union([o.results for o in outcomes]...)
     Set(Species(
-        sp.spkey,
+        sp.spid,
         makevets(sp.pop, results),
         sp.parents,
         makevets(sp.children, results))

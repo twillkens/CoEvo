@@ -5,7 +5,7 @@ export ScoreOutcome, IdentitySelector, Replacer
     I <: IndivConfig, RP <: Replacer, S <: Selector,
     RC <: Recombiner, M <: Mutator
 }
-    spkey::String
+    spid::Symbol
     n_pop::Int
     icfg::I
     replacer::RP
@@ -23,24 +23,24 @@ function(s::Spawner)(gen::UInt16, sp::Species{<:Veteran})
         children = mutator(children)
     end
     Species(
-        s.spkey,
+        s.spid,
         Set(vet.indiv for vet in pop),
         [iid(p) for p in parents],
         children)
 end
 
 function(s::Spawner)(gen::UInt16, allsp::Set{<:Species{<:Veteran}})
-    spd = Dict(sp.spkey => sp for sp in allsp)
-    s(gen, spd[s.spkey])
+    spd = Dict(sp.spid => sp for sp in allsp)
+    s(gen, spd[s.spid])
 end
 
 
 function(s::Spawner)(args...)
     pop = s.icfg(s.n_pop, args...)
-    Species(s.spkey, pop,)
+    Species(s.spid, pop,)
 end
 
 function(s::Spawner)()
     pop = length(s.args) > 0 ? s.icfg(s.n_pop, s.args...) : s.icfg(s.n_pop)
-    Species(s.spkey, pop,)
+    Species(s.spid, pop,)
 end

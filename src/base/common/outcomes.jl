@@ -19,7 +19,7 @@ function Outcome(rid::UInt64, r1::Result, r2::Result, obs::Observation)
     Outcome(rid, Set([r1, r2]), obs)
 end
 
-function getscore(spkey::String, iid::UInt32, outcome::Outcome)
-    rdict = Dict((r.spkey, r.iid) => r for r in outcome.results)
-    rdict[(spkey, iid)].score
+function getscore(spid::Symbol, iid::UInt32, outcome::Outcome)
+    rdict = Dict((r.spid, r.iid) => r for r in outcome.results)
+    rdict[(spid, iid)].score
 end

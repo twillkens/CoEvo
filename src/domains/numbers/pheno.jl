@@ -4,8 +4,7 @@ export VectorPheno
 export SubvecPhenoConfig
 
 struct ScalarPheno{T <: Real} <: Phenotype
-    spkey::String
-    iid::UInt32
+    ikey::IndivKey
     val::T
 end
 
@@ -15,12 +14,11 @@ end
 
 function(::SumPhenoConfig)(geno::VectorGeno)
     val = sum(geno.genes)
-    ScalarPheno(geno.spkey, geno.iid, val)
+    ScalarPheno(geno.ikey, val)
 end
 
 struct VectorPheno{T <: Real} <: Phenotype
-    spkey::String
-    iid::UInt32
+    ikey::IndivKey
     vec::Vector{T}
 end
 
@@ -35,5 +33,5 @@ function(cfg::SubvecPhenoConfig)(geno::VectorGeno)
     end
     vec = [sum(part) for part in
         Iterators.partition(geno.genes, cfg.subvec_width)]
-    VectorPheno(geno.spkey, geno.iid, vec)
+    VectorPheno(geno.spid, geno.iid, vec)
 end
