@@ -7,6 +7,10 @@ struct IndivKey
     iid::UInt32
 end
 
+function IndivKey(spid::Symbol, iid::Int)
+    IndivKey(spid, UInt32(iid))
+end
+
 struct IngredientKey
     oid::Symbol
     ikey::IndivKey

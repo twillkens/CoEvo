@@ -10,7 +10,7 @@ struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
     spawners::Set{S}
     loggers::Set{L}
     jld2file::JLD2.JLDFile
-    cache::Dict{UInt64, Outcome}
+    cache::Dict{Recipe, Outcome}
 end
 
 function CoevConfig(;
@@ -57,14 +57,13 @@ function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
     for sp in allsp)
 end
 
-function prune!(cache::Dict{UInt64, Outcome}, recipes::Set{<:Recipe})
-    rids = Set(r.rid for r in recipes)
-    filter!(((rid, _),) -> rid ∈ rids, cache)
-    filter(r -> r.rid ∉ keys(cache), recipes), Set(values(cache))
+function prune!(cache::Dict{Recipe, Outcome}, recipes::Set{<:Recipe})
+    filter!(((oldr, _),) -> oldr ∈ recipes, cache)
+    filter(newr -> newr ∉ keys(cache), recipes), Set(values(cache))
 end
 
 function update!(cache::Dict{UInt64, Outcome}, outcomes::Set{<:Outcome})
-    merge!(cache, Dict(o.rid => o for o in outcomes))
+    merge!(cache, Dict(o.recipe => o for o in outcomes))
 end
 
 function(c::CoevConfig)(gen::UInt16, allsp::Set{<:Species})

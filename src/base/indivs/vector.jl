@@ -18,6 +18,13 @@ struct VectorIndiv{G <: ScalarGene} <: Individual
     pids::Set{UInt32}
 end
 
+@properties VectorIndiv begin
+    Any(self) => :ikey
+    genes(self) => :genes
+    pids(self) => :pids
+    ikey(self) => :ikey
+end
+
 function VectorIndiv(spid::Symbol, iid::UInt32, genes::Vector{<:ScalarGene}, )
     VectorIndiv(IndivKey(spid, iid), genes, Set{UInt32}())
 end
