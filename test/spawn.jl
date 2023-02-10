@@ -381,7 +381,7 @@ end
         loggers = Set([SpeciesLogger()]))
     gen = UInt16(1)
     allsp = coev_cfg()
-    while gen < 200
+    while gen < 10
         println(gen)
         allsp = coev_cfg(gen, allsp)
         gen += UInt16(1)

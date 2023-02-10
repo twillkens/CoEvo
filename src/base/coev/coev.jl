@@ -49,27 +49,32 @@ function makevet(
     )
 end
 
-function makevets(indivs::Set{<:Individual}, allresults::Dict{IndivKey, R}) where {R}
-    Set(Veteran(
-        indiv,
-        filter(((ikey, _),) -> ikey == indiv.ikey, allresults))
+function makeresdict(outcomes::Set{<:Outcome})
+    resdict = Dict{IndivKey, Vector{Pair{TestKey, Any}}}()
+    for outcome in outcomes
+        for (ikey, r) in outcome.rdict
+            tkey = TestKey(outcome.oid, setdiff(keys(outcome.rdict), Set([ikey])))
+            pair = tkey => r
+            if ikey in keys(resdict)
+                push!(resdict[ikey], pair)
+            else
+                resdict[ikey] = [pair]
+            end
+        end
+    end
+    resdict
+end
+
+function makevets(
+    indivs::Set{<:Individual}, resdict::Dict{IndivKey, Vector{Pair{TestKey, Any}}}
+)
+    Set(Veteran(indiv.ikey, indiv, Dict(pair for pair in resdict[indiv.ikey]))
     for indiv in indivs)
 end
 
-function Veteran(indiv::Individual, outcomes::Set{<:Outcome})
-    ioutcomes = filter(o -> indiv.ikey in keys(o.rdict), outcomes)
-    rdict = Dict(
-        TestKey(o.oid, setdiff(keys(o.rdict), Set([indiv.ikey]))) => o.rdict[indiv.ikey]
-    for o in ioutcomes)
-    Veteran(indiv.ikey, indiv, rdict)
-end
-
-function makevets(indivs::Set{<:Individual}, outcomes::Set{<:Outcome})
-    Set(Veteran(indiv, outcomes) for indiv in indivs)
-end
-
 function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
-    Set(Species(sp.spid, makevets(sp.pop, outcomes), makevets(sp.children, outcomes))
+    resdict = makeresdict(outcomes)
+    Set(Species(sp.spid, makevets(sp.pop, resdict), makevets(sp.children, resdict))
     for sp in allsp)
 end
 
@@ -92,16 +97,16 @@ function archive!(
 end
 
 function interact!(c::CoevConfig, allsp::Set{<:Species})
-    recipes = makerecipes(c.orders, allsp)
-    work_recipes, cached_outcomes = prune!(c.cache, recipes)
-    work = c.jobcfg(allsp, c.orders, work_recipes)
-    work_outcomes = perform(work)
-    update!(c.cache, work_outcomes)
-    makevets(allsp, union(cached_outcomes, work_outcomes)), work_outcomes
+    @time recipes = makerecipes(c.orders, allsp)
+    @time work_recipes, cached_outcomes = prune!(c.cache, recipes)
+    @time work = c.jobcfg(allsp, c.orders, work_recipes)
+    @time work_outcomes = perform(work)
+    @time update!(c.cache, work_outcomes)
+    @time makevets(allsp, union(cached_outcomes, work_outcomes)), work_outcomes
 end
 
 function(c::CoevConfig)(gen::UInt16, allsp::Set{<:Species})
-    @time allvets, work_outcomes = interact!(c, allsp)
+    allvets, work_outcomes = interact!(c, allsp)
     @time archive!(gen, c, allvets, work_outcomes)
     Set(spawner(allvets) for spawner in c.spawners)
 end
