@@ -79,28 +79,35 @@ function prune!(cache::Dict{Recipe, Outcome}, recipes::Set{<:Recipe})
 end
 
 function update!(cache::Dict{Recipe, Outcome}, outcomes::Set{<:Outcome})
-    merge!(cache, Dict(o.recipe => o for o in outcomes))
+    merge!(cache, Dict(Recipe(o.oid, keys(o.rdict)) => o for o in outcomes))
+end
+
+function archive!(
+    gen::UInt16, c::CoevConfig, allvets::Set{<:Species{<:Veteran}},
+    outcomes::Set{<:Outcome}
+)
+    gen_species = JLD2.Group(c.jld2file, string(gen))
+    gen_species["rng"] = c.rng
+    [logger(gen_species, allvets, outcomes) for logger in c.loggers]
+end
+
+function interact!(c::CoevConfig, allsp::Set{<:Species})
+    recipes = makerecipes(c.orders, allsp)
+    work_recipes, cached_outcomes = prune!(c.cache, recipes)
+    work = c.jobcfg(allsp, c.orders, work_recipes)
+    work_outcomes = perform(work)
+    update!(c.cache, work_outcomes)
+    makevets(allsp, union(cached_outcomes, work_outcomes)), work_outcomes
 end
 
 function(c::CoevConfig)(gen::UInt16, allsp::Set{<:Species})
-    recipes = makerecipes(c.orders, allsp)
-    work_recipes, cached_outcomes = prune!(c.cache, recipes)
-    println("cache: ", length(cached_outcomes))
-    work = c.jobcfg(allsp, c.orders, work_recipes)
-    work_outcomes = perform(work)
-    println("work: ", length(work_outcomes))
-    update!(c.cache, work_outcomes)
-    outcomes = union(cached_outcomes, work_outcomes)
-    allvets = makevets(allsp, outcomes)
-    gen_species = JLD2.Group(c.jld2file, string(gen))
-    gen_species["rng"] = copy(c.rng)
-    obs = Set(o.obs for o in outcomes)
-    [logger(c.jld2file, allvets, obs) for logger in c.loggers]
-    Set(spawner(gen, allvets) for spawner in c.spawners)
+    @time allvets, work_outcomes = interact!(c, allsp)
+    @time archive!(gen, c, allvets, work_outcomes)
+    Set(spawner(allvets) for spawner in c.spawners)
 end
 
 function(c::CoevConfig)()
-    Set(newsp(spawner) for spawner in c.spawners)
+    Set(spawner() for spawner in c.spawners)
 end
 
 

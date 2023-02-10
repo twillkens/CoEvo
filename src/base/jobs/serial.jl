@@ -86,7 +86,7 @@ end
 
 function divvy(recipes::Set{<:Recipe}, n_subsets::Int)
     n_mix = div(length(recipes), n_subsets)
-    recipe_vecs = collect(Iterators.partition(collect(recipes), n_mix))
+    recipe_vecs = collect(Iterators.partition(recipes, n_mix))
     # If there are leftovers, divide the excess among the other subsets
     if length(recipe_vecs) > n_subsets
         excess = pop!(recipe_vecs)

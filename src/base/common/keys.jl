@@ -11,7 +11,7 @@ function IndivKey(spid::Symbol, iid::Int)
     IndivKey(spid, UInt32(iid))
 end
 
-struct IngredientKey
+@auto_hash_equals struct IngredientKey
     oid::Symbol
     ikey::IndivKey
 end
@@ -26,7 +26,7 @@ function Base.getproperty(key::IngredientKey, prop::Symbol)
     end
 end
 
-struct TestKey
+@auto_hash_equals struct TestKey
     oid::Symbol
     ikeys::Set{IndivKey}
 end

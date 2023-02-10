@@ -24,4 +24,7 @@ function Species(spid::Symbol, pop::Set{I}) where {I <: Individual}
     Species(spid, pop, Set{I}())
 end
 
+function Species(spid::Symbol, pop::Set{I}, ::Set{Any}) where {I <: Individual}
+    Species(spid, pop, Set{I}())
+end
 

@@ -1,5 +1,6 @@
 module Coevolutionary
 
+using Distributed
 using Random
 using StableRNGs
 using StatsBase

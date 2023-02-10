@@ -28,3 +28,15 @@ end
 function iids!(sc::SpawnCounter, n::Int)
     [iid!(sc) for _ in 1:n]
 end
+
+function Base.show(io::IO, i::UInt16)
+    print(io, Int(i))
+end
+
+function Base.show(io::IO, i::UInt32)
+    print(io, Int(i))
+end
+
+function Base.show(io::IO, i::UInt64)
+    print(io, Int(i))
+end

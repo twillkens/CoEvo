@@ -74,10 +74,16 @@ end
 #     allsp_group = make_group!(gen_group, "species")
 #     [l(allsp_group, sp, outcomes) for sp in allsp]
 # end
-function(l::SpeciesLogger)(gen_group::JLD2.Group, allsp::Set{<:Species}, ::Set{<:Observation})
+function(l::SpeciesLogger)(gen_group::JLD2.Group, allsp::Set{<:Species}, ::Set{<:Outcome})
     allsp_group = make_group!(gen_group, "species")
     for sp in allsp
-        allsp_group[sp.spid] = sp
+        sp_group = make_group!(allsp_group, string(sp.spid))
+        for child in sp.children
+            child_group = make_group!(sp_group, string(child.iid))
+            child_group["vals"] = getvals(child.indiv)
+            child_group["gids"] = getgids(child.indiv)
+            child_group["pids"] = collect(child.indiv.pids)
+        end
     end
 end
 

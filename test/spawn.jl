@@ -360,34 +360,32 @@ end
     @test length(newspA.children) == 50
 end
 
-# @testset "Coev" begin
-#     # RNG #
-#     coev_key = "NG: Gradient"
-#     trial = 1
-#     seed = UInt64(42)
-#     rng = StableRNG(seed)
-# 
-#     coev_cfg = CoevConfig(;
-#         key = "Coev Test",
-#         trial = 1,
-#         seed = seed,
-#         rng = rng,
-#         jobcfg = SerialJobConfig(),
-#         orders = Set([testorder()]), 
-#         spawners = Set([
-#             testspawner(rng, :A, n_pop = 50, width = 100),
-#             testspawner(rng, :B, n_pop = 50, width = 100),
-#         ]),
-#         loggers = Set(Logger[]))
-#     gen = UInt16(1)
-#     allsp = coev_cfg()
-#     while gen < 200
-#         println(gen)
-#         allsp = coev_cfg(gen, allsp)
-#         gen += UInt16(1)
-#     end
-# end
+@testset "Coev" begin
+    # RNG #
+    coev_key = "NG: Gradient"
+    trial = 1
+    seed = UInt64(42)
+    rng = StableRNG(seed)
 
-
+    coev_cfg = CoevConfig(;
+        key = "Coev Test",
+        trial = 1,
+        seed = seed,
+        rng = rng,
+        jobcfg = SerialJobConfig(),
+        orders = Set([testorder()]), 
+        spawners = Set([
+            testspawner(rng, :A, n_pop = 100, width = 100),
+            testspawner(rng, :B, n_pop = 100, width = 100),
+        ]),
+        loggers = Set([SpeciesLogger()]))
+    gen = UInt16(1)
+    allsp = coev_cfg()
+    while gen < 200
+        println(gen)
+        allsp = coev_cfg(gen, allsp)
+        gen += UInt16(1)
+    end
+end
 
 end
