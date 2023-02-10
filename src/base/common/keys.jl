@@ -1,4 +1,4 @@
-export Key, IndivKey, ActorKey, TestKey, RecipeKey
+export Key, IndivKey, TestKey, IngredientKey
 
 abstract type Key end
 
@@ -16,28 +16,17 @@ struct IngredientKey
     ikey::IndivKey
 end
 
-@properties IngredientKey begin
-    oid(self) => :oid
-    Any(self) => :ikey
-end
-
-struct ActorKey
-    roleid::Symbol
-    ikey::IndivKey
-end
-
-@properties ActorKey begin
-    roleid(self) => :roleid
-    Any(self) => :ikey
+function Base.getproperty(key::IngredientKey, prop::Symbol)
+    if prop == :spid
+        key.ikey.spid
+    elseif prop == :iid
+        key.ikey.iid
+    else
+        getfield(key, prop)
+    end
 end
 
 struct TestKey
-    domain::Symbol
-    tests::Set{ActorKey}
+    oid::Symbol
+    ikeys::Set{IndivKey}
 end
-
-struct RecipeKey
-    domain::Symbol
-    ingreds::Set{ActorKey}
-end
-

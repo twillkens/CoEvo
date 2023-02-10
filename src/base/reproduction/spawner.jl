@@ -1,4 +1,4 @@
-export Spawner, Gene, Species
+export Spawner, Species
 export ScoreOutcome, IdentitySelector, Replacer
 
 @Base.kwdef struct Spawner{
@@ -12,35 +12,31 @@ export ScoreOutcome, IdentitySelector, Replacer
     selector::S
     recombiner::RC
     mutators::Vector{M}
-    args::Vector{Any} = Any[]
+    spargs::Vector{Any} = Any[]
 end
 
-function(s::Spawner)(gen::UInt16, sp::Species{<:Veteran})
-    pop = s.replacer(sp)
+function(s::Spawner)(vets::Species{<:Veteran})
+    pop = s.replacer(vets)
     parents = s.selector(pop)
-    children = s.recombiner(gen, parents)
+    children = s.recombiner(parents)
     for mutator in s.mutators
         children = mutator(children)
     end
-    Species(
-        s.spid,
-        Set(vet.indiv for vet in pop),
-        [iid(p) for p in parents],
-        children)
-end
-
-function(s::Spawner)(gen::UInt16, allsp::Set{<:Species{<:Veteran}})
-    spd = Dict(sp.spid => sp for sp in allsp)
-    s(gen, spd[s.spid])
+    Species(s.spid, Set(vet.indiv for vet in pop), children)
 end
 
 
-function(s::Spawner)(args...)
+function(s::Spawner)(allvets::Set{<:Species{<:Veteran}})
+    s(first(filter(vets -> vets.spid == s.spid, allvets)))
+end
+
+
+function Species(s::Spawner, args...)
     pop = s.icfg(s.n_pop, args...)
     Species(s.spid, pop,)
 end
 
 function(s::Spawner)()
-    pop = length(s.args) > 0 ? s.icfg(s.n_pop, s.args...) : s.icfg(s.n_pop)
+    pop = s.icfg(s.n_pop, s.spargs...)
     Species(s.spid, pop,)
 end

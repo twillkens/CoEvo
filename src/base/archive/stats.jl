@@ -4,7 +4,7 @@ export fitness, testscores
 const fitness_lru = LRU{Veteran, Float64}(maxsize=1000)
 function fitness(vet::Veteran)
     get!(fitness_lru, vet) do
-        sum(r.score for r in vet.results)
+        sum(values(vet.rdict))
     end
 end
 

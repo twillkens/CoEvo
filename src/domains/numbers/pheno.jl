@@ -8,9 +8,13 @@ struct ScalarPheno{T <: Real} <: Phenotype
     val::T
 end
 
-function ScalarPheno(spkey::Symbol, iid::Real, val::Real)
-    ikey = IndivKey(spkey, UInt32(iid))
+function ScalarPheno(spkey::Symbol, iid::UInt32, val::Real)
+    ikey = IndivKey(spkey, iid)
     ScalarPheno(ikey, val)
+end
+
+function ScalarPheno(spkey::Symbol, iid::Int, val::Real)
+    ScalarPheno(spkey, UInt32(iid), val)
 end
 
 Base.@kwdef struct SumPhenoConfig <: PhenoConfig
@@ -43,6 +47,6 @@ function(cfg::SubvecPhenoConfig)(geno::VectorGeno)
     end
     vec = [sum(part) for part in
         Iterators.partition(geno.genes, cfg.subvec_width)]
-    VectorPheno(geno.spid, geno.iid, vec)
+    VectorPheno(geno.ikey, vec)
 end
 

@@ -29,31 +29,47 @@ function CoevConfig(;
     jld2file["trial"] = trial
     jld2file["seed"] = seed
     CoevConfig(key, trial, rng, jobcfg, orders, spawners,
-        loggers, jld2file, Dict{UInt64, Outcome}())
+        loggers, jld2file, Dict{Recipe, Outcome}())
 end
 
 function make_indivdict(sp::Species)
     Dict(indiv.iid => indiv for indiv in union(sp.pop, sp.children))
 end
 
-function makevets(indivs::Set{<:Individual}, allresults::Set{<:Result})
-    Set(Veteran(indiv,
-        filter(r -> r.spid == indiv.spid && r.iid == indiv.iid, allresults))
+function makevet(
+        indiv::Individual,
+        allresults::Dict{IndivKey, R},
+    ) where {R}
+    rdict = Dict(ikey => r for (ikey, r) in allresults if ikey == indiv.ikey)
+
+    Veteran(
+        indiv,
+        filter(((ikey, _),) -> ikey == indiv.ikey, allresults),
+        indivdict
+    )
+end
+
+function makevets(indivs::Set{<:Individual}, allresults::Dict{IndivKey, R}) where {R}
+    Set(Veteran(
+        indiv,
+        filter(((ikey, _),) -> ikey == indiv.ikey, allresults))
     for indiv in indivs)
 end
 
+function Veteran(indiv::Individual, outcomes::Set{<:Outcome})
+    ioutcomes = filter(o -> indiv.ikey in keys(o.rdict), outcomes)
+    rdict = Dict(
+        TestKey(o.oid, setdiff(keys(o.rdict), Set([indiv.ikey]))) => o.rdict[indiv.ikey]
+    for o in ioutcomes)
+    Veteran(indiv.ikey, indiv, rdict)
+end
+
 function makevets(indivs::Set{<:Individual}, outcomes::Set{<:Outcome})
-    results = union([o.results for o in outcomes]...)
-    makevets(indivs, results)
+    Set(Veteran(indiv, outcomes) for indiv in indivs)
 end
 
 function makevets(allsp::Set{<:Species}, outcomes::Set{<:Outcome})
-    results = union([o.results for o in outcomes]...)
-    Set(Species(
-        sp.spid,
-        makevets(sp.pop, results),
-        sp.parents,
-        makevets(sp.children, results))
+    Set(Species(sp.spid, makevets(sp.pop, outcomes), makevets(sp.children, outcomes))
     for sp in allsp)
 end
 
@@ -62,7 +78,7 @@ function prune!(cache::Dict{Recipe, Outcome}, recipes::Set{<:Recipe})
     filter(newr -> newr ∉ keys(cache), recipes), Set(values(cache))
 end
 
-function update!(cache::Dict{UInt64, Outcome}, outcomes::Set{<:Outcome})
+function update!(cache::Dict{Recipe, Outcome}, outcomes::Set{<:Outcome})
     merge!(cache, Dict(o.recipe => o for o in outcomes))
 end
 
@@ -70,7 +86,7 @@ function(c::CoevConfig)(gen::UInt16, allsp::Set{<:Species})
     recipes = makerecipes(c.orders, allsp)
     work_recipes, cached_outcomes = prune!(c.cache, recipes)
     println("cache: ", length(cached_outcomes))
-    work = c.jobcfg(allsp, work_recipes)
+    work = c.jobcfg(allsp, c.orders, work_recipes)
     work_outcomes = perform(work)
     println("work: ", length(work_outcomes))
     update!(c.cache, work_outcomes)
@@ -84,7 +100,7 @@ function(c::CoevConfig)(gen::UInt16, allsp::Set{<:Species})
 end
 
 function(c::CoevConfig)()
-    Set(spawner() for spawner in c.spawners)
+    Set(newsp(spawner) for spawner in c.spawners)
 end
 
 

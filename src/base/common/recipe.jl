@@ -1,8 +1,12 @@
-export Recipe, getingredkeys, getikeys
+export Recipe, getingredkeys, getikeys, TestKey
 
 struct Recipe
     oid::Symbol
     ikeys::Set{IndivKey}
+end
+
+function Recipe(oid::Symbol, args...)
+    Recipe(oid, Set(args))
 end
 
 function getingredkeys(recipe::Recipe)
@@ -10,7 +14,7 @@ function getingredkeys(recipe::Recipe)
 end
 
 function getingredkeys(recipes::Set{<:Recipe})
-    union([getingrkeys(recipe) for recipe in recipes]...)
+    union([getingredkeys(recipe) for recipe in recipes]...)
 end
 
 function getikeys(recipes::Set{<:Recipe})

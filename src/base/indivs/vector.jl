@@ -2,7 +2,7 @@ export VectorIndiv, VectorGeno
 export make_genotype
 export ScalarGene
 export VectorIndivConfig
-export genotype, clone
+export genotype, clone, getgids, getvals
 
 Base.@kwdef struct VectorIndivConfig <: IndivConfig
     spid::Symbol
@@ -18,11 +18,30 @@ struct VectorIndiv{G <: ScalarGene} <: Individual
     pids::Set{UInt32}
 end
 
-@properties VectorIndiv begin
-    Any(self) => :ikey
-    genes(self) => :genes
-    pids(self) => :pids
-    ikey(self) => :ikey
+function Base.getproperty(indiv::Individual, prop::Symbol)
+    if prop == :spid
+        indiv.ikey.spid
+    elseif prop == :iid
+        indiv.ikey.iid
+    elseif prop == :gids
+        getgids(indiv)
+    elseif prop == :vals
+        getvals(indiv)
+    else
+        getfield(indiv, prop)
+    end
+end
+
+function getgids(genes::Vector{<:ScalarGene})
+    [g.gid for g in genes]
+end
+
+function getgids(indiv::VectorIndiv)
+    getgids(indiv.genes)
+end
+
+function getvals(indiv::VectorIndiv)
+    [g.val for g in indiv.genes]
 end
 
 function VectorIndiv(spid::Symbol, iid::UInt32, genes::Vector{<:ScalarGene}, )
@@ -30,7 +49,7 @@ function VectorIndiv(spid::Symbol, iid::UInt32, genes::Vector{<:ScalarGene}, )
 end
 
 function clone(iid::UInt32, parent::VectorIndiv)
-    VectorIndiv(parent.spid, iid, parent.genes, Set([parent.iid]))
+    VectorIndiv(IndivKey(parent.spid, iid), parent.genes, Set([parent.iid]))
 end
 
 struct VectorGeno{T <: Real} <: Genotype
@@ -46,6 +65,10 @@ end
 function VectorIndiv(spid::Symbol, iid::UInt32, gids::Vector{UInt32}, vals::Vector{<:Real})
     genes = [ScalarGene(gid, val) for (gid, val) in zip(gids, vals)]
     VectorIndiv(spid, iid, genes)
+end
+
+function VectorIndiv(spid::Symbol, iid::Int, gids::Vector{UInt32}, vals::Vector{<:Real})
+    VectorIndiv(spid, UInt32(iid), gids, vals)
 end
 
 function(cfg::VectorIndivConfig)()

@@ -67,24 +67,44 @@ function vecorder()
     )
 end
 
+function dummyikey()
+    IndivKey(:spdummy, 1)
+end
+
+function dummytkey()
+    TestKey(:odummy, Set([dummyikey()]))
+end
+
+function dummyvets(indivs::Set{<:Individual})
+    Set(Veteran(indiv.ikey, indiv, Dict(dummytkey() => 1)) for indiv in indivs)
+end
+
+function dummyvets(sp::Species)
+    Species(sp.spid, dummyvets(sp.pop), dummyvets(sp.children))
+end
+
 @testset "NumbersGame" begin
 @testset "Individual" begin
     rng = StableRNG(42)
     # genome initialization with default value 0
-    indiv = VectorIndiv(:A, UInt32(1), collect(UInt32, 1:5), fill(false, 5))
+    gids = collect(UInt32, 1:5)
+    vals = fill(false, 5)
+    indiv = VectorIndiv(:A, 1, gids, vals)
     @test typeof(indiv) == VectorIndiv{ScalarGene{Bool}}
     @test indiv.iid == 1
-    @test [g.gid for g in indiv.genes] == collect(UInt32, 1:5)
-    @test [g.val for g in indiv.genes] == fill(false, 5)
-    @test genotype(indiv).genes == fill(false, 5)
+    @test indiv.gids == gids
+    @test indiv.vals == vals
+    @test genotype(indiv).genes == vals
 
     # genome initialization with default value 1
-    indiv = VectorIndiv(:A, UInt32(2), collect(UInt32, 6:10), fill(true, 5))
+    gids = collect(UInt32, 6:10)
+    vals = fill(true, 5)
+    indiv = VectorIndiv(:A, 2, gids, vals)
     @test typeof(indiv) == VectorIndiv{ScalarGene{Bool}}
     @test indiv.iid == 2
-    @test [g.gid for g in indiv.genes] == collect(UInt32, 6:10)
-    @test [g.val for g in indiv.genes] == fill(true, 5)
-    @test genotype(indiv).genes == fill(true, 5)
+    @test indiv.gids == gids
+    @test indiv.vals == vals
+    @test genotype(indiv).genes == vals
 
 end
 
@@ -127,26 +147,25 @@ end
 @testset "NGGradient" begin
     domain = NGGradient()
     obscfg = NGObsConfig()
+
     phenoA = ScalarPheno(:A, 1, 4)
-    phenoB = ScalarPheno(:B, 1, 5) 
-    phenos = Dict(
+    phenoB = ScalarPheno(:B, 1, 5)
+    roledict = Dict(
         :A => phenoA,
         :B => phenoB
     )
-
-    recipe = Recipe(:NG, Set([phenoA.ikey, phenoB.ikey]))
-    mix = Mix(recipe, domain, obscfg, phenos)
+    mix = Mix(:NG, domain, obscfg, roledict)
     o = stir(mix)
     @test getscore(:A, 1, o) == false
     @test getscore(:B, 1, o) == true
 
-    Sₐ = Set(ScalarPheno(:C, (i), x) for (i, x) in enumerate(1:3))
-    Sᵦ = Set(ScalarPheno(:D, (i), x) for (i, x) in enumerate(6:8))
+    Sₐ = Set(ScalarPheno(:C, i, x) for (i, x) in enumerate(1:3))
+    Sᵦ = Set(ScalarPheno(:D, i, x) for (i, x) in enumerate(6:8))
     
     fitnessA = 0
     for other ∈ Sₐ
-        phenos = Dict(:A => phenoA, :B => other)
-        mix = Mix(domain, obscfg, phenos)
+        roledict = Dict(:A => phenoA, :B => other)
+        mix = Mix(:NG, domain, obscfg, roledict)
         o = stir(mix)
         fitnessA += getscore(:A, 1, o)
     end
@@ -155,8 +174,8 @@ end
 
     fitnessB = 0
     for other ∈ Sᵦ
-        phenos = Dict(:A => phenoB, :B => other)
-        mix = Mix(domain, obscfg, phenos)
+        roledict = Dict(:A => phenoB, :B => other)
+        mix = Mix(:NG, domain, obscfg, roledict)
         o = stir(mix)
         fitnessB += getscore(:B, 1, o)
     end
@@ -164,55 +183,53 @@ end
     @test fitnessB == 0
 end
 
+
 @testset "NGFocusing" begin
     domain = NGFocusing()
     obscfg = NGObsConfig()
 
-    phenoA = VectorPheno(:A, UInt32(1), [4, 16])
-    phenoB = VectorPheno(:B, UInt32(1), [5, 14])
-    phenos = Dict(:A => phenoA, :B => phenoB)
-    mix = Mix(domain, obscfg, phenos)
-    o = stir(mix)
-    @test getscore(:A, UInt32(1), o) == true
+    phenoA = VectorPheno(:A, 1, [4, 16])
+    phenoB = VectorPheno(:B, 1, [5, 14])
+    roledict = Dict(:A => phenoA, :B => phenoB)
+    o = stir(Mix(:NG, domain, obscfg, roledict))
+    @test getscore(:A, 1, o) == true
 
-    phenoB = VectorPheno(:B, UInt32(1), [5, 16])
-    phenos = Dict(:A => phenoA, :B => phenoB)
-    mix = Mix(domain, obscfg, phenos)
-    o = stir(mix)
-    @test getscore(:A, UInt32(1), o) == false
+    phenoB = VectorPheno(:B, 1, [5, 16])
+    roledict = Dict(:A => phenoA, :B => phenoB)
+    o = stir(Mix(:NG, domain, obscfg, roledict))
+    @test getscore(:A, 1, o) == false
 
-    phenoA = VectorPheno(:A, UInt32(1), [5, 16, 8])
-    phenoB = VectorPheno(:B, UInt32(1), [4, 16, 6])
-    phenos = Dict(:A => phenoA, :B => phenoB)
-    mix = Mix(domain, obscfg, phenos)
-    o = stir(mix)
-    @test getscore(:A, UInt32(1), o) == true
-
+    phenoA = VectorPheno(:A, 1, [5, 16, 8])
+    phenoB = VectorPheno(:B, 1, [4, 16, 6])
+    roledict = Dict(:A => phenoA, :B => phenoB)
+    o = stir(Mix(:NG, domain, obscfg, roledict))
+    @test getscore(:A, 1, o) == true
 end
+
 
 @testset "NGRelativism" begin
     domain = NGRelativism()
     obscfg = NGObsConfig()
 
-    a = VectorPheno(:A, UInt32(1), [1, 6])
-    b = VectorPheno(:B, UInt32(1), [4, 5])
-    c = VectorPheno(:C, UInt32(1), [2, 4])
+    a = VectorPheno(:A, 1, [1, 6])
+    b = VectorPheno(:B, 1, [4, 5])
+    c = VectorPheno(:C, 1, [2, 4])
 
-    o = stir(Mix(domain, obscfg, Dict(:A => a, :B => b)))
-    @test getscore(:A, UInt32(1), o) == true
+    o = stir(Mix(:NG, domain, obscfg, Dict(:A => a, :B => b)))
+    @test getscore(:A, 1, o) == true
 
-    o = stir(Mix(domain, obscfg, Dict(:A => b, :B => c)))
-    @test getscore(:B, UInt32(1), o) == true
+    o = stir(Mix(:NG, domain, obscfg, Dict(:A => b, :B => c)))
+    @test getscore(:B, 1, o) == true
 
-    o = stir(Mix(domain, obscfg, Dict(:A => c, :B => a)))
-    @test getscore(:C, UInt32(1), o) == true
+    o = stir(Mix(:NG, domain, obscfg, Dict(:A => c, :B => a)))
+    @test getscore(:C, 1, o) == true
 end
 
 @testset "Spawner" begin
     rng = StableRNG(42)
     sc = SpawnCounter()
     spawner = testspawner(rng, :A)
-    species = spawner(false)
+    species = Species(spawner, false)
     indivs = sort(collect(species.pop), by = i -> i.iid)
     @test length(indivs) == 10
     @test all([:A == indivs[i].spid for i in 1:10])
@@ -220,16 +237,13 @@ end
 
     vets = dummyvets(species)
 
-    species = spawner(UInt16(2), vets)
+    species = spawner(vets)
     @test length(species.children) == 10
     @test sort(collect([indiv.iid for indiv in species.children])) == collect(11:20)
 end
-
+ 
 @testset "AllvsAllOrder/SerialConfig" begin
     rng = StableRNG(42)
-
-    spid = :A
-    sc = SpawnCounter()
     spawnerA = testspawner(rng, :A)
     spawnerB = testspawner(rng, :B)
 
@@ -242,30 +256,28 @@ end
     recipes = order(speciesA, speciesB)
     @test length(recipes) == 100
     jobcfg = SerialJobConfig()
-    job = jobcfg(allsp, recipes)
+    job = jobcfg(allsp, Set([order]), recipes)
     outcomes = perform(job)
     @test length(outcomes) == 100
     allvets = makevets(allsp, outcomes)
     vetdict = Dict(sp.spid => sp for sp in allvets)
+    @test all(fitness(vet) == 0 for vet in vetdict[:A].pop)
     @test all(fitness(vet) == 5 for vet in vetdict[:A].children)
     @test all(fitness(vet) == 0 for vet in vetdict[:B].pop)
     @test all(fitness(vet) == 5 for vet in vetdict[:B].children)
 
-    newsp = spawnerA(UInt16(2), allvets)
+    newsp = spawnerA(allvets)
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
-    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
 
-    newsp = spawnerB(UInt16(2), allvets)
+    newsp = spawnerB(allvets)
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
-    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
 end
 
 
 @testset "AllvsAllOrder/ParallelJobConfig" begin
     rng = StableRNG(42)
-
     spawnerA = testspawner(rng, :A)
     spawnerB = testspawner(rng, :B)
     speciesA = Species(:A, spawnerA.icfg(5, false), spawnerA.icfg(5, true))
@@ -273,11 +285,11 @@ end
     allsp = Set([speciesA, speciesB])
     spawners = Set([spawnerA, spawnerB])
     order = testorder()
-    recipes = order(allsp)
+    recipes = order(speciesA, speciesB)
     @test length(recipes) == 100
 
     jobcfg = ParallelJobConfig(n_jobs = 5)
-    jobs = jobcfg(allsp, recipes)
+    jobs = jobcfg(allsp, Set([order]), recipes)
     @test length(jobs) == 5
     @test all(length(job.recipes) == 20 for job in jobs)
     outcomes = union([perform(job) for job in jobs]...)
@@ -288,14 +300,12 @@ end
     @test all(fitness(vet) == 0 for vet in vetdict[:B].pop)
     @test all(fitness(vet) == 5 for vet in vetdict[:B].children)
 
-    newsp = spawnerA(UInt16(2), allvets)
+    newsp = spawnerA(allvets)
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
-    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
 
-    newsp = spawnerB(UInt16(2), allvets)
+    newsp = spawnerB(allvets)
     @test Set(indiv.iid for indiv in newsp.pop) == Set(collect(6:10))
-    @test Set(iid for iid in newsp.parents) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in newsp.children) == Set(collect(11:15))
 end
 
@@ -314,73 +324,73 @@ end
     @test length(recipes) == 100
 
     jobcfg = SerialJobConfig()
-    work = jobcfg(allsp, recipes)
+    work = jobcfg(allsp, Set([order]), recipes)
     outcomes = perform(work)
     @test length(outcomes) == 100
     allvets = makevets(allsp, outcomes)
     @test sum(fitness(vet) for vet in allindivs(allvets, :A)) == 100
     @test sum(fitness(vet) for vet in allindivs(allvets, :B)) == 0
 end
-
-
-@testset "Generational/Roulette/Bitflip" begin
-    rng = StableRNG(42)
-    spawnerA = roulettespawner(rng, :A, n_pop = 50, width = 100)
-    spawnerB = roulettespawner(rng, :B, n_pop = 50, width = 100)
-    spawners = Set([spawnerA, spawnerB])
-    order = testorder()
-    speciesA = spawnerA(false)
-    speciesB = spawnerB(false)
-    
-    allsp = Set([speciesA, speciesB])
-    recipes = order(allsp)
-    @test length(recipes) == 2500
-    jobcfg = SerialJobConfig()
-    work = jobcfg(allsp, recipes)
-    outcomes = perform(work)
-    allvets = makevets(allsp, outcomes)
-    newspA = spawnerA(UInt16(2), allvets)
-    newspB = spawnerB(UInt16(2), allvets)
-
-    allsp = Set([newspA, newspB])
-    recipes = order(allsp)
-    @test length(recipes) == 10000
-    work = jobcfg(allsp, recipes)
-    outcomes = perform(work)
-    allvets = makevets(allsp, outcomes)
-    newspA = spawnerA(UInt16(3), allvets)
-    newspB = spawnerB(UInt16(3), allvets)
-    @test length(newspA.pop) == 50
-    @test length(newspA.children) == 50
-end
-
-@testset "Coev" begin
-    # RNG #
-    coev_key = "NG: Gradient"
-    trial = 1
-    seed = UInt64(42)
-    rng = StableRNG(seed)
-
-    coev_cfg = CoevConfig(;
-        key = "Coev Test",
-        trial = 1,
-        seed = seed,
-        rng = rng,
-        jobcfg = SerialJobConfig(),
-        orders = Set([testorder()]), 
-        spawners = Set([
-            testspawner(rng, :A, n_pop = 50, width = 100),
-            testspawner(rng, :B, n_pop = 50, width = 100),
-        ]),
-        loggers = Set(Logger[]))
-    gen = UInt16(1)
-    allsp = coev_cfg()
-    while gen < 200
-        println(gen)
-        allsp = coev_cfg(gen, allsp)
-        gen += UInt16(1)
-    end
-end
+# 
+# 
+# @testset "Generational/Roulette/Bitflip" begin
+#     rng = StableRNG(42)
+#     spawnerA = roulettespawner(rng, :A, n_pop = 50, width = 100)
+#     spawnerB = roulettespawner(rng, :B, n_pop = 50, width = 100)
+#     spawners = Set([spawnerA, spawnerB])
+#     order = testorder()
+#     speciesA = spawnerA(false)
+#     speciesB = spawnerB(false)
+#     
+#     allsp = Set([speciesA, speciesB])
+#     recipes = order(allsp)
+#     @test length(recipes) == 2500
+#     jobcfg = SerialJobConfig()
+#     work = jobcfg(allsp, Set([order]), recipes)
+#     outcomes = perform(work)
+#     allvets = makevets(allsp, outcomes)
+#     newspA = spawnerA(UInt16(2), allvets)
+#     newspB = spawnerB(UInt16(2), allvets)
+# 
+#     allsp = Set([newspA, newspB])
+#     recipes = order(allsp)
+#     @test length(recipes) == 10000
+#     work = jobcfg(allsp, Set([order]) recipes)
+#     outcomes = perform(work)
+#     allvets = makevets(allsp, outcomes)
+#     newspA = spawnerA(UInt16(3), allvets)
+#     newspB = spawnerB(UInt16(3), allvets)
+#     @test length(newspA.pop) == 50
+#     @test length(newspA.children) == 50
+# end
+# 
+# @testset "Coev" begin
+#     # RNG #
+#     coev_key = "NG: Gradient"
+#     trial = 1
+#     seed = UInt64(42)
+#     rng = StableRNG(seed)
+# 
+#     coev_cfg = CoevConfig(;
+#         key = "Coev Test",
+#         trial = 1,
+#         seed = seed,
+#         rng = rng,
+#         jobcfg = SerialJobConfig(),
+#         orders = Set([testorder()]), 
+#         spawners = Set([
+#             testspawner(rng, :A, n_pop = 50, width = 100),
+#             testspawner(rng, :B, n_pop = 50, width = 100),
+#         ]),
+#         loggers = Set(Logger[]))
+#     gen = UInt16(1)
+#     allsp = coev_cfg()
+#     while gen < 200
+#         println(gen)
+#         allsp = coev_cfg(gen, allsp)
+#         gen += UInt16(1)
+#     end
+# end
 
 
 

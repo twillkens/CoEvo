@@ -4,7 +4,6 @@ export allindivs
 struct Species{I <: Individual}
     spid::Symbol
     pop::Set{I}
-    parents::Vector{UInt32}
     children::Set{I}
 end
 
@@ -22,10 +21,7 @@ function allindivs(allsp::Set{<:Species}, spid::Symbol)
 end
 
 function Species(spid::Symbol, pop::Set{I}) where {I <: Individual}
-    Species(spid, pop, UInt32[], Set{I}())
+    Species(spid, pop, Set{I}())
 end
 
-function Species(spid::Symbol, pop::Set{I}, children::Set{I}) where {I <: Individual}
-    Species(spid, pop, UInt32[], children)
-end
 

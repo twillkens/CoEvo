@@ -5,7 +5,7 @@ export perform
 export makerecipes, makegenodict, makephenodict
 
 struct Job{R <: Recipe, G <: Genotype, O <: Order}
-    orders::Dict{Symbol, O}
+    odict::Dict{Symbol, O}
     recipes::Set{R}
     genodict::Dict{IndivKey, G}
 end
@@ -18,26 +18,21 @@ function makeallgenos(allsp::Set{<:Species})
     Dict(indiv.ikey => genotype(indiv) for indiv in allindivs(allsp))
 end
 
-function makegenodict(
-    allgenos::Dict{IndivKey, G},
-    recipes::Set{<:Recipe}) where {G <: Genotype
-}
+function makegenodict(allgenos::Dict{IndivKey, <:Genotype}, recipes::Set{<:Recipe})
     Dict(ikey => allgenos[ikey] for ikey in getikeys(recipes))
 end
-
 
 function getphenocfg(odict::Dict{Symbol, <:Order}, ingredkey::IngredientKey)
     odict[ingredkey.oid].phenocfgs[ingredkey.spid]
 end
 
 function makephenodict(
-    orders::Set{<:Order}, recipes::Set{<:Recipe},
-    genodict::Dict{IndivKey, G}) where {G <: Genotype
-}
-    odict = Dict(order.oid => order for order in orders)
+    odict::Dict{Symbol, <:Order}, recipes::Set{<:Recipe},
+    genodict::Dict{IndivKey, <:Genotype}
+)
     phenopairs = Pair[]
     for ingredkey in getingredkeys(recipes)
-        phenocfg = getphenocfg(odict, recipe)
+        phenocfg = getphenocfg(odict, ingredkey)
         pheno = phenocfg(genodict[ingredkey.ikey])
         push!(phenopairs, ingredkey => pheno)
     end
@@ -45,14 +40,17 @@ function makephenodict(
 end
 
 function makephenodict(job::Job)
-    makephenodict(job.orders, job.recipes, job.genodict)
+    makephenodict(job.odict, job.recipes, job.genodict)
 end
 
+function getmixes(odict::Dict{Symbol, <:Order}, recipes::Set{<:Recipe}, phenodict::Dict{I, P}) where
+{I <: IngredientKey, P <: Phenotype}
+    Set(r(odict[r.oid], phenodict) for r in recipes)
+end
 
 function getmixes(job::Job, phenodict::Dict{I, P}) where
 {I <: IngredientKey, P <: Phenotype}
-    odict = Dict(order.oid => order for order in job.orders)
-    Set(r(odict[r.oid], phenodict) for r in job.recipes)
+    getmixes(job.odict, job.recipes, phenodict)
 end
 
 function perform(job::Job)
@@ -72,9 +70,10 @@ struct SerialJobConfig <: JobConfig end
 function(cfg::SerialJobConfig)(
     allsp::Set{<:Species}, orders::Set{<:Order}, recipes::Set{<:Recipe}
 )
+    odict = Dict(order.oid => order for order in orders)
     allgenos = makeallgenos(allsp)
     genodict = makegenodict(allgenos, recipes)
-    Job(orders, recipes, genodict)
+    Job(odict, recipes, genodict)
 end
 
 Base.@kwdef struct ParallelJobConfig <: JobConfig
@@ -97,7 +96,8 @@ end
 function(cfg::ParallelJobConfig)(
     allsp::Set{<:Species}, orders::Set{<:Order}, recipes::Set{<:Recipe}
 )
+    odict = Dict(order.oid => order for order in orders)
     allgenos = makeallgenos(allsp)
     rsets = divvy(recipes, cfg.n_jobs)
-    Set(Job(orders, recipes, makegenodict(allgenos, recipes)) for recipes in rsets)
+    Set(Job(odict, recipes, makegenodict(allgenos, recipes)) for recipes in rsets)
 end
