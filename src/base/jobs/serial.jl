@@ -67,6 +67,10 @@ end
 
 struct SerialJobConfig <: JobConfig end
 
+function(cfg::JobConfig)(allsp::Set{<:Species}, order::Order, recipes::Set{<:Recipe})
+    cfg(allsp, Set([order]), recipes)
+end
+
 function(cfg::SerialJobConfig)(
     allsp::Set{<:Species}, orders::Set{<:Order}, recipes::Set{<:Recipe}
 )

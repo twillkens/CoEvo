@@ -250,13 +250,12 @@ end
     speciesA = Species(:A, spawnerA.icfg(5, false), spawnerA.icfg(5, true))
     speciesB = Species(:B, spawnerB.icfg(5, false), spawnerB.icfg(5, true))
     allsp = Set([speciesA, speciesB])
-    spawners = Set([spawnerA, spawnerB])
 
     order = testorder()
     recipes = order(speciesA, speciesB)
     @test length(recipes) == 100
     jobcfg = SerialJobConfig()
-    job = jobcfg(allsp, Set([order]), recipes)
+    job = jobcfg(allsp, order, recipes)
     outcomes = perform(job)
     @test length(outcomes) == 100
     allvets = makevets(allsp, outcomes)
@@ -283,13 +282,12 @@ end
     speciesA = Species(:A, spawnerA.icfg(5, false), spawnerA.icfg(5, true))
     speciesB = Species(:B, spawnerB.icfg(5, false), spawnerB.icfg(5, true))
     allsp = Set([speciesA, speciesB])
-    spawners = Set([spawnerA, spawnerB])
     order = testorder()
     recipes = order(speciesA, speciesB)
     @test length(recipes) == 100
 
     jobcfg = ParallelJobConfig(n_jobs = 5)
-    jobs = jobcfg(allsp, Set([order]), recipes)
+    jobs = jobcfg(allsp, order, recipes)
     @test length(jobs) == 5
     @test all(length(job.recipes) == 20 for job in jobs)
     outcomes = union([perform(job) for job in jobs]...)
@@ -318,7 +316,6 @@ end
     speciesA = Species(:A, spawnerA.icfg(10, true))
     speciesB = Species(:B, spawnerB.icfg(10, false))
     allsp = Set([speciesA, speciesB])
-    spawners = Set([spawnerA, spawnerB])
     order = vecorder()
     recipes = order(allsp)
     @test length(recipes) == 100
@@ -331,39 +328,38 @@ end
     @test sum(fitness(vet) for vet in allindivs(allvets, :A)) == 100
     @test sum(fitness(vet) for vet in allindivs(allvets, :B)) == 0
 end
-# 
-# 
-# @testset "Generational/Roulette/Bitflip" begin
-#     rng = StableRNG(42)
-#     spawnerA = roulettespawner(rng, :A, n_pop = 50, width = 100)
-#     spawnerB = roulettespawner(rng, :B, n_pop = 50, width = 100)
-#     spawners = Set([spawnerA, spawnerB])
-#     order = testorder()
-#     speciesA = spawnerA(false)
-#     speciesB = spawnerB(false)
-#     
-#     allsp = Set([speciesA, speciesB])
-#     recipes = order(allsp)
-#     @test length(recipes) == 2500
-#     jobcfg = SerialJobConfig()
-#     work = jobcfg(allsp, Set([order]), recipes)
-#     outcomes = perform(work)
-#     allvets = makevets(allsp, outcomes)
-#     newspA = spawnerA(UInt16(2), allvets)
-#     newspB = spawnerB(UInt16(2), allvets)
-# 
-#     allsp = Set([newspA, newspB])
-#     recipes = order(allsp)
-#     @test length(recipes) == 10000
-#     work = jobcfg(allsp, Set([order]) recipes)
-#     outcomes = perform(work)
-#     allvets = makevets(allsp, outcomes)
-#     newspA = spawnerA(UInt16(3), allvets)
-#     newspB = spawnerB(UInt16(3), allvets)
-#     @test length(newspA.pop) == 50
-#     @test length(newspA.children) == 50
-# end
-# 
+
+
+@testset "Generational/Roulette/Bitflip" begin
+    rng = StableRNG(42)
+    spawnerA = roulettespawner(rng, :A, n_pop = 50, width = 100)
+    spawnerB = roulettespawner(rng, :B, n_pop = 50, width = 100)
+    order = testorder()
+    speciesA = Species(spawnerA, false)
+    speciesB = Species(spawnerB, false)
+    
+    allsp = Set([speciesA, speciesB])
+    recipes = order(allsp)
+    @test length(recipes) == 2500
+    jobcfg = SerialJobConfig()
+    work = jobcfg(allsp, order, recipes)
+    outcomes = perform(work)
+    allvets = makevets(allsp, outcomes)
+    newspA = spawnerA(allvets)
+    newspB = spawnerB(allvets)
+
+    allsp = Set([newspA, newspB])
+    recipes = order(allsp)
+    @test length(recipes) == 10000
+    work = jobcfg(allsp, order, recipes)
+    outcomes = perform(work)
+    allvets = makevets(allsp, outcomes)
+    newspA = spawnerA(allvets)
+    newspB = spawnerB(allvets)
+    @test length(newspA.pop) == 50
+    @test length(newspA.children) == 50
+end
+
 # @testset "Coev" begin
 #     # RNG #
 #     coev_key = "NG: Gradient"
