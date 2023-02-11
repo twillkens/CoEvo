@@ -28,3 +28,11 @@ end
 function(m::Mutator)(indivs::Set{<:Individual})
     Set(m(indiv) for indiv in indivs)
 end
+
+
+Base.@kwdef struct LingPredMutator <: Mutator
+    rng::AbstractRNG
+    sc::SpawnCounter
+    nmut::Int
+end
+

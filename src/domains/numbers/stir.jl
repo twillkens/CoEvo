@@ -21,6 +21,14 @@ function stir(
     oid::Symbol, ::NGGradient, ::NGObsConfig;
     A::ScalarPheno, B::ScalarPheno
 )
+    # for i in 1:A.val*256
+        # tanh(rand())
+    # end
+
+    # for i in 1:B.val
+        # tanh(rand())*256
+    # end
+
     Outcome(oid, Dict(
         A.ikey => A.val > B.val,
         B.ikey => B.val > A.val))

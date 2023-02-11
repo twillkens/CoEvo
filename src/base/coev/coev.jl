@@ -97,16 +97,16 @@ function archive!(
 end
 
 function interact!(c::CoevConfig, allsp::Set{<:Species})
-    @time recipes = makerecipes(c.orders, allsp)
-    @time work_recipes, cached_outcomes = prune!(c.cache, recipes)
-    @time work = c.jobcfg(allsp, c.orders, work_recipes)
-    @time work_outcomes = perform(work)
-    @time update!(c.cache, work_outcomes)
-    @time makevets(allsp, union(cached_outcomes, work_outcomes)), work_outcomes
+    recipes = makerecipes(c.orders, allsp)
+    work_recipes, cached_outcomes = prune!(c.cache, recipes)
+    work = c.jobcfg(allsp, c.orders, work_recipes)
+    work_outcomes = perform(work)
+    update!(c.cache, work_outcomes)
+    makevets(allsp, union(cached_outcomes, work_outcomes)), work_outcomes
 end
 
 function(c::CoevConfig)(gen::UInt16, allsp::Set{<:Species})
-    allvets, work_outcomes = interact!(c, allsp)
+    @time allvets, work_outcomes = interact!(c, allsp)
     @time archive!(gen, c, allvets, work_outcomes)
     Set(spawner(allvets) for spawner in c.spawners)
 end

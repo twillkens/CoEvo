@@ -108,16 +108,16 @@ function make_coevcfg(;
         ])
 
     ## Construct and return cfg
-    coev_cfg = CoevConfig(;
-        key = coev_key,
-        trial = trial,
-        job_cfg = job_cfg,
-        orders = orders, 
-        spawners = spawners,
-        loggers = loggers,
-        logpath = "data/$(coev_key)-$(trial).jld2",
-        )
-    pops, coev_cfg
+    #coev_cfg = CoevConfig(;
+    #    key = coev_key,
+    #    trial = trial,
+    #    job_cfg = job_cfg,
+    #    orders = orders, 
+    #    spawners = spawners,
+    #    loggers = loggers,
+    #    logpath = "data/$(coev_key)-$(trial).jld2",
+    #    )
+    #pops, coev_cfg
 end
 
 function run_trial(; kwargs...)

@@ -12,7 +12,13 @@ function allindivs(sp::Species)
 end
 
 function allindivs(allsp::Set{<:Species})
-    union([allindivs(sp) for sp in allsp]...)
+    # union([allindivs(sp) for sp in allsp]...)
+    allgroups = Vector{Individual}()
+    for sp in allsp
+        append!(allgroups, sp.pop)
+        append!(allgroups, sp.children)
+    end
+    Set(allgroups)
 end
 
 function allindivs(allsp::Set{<:Species}, spid::Symbol)

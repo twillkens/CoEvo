@@ -9,14 +9,6 @@ end
 #     Recipe(oid, Set(args))
 # end
 
-function getingredkeys(recipe::Recipe)
-    Set(IngredientKey(recipe.oid, ikey) for ikey in recipe.ikeys)
-end
-
-function getingredkeys(recipes::Set{<:Recipe})
-    Set(ingredkey for recipe in recipes for ingredkey in getingredkeys(recipe))
-end
-
 
 function getikeys(recipes::Set{<:Recipe})
     Set(ikey for recipe in recipes for ikey in recipe.ikeys)

@@ -18,7 +18,7 @@ struct VectorIndiv{G <: ScalarGene} <: Individual
     pids::Set{UInt32}
 end
 
-function Base.getproperty(indiv::Individual, prop::Symbol)
+function Base.getproperty(indiv::VectorIndiv, prop::Symbol)
     if prop == :spid
         indiv.ikey.spid
     elseif prop == :iid
@@ -27,6 +27,16 @@ function Base.getproperty(indiv::Individual, prop::Symbol)
         getgids(indiv)
     elseif prop == :vals
         getvals(indiv)
+    else
+        getfield(indiv, prop)
+    end
+end
+
+function Base.getproperty(indiv::Individual, prop::Symbol)
+    if prop == :spid
+        indiv.ikey.spid
+    elseif prop == :iid
+        indiv.ikey.iid
     else
         getfield(indiv, prop)
     end

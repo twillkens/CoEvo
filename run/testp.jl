@@ -1,8 +1,9 @@
 using Test
 using Random
 using StableRNGs
-include("../src/Coevolutionary.jl")
-using .Coevolutionary
+using Distributed
+@everywhere include("../src/Coevolutionary.jl")
+@everywhere using .Coevolutionary
 # include("util.jl")
 
 function testspawner(rng::AbstractRNG, spid::Symbol; n_pop = 10, width = 10)
@@ -92,7 +93,7 @@ function evolve(ngen::Int, npop::Int)
         trial = 1,
         seed = seed,
         rng = rng,
-        jobcfg = SerialJobConfig(),
+        jobcfg = ParallelJobConfig(n_jobs = nprocs()),
         orders = Set([testorder()]), 
         spawners = Set([
             testspawner(rng, :A, n_pop = npop, width = 100),
