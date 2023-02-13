@@ -1,5 +1,6 @@
 export FSMIndiv, FSMGeno, FSMPheno, FSMPhenoCfg
-export genotype, LinkDict, StateSet
+export genotype, LinkDict, StateSet, act
+
 
 LinkDict = Dict{Tuple{String, Bool}, String}
 StateSet = Set{String}
@@ -12,13 +13,15 @@ struct FSMGeno <: Genotype
     links::LinkDict
 end
 
-struct FSMPheno <: Genotype
+
+struct FSMPheno <: Phenotype
     ikey::IndivKey
     start::String
     ones::Set{String}
     zeros::Set{String}
     links::LinkDict
 end
+
 
 struct FSMIndiv <: Individual
     ikey::IndivKey
@@ -47,7 +50,9 @@ function genotype(indiv::FSMIndiv)
     indiv.geno
 end
 
-struct FSMPhenoCfg <: PhenoConfig end
+struct FSMPhenoCfg <: PhenoConfig
+    role::Symbol
+end
 
 function(cfg::FSMPhenoCfg)(geno::FSMGeno)
     FSMPheno(geno.ikey, geno.start, geno.ones, geno.zeros, geno.links)
