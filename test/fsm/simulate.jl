@@ -87,12 +87,10 @@ verbose = false
 #              traj1, traj2, loop1, loop2, score1, score2)
 # end
 
-@testset "simple" begin
+@testset "newsimple" begin
     tname = :simple
     domain = LingPredGame()
     obscfg = LingPredObsConfig()
-
-
     ikey = IndivKey(:A, 1) 
     start = "A0"
     ones = Set(["A1"])
@@ -126,10 +124,8 @@ verbose = false
     @test outcome.obs.outs[fsm2.ikey] == [0, 1, 1, 0, 0]
     @test outcome.obs.states[fsm1.ikey] == ["A0", "A0", "A1", "A1", "A0"]
     @test outcome.obs.states[fsm2.ikey] == ["B0", "B1", "B1", "B0", "B0"]
-    @test outcome.obs.outs[fsm1.ikey][outcome.obs.loopstart:end] == [0, 0, 1, 1]
-    @test outcome.obs.outs[fsm2.ikey][outcome.obs.loopstart:end] == [0, 1, 1, 0]
-    @test states1 == ["A0", "A0", "A1", "A1", "A0"]
-    @test states2 == ["B0", "B1", "B1", "B0", "B0"]
+    @test outcome.obs.outs[fsm1.ikey][outcome.obs.loopstart:end - 1] == [0, 0, 1, 1]
+    @test outcome.obs.outs[fsm2.ikey][outcome.obs.loopstart:end - 1] == [0, 1, 1, 0]
 
     # printsim(testname, fsm1, fsm2, goal1, goal2, states1, states2,
     #          traj1, traj2, loop1, loop2, score1, score2)
@@ -182,6 +178,88 @@ end
 #     printsim(testname, fsm1, fsm2, goal1, goal2, states1, states2,
 #              traj1, traj2, loop1, loop2, score1, score2)
 # end
+
+@testset "newcoop1" begin
+    tname = :newcoop1
+    domain = LingPredGame()
+    obscfg = LingPredObsConfig()
+    start = "A0"
+    zeros = Set(["A0"])
+    ones = Set(["A1"])
+    ikey = IndivKey(:A, 1)
+    links = LinkDict(
+                ("A0", 0)  => "A1",
+                ("A0", 1)  => "A1",
+                ("A1", 0)  => "A1",
+                ("A1", 1)  => "A0",
+                )
+    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+
+    ikey = IndivKey(:B, 1)
+    start = "B0"
+    zeros = Set(["B0"])
+    ones = Set(["B1"])
+    links = LinkDict(
+                ("B0", 0)  => "B0",
+                ("B0", 1)  => "B1",
+                ("B1", 0)  => "B0",
+                ("B1", 1)  => "B1",
+                )
+    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    mix = Mix(tname, domain, obscfg, Dict(:matchcoop1 => fsm1, :matchcoop2 => fsm2))
+    outcome::Outcome{Float64, LingPredObs} = stir(mix)
+
+    @test outcome.rdict[fsm1.ikey] ≈ 1/3
+    @test outcome.rdict[fsm2.ikey] ≈ 1/3
+    @test outcome.obs.outs[fsm1.ikey] == [0, 1, 1, 0, 1]
+    @test outcome.obs.outs[fsm2.ikey] == [0, 0, 1, 1, 0]
+    @test outcome.obs.outs[fsm1.ikey][outcome.obs.loopstart:end - 1] == [1, 1, 0]
+    @test outcome.obs.outs[fsm2.ikey][outcome.obs.loopstart:end - 1] == [0, 1, 1]
+    @test outcome.obs.states[fsm1.ikey] == ["A0", "A1", "A1", "A0", "A1"]
+    @test outcome.obs.states[fsm2.ikey] == ["B0", "B0", "B1", "B1", "B0"]
+end
+
+
+@testset "newcomp1" begin
+    tname = :newcomp1
+    domain = LingPredGame()
+    obscfg = LingPredObsConfig()
+    start = "A0"
+    zeros = Set(["A0"])
+    ones = Set(["A1"])
+    ikey = IndivKey(:A, 1)
+    links = LinkDict(
+                ("A0", 0)  => "A1",
+                ("A0", 1)  => "A1",
+                ("A1", 0)  => "A1",
+                ("A1", 1)  => "A0",
+                )
+    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+
+    ikey = IndivKey(:B, 1)
+    start = "B0"
+    zeros = Set(["B0"])
+    ones = Set(["B1"])
+    links = LinkDict(
+                ("B0", 0)  => "B0",
+                ("B0", 1)  => "B1",
+                ("B1", 0)  => "B0",
+                ("B1", 1)  => "B1",
+                )
+    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    mix = Mix(tname, domain, obscfg, Dict(:matchcomp1 => fsm1, :matchcomp2 => fsm2))
+    outcome::Outcome{Float64, LingPredObs} = stir(mix)
+
+    @test outcome.rdict[fsm1.ikey] ≈ 1/3
+    @test outcome.rdict[fsm2.ikey] ≈ 2/3
+    @test outcome.obs.outs[fsm1.ikey] == [0, 1, 1, 0, 1]
+    @test outcome.obs.outs[fsm2.ikey] == [0, 0, 1, 1, 0]
+    @test outcome.obs.outs[fsm1.ikey][outcome.obs.loopstart:end - 1] == [1, 1, 0]
+    @test outcome.obs.outs[fsm2.ikey][outcome.obs.loopstart:end - 1] == [0, 1, 1]
+    @test outcome.obs.states[fsm1.ikey] == ["A0", "A1", "A1", "A0", "A1"]
+end
+
+
 # 
 # @testset "comp1" begin
 #     testname = "Comp1"

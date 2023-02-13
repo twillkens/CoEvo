@@ -37,32 +37,32 @@ function act(fsm::FSMPheno, state::String, bit::Bool)
     fsm.links[(state, bit)]
 end
 
+
 function simulate(::LingPredGame, a1::FSMPheno, a2::FSMPheno)
     t = 1
     state1, state2 = a1.start, a2.start
     statelog = StateLog((state1, state2) => t)
     bit1, bit2 = label(a1, state1), label(a2, state2)
-    bits1, bits2 = Bool[bit1], Bool[bit2]
     states1, states2 = String[state1], String[state2]
+    bits1, bits2 = Bool[bit1], Bool[bit2]
     while true
         t += 1
         state1, state2 = act(a1, state1, bit2), act(a2, state2, bit1)
-        logkey = (state1, state2)
-        if logkey in keys(statelog)
-            loopstart = statelog[logkey]
-            return loopstart, states1, states2, bits1, bits2
-        end
-        statelog[logkey] = t
         bit1, bit2 = label(a1, state1), label(a2, state2)
         push!(bits1, bit1)
         push!(bits2, bit2)
         push!(states1, state1)
         push!(states2, state2)
+        logkey = (state1, state2)
+        if logkey in keys(statelog)
+            return statelog[logkey], states1, states2, bits1, bits2
+        end
+        statelog[logkey] = t
     end
 end
 
 function getmatches(loopstart::Int, traj1::Vector{Bool}, traj2::Vector{Bool})
-    [bit1 == bit2 for (bit1, bit2) in zip(traj1[loopstart:end], traj2[loopstart:end])]
+    [bit1 == bit2 for (bit1, bit2) in zip(traj1[loopstart:end - 1], traj2[loopstart:end - 1])]
 end
 
 
