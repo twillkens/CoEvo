@@ -5,7 +5,7 @@ Base.@kwdef struct IdentityRecombiner <: Recombiner end
 
 
 function(r::IdentityRecombiner)(::UInt16, parents::Vector{<:Veteran})
-    Set(parents)
+    parents
 end
 
 Base.@kwdef struct CloneRecombiner <: Recombiner
@@ -13,7 +13,7 @@ Base.@kwdef struct CloneRecombiner <: Recombiner
 end
 
 function(r::CloneRecombiner)(parents::Vector{<:Veteran})
-    Set(clone(iid, p) for (iid, p) in zip(iids!(r.sc, length(parents)), parents))
+    [clone(iid, p) for (iid, p) in zip(iids!(r.sc, length(parents)), parents)]
 end
 
 struct NPointCrossoverRecombiner <: Recombiner

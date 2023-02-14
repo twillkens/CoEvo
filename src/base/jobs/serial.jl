@@ -1,107 +1,67 @@
-export Job
-export SerialJobConfig, ParallelJobConfig
+export PhenoJob, SerialPhenoJobConfig, ParallelPhenoJobConfig
 export perform
 
-export makerecipes, makegenodict, makephenodict
-
-struct Job{R <: Recipe, G <: Genotype, O <: Order}
+struct PhenoJob{R <: Recipe, P <: Phenotype, O <: Order} <: Job
     odict::Dict{Symbol, O}
-    recipes::Set{R}
-    genodict::Dict{IndivKey, G}
-end
-
-function makerecipes(orders::Set{<:Order}, allsp::Set{<:Species})
-    union([order(allsp) for order in orders]...)
-end
-
-function makeallgenos(allsp::Set{<:Species})
-    Dict(indiv.ikey => genotype(indiv) for indiv in allindivs(allsp))
-end
-
-function makegenodict(allgenos::Dict{IndivKey, <:Genotype}, recipes::Set{<:Recipe})
-    Dict(ikey => allgenos[ikey] for ikey in getikeys(recipes))
-end
-
-function getphenocfg(odict::Dict{Symbol, <:Order}, ingredkey::IngredientKey)
-    odict[ingredkey.oid].phenocfgs[ingredkey.spid]
-end
-
-function makephenodict(
-    odict::Dict{Symbol, <:Order}, recipes::Set{<:Recipe},
-    genodict::Dict{IndivKey, <:Genotype}
-)
-    phenopairs = Pair[]
-    for ingredkey in getingredkeys(recipes)
-        phenocfg = getphenocfg(odict, ingredkey)
-        pheno = phenocfg(genodict[ingredkey.ikey])
-        push!(phenopairs, ingredkey => pheno)
-    end
-    Dict(phenopairs)
-end
-
-function makephenodict(job::Job)
-    makephenodict(job.odict, job.recipes, job.genodict)
-end
-
-function getmixes(odict::Dict{Symbol, <:Order}, recipes::Set{<:Recipe}, phenodict::Dict{I, P}) where
-{I <: IngredientKey, P <: Phenotype}
-    Set(r(odict[r.oid], phenodict) for r in recipes)
-end
-
-function getmixes(job::Job, phenodict::Dict{I, P}) where
-{I <: IngredientKey, P <: Phenotype}
-    getmixes(job.odict, job.recipes, phenodict)
+    recipes::Vector{R}
+    phenodict::Dict{IndivKey, P}
 end
 
 function perform(job::Job)
-    phenodict = makephenodict(job)
-    mixes = getmixes(job, phenodict)
-    Set(stir(mix) for mix in mixes)
+    mixes = getmixes(job)
+    [stir(mix) for mix in mixes]
 end
 
 function perform(jobs::Set{<:Job})
     futures = [remotecall(perform, i, job) for (i, job) in enumerate(jobs)]
     outcomes = [fetch(f) for f in futures]
-    union(outcomes...)
+    Iterators.flatten(outcomes)
 end
 
-struct SerialJobConfig <: JobConfig end
-
-function(cfg::JobConfig)(allsp::Set{<:Species}, order::Order, recipes::Set{<:Recipe})
-    cfg(allsp, Set([order]), recipes)
-end
-
-function(cfg::SerialJobConfig)(
-    allsp::Set{<:Species}, orders::Set{<:Order}, recipes::Set{<:Recipe}
-)
-    odict = Dict(order.oid => order for order in orders)
-    allgenos = makeallgenos(allsp)
-    genodict = makegenodict(allgenos, recipes)
-    Job(odict, recipes, genodict)
-end
-
-Base.@kwdef struct ParallelJobConfig <: JobConfig
-    n_jobs::Int
-end
-
-function divvy(recipes::Set{<:Recipe}, n_subsets::Int)
-    n_mix = div(length(recipes), n_subsets)
-    recipe_vecs = collect(Iterators.partition(recipes, n_mix))
-    # If there are leftovers, divide the excess among the other subsets
-    if length(recipe_vecs) > n_subsets
-        excess = pop!(recipe_vecs)
+function divvy(recipes::Vector{<:Recipe}, njobs::Int)
+    nmix = div(length(recipes), njobs)
+    rvecs = collect(Iterators.partition(recipes, nmix))
+    if length(rvecs) > n_subsets
+        excess = pop!(rvecs)
         for i in eachindex(excess)
-            push!(recipe_vecs[i], excess[i])
+            push!(rvecs[i], excess[i])
         end
     end
-    Set(Set(rvec) for rvec in recipe_vecs)
+    rvecs
 end
 
-function(cfg::ParallelJobConfig)(
-    allsp::Set{<:Species}, orders::Set{<:Order}, recipes::Set{<:Recipe}
+struct SerialPhenoJobConfig <: JobConfig end
+
+function(cfg::SerialPhenoJobConfig)(
+    allsp::Dict{Symbol, <:Species}, odict::Dict{Symbol, <:Order}, recipes::Vector{<:Recipe}
 )
-    odict = Dict(order.oid => order for order in orders)
-    allgenos = makeallgenos(allsp)
-    rsets = divvy(recipes, cfg.n_jobs)
-    Set(Job(odict, recipes, makegenodict(allgenos, recipes)) for recipes in rsets)
+    phenodict = makephenodict(allsp)
+    Job(odict, phenodict, recipes)
+end
+
+function makephenodict(allsp::Dict{Symbol, <:Species}
+)
+    phenodict = Dict{Symbol, Dict{IndivKey, Phenotype}}()
+    for sp in allsp
+        phenodict[sp.spid] = Dict(ikey => sp.phenocfg(indiv)
+            for (ikey, indiv) in merge(sp.pop, sp.children)
+        )
+    end
+    phenodict
+end
+
+Base.@kwdef struct ParallelPhenoJobConfig <: JobConfig
+    njobs::Int
+end
+
+function(cfg::ParallelPhenoJobConfig)(
+    allsp::Dict{Symbol, <:Species}, odict::Dict{Symbol, <:Order}, recipes::Vector{<:Recipe}
+)
+    phenodict = makephenodict(allsp)
+    rsets = divvy(recipes, cfg.njobs)
+    [PhenoJob(odict, phenodict, recipes) for recipes in rsets]
+end
+
+function(cfg::JobConfig)(allsp::Set{<:Species}, order::Order, recipes::Vector{<:Recipe})
+    cfg(allsp, Set([order]), recipes)
 end

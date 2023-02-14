@@ -2,12 +2,13 @@ export Spawner, Species
 export ScoreOutcome, IdentitySelector, Replacer
 
 @Base.kwdef struct Spawner{
-    I <: IndivConfig, RP <: Replacer, S <: Selector,
+    I <: IndivConfig, P <: PhenoConfig, RP <: Replacer, S <: Selector,
     RC <: Recombiner, M <: Mutator
 }
     spid::Symbol
-    n_pop::Int
+    npop::Int
     icfg::I
+    phenocfg::P
     replacer::RP
     selector::S
     recombiner::RC
@@ -22,7 +23,7 @@ function(s::Spawner)(vets::Species{<:Veteran})
     for mutator in s.mutators
         children = mutator(children)
     end
-    Species(s.spid, Set(vet.indiv for vet in pop), children)
+    Species(s.spid, s.phenocfg, [vet.indiv for vet in pop], children)
 end
 
 
@@ -32,11 +33,11 @@ end
 
 
 function Species(s::Spawner, args...)
-    pop = s.icfg(s.n_pop, args...)
-    Species(s.spid, pop,)
+    pop = s.icfg(s.npop, args...)
+    Species(s.spid, s.phenocfg, pop)
 end
 
 function(s::Spawner)()
-    pop = s.icfg(s.n_pop, s.spargs...)
-    Species(s.spid, pop,)
+    pop = s.icfg(s.npop, s.spargs...)
+    Species(s.spid, s.phenocfg, pop)
 end

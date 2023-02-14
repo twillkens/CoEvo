@@ -3,6 +3,7 @@ export Domain, Order, JobConfig, Result #, Outcome
 export Observation, ObsConfig
 export Replacer, Selector, Recombiner, Mutator
 export Logger, Coevolution
+export Job
 
 # individual
 abstract type Gene end
@@ -30,4 +31,4 @@ abstract type Mutator end
 abstract type Logger end
 abstract type Coevolution end
 
-
+abstract type Job end

@@ -18,13 +18,18 @@ function ScalarPheno(spkey::Symbol, iid::Int, val::Real)
 end
 
 Base.@kwdef struct SumPhenoConfig <: PhenoConfig
-    role::Symbol
 end
 
 function(::SumPhenoConfig)(geno::VectorGeno)
     val = sum(geno.genes)
     ScalarPheno(geno.ikey, val)
 end
+
+function(::SumPhenoConfig)(indiv::VectorIndiv)
+    val = sum(gene.val for gene in indiv.genes)
+    ScalarPheno(indiv.ikey, val)
+end
+
 
 struct VectorPheno{T <: Real} <: Phenotype
     ikey::IndivKey
@@ -37,8 +42,17 @@ function VectorPheno(spkey::Symbol, iid::Real, vec::Vector{<:Real})
 end
 
 Base.@kwdef struct SubvecPhenoConfig <: PhenoConfig
-    role::Symbol
     subvec_width::Int
+end
+
+function(::SubvecPhenoConfig)(indiv::VectorIndiv)
+    if mod(length(indiv.genes), cfg.subvec_width) != 0
+        error("Invalid subvector width for given genome width")
+    end
+
+    vec = [sum(part) for part in
+        Iterators.partition(map(gene -> gene.val, indiv.genes), cfg.subvec_width)]
+    VectorPheno(indiv.ikey, vec)
 end
 
 function(cfg::SubvecPhenoConfig)(geno::VectorGeno)

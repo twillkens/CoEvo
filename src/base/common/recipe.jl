@@ -1,15 +1,10 @@
-export Recipe, getingredkeys, getikeys, TestKey
+export Recipe, makerecipes
 
 @auto_hash_equals struct Recipe
     oid::Symbol
-    ikeys::Set{IndivKey}
+    ikeys::Tuple{Vararg{IndivKey}}
 end
 
-# function Recipe(oid::Symbol, args...)
-#     Recipe(oid, Set(args))
-# end
-
-
-function getikeys(recipes::Set{<:Recipe})
-    Set(ikey for recipe in recipes for ikey in recipe.ikeys)
+function makerecipes(orders::Set{<:Order}, allsp::Dict{Symbol, <:Species})
+    [recipe for recipe in order(allsp) for order in orders]
 end

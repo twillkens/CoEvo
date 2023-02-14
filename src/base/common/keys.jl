@@ -1,4 +1,4 @@
-export Key, IndivKey, TestKey, IngredientKey
+export Key, IndivKey, TestKey
 
 abstract type Key end
 
@@ -11,12 +11,12 @@ function IndivKey(spid::Symbol, iid::Int)
     IndivKey(spid, UInt32(iid))
 end
 
-@auto_hash_equals struct IngredientKey
+@auto_hash_equals struct TestKey
     oid::Symbol
     ikey::IndivKey
 end
 
-function Base.getproperty(key::IngredientKey, prop::Symbol)
+function Base.getproperty(key::TestKey, prop::Symbol)
     if prop == :spid
         key.ikey.spid
     elseif prop == :iid
@@ -24,9 +24,4 @@ function Base.getproperty(key::IngredientKey, prop::Symbol)
     else
         getfield(key, prop)
     end
-end
-
-@auto_hash_equals struct TestKey
-    oid::Symbol
-    ikeys::Set{IndivKey}
 end

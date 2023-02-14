@@ -11,47 +11,38 @@ struct NGObs <: Observation
 end
 
 function stir(
-    oid::Symbol, ::NGControl, ::NGObsConfig;
+    oid::Symbol, ::NGControl, ::NGObsConfig,
     A::Phenotype, B::Phenotype
 )
-    Outcome(oid, Dict(A.ikey => true, B.ikey => true))
+    Outcome(oid, A => true, B => true)
 end
 
 function stir(
-    oid::Symbol, ::NGGradient, ::NGObsConfig;
+    oid::Symbol, ::NGGradient, ::NGObsConfig,
     A::ScalarPheno, B::ScalarPheno
 )
-    # for i in 1:A.val*256
-        # tanh(rand())
-    # end
-
-    # for i in 1:B.val
-        # tanh(rand())*256
-    # end
-
-    Outcome(oid, Dict(
-        A.ikey => A.val > B.val,
-        B.ikey => B.val > A.val))
+    Outcome(oid,
+        A => A.val > B.val,
+        B => B.val > A.val)
 end
 
-
 function stir(
-    oid::Symbol, ::NGFocusing, ::NGObsConfig;
+    oid::Symbol, ::NGFocusing, ::NGObsConfig,
     A::VectorPheno, B::VectorPheno
 )
     maxdiff, idx = findmax([abs(x1 - x2) for (x1, x2) in zip(A.vec, B.vec)])
-    Outcome(oid, Dict(
-        A.ikey => A.vec[idx] > B.vec[idx],
-        B.ikey => B.vec[idx] > A.vec[idx]))
+    Outcome(oid, 
+        A => A.vec[idx] > B.vec[idx],
+        B => B.vec[idx] > A.vec[idx])
 end
 
 function stir(
-    oid::Symbol, ::NGRelativism, ::NGObsConfig;
+    oid::Symbol, ::NGRelativism, ::NGObsConfig,
     A::VectorPheno, B::VectorPheno
 )
-    maxdiff, idx = findmin([abs(x1 - x2) for (x1, x2) in zip(A.vec, B.vec)])
-    Outcome(oid, Dict(
-        A.ikey => A.vec[idx] > B.vec[idx],
-        B.ikey => B.vec[idx] > A.vec[idx]))
+    mindiff, idx = findmin([abs(x1 - x2) for (x1, x2) in zip(A.vec, B.vec)])
+    Outcome(oid,
+        A => A.vec[idx] > B.vec[idx],
+        B => B.vec[idx] > A.vec[idx])
 end
 

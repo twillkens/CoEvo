@@ -90,18 +90,20 @@ function(cfg::VectorIndivConfig)()
 end
 
 function(cfg::VectorIndivConfig)(n_indiv::Int)
-    Set([cfg() for _ in 1:n_indiv])
+    indivs = [cfg() for _ in 1:n_indiv]
+    Dict([indiv.ikey => indiv for indiv in indivs])
 end
 
 function(cfg::VectorIndivConfig)(n_indiv::Int, vec::Vector{<:Real})
-    Set([VectorIndiv(spid, iid!(cfg.sc), gids!(cfg.sc, cfg.width), vec)
-    for _ in 1:n_indiv])
+    indivs = [VectorIndiv(spid, iid!(cfg.sc), gids!(cfg.sc, cfg.width), vec) for _ in 1:n_indiv]
+    Dict([indiv.ikey => indiv for indiv in indivs])
 end
 
 function(cfg::VectorIndivConfig)(n_indiv::Int, val::Real)
-    Set([VectorIndiv(cfg.spid, iid!(cfg.sc),
-        gids!(cfg.sc, cfg.width), fill(val, cfg.width))
-    for _ in 1:n_indiv])
+    indivs = [
+        VectorIndiv(cfg.spid, iid!(cfg.sc), gids!(cfg.sc, cfg.width), fill(val, cfg.width))
+    for _ in 1:n_indiv]
+    Dict([indiv.ikey => indiv for indiv in indivs])
 end
 
 

@@ -1,30 +1,34 @@
-export AllvsAllOrder
+export AllvsAllPlusOrder, AllvsAllCommaOrder
 
-Base.@kwdef struct AllvsAllOrder{D <: Domain, O <: ObsConfig, P <: PhenoConfig} <: Order
+Base.@kwdef struct AllvsAllPlusOrder{D <: Domain, O <: ObsConfig, P <: PhenoConfig} <: Order
     oid::Symbol
+    spids::Vector{Symbol}
     domain::D
     obscfg::O
-    phenocfgs::Dict{Symbol, P}
+end
+
+function(o::AllvsAllPlusOrder)(sp1::Species, sp2::Species)
+    ikeys1 = [collect(keys(sp1.pop)); collect(keys(sp1.children))]
+    ikeys2 = [collect(keys(sp2.pop)); collect(keys(sp2.children))]
+    map(ikeypair -> Recipe(o.oid, ikeypair), Iterators.product(ikeys1, ikeys2))
 end
 
 
-# function(o::AllvsAllOrder)(sp1::Species, sp2::Species)
-#     ikeys1 = [i.ikey for i in allindivs(sp1)]
-#     ikeys2 = [i.ikey for i in allindivs(sp2)]
-#     ikeypairs = unique(Set, Iterators.filter(allunique,
-#                    Iterators.product(ikeys1, ikeys2)))
-#     Set(Recipe(o.oid, Set(ikeypair)) for ikeypair in ikeypairs)
-#         
-# end
-function(o::AllvsAllOrder)(sp1::Species, sp2::Species)
-    ikeys1 = [i.ikey for i in allindivs(sp1)]
-    ikeys2 = [i.ikey for i in allindivs(sp2)]
-    ikeypairs = Iterators.product(ikeys1, ikeys2)
-    Set(Recipe(o.oid, Set(ikeypair)) for ikeypair in ikeypairs)
-        
+Base.@kwdef struct AllvsAllCommaOrder{D <: Domain, O <: ObsConfig, P <: PhenoConfig} <: Order
+    oid::Symbol
+    spids::Vector{Symbol}
+    domain::D
+    obscfg::O
 end
 
-function(o::AllvsAllOrder)(allsp::Set{<:Species})
-    osp = filter(sp -> sp.spid ∈ keys(o.phenocfgs), allsp)
+function(o::AllvsAllPlusOrder)(sp1::Species, sp2::Species)
+    ikeys1 = collect(keys(sp1.children))
+    ikeys2 = collect(keys(sp2.children))
+    map(ikeypair -> Recipe(o.oid, ikeypair), Iterators.product(ikeys1, ikeys2))
+end
+
+
+function(o::Order)(allsp::Dict{Symbol, <:Species})
+    osp = [allsp[spid] for spid in o.spids]
     o(osp...)
 end

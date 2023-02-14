@@ -2,7 +2,7 @@ export IdentityMutator, BitflipMutator
 
 struct IdentityMutator <: Mutator end
 
-function(r::IdentityMutator)(::Int, children::Vector{<:Individual})
+function(r::IdentityMutator)(children::Vector{<:Individual})
     children
 end
 
@@ -23,10 +23,10 @@ function(m::BitflipMutator)(indiv::VectorIndiv{ScalarGene{Bool}})
     #     end
     # end
     newgenes = map(gene -> rand(m.rng) < m.mutrate ?
-    ScalarGene(gid!(m.sc), !gene.val) : gene, indiv.genes)
+        ScalarGene(gid!(m.sc), !gene.val) : gene, indiv.genes)
     VectorIndiv(indiv.ikey, newgenes, indiv.pids)
 end
 
-function(m::Mutator)(indivs::Set{<:Individual})
-    Set(m(indiv) for indiv in indivs)
+function(m::Mutator)(indivs::Vector{<:Individual})
+    [m(indiv) for indiv in indivs]
 end
