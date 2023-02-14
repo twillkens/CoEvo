@@ -1,8 +1,8 @@
-using Test
-using Random
-using StableRNGs
-include("../../src/Coevolutionary.jl")
-using .Coevolutionary
+# using Test
+# using Random
+# using StableRNGs
+# include("../../src/Coevolutionary.jl")
+# using .Coevolutionary
 
 verbose = false
 

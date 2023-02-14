@@ -67,38 +67,53 @@ end
 
 
 function stir(
-    oid::Symbol, domain::LingPredGame, obscfg::ObsConfig;
-    matchcoop1::FSMPheno, matchcoop2::FSMPheno, kwargs...
+    oid::Symbol, domain::LingPredGame{MatchCoop}, obscfg::ObsConfig,
+    pheno1::FSMPheno, pheno2::FSMPheno
 )
-    loopstart, states1, states2, traj1, traj2 = simulate(domain, matchcoop1, matchcoop2)
+    loopstart, states1, states2, traj1, traj2 = simulate(domain, pheno1, pheno2)
     matches = getmatches(loopstart, traj1, traj2)
     score = mean(matches)
-    obs = obscfg(loopstart, matchcoop1, matchcoop2, states1, states2, traj1, traj2)
-    Outcome(oid, Dict(matchcoop1.ikey => score, matchcoop2.ikey => score), obs)
+    obs = obscfg(loopstart, pheno1, pheno2, states1, states2, traj1, traj2)
+    Outcome(oid, pheno1 => score, pheno2 => score, obs)
 end
 
-# function stir(
-#     oid::Symbol, domain::LingPredGame, obscfg::ObsConfig;
-#     mismatchcoop1::FSMPheno, mismatchcoop2::FSMPheno, kwargs...
-# )
-#     loopstart, states1, states2, traj1, traj2 = simulate(domain, mismatchcoop1, mismatchcoop2)
-#     matches = getmatches(loopstart, traj1, traj2)
-#     score = 1 - mean(matches)
-#     obs = obscfg(mismatchcoop1, mismatchcoop2, loopstart, states1, states2, traj1, traj2)
-#     Outcome(oid, Dict(mismatchcoop1.ikey => score, mismatchcoop2.ikey => score), obs)
-# end
-# 
-# function stir(
-#     oid::Symbol, domain::LingPredGame, obscfg::ObsConfig;
-#     matchcomp1::FSMPheno, matchcomp2::FSMPheno, kwargs...
-# )
-#     loopstart, states1, states2, traj1, traj2 = simulate(domain, matchcomp1, matchcomp2)
-#     matches = getmatches(loopstart, traj1, traj2)
-#     score1 = mean(matches)
-#     score2 = 1 - score1
-#     obs = obscfg(matchcomp1, matchcomp2, loopstart, states1, states2, traj1, traj2)
-#     Outcome(oid, Dict(matchcomp1.ikey => score1, matchcomp2.ikey => score2), obs)
-# end
+
+function stir(
+    oid::Symbol, domain::LingPredGame{MismatchCoop}, obscfg::ObsConfig,
+    pheno1::FSMPheno, pheno2::FSMPheno
+)
+    loopstart, states1, states2, traj1, traj2 = simulate(domain, pheno1, pheno2)
+    matches = getmatches(loopstart, traj1, traj2)
+    score = 1 - mean(matches)
+    obs = obscfg(loopstart, pheno1, pheno2, states1, states2, traj1, traj2)
+    Outcome(oid, pheno1 => score, pheno2 => score, obs)
+end
+
+function stir(
+    oid::Symbol, domain::LingPredGame{MatchComp}, obscfg::ObsConfig,
+    pheno1::FSMPheno, pheno2::FSMPheno
+)
+    loopstart, states1, states2, traj1, traj2 = simulate(domain, pheno1, pheno2)
+    matches = getmatches(loopstart, traj1, traj2)
+    score1 = mean(matches)
+    score2 = 1 - score1
+    obs = obscfg(loopstart, pheno1, pheno2, states1, states2, traj1, traj2)
+    Outcome(oid, pheno1 => score1, pheno2 => score2, obs)
+end
+
+
+function stir(
+    oid::Symbol, domain::LingPredGame{MatchComp}, obscfg::ObsConfig,
+    pheno1::FSMPheno, pheno2::FSMPheno
+)
+    loopstart, states1, states2, traj1, traj2 = simulate(domain, pheno1, pheno2)
+    matches = getmatches(loopstart, traj1, traj2)
+    score1 = 1 - mean(matches)
+    score2 = 1 - score1
+    obs = obscfg(loopstart, pheno1, pheno2, states1, states2, traj1, traj2)
+    Outcome(oid, pheno1 => score1, pheno2 => score2, obs)
+end
+ 
 # 
 # function stir(
 #     oid::Symbol, domain::LingPredGame, ::LingPredObsConfig;

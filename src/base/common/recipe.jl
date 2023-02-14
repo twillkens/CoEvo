@@ -5,6 +5,6 @@ export Recipe, makerecipes
     ikeys::Tuple{Vararg{IndivKey}}
 end
 
-function makerecipes(orders::Set{<:Order}, allsp::Dict{Symbol, <:Species})
-    [recipe for recipe in order(allsp) for order in orders]
+function makerecipes(orders::Dict{Symbol, <:Order}, allsp::Dict{Symbol, <:Species})
+    [recipe for order in values(orders) for recipe in order(allsp) ]
 end

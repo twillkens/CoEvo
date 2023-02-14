@@ -8,20 +8,21 @@ struct Mix{D <: Domain, O <: ObsConfig, P <: Phenotype}
     phenos::Vector{P}
 end
 
-function(r::Recipe)(order::Order, phenodict::Dict{IndivKey, <:Phenotype})
-    phenos = [phenodict[ikey] for ikey in r.ikeys]
+function(r::Recipe)(order::Order, phenodict::Dict{Symbol, Dict{UInt32, P}}) where P
+    phenos = [phenodict[ikey.spid][ikey.iid] for ikey in r.ikeys]
     Mix(r.oid, order.domain, order.obscfg, phenos)
 end
 
 function getmixes(
-    odict::Dict{Symbol, <:Order}, recipes::Vector{<:Recipe},
-    phenodict::Dict{IndivKey, <:Phenotype}
-)
+    odict::Dict{Symbol, <:Order},
+    phenodict::Dict{Symbol, Dict{UInt32, P}},
+    recipes::Vector{<:Recipe}
+)  where P
     [r(odict[r.oid], phenodict) for r in recipes]
 end
 
-function getmixes(job::Job)
-    getmixes(job.odict, job.recipes, job.phenodict)
+function getmixes(job::PhenoJob)
+    getmixes(job.odict, job.phenodict, job.recipes)
 end
 
 function stir(m::Mix)

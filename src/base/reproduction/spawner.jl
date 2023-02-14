@@ -27,8 +27,8 @@ function(s::Spawner)(vets::Species{<:Veteran})
 end
 
 
-function(s::Spawner)(allvets::Set{<:Species{<:Veteran}})
-    s(first(filter(vets -> vets.spid == s.spid, allvets)))
+function(s::Spawner)(allvets::Dict{Symbol, <:Species{<:Veteran}})
+    s(allvets[s.spid])
 end
 
 

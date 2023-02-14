@@ -45,7 +45,7 @@ Base.@kwdef struct SubvecPhenoConfig <: PhenoConfig
     subvec_width::Int
 end
 
-function(::SubvecPhenoConfig)(indiv::VectorIndiv)
+function(cfg::SubvecPhenoConfig)(indiv::VectorIndiv)
     if mod(length(indiv.genes), cfg.subvec_width) != 0
         error("Invalid subvector width for given genome width")
     end
