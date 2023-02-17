@@ -39,7 +39,7 @@ function addstate(
     newstate = first(newstate)
     newlinks = Dict((newstate, true) => truedest, (newstate, false) => falsedest)
     newgeno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, merge(fsm.links, newlinks))
-    FSMIndiv(fsm.ikey, newgeno)
+    FSMIndiv(fsm.ikey, newgeno, fsm.pids)
 end
 
 function addstate(
@@ -62,11 +62,12 @@ function rmstate(fsm::FSMIndiv, todelete::String, start::String, newlinks::LinkD
         (fsm.ones, filter(s -> s != todelete, fsm.zeros))
     links = merge(filter(p -> p[1][1] != todelete, fsm.links), newlinks)
     geno = FSMGeno(fsm.ikey, start, ones, zeros, links)
-    FSMIndiv(fsm.ikey, geno)
+    FSMIndiv(fsm.ikey, geno, fsm.pids)
 end
 
 function getnew(rng::AbstractRNG, fsm::FSMIndiv, todelete::String)
-    newstart = todelete == fsm.start ? randstate(rng, fsm; exclude = Set([todelete])) : ""
+    newstart = todelete == fsm.start ?
+        randstate(rng, fsm; exclude = Set([todelete])) : fsm.start
     newlinks = LinkDict()
     for ((origin, bool), dest) in fsm.links
         if dest == todelete && origin != todelete
@@ -95,7 +96,7 @@ end
 function changelink(fsm::FSMIndiv, state::String, newdest::String, bit::Bool)
     links = merge(fsm.links, Dict((state, bit) => newdest))
     geno = FSMGeno(fsm.ikey, fsm.start, fsm.ones, fsm.zeros, links)
-    FSMIndiv(fsm.ikey, geno)
+    FSMIndiv(fsm.ikey, geno, fsm.pids)
 end
 
 function changelabel(m::LingPredMutator, fsm::FSMIndiv)
@@ -108,7 +109,7 @@ function changelabel(fsm::FSMIndiv, state::Set{String})
         (setdiff(fsm.ones, state), union(fsm.zeros, state)) :
         (union(fsm.ones, state), setdiff(fsm.zeros, state))
     geno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, fsm.links)
-    FSMIndiv(fsm.ikey, geno)
+    FSMIndiv(fsm.ikey, geno, fsm.pids)
 end
 
 

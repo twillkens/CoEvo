@@ -25,6 +25,11 @@ end
 struct FSMIndiv <: Individual
     ikey::IndivKey
     geno::FSMGeno
+    pids::Set{UInt32}
+end
+
+function FSMIndiv(ikey::IndivKey, geno::FSMGeno)
+    FSMIndiv(ikey, geno, Set{UInt32}())
 end
 
 
@@ -37,17 +42,15 @@ end
 function(cfg::FSMIndivConfig)()
     ikey = IndivKey(cfg.spid, iid!(cfg.sc))
     startstate = string(gid!(cfg.sc))
+    ones, zeros = rand(cfg.rng, Bool) ?
+        (Set([startstate]), Set{String}()) : (Set{String}(), Set([startstate]))
     geno = FSMGeno(
         ikey,
         startstate,
-        Set([startstate]),
-        Set{String}(),
+        ones,
+        zeros,
         LinkDict(((startstate, true) => startstate, (startstate, false) => startstate)))
     FSMIndiv(ikey, geno)
-end
-
-function(cfg::FSMIndivConfig)(geno::FSMGeno)
-    FSMIndiv(geno.ikey, geno)
 end
 
 
@@ -93,7 +96,8 @@ end
 
 function clone(iid::UInt32, parent::FSMIndiv)
     ikey = IndivKey(parent.spid, iid)
-    FSMIndiv(ikey, FSMGeno(ikey, parent.start, parent.ones, parent.zeros, parent.links))
+    geno = FSMGeno(ikey, parent.start, parent.ones, parent.zeros, parent.links)
+    FSMIndiv(ikey, geno, Set([parent.iid]))
 end
 
 struct FSMPhenoCfg <: PhenoConfig
@@ -111,13 +115,13 @@ function FSMIndiv(spid::Symbol, iid::UInt32, geno::FSMGeno)
     FSMIndiv(IndivKey(spid, iid), geno)
 end
 
-function FSMIndiv(ikey::IndivKey)
-    start = "1"
-    ones, zeros = rand(Bool) ? (Set([start]), Set()) : (Set(), Set([start]))
-    links = LinkDict((start, true) => start, (start, false) => start)
-    geno = FSMGeno(ikey, start, ones, zeros, links)
-    FSMIndiv(ikey, geno)
-end
+# function FSMIndiv(ikey::IndivKey)
+#     start = "1"
+#     ones, zeros = rand(Bool) ? (Set([start]), Set()) : (Set(), Set([start]))
+#     links = LinkDict((start, true) => start, (start, false) => start)
+#     geno = FSMGeno(ikey, start, ones, zeros, links)
+#     FSMIndiv(ikey, geno)
+# end
 
 function FSMIndiv(
     ikey::IndivKey, start::String, ones::Set{String}, zeros::Set{String}, links::LinkDict

@@ -81,8 +81,8 @@ function archive!(
 end
 
 function(c::CoevConfig)(gen::UInt16, allsp::Dict{Symbol, <:Species})
-    @time allvets, outcomes = interact(c, allsp)
-    @time archive!(gen, c, allvets, outcomes)
+    allvets, outcomes = interact(c, allsp)
+    archive!(gen, c, allvets, outcomes)
     Dict(spawner.spid => spawner(allvets) for spawner in values(c.spawners))
 end
 

@@ -6,20 +6,6 @@ include("../../src/Coevolutionary.jl")
 using .Coevolutionary
 
 
-function dummyA(key::String)
-    start = "A0"
-    zeros = Set(["A0"])
-    ones = Set(["A1"])
-    links = LinkDict(
-                ("A0", 0)  => "A1",
-                ("A0", 1)  => "A1",
-                ("A1", 0)  => "A1",
-                ("A1", 1)  => "A0",
-                )
-    fsm = FSM(key, false, start, ones, zeros, links)
-    FSMIndividual(key, fsm, minimize(fsm), DiscoRecord())
-end
-
 function newDummyA()
     start = "A0"
     zeros = Set(["A0"])
@@ -31,20 +17,6 @@ function newDummyA()
                 ("A1", 1)  => "A0",
                 )
     FSMIndiv(IndivKey(:dummy, UInt32(1)), start, ones, zeros, links)
-end
-
-function dummyB()
-    start = "B0"
-    zeros = Set(["B0"])
-    ones = Set(["B1"])
-    links = LinkDict(
-                ("B0", 0)  => "B0",
-                ("B0", 1)  => "B1",
-                ("B1", 0)  => "B0",
-                ("B1", 1)  => "B1",
-                )
-    fsm = FSM(key, false, start, ones, zeros, links)
-    FSMIndividual(key, fsm, minimize(fsm), DiscoRecord())
 end
 
 function newDummyB()
