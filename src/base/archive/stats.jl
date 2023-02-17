@@ -1,10 +1,19 @@
 export fitness, testscores
+export meanfitness
 
 
 const fitness_lru = LRU{Veteran, Float64}(maxsize=1000)
 function fitness(vet::Veteran)
     get!(fitness_lru, vet) do
         sum(values(vet.rdict))
+    end
+end
+
+
+const meanfitness_lru = LRU{Veteran, Float64}(maxsize=1000)
+function meanfitness(vet::Veteran)
+    get!(meanfitness_lru, vet) do
+        mean(values(vet.rdict))
     end
 end
 

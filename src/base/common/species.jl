@@ -31,3 +31,7 @@ function Species(
         Dict(indiv.ikey => indiv for indiv in pop),
         Dict(indiv.ikey => indiv for indiv in children))
 end
+
+function Species(spid::Symbol, phenocfg::PhenoConfig, pop::Vector{I}) where {I <: Individual}
+    Species(spid, phenocfg, Dict(indiv.ikey => indiv for indiv in pop), Dict{IndivKey, I}())
+end

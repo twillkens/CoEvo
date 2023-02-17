@@ -1,5 +1,6 @@
 export CoevConfig
 export makevets
+export interact, archive!
 
 struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
     key::String
@@ -45,9 +46,11 @@ function makeresdict(outcomes::Vector{<:Outcome})
 end
 
 function makevets(
-    indivs::Dict{IndivKey, <:Individual}, resdict::Dict{IndivKey, Vector{Pair{TestKey, Any}}}
-)
-    [Veteran(indiv.ikey, indiv, Dict(resdict[indiv.ikey])) for indiv in values(indivs)]
+    indivs::Dict{IndivKey, I}, resdict::Dict{IndivKey, Vector{Pair{TestKey, Any}}}
+) where {I <: Individual}
+    checkd = ikey -> ikey in keys(resdict) ? Dict(resdict[ikey]) : Dict{TestKey, Any}()
+    [Veteran(indiv.ikey, indiv, checkd(indiv.ikey)) for indiv in values(indivs)]
+    #[Veteran(indiv.ikey, indiv, Dict(resdict[indiv.ikey])) for indiv in values(indivs)]
 end
 
 function makevets(allsp::Dict{Symbol, <:Species}, outcomes::Vector{<:Outcome})
@@ -61,7 +64,7 @@ function makevets(allsp::Dict{Symbol, <:Species}, outcomes::Vector{<:Outcome})
     for (spid, sp) in allsp)
 end
 
-function interact!(c::CoevConfig, allsp::Dict{Symbol, <:Species})
+function interact(c::CoevConfig, allsp::Dict{Symbol, <:Species})
     recipes = makerecipes(c.orders, allsp)
     work = c.jobcfg(allsp, c.orders, recipes)
     outcomes = perform(work)
@@ -78,7 +81,7 @@ function archive!(
 end
 
 function(c::CoevConfig)(gen::UInt16, allsp::Dict{Symbol, <:Species})
-    @time allvets, outcomes = interact!(c, allsp)
+    @time allvets, outcomes = interact(c, allsp)
     @time archive!(gen, c, allvets, outcomes)
     Dict(spawner.spid => spawner(allvets) for spawner in values(c.spawners))
 end

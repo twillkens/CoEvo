@@ -37,7 +37,6 @@ end
 # end
 
 Base.@kwdef struct CommaReplacer <: Replacer
-    n_pop::Int
 end
 
 function(r::CommaReplacer)(pop::Vector{<:Veteran}, children::Vector{<:Veteran})
@@ -45,7 +44,7 @@ function(r::CommaReplacer)(pop::Vector{<:Veteran}, children::Vector{<:Veteran})
         return pop
     end
     npop = length(pop)
-    sort(children, by = i -> getfitness(i), rev = true)[1:npop]
+    sort(children, by = i -> fitness(i), rev = true)[1:npop]
 end
 
 

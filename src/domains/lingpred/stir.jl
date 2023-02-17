@@ -20,7 +20,7 @@ function(cfg::LingPredObsConfig)(
 end
 
 function NullObsConfig(args...; kwargs...)
-    NullObsConfig()
+    NullObs()
 end
 
 struct LingPredObs <: Observation
@@ -103,7 +103,7 @@ end
 
 
 function stir(
-    oid::Symbol, domain::LingPredGame{MatchComp}, obscfg::ObsConfig,
+    oid::Symbol, domain::LingPredGame{MismatchComp}, obscfg::ObsConfig,
     pheno1::FSMPheno, pheno2::FSMPheno
 )
     loopstart, states1, states2, traj1, traj2 = simulate(domain, pheno1, pheno2)

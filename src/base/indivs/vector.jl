@@ -89,7 +89,7 @@ function(cfg::VectorIndivConfig)()
         rand(cfg.rng, cfg.dtype, cfg.width))
 end
 
-function(cfg::VectorIndivConfig)(n_indiv::Int)
+function(cfg::IndivConfig)(n_indiv::Int)
     indivs = [cfg() for _ in 1:n_indiv]
     Dict([indiv.ikey => indiv for indiv in indivs])
 end
