@@ -298,7 +298,7 @@ end
             :A => testspawner(rng, :A; npop = 100, width = 100, phenocfg = phenocfg),
             :B => testspawner(rng, :B; npop = 100, width = 100, phenocfg = phenocfg),
         ),
-        loggers = [SpeciesLogger()])
+        loggers = Logger[])
     gen = UInt16(1)
     allsp = coev_cfg()
     while gen < 10

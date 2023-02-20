@@ -4,18 +4,20 @@ using Distributed
 @everywhere include("../src/Coevolutionary.jl")
 @everywhere using .Coevolutionary
 
-@everywhere function lingpredspawner(rng::AbstractRNG, spid::Symbol; npop = 50, spargs=Any[])
+@everywhere function lingpredspawner(rng::AbstractRNG, spid::Symbol; npop = 50, spargs=Any[],
+    probs::Dict{Function, Float64} = Dict(
+        addstate => 0.25, rmstate => 0.25, changelink => 0.25, changelabel => 0.25 )
+)
     sc = SpawnCounter()
     s = Spawner(
         spid = spid,
         npop = npop,
         icfg = FSMIndivConfig(spid = spid, sc = sc, rng = rng),
         phenocfg = FSMPhenoCfg(),
-        #replacer = GenerationalReplacer(),
         replacer = CommaReplacer(),
         selector =  RouletteSelector(rng = rng, μ = npop),
         recombiner = CloneRecombiner(sc = sc),
-        mutators = [LingPredMutator(rng = rng, sc = sc)],
+        mutators = [LingPredMutator(rng = rng, sc = sc, probs = probs)],
         spargs = spargs
     )
     spid => s
@@ -97,31 +99,89 @@ end
     close(coev_cfg.jld2file)
 end
 
+@everywhere function runcontrol(i::Int)
+    coevkey = "Control-$(i)"
+    seed = rand(UInt64)
+    rng = StableRNG(seed)
+    spawner1 = lingpredspawner(rng, :control1; npop = 50)
+    spawner2 = lingpredspawner(rng, :control2; npop = 50)
+    order = lingpredorder(:ControlMatch, [:control1, :control2], LingPredGame(Control()))
+
+    coevcfg = CoevConfig(;
+        key = coevkey,
+        trial = i,
+        seed = seed,
+        rng = rng,
+        jobcfg = SerialPhenoJobConfig(),
+        orders = Dict(order),
+        spawners = Dict(spawner1, spawner2),
+        loggers = [SpeciesLogger()],
+        logpath = "/media/tcw/Seagate/NewLing/$(coevkey).jld2"
+    )
+
+    allsp = coevcfg()
+    println("go")
+    for gen in 1:10_000
+        allsp = coevcfg(UInt16(gen), allsp)
+        if mod(gen, 1000) == 0
+            println("$(coevkey): gen $gen")
+        end
+    end
+    close(coevcfg.jld2file)
+end
+
+@everywhere function rungrow(i::Int)
+    coevkey = "Grow-$(i)"
+    seed = rand(UInt64)
+    rng = StableRNG(seed)
+    addprob = 9 / 30
+    otherprob = 7 / 30
+    probs = Dict(
+        addstate => addprob,
+        rmstate => otherprob,
+        changelabel => otherprob,
+        changelink => otherprob
+    )
+    spawner1 = lingpredspawner(rng, :control1; npop = 50, probs = probs)
+    spawner2 = lingpredspawner(rng, :control2; npop = 50, probs = probs)
+    order = lingpredorder(:ControlMatch, [:control1, :control2], LingPredGame(Control()))
+
+    coevcfg = CoevConfig(;
+        key = coevkey,
+        trial = i,
+        seed = seed,
+        rng = rng,
+        jobcfg = SerialPhenoJobConfig(),
+        orders = Dict(order),
+        spawners = Dict(spawner1, spawner2),
+        loggers = [SpeciesLogger()],
+        logpath = "/media/tcw/Seagate/NewLing/$(coevkey).jld2"
+    )
+
+    allsp = coevcfg()
+    println("go")
+    for gen in 1:10_000
+        allsp = coevcfg(UInt16(gen), allsp)
+        if mod(gen, 1000) == 0
+            println("$(coevkey): gen $gen")
+        end
+    end
+    close(coevcfg.jld2file)
+end
+
+
 
 function dispatch()
-    workerjobs = [[worker, 0] for worker in 2:6 for i in 1:10]
-
+    workerjobs = [[worker, 0] for worker in 2:11 for i in 1:5]
     for i in 1:50
         workerjobs[i][2] = i
     end
-
     futures = [remotecall(runcoop, worker, job) for (worker, job) in workerjobs]
     [fetch(f) for f in futures]
     futures = [remotecall(runcomp, worker, job) for (worker, job) in workerjobs]
     [fetch(f) for f in futures]
+    futures = [remotecall(runcontrol, worker, job) for (worker, job) in workerjobs]
+    [fetch(f) for f in futures]
+    futures = [remotecall(rungrow, worker, job) for (worker, job) in workerjobs]
+    [fetch(f) for f in futures]
 end
-
-
-# write a loop to assign five jobs each to ten workers using remotecall so that each job number is unique from one to fifty 
-# and each worker number is unique from one to ten.
-
-#    addprocs(10)
-
-
-
-
-
-
-
-#    futures = [remotecall(run, worker, ) for worker in 1:10 for ]
-#    outcomes = [fetch(f) for f in futures]

@@ -298,7 +298,7 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 7
-    mutator = LingPredMutator(rng, sc, 1)
+    mutator = LingPredMutator(rng = rng, sc = sc)
 
 
     n = 10
@@ -338,7 +338,7 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 8
-    mutator = LingPredMutator(rng, sc, 1)
+    mutator = LingPredMutator(rng = rng, sc = sc)
     n = 4
     for i in 1:n
         fsm = rmstate(mutator, fsm)
@@ -380,7 +380,7 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 8
-    mutator = LingPredMutator(rng, sc, 1)
+    mutator = LingPredMutator(rng = rng, sc = sc)
     n = 4
     for i in 1:n
         fsm = changelink(mutator, fsm)
@@ -418,7 +418,7 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 8
-    mutator = LingPredMutator(rng, sc, 1)
+    mutator = LingPredMutator(rng=rng, sc=sc)
     n = 4
     for i in 1:n
         fsm = changelabel(mutator, fsm)
@@ -452,7 +452,7 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 7
-    mutator = LingPredMutator(rng, sc, 1)
+    mutator = LingPredMutator(rng = rng, sc = sc)
     n = 4
     for i in 1:n
         fsm = addstate(mutator, fsm)

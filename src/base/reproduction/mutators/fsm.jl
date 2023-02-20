@@ -4,11 +4,21 @@ export addstate, rmstate, changelink, changelabel
 Base.@kwdef struct LingPredMutator <: Mutator
     rng::AbstractRNG
     sc::SpawnCounter
+    nchanges::Int = 1
+    probs::Dict{Function, Float64} = Dict(
+        addstate => 0.25,
+        rmstate => 0.25,
+        changelink => 0.25,
+        changelabel => 0.25
+    )
 end
 
 function(m::LingPredMutator)(fsm::FSMIndiv)
-    fns = [addstate, rmstate, changelink, changelabel]
-    fns[rand(m.rng, 1:4)](m, fsm)
+    fns = sample(m.rng, collect(keys(m.probs)), Weights(collect(values(m.probs))), m.nchanges)
+    for fn in fns
+        fsm = fn(m, fsm)
+    end
+    fsm
 end
 
 function randstate(rng::AbstractRNG, fsm::FSMIndiv)
@@ -31,22 +41,15 @@ end
 
 
 function addstate(
-    fsm::FSMIndiv, newstate::Set{String},
-    label::Bool, truedest::String, falsedest::String
+    fsm::FSMIndiv, newstate::String, label::Bool, truedest::String, falsedest::String
 )
-    ones, zeros = label ?
-        (union(fsm.ones, newstate), fsm.zeros) : (fsm.ones, union(fsm.zeros, newstate))
-    newstate = first(newstate)
+    s = Set([newstate])
+    ones, zeros = label ? (union(fsm.ones, s), fsm.zeros) : (fsm.ones, union(fsm.zeros, s))
     newlinks = Dict((newstate, true) => truedest, (newstate, false) => falsedest)
     newgeno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, merge(fsm.links, newlinks))
     FSMIndiv(fsm.ikey, newgeno, fsm.pids)
 end
 
-function addstate(
-    fsm::FSMIndiv, newstate::String, label::Bool, truedest::String, falsedest::String
-)
-    addstate(fsm, Set([newstate]), label, truedest, falsedest)
-end
 
 function addstate(m::LingPredMutator, fsm::FSMIndiv)
     label = rand(m.rng, Bool)
@@ -89,7 +92,7 @@ end
 function changelink(m::LingPredMutator, fsm::FSMIndiv)
     state = randstate(m.rng, fsm)
     newdest = randstate(m.rng, fsm)
-    bit = rand(Bool)
+    bit = rand(m.rng, Bool)
     changelink(fsm, state, newdest, bit)
 end
 
@@ -104,16 +107,17 @@ function changelabel(m::LingPredMutator, fsm::FSMIndiv)
     changelabel(fsm, state)
 end
 
-function changelabel(fsm::FSMIndiv, state::Set{String})
-    ones, zeros = state in fsm.ones ?
-        (setdiff(fsm.ones, state), union(fsm.zeros, state)) :
-        (union(fsm.ones, state), setdiff(fsm.zeros, state))
+function changelabel(fsm::FSMIndiv, state::String)
+    s = Set([state])
+    ones, zeros = state ∈ fsm.ones ?
+        (setdiff(fsm.ones, s), union(fsm.zeros, s)) :
+        (union(fsm.ones, s), setdiff(fsm.zeros, s))
     geno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, fsm.links)
     FSMIndiv(fsm.ikey, geno, fsm.pids)
 end
 
 
-function changelabel(fsm::FSMIndiv, state::String)
-    changelabel(fsm, Set([state]))
-end
+# function changelabel(fsm::FSMIndiv, state::String)
+#     changelabel(fsm, Set([state]))
+# end
 

@@ -47,9 +47,6 @@ function simulate(::LingPredGame, a1::FSMPheno, a2::FSMPheno)
     bits1, bits2 = Bool[bit1], Bool[bit2]
     while true
         t += 1
-        # println(a1)
-        # println(a2)
-        # println("$(state1), $(state2), $(bit1), $(bit2)")
         state1, state2 = act(a1, state1, bit2), act(a2, state2, bit1)
         bit1, bit2 = label(a1, state1), label(a2, state2)
         push!(bits1, bit1)
@@ -68,6 +65,21 @@ function getmatches(loopstart::Int, traj1::Vector{Bool}, traj2::Vector{Bool})
     [bit1 == bit2 for (bit1, bit2) in zip(traj1[loopstart:end - 1], traj2[loopstart:end - 1])]
 end
 
+
+function stir(
+    oid::Symbol, ::LingPredGame{Control}, ::ObsConfig,
+    pheno1::FSMPheno, pheno2::FSMPheno
+)
+    Outcome(oid, pheno1 => 1.0, pheno2 => 1.0, NullObs())
+end
+
+function score(
+    ::LingPredGame{Control}, loopstart::Int, states1::Vector{String}, states2::Vector{String},
+    traj1::Vector{Bool}, traj2::Vector{Bool}
+)
+    matches = getmatches(loopstart, traj1, traj2)
+    mean(matches)
+end
 
 function stir(
     oid::Symbol, domain::LingPredGame{MatchCoop}, obscfg::ObsConfig,
