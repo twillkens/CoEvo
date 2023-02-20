@@ -113,7 +113,7 @@ function makedataset(;
     gen::Int = 999, min::Bool = true, nsample::Int = 1000,
     ckey1::String = "comp-1", spid1::Symbol = :host, iid1::Int = 1, 
     ckey2::String = "Grow-1", spid2::Symbol = :control1, iid2::Int = 1,
-    rev_spec::Bool = false, sumdist::Bool = false
+    rev_spec::Bool = false, sumdist::Bool = true
 ) 
     jl1 = getjl(ckey1)
     jl2 = getjl(ckey2)
@@ -122,11 +122,11 @@ function makedataset(;
     gs1 = makeGNNGraphs(l1; min=min)
     gs2 = makeGNNGraphs(l2; min=min)
     idxs1 = rand(1:length(gs1), nsample)
-    idxs2 = rand(1:length(gs1), nsample)
+    idxs2 = rand(1:length(gs2), nsample)
     distances = Float64[]
-    for (i1, i2) in zip(idxs1, idxs2)
-        g1 = gs1[i1]
-        g2 = gs2[i2]
+    tgs1 = [gs1[i] for i in idxs1]
+    tgs2 = [gs2[i] for i in idxs2]
+    for (g1, g2) in zip(tgs1, tgs2)
         d = graph_distance(g1, g2, rev_spec)
         push!(distances, d)
     end
@@ -165,7 +165,6 @@ Base.@kwdef struct DatasetArgs
     rev_spec::Bool
     sumdist::Bool
 end
-
 
 function makedataset(dargs::DatasetArgs)
     makedataset(;
