@@ -1,5 +1,3 @@
-using StableRNGs
-
 function get_gnngraph_proteins()
     tudata = TUDataset("PROTEINS")
     display(tudata)
@@ -22,7 +20,7 @@ function getproteins(nsample::Int)
     tgs1 = [graphs[i] for i in idxs1]
     tgs2 = [graphs[i] for i in idxs2]
     for (g1, g2) in zip(tgs1, tgs2)
-        d = graph_distance(g1, g2, false)
+        d = graph_distance(g1, g2)
         push!(distances, d)
     end
     return (tgs1, tgs2), distances
@@ -49,8 +47,37 @@ function makemodel(nin, nhidden1, nhidden2, device)
                      GraphConv(nhidden1 => nhidden2, relu),
                      GlobalPool(mean)) |> device
 end
+# train(; usecuda = false)
+# arguments for the `train` function 
+Base.@kwdef mutable struct MyArgs
+    η = 1.0f-2             # learning rate
+    batchsize = 10      # batch size (number of graphs in each batch)
+    epochs = 500         # number of epochs
+    seed = 42             # set seed > 0 for reproducibility
+    usecuda = false      # if true use cuda (if available)
+    nhidden1 = 128        # dimension of hidden features
+    nhidden2 = 64        # dimension of hidden features
+    infotime = 10      # report every `infotime` epochs
+    numtrain = 5000
+end
 
-function mytrain(; kws...)
+Base.@kwdef struct JLArgs
+    ckey::String
+    spid::Symbol
+    iid::Int
+end
+
+Base.@kwdef struct DatasetArgs
+    jl1::JLArgs
+    jl2::JLArgs
+    nsample::Int
+    gen::Int
+    min::Bool
+    rev_spec::Bool
+    sumdist::Bool
+end
+
+function mytrain(dataset; kws...)
     args = MyArgs(; kws...)
     args.seed > 0 && Random.seed!(args.seed)
 
@@ -63,14 +90,18 @@ function mytrain(; kws...)
         @info "Training on CPU"
     end
 
+    nin::Int = 0
+    try
+        nin = size(dataset[1][1][1].ndata.x, 1)
+    catch
+        nin = size(dataset[1][1].ndata.x, 1)
+    end
     # LOAD DATA
-    dataset = getproteins(args.nsample)
     train_data, test_data = splitobs(dataset, at = args.numtrain, shuffle = true)
 
     train_loader = DataLoader(train_data; args.batchsize, shuffle = true, collate = true)
     test_loader = DataLoader(test_data; args.batchsize, shuffle = false, collate = true)
 
-    nin = size(dataset[1][1][1].ndata.x, 1)
     model = GNNChain(GraphConv(nin => args.nhidden1, relu),
                      GraphConv(args.nhidden1 => args.nhidden2, relu),
                      GlobalPool(mean)) |> device
@@ -80,18 +111,16 @@ function mytrain(; kws...)
     mytrainloop!(args, train_loader, test_loader, model, opt, device, ps)
 end
 
+
 function mytrainloop!(
     args::MyArgs, train_loader::DataLoader, test_loader::DataLoader, model::GNNChain,
     opt::ADAM, device::Function, ps::Zygote.Params
 )
-    # LOGGING FUNCTION
     function report(epoch)
         train = my_eval_loss_accuracy(model, train_loader, device)
         test = my_eval_loss_accuracy(model, test_loader, device)
         println("Epoch: $epoch   Train: $(train)   Test: $(test)")
     end
-
-    # TRAIN
 
     report(0)
     for epoch in 1:(args.epochs)
@@ -108,37 +137,4 @@ function mytrainloop!(
         epoch % args.infotime == 0 && report(epoch)
     end
     model
-end
-
-
-function fetchrandgraph(;
-    rng::AbstractRNG = StableRNG(rand(UInt64)),
-    ecos::Vector{String} = ["Grow"],
-    trials::Vector{Int} = collect(1:20),
-    gens::Vector{Int} = collect(2:9999),
-    min::Bool = true,
-)
-    eco = rand(rng, ecos)
-    trial = rand(rng, trials)
-    jl = getjl(string(eco, "-", trial))
-    gen = rand(rng, gens)
-    allspgroup = jl["$(gen)"]["species"]
-    spid = rand(rng, keys(allspgroup))
-    spgroup = allspgroup[string(spid)]
-    iid = rand(rng, setdiff(keys(spgroup), Set(["popids"])))
-    igroup = spgroup[string(iid)]
-    indiv = makeFSMIndiv(spid, iid, igroup)
-    makeGNNGraph(min ? minimize(indiv) : indiv)
-end
-
-function fetchrandgraphpair(;
-    rng::AbstractRNG = StableRNG(rand(UInt64)),
-    ecos::Vector{String} = ["Grow"],
-    trials::Vector{Int} = collect(1:20),
-    gens::Vector{Int} = collect(2:9999),
-    min = true
-)
-    g1 = fetchrandgraph(rng = rng, ecos = ecos, trials = trials, gens = gens, min = min)
-    g2 = fetchrandgraph(rng = rng, ecos = ecos, trials = trials, gens = gens, min = min)
-    (g1, g2), graph_distance(g1, g2)
 end

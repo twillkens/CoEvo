@@ -13,7 +13,6 @@ using CUDA
 CUDA.allowscalar(false)
 include("fluxclass.jl")
 
-export MyArgs
 
 function eval_loss_accuracy(model, data_loader, device)
     loss = 0.0
@@ -121,19 +120,4 @@ function trainloop!(
         end
         epoch % args.infotime == 0 && report(epoch)
     end
-end
-
-# train(; usecuda = false)
-# arguments for the `train` function 
-Base.@kwdef mutable struct MyArgs
-    η = 1.0f-2             # learning rate
-    batchsize = 10      # batch size (number of graphs in each batch)
-    epochs = 500         # number of epochs
-    seed = 42             # set seed > 0 for reproducibility
-    usecuda = false      # if true use cuda (if available)
-    nhidden1 = 64        # dimension of hidden features
-    nhidden2 = 32        # dimension of hidden features
-    infotime = 10      # report every `infotime` epochs
-    numtrain = 100
-    nsample = 200
 end

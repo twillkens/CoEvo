@@ -1,10 +1,5 @@
-using Distributed
-@everywhere using Random
-@everywhere using StableRNGs
-@everywhere include("../src/Coevolutionary.jl")
-@everywhere using .Coevolutionary
 
-@everywhere function lingpredspawner(rng::AbstractRNG, spid::Symbol; npop = 50, spargs=Any[],
+function lingpredspawner(rng::AbstractRNG, spid::Symbol; npop = 50, spargs=Any[],
     probs::Dict{Function, Float64} = Dict(
         addstate => 0.25, rmstate => 0.25, changelink => 0.25, changelabel => 0.25 )
 )
@@ -23,12 +18,12 @@ using Distributed
     spid => s
 end
 
-@everywhere function lingpredorder(oid::Symbol, spvec::Vector{Symbol}, domain::Domain)
+function lingpredorder(oid::Symbol, spvec::Vector{Symbol}, domain::Domain)
     oid => AllvsAllCommaOrder(oid, spvec, domain, LingPredObsConfig())
 end
 
 
-@everywhere function runcoop(i::Int)
+function runcoop(i::Int)
     coev_key = "Coop-$(i)"
     seed = rand(UInt64)
     rng = StableRNG(seed)
@@ -64,7 +59,7 @@ end
 end
 
 
-@everywhere function runcomp(i::Int)
+function runcomp(i::Int)
     coev_key = "Comp-$(i)"
     seed = rand(UInt64)
     rng = StableRNG(seed)
@@ -99,7 +94,7 @@ end
     close(coev_cfg.jld2file)
 end
 
-@everywhere function runcontrol(i::Int)
+function runcontrol(i::Int)
     coevkey = "Control-$(i)"
     seed = rand(UInt64)
     rng = StableRNG(seed)
@@ -130,7 +125,7 @@ end
     close(coevcfg.jld2file)
 end
 
-@everywhere function rungrow(i::Int)
+function rungrow(i::Int)
     coevkey = "Grow-$(i)"
     seed = rand(UInt64)
     rng = StableRNG(seed)
