@@ -37,12 +37,12 @@ function fetch_rgp(seed::UInt64, datadir::String)
     fetch_rgp(;rng = rng)
 end
 
-function fetch_rgps_parallel(rng::AbstractRNG, n::Int)
+function fetch_rgps_parallel(;rng::AbstractRNG = StableRNG(rand(UInt64)), n::Int)
     seeds = rand(rng, UInt64, n)
-    futures = [@spawnat :any fetch_rgp(seed, datadir) for seed in seeds]
+    futures = [@spawnat :any fetch_rgp(seed) for seed in seeds]
     [fetch(future) for future in futures]
 end
 
-function fetch_rgps_serial(rng::AbstractRNG, n::Int)
+function fetch_rgps_serial(;rng::AbstractRNG = StableRNG(rand(UInt64)), n::Int = 200)
     [fetch_rgp(rng = rng) for i in 1:n]
 end
