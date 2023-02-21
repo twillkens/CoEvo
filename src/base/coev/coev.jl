@@ -11,6 +11,7 @@ struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
     spawners::Dict{Symbol, S}
     loggers::Vector{L}
     jld2file::JLD2.JLDFile
+    gensgroup::JLD2.Group
 end
 
 function CoevConfig(;
@@ -25,10 +26,11 @@ function CoevConfig(;
     logpath::String = "log.jld2",
 )
     jld2file = jldopen(logpath, "w")
+    gensgroup = JLD2.Group(jld2file, "gens")
     jld2file["key"] = key
     jld2file["trial"] = trial
     jld2file["seed"] = seed
-    CoevConfig(key, trial, rng, jobcfg, orders, spawners, loggers, jld2file)
+    CoevConfig(key, trial, rng, jobcfg, orders, spawners, loggers, jld2file, gensgroup)
 end
 
 function makeresdict(outcomes::Vector{<:Outcome})
@@ -75,7 +77,7 @@ function archive!(
     gen::UInt16, c::CoevConfig, allvets::Dict{Symbol, <:Species{<:Veteran}},
     outcomes::Vector{<:Outcome}
 )
-    gen_species = JLD2.Group(c.jld2file, string(gen))
+    gen_species = JLD2.Group(c.gensgroup, string(gen))
     gen_species["rng"] = c.rng
     [logger(gen_species, allvets, outcomes) for logger in c.loggers]
 end
