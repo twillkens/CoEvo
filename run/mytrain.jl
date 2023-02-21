@@ -35,7 +35,7 @@ function my_eval_loss_accuracy(model, data_loader, device)
         emb1 = model(g1, g1.ndata.x) |> vec
         emb2 = model(g2, g2.ndata.x) |> vec
         ŷ = norm(emb1 - emb2)
-        loss += mse(ŷ, y)
+        loss += mse(ŷ, y) * n
         ntot += n
     end
     return (loss = round(loss / ntot, digits = 4))
@@ -72,7 +72,7 @@ Base.@kwdef mutable struct MyArgs
     nhidden1 = 64        # dimension of hidden features
     nhidden2 = 32        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
-    numtrain = 5000
+    numtrain = 100
 end
 
 function mytrain(dataset; kws...)
@@ -119,7 +119,6 @@ function mytrainloop!(
         test = my_eval_loss_accuracy(model, test_loader, device)
         println("Epoch: $epoch   Train: $(train)   Test: $(test)")
     end
-
     report(0)
     for epoch in 1:(args.epochs)
         for ((g1, g2), y) in train_loader
