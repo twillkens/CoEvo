@@ -92,7 +92,7 @@ function laplacian_matrix(
     A = adjacency_matrix(g, T; dir = dir)
     A = add_self_loops ? A + I : A
     D = Diagonal(vec(sum(A; dims = 2)))
-    return D - A
+    return (D - A) * 2
 end
 
 function graphspectrum(g::GNNGraph; add_self_loops = false, dir = :both, usenorm::Bool = false)
@@ -103,11 +103,13 @@ function graphspectrum(g::GNNGraph; add_self_loops = false, dir = :both, usenorm
     return spec
 end
 
-function graph_distance(g1::GNNGraph, g2::GNNGraph; add_self_loops = false, dir = :both)
+function graph_distance(
+    g1::GNNGraph, g2::GNNGraph; add_self_loops = false, dir = :both, p::Int = 2
+)
     spec1 = graphspectrum(g1; add_self_loops = add_self_loops, dir = dir)
     spec2 = graphspectrum(g2; add_self_loops = add_self_loops, dir = dir)
     k = min(length(spec1), length(spec2))
-    norm(spec1[1:k] - spec2[1:k])
+    norm(spec1[1:k] - spec2[1:k], p)
 end
 
 function graph_distance(
