@@ -32,41 +32,17 @@ function eval_loss_accuracy(model, data_loader, device)
 end
 
 
-function getdataset()
-    tudata = TUDataset("MUTAG")
+function tuclassifier_dataset(dataset::String; ohrange::UnitRange{Int} = 0:1)
+    tudata = TUDataset(dataset)
     display(tudata)
     graphs = mldataset2gnngraph(tudata)
-    oh(x) = Float32.(onehotbatch(x, 0:6))
+    oh(x) = Float32.(onehotbatch(x, ohrange))
     graphs = [GNNGraph(g, ndata = oh(g.ndata.targets)) for g in graphs]
     y = (1 .+ Float32.(tudata.graph_data.targets)) ./ 2
     @assert all(∈([0, 1]), y) # binary classification 
     return graphs, y
 end
 
-function makedatasetrich(;
-    gen::Int = 999, min::Bool = true, nsample::Int = 1000,
-    ckey1::String = "comp-1", spid1::Symbol = :host, iid1::Int = 1, 
-    ckey2::String = "Grow-1", spid2::Symbol = :control1, iid2::Int = 1,
-    rev_spec::Bool = false,
-) 
-    jl1 = getjl(ckey1)
-    jl2 = getjl(ckey2)
-    l1 = lineage(jl1, gen, spid1, iid1)
-    l2 = lineage(jl2, gen, spid2, iid2)
-    gs1 = makeGNNGraphs(l1; min=min)
-    gs2 = makeGNNGraphs(l2; min=min)
-    idxs1 = rand(1:length(gs1), nsample)
-    idxs2 = rand(1:length(gs2), nsample)
-    distances = Float64[]
-    tgs1 = [gs1[i] for i in idxs1]
-    tgs2 = [gs2[i] for i in idxs2]
-    for (g1, g2) in zip(tgs1, tgs2)
-        d = graph_distance(g1, g2, rev_spec)
-        push!(distances, d)
-    end
-    println("done: $(ckey1) vs $(ckey2), $(spid1), $(iid1) vs $(spid2) $(iid2)")
-    (tgs1, tgs2), distances
-end
 
 # arguments for the `train` function 
 Base.@kwdef mutable struct Args
@@ -77,10 +53,11 @@ Base.@kwdef mutable struct Args
     usecuda = false      # if true use cuda (if available)
     nhidden = 128        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
+    numtrain = 150
 end
 
 
-function train(; kws...)
+function train(dataset; kws...)
 
     args = Args(; kws...)
     args.seed > 0 && Random.seed!(args.seed)
@@ -95,10 +72,8 @@ function train(; kws...)
     end
 
     # LOAD DATA
-    NUM_TRAIN = 150
 
-    dataset = getdataset()
-    train_data, test_data = splitobs(dataset, at = NUM_TRAIN, shuffle = true)
+    train_data, test_data = splitobs(dataset, at = args.numtrain, shuffle = true)
 
     train_loader = DataLoader(train_data; args.batchsize, shuffle = true, collate = true)
     test_loader = DataLoader(test_data; args.batchsize, shuffle = false, collate = true)

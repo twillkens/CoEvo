@@ -1,3 +1,5 @@
+using StableRNGs
+
 function get_gnngraph_proteins()
     tudata = TUDataset("PROTEINS")
     display(tudata)
@@ -108,8 +110,35 @@ function mytrainloop!(
     model
 end
 
-function Graphs.laplacian_matrix(g::GNNGraph, T::DataType = eltype(g); dir::Symbol = :out)
-    A = adjacency_matrix(g, T; dir = dir)
-    D = Diagonal(vec(sum(A; dims = 2)))
-    return D - A
+
+function fetchrandgraph(;
+    rng::AbstractRNG = StableRNG(rand(UInt64)),
+    ecos::Vector{String} = ["Grow"],
+    trials::Vector{Int} = collect(1:20),
+    gens::Vector{Int} = collect(2:9999),
+    min::Bool = true,
+)
+    eco = rand(rng, ecos)
+    trial = rand(rng, trials)
+    jl = getjl(string(eco, "-", trial))
+    gen = rand(rng, gens)
+    allspgroup = jl["$(gen)"]["species"]
+    spid = rand(rng, keys(allspgroup))
+    spgroup = allspgroup[string(spid)]
+    iid = rand(rng, setdiff(keys(spgroup), Set(["popids"])))
+    igroup = spgroup[string(iid)]
+    indiv = makeFSMIndiv(spid, iid, igroup)
+    makeGNNGraph(min ? minimize(indiv) : indiv)
+end
+
+function fetchrandgraphpair(;
+    rng::AbstractRNG = StableRNG(rand(UInt64)),
+    ecos::Vector{String} = ["Grow"],
+    trials::Vector{Int} = collect(1:20),
+    gens::Vector{Int} = collect(2:9999),
+    min = true
+)
+    g1 = fetchrandgraph(rng = rng, ecos = ecos, trials = trials, gens = gens, min = min)
+    g2 = fetchrandgraph(rng = rng, ecos = ecos, trials = trials, gens = gens, min = min)
+    (g1, g2), graph_distance(g1, g2)
 end
