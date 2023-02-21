@@ -17,7 +17,7 @@ function makeFSMIndiv(spid::String, iid::String, igroup::JLD2.Group)
     makeFSMIndiv(Symbol(spid), parse(UInt32, iid), igroup)
 end
 
-function getjl(ckey::String = "comp-1", datadir::String = "/home/garbus/tcw/data")
+function getjl(ckey::String = "comp-1")
     jldopen("$(ENV["FSM_DATA_DIR"])/$(split(ckey, "-")[1])/$(ckey).jld2")
 end
 
