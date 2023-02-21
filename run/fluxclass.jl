@@ -4,7 +4,6 @@ using Flux
 using Flux: onecold, onehotbatch, logitcrossentropy
 using Flux: DataLoader
 using GraphNeuralNetworks
-using MLDatasets
 using MLUtils
 using LinearAlgebra, Random, Statistics
 using JLD2
@@ -15,6 +14,8 @@ using Arpack
 
 export makedataset
 export makeFSMIndiv, makeGNNGraph
+
+const DATA_DIR = "/home/garbus/tcw/data"
 
 function makeFSMIndiv(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
     ones = Set(string(o) for o in igroup["ones"])
@@ -40,9 +41,8 @@ function getdummyindiv()
 end
 
 function getjl(ckey::String = "comp-1")
-    jldopen("/media/tcw/Seagate/NewLing/$(ckey).jld2")
+    jldopen("$(DATA_DIR)/$(split(ckey, "-")[1])/$(ckey).jld2")
 end
-
 
 function lineage(
     jl::JLD2.JLDFile, gen::Int, spid::Symbol, pid::String, indivs::Vector{FSMIndiv}
@@ -201,8 +201,9 @@ function grid(;eco1::String = "comp", spid1::Symbol = :host, iid1::Int = 1,
               eco2::String = "Grow", spid2::Symbol = :control1, iid2::Int = 1,
               nsample::Int = 10_000, gen::Int = 9999, min::Bool = true,
               fixtrial::Int = -1)
+
     sums = Float64[]
-    for i in tqdm(1:50)
+    for i in tqdm(trange)
         ckey1 = fixtrial == -1 ? "$(eco1)-$(i)" : "$(eco1)-$(fixtrial)" 
         d = makedataset(ckey1 = ckey1, spid1 = spid1, iid1 = iid1,
                         ckey2 = "$(eco2)-$(i)", spid2 = spid2, iid2 = iid2,

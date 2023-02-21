@@ -169,19 +169,40 @@ end
     close(coevcfg.jld2file)
 end
 
+@everywhere function runctrl(logpath::String, trial::Int)
+    coevkey = "ctrl-$(trial)"
+    seed = rand(UInt64)
+    rng = StableRNG(seed)
+    spawner1 = lingpredspawner(rng, :control1; npop = 50)
+    spawner2 = lingpredspawner(rng, :control2; npop = 50)
+    order = lingpredorder(:ControlMatch, [:ctrl1, :ctrl2], LingPredGame(Control()))
 
+    coevcfg = CoevConfig(;
+        key = coevkey,
+        trial = trial,
+        seed = seed,
+        rng = rng,
+        jobcfg = SerialPhenoJobConfig(),
+        orders = Dict(order),
+        spawners = Dict(spawner1, spawner2),
+        loggers = [SpeciesLogger()],
+        logpath = "$(logpath)/$(coevkey).jld2"
+    )
 
-function dispatch()
-    workerjobs = [[worker, 0] for worker in 2:11 for i in 1:5]
-    for i in 1:50
-        workerjobs[i][2] = i
+    allsp = coevcfg()
+    println("go")
+    for gen in 0:10_000
+        allsp = coevcfg(UInt16(gen), allsp)
+        if mod(gen, 1000) == 0
+            println("$(coevkey): gen $gen")
+        end
     end
-    futures = [remotecall(runcoop, worker, job) for (worker, job) in workerjobs]
-    [fetch(f) for f in futures]
-    futures = [remotecall(runcomp, worker, job) for (worker, job) in workerjobs]
-    [fetch(f) for f in futures]
-    futures = [remotecall(runcontrol, worker, job) for (worker, job) in workerjobs]
-    [fetch(f) for f in futures]
-    futures = [remotecall(rungrow, worker, job) for (worker, job) in workerjobs]
+    close(coevcfg.jld2file)
+end
+
+
+function dispatch(eddie::Bool = false)
+    logpath = eddie ? "/home/garbus/tcw/data" : "/media/tcw/NewLing"
+    futures = [@spawnat :any runctrl(logpath, trial) for trial in 1:200] 
     [fetch(f) for f in futures]
 end
