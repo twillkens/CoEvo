@@ -3,11 +3,11 @@ function fetchrandgraph(;
     ecos::Vector{String} = ["Grow"],
     trials::Vector{Int} = collect(1:20),
     gens::Vector{Int} = collect(2:9999),
-    min::Bool = true, datadir::String = "/home/garbus/tcw/data"
+    min::Bool = true,
 )
     eco = rand(rng, ecos)
     trial = rand(rng, trials)
-    jl = getjl(string(eco, "-", trial), datadir)
+    jl = getjl(string(eco, "-", trial))
     gen = rand(rng, gens)
     allspgroup = jl["$(gen)"]["species"]
     spid = rand(rng, keys(allspgroup))
@@ -32,12 +32,12 @@ function fetch_rgp(;
     (g1, g2), graph_distance(g1, g2)
 end
 
-function fetch_rgp(seed::UInt64, datadir::String)
+function fetch_rgp(seed::UInt64)
     rng = StableRNG(seed)
     fetch_rgp(;rng = rng)
 end
 
-function fetch_rgps_parallel(;rng::AbstractRNG = StableRNG(rand(UInt64)), n::Int)
+function fetch_rgps_parallel(;rng::AbstractRNG = StableRNG(rand(UInt64)), n::Int = 200)
     seeds = rand(rng, UInt64, n)
     futures = [@spawnat :any fetch_rgp(seed) for seed in seeds]
     [fetch(future) for future in futures]
