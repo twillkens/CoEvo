@@ -1,19 +1,3 @@
-include("../src/Coevolutionary.jl")
-using .Coevolutionary
-using Flux
-using Flux: onecold, onehotbatch, logitcrossentropy
-using Flux: DataLoader
-using GraphNeuralNetworks
-using MLUtils
-using LinearAlgebra, Random, Statistics
-using JLD2
-using StatsBase
-using ProgressBars
-using Suppressor
-using Arpack
-
-export makedataset
-export makeFSMIndiv, makeGNNGraph
 
 function makeFSMIndiv(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
     ones = Set(string(o) for o in igroup["ones"])
@@ -33,8 +17,8 @@ function makeFSMIndiv(spid::String, iid::String, igroup::JLD2.Group)
     makeFSMIndiv(Symbol(spid), parse(UInt32, iid), igroup)
 end
 
-function getjl(ckey::String = "comp-1")
-    jldopen("$(DATA_DIR)/$(split(ckey, "-")[1])/$(ckey).jld2")
+function getjl(ckey::String = "comp-1", datadir::String = "/home/garbus/tcw/data")
+    jldopen("$(ENV["FSM_DATA_DIR"])/$(split(ckey, "-")[1])/$(ckey).jld2")
 end
 
 function lineage(
@@ -57,6 +41,11 @@ function lineage(jl::JLD2.JLDFile, gen::Int, spid::Symbol, aliasid::Int)
     pid = first(indiv.pids)
     lineage(jl, gen - 1, spid, string(pid), [indiv])
 end
+
+function lineage(jl::String, gen::Int, spid::Symbol, aliasid::Int)
+    lineage(getjl(jl), gen, spid, aliasid)
+end
+
 
 function makeGNNGraph(indiv::FSMIndiv)
     sources = Int[]
