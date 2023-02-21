@@ -75,7 +75,7 @@ Base.@kwdef mutable struct MyArgs
     numtrain = 100
 end
 
-function mytrain(dataset; kws...)
+function mytrain(dataset, model::Union{GNNChain, Nothing} = nothing; kws...)
     args = MyArgs(; kws...)
     args.seed > 0 && Random.seed!(args.seed)
 
@@ -100,9 +100,11 @@ function mytrain(dataset; kws...)
     train_loader = DataLoader(train_data; args.batchsize, shuffle = true, collate = true)
     test_loader = DataLoader(test_data; args.batchsize, shuffle = false, collate = true)
 
-    model = GNNChain(GraphConv(nin => args.nhidden1, relu),
-                     GraphConv(args.nhidden1 => args.nhidden2, relu),
-                     GlobalPool(mean)) |> device
+    model = model === nothing ?
+        GNNChain(GraphConv(nin => args.nhidden1, relu),
+                 GraphConv(args.nhidden1 => args.nhidden2, relu),
+                 GlobalPool(mean)) |> device :
+        model
 
     ps = Flux.params(model)
     opt = Adam(args.η)

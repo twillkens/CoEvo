@@ -1,3 +1,17 @@
+struct IndivArgs
+    eco::String
+    trial::Int
+    gen::Int
+    spid::Int
+    iid::Int
+    min::Bool
+end
+
+struct JobArgs
+    indiv1::IndivArgs
+    indiv2::IndivArgs
+end
+
 function fetchgraph(
     ;eco::String, trial::Int, gen::Int, spid::Symbol, iid::Int, min::Bool = true
 )
@@ -47,6 +61,46 @@ end
 function fetch_rgp(seed::UInt64)
     rng = StableRNG(seed)
     fetch_rgp(;rng = rng)
+end
+
+function fetchgraph(eco::String, trial::Int, gen::Int, spid::Int, iid::Int, min::Bool = true)
+    jl = getjl("$(eco)-$(trial)")
+    allspgroup = jl["$(gen)"]["species"]
+    spid = collect(keys(allspgroup))[spid]
+    spgroup = allspgroup[spid]
+    iid = collect(setdiff(keys(spgroup), Set(["popids"])))[iid]
+    igroup = spgroup[iid]
+    indiv = makeFSMIndiv(spid, iid, igroup)
+    makeGNNGraph(min ? minimize(indiv) : indiv)
+end
+
+
+function fetchgraph(iargs::IndivArgs)
+    fetchgraph(iargs.eco, iargs.trial, iargs.gen,
+        iargs.spid, iargs.iid, iargs.min)
+end
+
+function dowork(jargs::JobArgs)
+    g1 = fetchgraph(jargs.indiv1)
+    g2 = fetchgraph(jargs.indiv2)
+    (g1, g2), graph_distance(g1, g2)
+end
+
+
+function doit(rng::AbstractRNG = StableRNG(rand(UInt64)), n::Int)
+    gens = rand(rng, 2:9999, n * 2)
+    ecos = rand(rng, ["Grow", "Control", "coop", "comp"], n * 2)
+    spids = rand(rng, 1:2, n * 2)
+    iids = rand(rng, 1:50, n * 2)
+
+    futures = Vector{Future}()
+    for i in 1:2:n * 2
+        indiv1 = IndivArgs(ecos[i], 1, gens[i], spids[i], iids[i], true)
+        indiv2 = IndivArgs(ecos[i + 1], 1, gens[i + 1], spids[i + 1], iids[i + 1], true)
+        jargs = JobArgs(indiv1, indiv2)
+        push!(futures, @spawnat :any dowork(jargs))
+    end
+    [fetch(future) for future in futures]
 end
 
 function fetch_rgps_parallel(;rng::AbstractRNG = StableRNG(rand(UInt64)), n::Int = 200)
