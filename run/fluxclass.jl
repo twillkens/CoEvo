@@ -61,28 +61,34 @@ function lineage(jl::JLD2.JLDFile, gen::Int, spid::Symbol, aliasid::Int)
 end
 
 function makeGNNGraph(indiv::FSMIndiv)
-    sources = UInt32[]
-    targets = UInt32[]
-    weights = Bool[]
+    sources = Int[]
+    targets = Int[]
+    weights = Int[]
+    ntargets = Int[]
     alias = Dict{String, UInt32}()
     i = UInt32(1)
-
-    for ((s, _), t) in indiv.geno.links
+    for s in indiv.geno.ones
         if !haskey(alias, s)
             alias[s] = i
             i += 1
         end
-        if !haskey(alias, t)
-            alias[t] = i
+        push!(ntargets, 1)
+    end
+    for s in indiv.geno.zeros
+        if !haskey(alias, s)
+            alias[s] = i
             i += 1
         end
+        push!(ntargets, 0)
     end
+
     for ((s, w), t) in indiv.geno.links
         push!(sources, alias[s])
         push!(targets, alias[t])
         push!(weights, w)
     end
-    GNNGraph(sources, targets, weights)
+    oh(x) = Float32.(onehotbatch(x, 0:1))
+    GNNGraph(sources, targets, weights, ndata = (x = oh(ntargets)))
 end
 
 function makeGNNGraphs(indivs::Vector{FSMIndiv}; min::Bool = false)
@@ -90,23 +96,21 @@ function makeGNNGraphs(indivs::Vector{FSMIndiv}; min::Bool = false)
           [makeGNNGraph(indiv) for indiv in indivs]
 end
 
-
 function minvecs(indivs::Vector{FSMIndiv})
     [minimize(indiv) for indiv in indivs]
 end
 
-function graphspectrum(g::GNNGraph)
-    lp = collect(normalized_laplacian(g, add_self_loops=true, dir=:both))
+function graphspectrum(g::GNNGraph, add_self_loops = false)
+    lp = collect(normalized_laplacian(g, add_self_loops = add_self_loops, dir = :both))
     spec = eigvals(lp)
     return spec
 end
 
-function graph_distance(g1::GNNGraph, g2::GNNGraph, rev_spec::Bool = false)
+function graph_distance(g1::GNNGraph, g2::GNNGraph)
     spec1 = graphspectrum(g1)
     spec2 = graphspectrum(g2)
     k = min(length(spec1), length(spec2))
-    rev_spec ? norm(reverse(spec1[1:k]) - reverse(spec2[1:k])) :
-               norm(spec1[1:k] - spec2[1:k])
+    norm(spec1[1:k] - spec2[1:k])
 end
 
 function makedataset(;
@@ -133,6 +137,7 @@ function makedataset(;
     println("done: $(ckey1) vs $(ckey2), $(spid1), $(iid1) vs $(spid2) $(iid2)")
     sumdist ? sum(distances) : distances
 end
+
 
 function grid(;eco1::String = "comp", spid1::Symbol = :host, iid1::Int = 1,
               eco2::String = "Grow", spid2::Symbol = :control1, iid2::Int = 1,
