@@ -50,8 +50,8 @@ end
 # train(; usecuda = false)
 # arguments for the `train` function 
 Base.@kwdef mutable struct MyArgs
-    η = 1.0f-2             # learning rate
-    batchsize = 10      # batch size (number of graphs in each batch)
+    η = 1.0f-3             # learning rate
+    batchsize = 32      # batch size (number of graphs in each batch)
     epochs = 500         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
     usecuda = false      # if true use cuda (if available)
