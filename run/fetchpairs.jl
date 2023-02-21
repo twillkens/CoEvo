@@ -1,3 +1,15 @@
+function fetchgraph(
+    ;eco::String, trial::Int, gen::Int, spid::Symbol, iid::Int, min::Bool = true
+)
+    jl = getjl(string(eco, "-", trial))
+    allspgroup = jl["$(gen)"]["species"]
+    spgroup = allspgroup[string(spid)]
+    igroup = spgroup[string(iid)]
+    indiv = makeFSMIndiv(spid, iid, igroup)
+    makeGNNGraph(min ? minimize(indiv) : indiv)
+end
+
+
 function fetchrandgraph(;
     rng::AbstractRNG = StableRNG(rand(UInt64)),
     ecos::Vector{String} = ["Grow"],
