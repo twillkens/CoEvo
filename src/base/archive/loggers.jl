@@ -46,20 +46,20 @@ end
 
 function(l::SpeciesLogger)(children_group::JLD2.Group, child::FSMIndiv)
     p32 = x -> parse(UInt32, x)
-    child_group = make_group!(children_group, string(child.iid))
-    child_group["start"] = child.start
-    child_group["ones"] = [p32(x) for x in child.ones]
-    child_group["zeros"] = [p32(x) for x in child.zeros]
-    child_group["links"] = [(p32(origin), bool, p32(dest)) 
+    cgroup = make_group!(children_group, string(child.iid))
+    cgroup["start"] = child.start
+    cgroup["ones"] = [p32(x) for x in child.ones]
+    cgroup["zeros"] = [p32(x) for x in child.zeros]
+    cgroup["links"] = [(p32(origin), bool, p32(dest)) 
         for ((origin, bool), dest) in child.links]
-    child_group["pids"] = collect(child.pids)
+    cgroup["pids"] = collect(child.pids)
 end
 
-function(l::SpeciesLogger)(gen_group::JLD2.Group, allsp::Dict{Symbol, <:Species}, ::Vector{<:Outcome})
-    allsp_group = make_group!(gen_group, "species")
+function(l::SpeciesLogger)(gengroup::JLD2.Group, allsp::Dict{Symbol, <:Species}, ::Vector{<:Outcome})
+    allspgroup = make_group!(gengroup, "species")
     for sp in values(allsp)
-        sp_group = make_group!(allsp_group, string(sp.spid))
-        sp_group["popids"] = [ikey.iid for ikey in keys(sp.pop)]
+        spgroup = make_group!(allspgroup, string(sp.spid))
+        spgroup["popids"] = [ikey.iid for ikey in keys(sp.pop)]
         children_group = make_group!(spgroup, "children")
         for (_, child) in sp.children
             l(children_group, child.indiv)
