@@ -14,9 +14,12 @@ using Distributed
 using MultivariateStats
 using Plots
 using RDatasets
+using Zygote
+using CUDA
 
-@everywhere include("fluxclass.jl")
-@everywhere include("graphflux.jl")
+@everywhere include("lineage.jl")
+@everywhere include("spec.jl")
+@everywhere include("fsmgraph.jl")
 @everywhere include("fetchpairs.jl")
 @everywhere include("fsm.jl")
 include("mytrain.jl")
