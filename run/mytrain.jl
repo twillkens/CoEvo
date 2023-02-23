@@ -60,7 +60,7 @@ end
 Base.@kwdef mutable struct MyArgs
     η = 1.0f-3             # learning rate
     batchsize = 32      # batch size (number of graphs in each batch)
-    epochs = 100         # number of epochs
+    epochs = 50         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
     usecuda = true      # if true use cuda (if available)
     nhidden1 = 256        # dimension of hidden features
@@ -95,9 +95,9 @@ function mytrain(dataset, model::Union{GNNChain, Nothing} = nothing; kws...)
     test_loader = DataLoader(test_data; args.batchsize, shuffle = false, collate = true)
 
     model = model === nothing ?
-        GNNChain(GCNConv(nin => args.nhidden1, relu),
-                 GCNConv(args.nhidden1 => args.nhidden2, relu),
-                 GCNConv(args.nhidden2 => args.nout, relu),
+        GNNChain(GraphConv(nin => args.nhidden1, relu),
+                 GrachConv(args.nhidden1 => args.nhidden2, relu),
+                 GraphConv(args.nhidden2 => args.nout, relu),
                  GlobalPool(mean)) |> device :
         model
 
@@ -135,20 +135,6 @@ end
 
 vec_to_matrix(X) = mapreduce(permutedims, vcat, [X[i][:,1] for i in 1:length(X)])
 
-function gussy()
-    pairs = fetch_rgps_parallel(n=10_000)
-    model = mytrain(pairs;numtrain=7_500, usecuda=true, epochs=100, infotime=10)
-    l = lineage("comp-1", 9999, :host, 1)
-    lgs = [makeGNNGraph(i) for i in l]
-    guys = [map(x -> x[1][1], pairs); map(x -> x[1][2], pairs); lgs]
-    X = [model(g, g.ndata.x) |> cpu for g in guys |> gpu]
-    Xtr = mapreduce(permutedims, vcat, [X[i][:,1] for i in 1:length(X)])
-    M = PCA(Xtr, maxoutdim=2)
-end
-
-function filtergraphs(dset::Vector{<:GNNGraph}, n::Int = 4)
-    filter(x -> length(x[1][1].ndata.x) > n && length(x[1][2].ndata.x) > n, dset)
-end
 
 function plotlineage(model::GNNChain, l::Vector{<:GNNGraph},)
     X = [model(g, g.ndata.x) |> cpu for g in l |> cpu]
@@ -164,26 +150,33 @@ end
 
 
 function testdoit(nsample::Int = 1_000, ntrain::Int = 500)
-    pairs = fetchpairs(;n = nsample, ecos = ["coop", "comp", "Grow", "Control"])
+    jld = jldopen("test.jld2", "w")
+    pairs = pfetchpairs(;n = nsample, ecos = ["coop", "comp", "Grow", "Control"])
+    jld["pairs"] = pairs
     model = mytrain(pairs; numtrain=ntrain)
+    jld["model"] = model
     l = lineage("comp-1", 9999, :host, 1)
     fsms = [FSMGraph("comp", 1, gen, i) for (gen, i) in enumerate(l)]
+    jld["fsms"] = fsms
 
     graphs = [
         map(fsm -> fsm.graph, fsms);
         map(pair -> pair.g1.graph, pairs);
         map(pair -> pair.g2.graph, pairs)
     ]
+    embs = []
+    n
+    for (i, g) in enumerate(graphs)
+        g = g |> cpu
+        emb = model(g, g.ndata.x) |> vec
+        push!(embs, emb)
+    end
 
-    X = [model(g, g.ndata.x) |> cpu for g in graphs |> cpu]
+    X = [model(g, g.ndata.x) |> cpu for g in graphs |> gpu]
     Xtr = vec_to_matrix(X)
     M = fit(PCA, Xtr; maxoutdim=2)
+    jld["M"] = M
     p = scatter(M.proj[1:9999, :])
     savefig(p, "test.png")
-    jld = jldopen("test.jld", "w")
-    jld["M"] = M
-    jld["pairs"] = pairs
-    jld["fsms"] = fsms
-    jld["model"] = model
     close(jld)
 end
