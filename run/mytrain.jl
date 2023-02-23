@@ -35,22 +35,10 @@ function my_eval_loss_accuracy(model, data_loader, device)
         emb1 = model(g1, g1.ndata.x) |> vec
         emb2 = model(g2, g2.ndata.x) |> vec
         ŷ = norm(emb1 - emb2)
-        loss += mse(ŷ, y) * n
+        loss += Flux.mse(ŷ, y) * n
         ntot += n
     end
     return (loss = round(loss / ntot, digits = 4))
-end
-
-function makemodel(nin, nhidden1, nhidden2, device)
-    model = GNNChain(GraphConv(nin => nhidden1, relu),
-                     GraphConv(nhidden1 => nhidden2, relu),
-                     GlobalPool(mean)) |> device
-end
-
-function makeattnmodel(nin, nhidden1, nhidden2, device)
-    model = GNNChain(GraphConv(nin => nhidden1, relu),
-                     GraphConv(nhidden1 => nhidden2, relu),
-                     GlobalPool(mean)) |> device
 end
 
 function testembed()
@@ -70,13 +58,14 @@ end
 
 # arguments for the `train` function 
 Base.@kwdef mutable struct MyArgs
-    η = 1.0f-2             # learning rate
-    batchsize = 10      # batch size (number of graphs in each batch)
-    epochs = 500         # number of epochs
+    η = 1.0f-3             # learning rate
+    batchsize = 32      # batch size (number of graphs in each batch)
+    epochs = 100         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
     usecuda = true      # if true use cuda (if available)
-    nhidden1 = 64        # dimension of hidden features
-    nhidden2 = 32        # dimension of hidden features
+    nhidden1 = 512        # dimension of hidden features
+    nhidden2 = 256        # dimension of hidden features
+    nout = 32        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
     numtrain = 100
 end
@@ -95,21 +84,20 @@ function mytrain(dataset, model::Union{GNNChain, Nothing} = nothing; kws...)
         @info "Training on CPU"
     end
 
-    nin::Int = 0
-    try
-        nin = size(dataset[1][1][1].ndata.x, 1)
-    catch
-        nin = size(dataset[1][1].ndata.x, 1)
-    end
+    nin::Int = 1
     # LOAD DATA
+    graphs = [(pair.g1.graph, pair.g2.graph) for pair in dataset]
+    dists = [pair.dist for pair in dataset]
+    dataset = collect(zip(graphs, dists))
     train_data, test_data = splitobs(dataset, at = args.numtrain, shuffle = true)
 
     train_loader = DataLoader(train_data; args.batchsize, shuffle = true, collate = true)
     test_loader = DataLoader(test_data; args.batchsize, shuffle = false, collate = true)
 
     model = model === nothing ?
-        GNNChain(GraphConv(nin => args.nhidden1, relu),
-                 GraphConv(args.nhidden1 => args.nhidden2, relu),
+        GNNChain(GCNConv(nin => args.nhidden1, relu),
+                 GCNConv(args.nhidden1 => args.nhidden2, relu),
+                 GCNConv(args.nhidden2 => args.nout, relu),
                  GlobalPool(mean)) |> device :
         model
 
@@ -136,7 +124,7 @@ function mytrainloop!(
                 emb1 = model(g1, g1.ndata.x) |> vec
                 emb2 = model(g2, g2.ndata.x) |> vec
                 ŷ = norm(emb1 - emb2)
-                mse(ŷ, y)
+                Flux.mse(ŷ, y)
             end
             Flux.Optimise.update!(opt, ps, gs)
         end
