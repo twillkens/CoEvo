@@ -47,6 +47,12 @@ function makemodel(nin, nhidden1, nhidden2, device)
                      GlobalPool(mean)) |> device
 end
 
+function makeattnmodel(nin, nhidden1, nhidden2, device)
+    model = GNNChain(GraphConv(nin => nhidden1, relu),
+                     GraphConv(nhidden1 => nhidden2, relu),
+                     GlobalPool(mean)) |> device
+end
+
 function testembed()
     model = makemodel(42, 64, 32, cpu)
     graphs = get_gnngraph_proteins()
@@ -68,12 +74,13 @@ Base.@kwdef mutable struct MyArgs
     batchsize = 10      # batch size (number of graphs in each batch)
     epochs = 500         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
-    usecuda = false      # if true use cuda (if available)
+    usecuda = true      # if true use cuda (if available)
     nhidden1 = 64        # dimension of hidden features
     nhidden2 = 32        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
     numtrain = 100
 end
+
 
 function mytrain(dataset, model::Union{GNNChain, Nothing} = nothing; kws...)
     args = MyArgs(; kws...)
@@ -149,4 +156,34 @@ function gussy()
     X = [model(g, g.ndata.x) |> cpu for g in guys |> gpu]
     Xtr = mapreduce(permutedims, vcat, [X[i][:,1] for i in 1:length(X)])
     M = PCA(Xtr, maxoutdim=2)
+end
+
+function filtergraphs(dset::Vector{<:GNNGraph}, n::Int = 4)
+    filter(x -> length(x[1][1].ndata.x) > n && length(x[1][2].ndata.x) > n, dset)
+end
+
+function plotlineage(model::GNNChain, l::Vector{<:GNNGraph},)
+    X = [model(g, g.ndata.x) |> cpu for g in l |> cpu]
+    Xtr = mapreduce(permutedims, vcat, [X[i][:,1] for i in eachindex(X)])
+    M = fit(PCA, Xtr; maxoutdim=2)
+    scatter(M[1], M[2], legend=false)
+end
+
+function plotlineage(model::GNNChain, l::Vector{<:FSMIndiv})
+    lgs = [makeGNNGraph(i) for i in l]
+    plotlineage(model,lgs,)
+end
+
+
+function largemodel()
+    args = MyArgs(;
+        usecuda = true, numtrain = 100_000, η = 1.0f-3, batchsize=32, epochs=100, infotime=10,
+        
+        )
+    dset = fetchallpairs(;n = 150_000, ecos = ["coop", "comp", "Grow", "Control"])
+    dest = 
+    model = GNNChain(GraphConv(2 => 1024, relu),
+                     GraphConv(1024 => 512, relu),
+                     GraphConv(512 => 32, relu),
+                     GlobalPool(mean)) |> gpu
 end

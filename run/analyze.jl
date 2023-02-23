@@ -11,6 +11,9 @@ using Distributed
 @everywhere using JLD2
 @everywhere using StatsBase
 @everywhere using StableRNGs
+using MultivariateStats
+using Plots
+using RDatasets
 
 @everywhere include("fluxclass.jl")
 @everywhere include("graphflux.jl")
