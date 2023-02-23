@@ -63,8 +63,8 @@ Base.@kwdef mutable struct MyArgs
     epochs = 100         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
     usecuda = true      # if true use cuda (if available)
-    nhidden1 = 512        # dimension of hidden features
-    nhidden2 = 256        # dimension of hidden features
+    nhidden1 = 256        # dimension of hidden features
+    nhidden2 = 128        # dimension of hidden features
     nout = 32        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
     numtrain = 100
@@ -163,15 +163,27 @@ function plotlineage(model::GNNChain, l::Vector{<:FSMIndiv})
 end
 
 
-function largemodel()
-    args = MyArgs(;
-        usecuda = true, numtrain = 100_000, η = 1.0f-3, batchsize=32, epochs=100, infotime=10,
-        
-        )
-    dset = fetchallpairs(;n = 150_000, ecos = ["coop", "comp", "Grow", "Control"])
-    dest = 
-    model = GNNChain(GraphConv(2 => 1024, relu),
-                     GraphConv(1024 => 512, relu),
-                     GraphConv(512 => 32, relu),
-                     GlobalPool(mean)) |> gpu
+function testdoit(nsample::Int = 1_000, ntrain::Int = 500)
+    pairs = fetchpairs(;n = nsample, ecos = ["coop", "comp", "Grow", "Control"])
+    model = mytrain(pairs; numtrain=ntrain)
+    l = lineage("comp-1", 9999, :host, 1)
+    fsms = [FSMGraph("comp", 1, gen, i) for (gen, i) in enumerate(l)]
+
+    graphs = [
+        map(fsm -> fsm.graph, fsms);
+        map(pair -> pair.g1.graph, pairs);
+        map(pair -> pair.g2.graph, pairs)
+    ]
+
+    X = [model(g, g.ndata.x) |> cpu for g in graphs |> cpu]
+    Xtr = vec_to_matrix(X)
+    M = fit(PCA, Xtr; maxoutdim=2)
+    p = scatter(M.proj[1:9999, :])
+    savefig(p, "test.png")
+    jld = jldopen("test.jld", "w")
+    jld["M"] = M
+    jld["pairs"] = pairs
+    jld["fsms"] = fsms
+    jld["model"] = model
+    close(jld)
 end
