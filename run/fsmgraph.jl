@@ -50,3 +50,14 @@ function FSMGraph(iargs::IndivArgs)
         makeGNNGraph(iargs.jl, iargs.gen, iargs.spid, iargs.iid, iargs.min)
     )
 end
+
+function FSMGraph(eco::String, trial::Int, gen::Int, indiv::FSMIndiv)
+    FSMGraph(
+        eco,
+        string(trial),
+        string(gen),
+        string(indiv.geno.ikey.spid),
+        string(indiv.geno.ikey.iid),
+        makeGNNGraph(indiv)
+    )
+end
