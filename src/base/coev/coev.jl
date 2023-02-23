@@ -14,6 +14,25 @@ struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
     gensgroup::JLD2.Group
 end
 
+
+function currgen(gensgroup::JLD2.Group,)
+    gens = [parse(Int, name) for name in names(gensgroup)]
+
+end
+
+function CoevConfig(jldpath::String)
+    jld2file = jldopen(jldpath, "a")
+    key = jld2file["key"]
+    trial = jld2file["trial"]
+    jobcfg = jld2file["jobcfg"]
+    orders = jld2file["orders"]
+    spawners = jld2file["spawners"]
+    loggers = jld2file["loggers"]
+    gensgroup = JLD2.Group(jld2file, "gens")
+
+    CoevConfig(key, trial, rng, jobcfg, orders, spawners, loggers, jld2file, gensgroup)
+end
+
 function CoevConfig(;
     key::String,
     trial::Int,
@@ -30,6 +49,13 @@ function CoevConfig(;
     jld2file["key"] = key
     jld2file["trial"] = trial
     jld2file["seed"] = seed
+    jld2file["jobcfg"] = jobcfg
+    jld2file["orders"] = orders
+    jld2file["spawners"] = spawners
+    jld2file["loggers"] = loggers
+    jld2file["logpath"] = logpath
+
+
     CoevConfig(key, trial, rng, jobcfg, orders, spawners, loggers, jld2file, gensgroup)
 end
 
