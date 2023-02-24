@@ -82,10 +82,10 @@ function prune(fsm::FSMIndiv)
 end
 
 function hopcroft(fsm::FSMIndiv; doprune::Bool=true)
-    ones, zeros, links = doprune ? prune(fsm) : (copy(fsm.ones), copy(fsm.zeros), copy(fsm.links))
-
-    P = Set([ones, zeros])
-    W = Set([ones, zeros])
+    ones, zeros, links = doprune ? 
+        prune(fsm) : 
+        (copy(fsm.ones), copy(fsm.zeros), copy(fsm.links))
+    P, W = Set([ones, zeros]), Set([ones, zeros])
     while length(W) > 0
         A = pop!(W)
         for c in [true, false]

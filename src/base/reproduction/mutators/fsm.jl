@@ -21,11 +21,7 @@ function(m::LingPredMutator)(fsm::FSMIndiv)
     fsm
 end
 
-function randstate(rng::AbstractRNG, fsm::FSMIndiv)
-    rand(rng, union(fsm.ones, fsm.zeros))
-end
-
-function randstate(
+function randfsmstate(
     rng::AbstractRNG, fsm::FSMIndiv;
     include::Set{String} = Set{String}(), 
     exclude::Set{String} = Set{String}()
@@ -39,7 +35,6 @@ function newstate!(m::LingPredMutator)
     string(gid!(m.sc))
 end
 
-
 function addstate(
     fsm::FSMIndiv, newstate::String, label::Bool, truedest::String, falsedest::String
 )
@@ -50,12 +45,11 @@ function addstate(
     FSMIndiv(fsm.ikey, newgeno, fsm.pids)
 end
 
-
 function addstate(m::LingPredMutator, fsm::FSMIndiv)
     label = rand(m.rng, Bool)
     newstate = newstate!(m)
-    truedest = randstate(m.rng, fsm; include = Set([newstate]))
-    falsedest = randstate(m.rng, fsm, include = Set([newstate]))
+    truedest = randfsmstate(m.rng, fsm; include = Set([newstate]))
+    falsedest = randfsmstate(m.rng, fsm, include = Set([newstate]))
     addstate(fsm, newstate, label, truedest, falsedest)
 end
 
@@ -70,7 +64,7 @@ end
 
 function getnew(rng::AbstractRNG, fsm::FSMIndiv, todelete::String)
     newstart = todelete == fsm.start ?
-        randstate(rng, fsm; exclude = Set([todelete])) : fsm.start
+        randfsmstate(rng, fsm; exclude = Set([todelete])) : fsm.start
     newlinks = LinkDict()
     for ((origin, bool), dest) in fsm.links
         if dest == todelete && origin != todelete
@@ -84,14 +78,14 @@ end
 
 function rmstate(m::LingPredMutator, fsm::FSMIndiv)
     if length(union(fsm.ones, fsm.zeros)) < 2 return fsm end
-    todelete = randstate(m.rng, fsm)
+    todelete = randfsmstate(m.rng, fsm)
     start, newlinks = getnew(m.rng, fsm, todelete)
     rmstate(fsm, todelete, start, newlinks)
 end
 
 function changelink(m::LingPredMutator, fsm::FSMIndiv)
-    state = randstate(m.rng, fsm)
-    newdest = randstate(m.rng, fsm)
+    state = randfsmstate(m.rng, fsm)
+    newdest = randfsmstate(m.rng, fsm)
     bit = rand(m.rng, Bool)
     changelink(fsm, state, newdest, bit)
 end
@@ -103,7 +97,7 @@ function changelink(fsm::FSMIndiv, state::String, newdest::String, bit::Bool)
 end
 
 function changelabel(m::LingPredMutator, fsm::FSMIndiv)
-    state = randstate(m.rng, fsm)
+    state = randfsmstate(m.rng, fsm)
     changelabel(fsm, state)
 end
 
@@ -115,9 +109,3 @@ function changelabel(fsm::FSMIndiv, state::String)
     geno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, fsm.links)
     FSMIndiv(fsm.ikey, geno, fsm.pids)
 end
-
-
-# function changelabel(fsm::FSMIndiv, state::String)
-#     changelabel(fsm, Set([state]))
-# end
-

@@ -11,7 +11,11 @@ function IndivKey(spid::Symbol, iid::Int)
     IndivKey(spid, UInt32(iid))
 end
 
-@auto_hash_equals struct TestKey
+function IndivKey(spid::String, iid::String)
+    IndivKey(Symbol(spid), parse(UInt32, iid))
+end
+
+struct TestKey
     oid::Symbol
     ikey::IndivKey
 end

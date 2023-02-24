@@ -1,6 +1,6 @@
 export Recipe, makerecipes
 
-@auto_hash_equals struct Recipe
+struct Recipe
     oid::Symbol
     ikeys::Tuple{Vararg{IndivKey}}
 end

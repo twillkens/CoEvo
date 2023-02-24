@@ -1,8 +1,7 @@
 using Test
 using Random
 using StableRNGs
-include("../src/Coevolutionary.jl")
-using .Coevolutionary
+using CoEvo
 include("util.jl")
 
 
@@ -100,7 +99,6 @@ end
     @test fitnessB == 0
 end
 
-
 @testset "NGFocusing" begin
     domain = NGFocusing()
     obscfg = NGObsConfig()
@@ -119,7 +117,6 @@ end
     o = stir(Mix(:NG, domain, obscfg, [phenoA, phenoB]))
     @test getscore(:A, 1, o) == true
 end
-
 
 @testset "NGRelativism" begin
     domain = NGRelativism()
@@ -188,7 +185,6 @@ end
     @test Set(indiv.iid for indiv in values(newsp.children)) == Set(collect(11:15))
 end
 
-
 @testset "AllvsAllOrder/ParallelJobConfig" begin
     rng = StableRNG(42)
     spawnerA = testspawner(rng, :A)
@@ -222,7 +218,6 @@ end
     @test Set(indiv.iid for indiv in values(newsp.children)) == Set(collect(11:15))
 end
 
-
 @testset "Outcomes: Vector Pheno" begin
     rng = StableRNG(123)
 
@@ -245,7 +240,6 @@ end
     @test sum(fitness(vet) for (_, vet) in allvets[:A].pop) == 100
     @test sum(fitness(vet) for (_, vet) in allvets[:B].pop) == 0
 end
-
 
 @testset "Generational/Roulette/Bitflip" begin
     rng = StableRNG(42)
@@ -279,13 +273,14 @@ end
     @test length(newspA.children) == 50
 end
 # 
-@testset "Coev" begin
+@testset "Coev/Unfreeze" begin
     # RNG #
     coev_key = "NG: Gradient"
     trial = 1
     seed = UInt64(42)
     rng = StableRNG(seed)
     phenocfg = SumPhenoConfig()
+    logpath = "unfreeze.jld2"
 
     coev_cfg = CoevConfig(;
         key = "Coev Test",
@@ -298,7 +293,9 @@ end
             :A => testspawner(rng, :A; npop = 100, width = 100, phenocfg = phenocfg),
             :B => testspawner(rng, :B; npop = 100, width = 100, phenocfg = phenocfg),
         ),
-        loggers = Logger[])
+        loggers = Logger[SpeciesLogger(interval=1)],
+        logpath = logpath,
+    )
     gen = UInt16(1)
     allsp = coev_cfg()
     while gen < 10
@@ -306,6 +303,12 @@ end
         allsp = coev_cfg(gen, allsp)
         gen += UInt16(1)
     end
+
+    close(coev_cfg.jld2file)
+
+    coevcfg2, gen, allsp = unfreeze(logpath)
+    @test gen == 10
+    @test coev_cfg == coevcfg2
 end
 
 end
