@@ -1,6 +1,5 @@
 using Distributed
-@everywhere include("../src/Coevolutionary.jl")
-@everywhere using .Coevolutionary
+@everywhere using Coevolutionary
 @everywhere using Flux
 @everywhere using Flux: onecold, onehotbatch, logitcrossentropy
 @everywhere using Flux: DataLoader
@@ -17,7 +16,6 @@ using RDatasets
 using Zygote
 using CUDA
 
-@everywhere include("lineage.jl")
 @everywhere include("spec.jl")
 @everywhere include("fsmgraph.jl")
 @everywhere include("fetchpairs.jl")

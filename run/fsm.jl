@@ -272,7 +272,7 @@ function runmix(trial::Int, npop::Int, ngen::Int, domains::Vector{<:Domain})
 end
 
 function pdispatch(;
-    fn::Function = runctrl, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
+    fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
     domains::Vector{<:Domain} = [LingPredGame(MatchCoop()), LingPredGame(MatchComp())]
 )
     futures = [@spawnat :any fn(trial, npop, ngen, domains) for trial in trange] 

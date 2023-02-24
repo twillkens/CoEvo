@@ -1,30 +1,39 @@
 export Outcome
 export getscore
 
-
-struct Outcome{R, O <: Observation}
+struct Outcome{R <: Real, O <: Observation}
     oid::Symbol
     rdict::Dict{IndivKey, Pair{TestKey, R}}
     obs::O
 end
 
-function Outcome(oid::Symbol, rdict::Dict{IndivKey, Pair{TestKey, R}}) where R
+function Outcome(oid::Symbol, rdict::Dict{IndivKey, Pair{TestKey, <:Real}})
     Outcome(oid, rdict, NullObs())
 end
 
-
-function Outcome(oid::Symbol, pr1::Pair{<:Phenotype, R}, pr2::Pair{<:Phenotype, R}) where R
-    Outcome(oid, Dict(
-        pr1.first.ikey => TestKey(oid, pr2.first.ikey) => pr1.second,
-        pr2.first.ikey => TestKey(oid, pr1.first.ikey) => pr2.second))
+function Outcome(oid::Symbol, pr1::Pair{<:Phenotype, <:Real}, pr2::Pair{<:Phenotype, <:Real})
+    Outcome(
+        oid,
+        Dict(
+            pr1.first.ikey => TestKey(oid, pr2.first.ikey) => pr1.second,
+            pr2.first.ikey => TestKey(oid, pr1.first.ikey) => pr2.second
+        ),
+        NullObs()
+    )
 end
 
 function Outcome(
-    oid::Symbol, pr1::Pair{<:Phenotype, R}, pr2::Pair{<:Phenotype, R}, obs::Observation) where R
-
-    Outcome(oid, Dict(
-        pr1.first.ikey => TestKey(oid, pr2.first.ikey) => pr1.second,
-        pr2.first.ikey => TestKey(oid, pr1.first.ikey) => pr2.second), obs)
+    oid::Symbol,
+    pr1::Pair{<:Phenotype, <:Real}, pr2::Pair{<:Phenotype, <:Real},
+    obs::Observation
+)
+    Outcome(
+        oid,
+        Dict(
+            pr1.first.ikey => TestKey(oid, pr2.first.ikey) => pr1.second,
+            pr2.first.ikey => TestKey(oid, pr1.first.ikey) => pr2.second),
+        obs
+    )
 end
 
 function getscore(ikey::IndivKey, o::Outcome)

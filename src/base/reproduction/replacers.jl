@@ -28,14 +28,6 @@ function(r::GenerationalReplacer)(pop::Vector{<:Veteran}, children::Vector{<:Vet
     sort([elites; children], by = i -> fitness(i), rev = true)[1:npop]
 end
 
-# Base.@kwdef struct PlusReplacer <: Replacer end
-
-# function(r::PlusReplacer)(species::Species)
-#     n_pop = length(species.pop)
-#     pop = collect(union(species.parents, species.children))
-#     sort(pop, by = i -> getfitness(i), rev = true)[:n_pop]
-# end
-
 Base.@kwdef struct CommaReplacer <: Replacer
 end
 

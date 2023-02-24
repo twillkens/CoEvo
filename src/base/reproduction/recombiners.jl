@@ -3,7 +3,6 @@ export CloneRecombiner
 
 Base.@kwdef struct IdentityRecombiner <: Recombiner end
 
-
 function(r::IdentityRecombiner)(::UInt16, parents::Vector{<:Veteran})
     parents
 end

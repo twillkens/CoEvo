@@ -10,6 +10,7 @@ Base.@kwdef struct VectorIndivConfig <: IndivConfig
     rng::AbstractRNG
     dtype::Type{<:Real}
     width::Int
+    itype::Type{<:Individual} = VectorIndiv
 end
 
 struct VectorIndiv{G <: ScalarGene} <: Individual
@@ -104,6 +105,12 @@ function(cfg::VectorIndivConfig)(n_indiv::Int, val::Real)
         VectorIndiv(cfg.spid, iid!(cfg.sc), gids!(cfg.sc, cfg.width), fill(val, cfg.width))
     for _ in 1:n_indiv]
     Dict([indiv.ikey => indiv for indiv in indivs])
+end
+
+function(cfg::VectorIndivConfig)(spid::String, iid::String, igroup::JLD2.Group)
+    genes = [ScalarGene(gid, val) for (gid, val) in zip(igroup["gids"], igroup["vals"])]
+    pids = Set{UInt32}(igroup["pids"])
+    VectorIndiv(IndivKey(spid, iid), genes, pids)
 end
 
 

@@ -4,7 +4,6 @@ export genotype, LinkDict, StateSet, act, FSMIndivConfig
 LinkDict = Dict{Tuple{String, Bool}, String}
 StateSet = Set{String}
 
-
 struct FSMGeno <: Genotype
     ikey::IndivKey
     start::String
@@ -12,7 +11,6 @@ struct FSMGeno <: Genotype
     zeros::Set{String}
     links::LinkDict
 end
-
 
 struct FSMPheno <: Phenotype
     ikey::IndivKey
@@ -32,11 +30,11 @@ function FSMIndiv(ikey::IndivKey, geno::FSMGeno)
     FSMIndiv(ikey, geno, Set{UInt32}())
 end
 
-
 Base.@kwdef struct FSMIndivConfig <: IndivConfig
     spid::Symbol
     sc::SpawnCounter
     rng::AbstractRNG
+    itype::Type{<:Individual} = FSMIndiv
 end
 
 function(cfg::FSMIndivConfig)()
@@ -52,7 +50,6 @@ function(cfg::FSMIndivConfig)()
         LinkDict(((startstate, true) => startstate, (startstate, false) => startstate)))
     FSMIndiv(ikey, geno)
 end
-
 
 function(cfg::FSMIndivConfig)(geno::FSMGeno)
     ikey = IndivKey(cfg.spid, iid!(cfg.sc))
@@ -70,6 +67,16 @@ function(cfg::FSMIndivConfig)(npop::Int, indiv::FSMIndiv)
     ikeys = [IndivKey(cfg.spid, iid!(cfg.sc)) for _ in 1:npop]
     genos = [FSMGeno(ikey, indiv.start, indiv.ones, indiv.zeros, indiv.links) for ikey in ikeys]
     [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
+end
+
+function(cfg::FSMIndivConfig)(spid::Symbol, iid::Int, childgroup::JLD2.Group)
+    geno = FSMGeno(
+        IndivKey(spid, iid),
+        string(childgroup["start"]),
+        Set(string(one) for one in childgroup["ones"]),
+        Set(string(zero) for zero in childgroup["zeros"]),
+        LinkDict(((source), bit) => target for (source, bit, target) in childgroup["links"]))
+    FSMIndiv(ikey, geno)
 end
 
 function Base.getproperty(indiv::FSMIndiv, s::Symbol)
@@ -115,17 +122,31 @@ function FSMIndiv(spid::Symbol, iid::UInt32, geno::FSMGeno)
     FSMIndiv(IndivKey(spid, iid), geno)
 end
 
-# function FSMIndiv(ikey::IndivKey)
-#     start = "1"
-#     ones, zeros = rand(Bool) ? (Set([start]), Set()) : (Set(), Set([start]))
-#     links = LinkDict((start, true) => start, (start, false) => start)
-#     geno = FSMGeno(ikey, start, ones, zeros, links)
-#     FSMIndiv(ikey, geno)
-# end
-
 function FSMIndiv(
     ikey::IndivKey, start::String, ones::Set{String}, zeros::Set{String}, links::LinkDict
 )
     geno = FSMGeno(ikey, start, ones, zeros, links)
     FSMIndiv(ikey, geno)
+end
+
+function FSMIndiv(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
+    ones = Set(string(o) for o in igroup["ones"])
+    zeros = Set(string(z) for z in igroup["zeros"])
+    pids = Set(p for p in igroup["pids"])
+    start = igroup["start"]
+    links = Dict((string(s), w) => string(t) for (s, w, t) in igroup["links"])
+    geno = FSMGeno(IndivKey(spid, iid), start, ones, zeros, links)
+    FSMIndiv(geno.ikey, geno, pids)
+end
+
+function FSMIndiv(spid::Symbol, iid::String, igroup::JLD2.Group)
+    FSMIndiv(spid, parse(UInt32, iid), igroup)
+end
+
+function FSMIndiv(spid::String, iid::String, igroup::JLD2.Group)
+    FSMIndiv(Symbol(spid), parse(UInt32, iid), igroup)
+end
+
+function FSMIndiv(ikey::IndivKey, igroup::JLD2.Group)
+    FSMIndiv(ikey.spid, ikey.iid, igroup)
 end

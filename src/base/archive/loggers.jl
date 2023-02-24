@@ -29,7 +29,8 @@ function StatFeatures(vec::Vector{<:Real})
     )
 end
 
-struct SpeciesLogger <: Logger
+Base.@kwdef struct SpeciesLogger <: Logger
+    interval::Int = 1
 end
 
 struct FitnessLogger <: Logger
@@ -55,15 +56,31 @@ function(l::SpeciesLogger)(children_group::JLD2.Group, child::FSMIndiv)
     cgroup["pids"] = collect(child.pids)
 end
 
-function(l::SpeciesLogger)(gengroup::JLD2.Group, allsp::Dict{Symbol, <:Species}, ::Vector{<:Outcome})
-    allspgroup = make_group!(gengroup, "species")
+function(l::SpeciesLogger)(children_group::JLD2.Group, child::VectorIndiv)
+    cgroup = make_group!(children_group, string(child.iid))
+    cgroup["gids"] = [gene.gid for gene in child.genes]
+    cgroup["vals"] = [gene.val for gene in child.genes]
+    cgroup["pids"] = collect(child.pids)
+end
+
+function(l::SpeciesLogger)(
+    gen::Int, gensgroup::JLD2.Group, allsp::Dict{Symbol, <:Species}, ::Vector{<:Outcome}
+)
+    allspgroup = make_group!(gensgroup, "species")
     for sp in values(allsp)
         spgroup = make_group!(allspgroup, string(sp.spid))
         spgroup["popids"] = [ikey.iid for ikey in keys(sp.pop)]
         children_group = make_group!(spgroup, "children")
-        for (_, child) in sp.children
-            l(children_group, child.indiv)
+        vets = gen == 1 ? sp.pop : sp.children
+        for (_, vet) in vets
+            l(children_group, vet.indiv)
         end
+    end
+end
+
+function(l::Logger)(gen::UInt16, args...) 
+    if gen % l.interval == UInt16(0)
+        l(Int(gen), args...)
     end
 end
 

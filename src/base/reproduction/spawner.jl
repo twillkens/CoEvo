@@ -26,11 +26,9 @@ function(s::Spawner)(vets::Species{<:Veteran})
     Species(s.spid, s.phenocfg, [vet.indiv for vet in pop], children)
 end
 
-
 function(s::Spawner)(allvets::Dict{Symbol, <:Species{<:Veteran}})
     s(allvets[s.spid])
 end
-
 
 function Species(s::Spawner, args...)
     pop = s.icfg(s.npop, args...)
