@@ -4,12 +4,11 @@ export IdentitySelector, RouletteSelector
 struct IdentitySelector <: Selector
 end
 
-function(s::IdentitySelector)(pop::Vector{<:Veteran})
+function(s::IdentitySelector)(::AbstractRNG, pop::Vector{<:Veteran})
     pop
 end
 
 Base.@kwdef struct RouletteSelector <: Selector
-    rng::AbstractRNG
     μ::Int
 end
 
@@ -38,8 +37,8 @@ function roulette(rng::AbstractRNG, μ::Int, fits::Vector{<:Real})
     pselection(rng, μ, prob)
 end
 
-function(s::RouletteSelector)(pop::Vector{<:Veteran})
+function(s::RouletteSelector)(rng::AbstractRNG, pop::Vector{<:Veteran})
     fits = [fitness(vet) for vet in pop]
-    pidxs = roulette(s.rng, s.μ, fits)
-    [pop[i] for i in pidxs]
+    pidxs = roulette(rng, s.μ, fits)
+    pop[pidxs] 
 end

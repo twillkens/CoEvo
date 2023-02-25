@@ -32,15 +32,13 @@ end
 
 Base.@kwdef struct FSMIndivConfig <: IndivConfig
     spid::Symbol
-    sc::SpawnCounter
-    rng::AbstractRNG
     itype::Type{<:Individual} = FSMIndiv
 end
 
-function(cfg::FSMIndivConfig)()
-    ikey = IndivKey(cfg.spid, iid!(cfg.sc))
-    startstate = string(gid!(cfg.sc))
-    ones, zeros = rand(cfg.rng, Bool) ?
+function(cfg::FSMIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
+    ikey = IndivKey(cfg.spid, iid!(sc))
+    startstate = string(gid!(sc))
+    ones, zeros = rand(rng, Bool) ?
         (Set([startstate]), Set{String}()) : (Set{String}(), Set([startstate]))
     geno = FSMGeno(
         ikey,
@@ -51,20 +49,20 @@ function(cfg::FSMIndivConfig)()
     FSMIndiv(ikey, geno)
 end
 
-function(cfg::FSMIndivConfig)(geno::FSMGeno)
-    ikey = IndivKey(cfg.spid, iid!(cfg.sc))
+function(cfg::FSMIndivConfig)(sc::SpawnCounter, geno::FSMGeno)
+    ikey = IndivKey(cfg.spid, iid!(sc))
     geno = FSMGeno(ikey, geno.start, geno.ones, geno.zeros, geno.links)
     FSMIndiv(ikey, geno)
 end
 
-function(cfg::FSMIndivConfig)(n::Int, geno::FSMGeno)
-    ikeys = [IndivKey(cfg.spid, iid!(cfg.sc)) for _ in 1:n]
+function(cfg::FSMIndivConfig)(sc::SpawnCounter, n::Int, geno::FSMGeno)
+    ikeys = [IndivKey(cfg.spid, iid!(sc)) for _ in 1:n]
     genos = [FSMGeno(ikey, geno.start, geno.ones, geno.zeros, geno.links) for ikey in ikeys]
     [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
 end
 
-function(cfg::FSMIndivConfig)(npop::Int, indiv::FSMIndiv)
-    ikeys = [IndivKey(cfg.spid, iid!(cfg.sc)) for _ in 1:npop]
+function(cfg::FSMIndivConfig)(sc::SpawnCounter, npop::Int, indiv::FSMIndiv)
+    ikeys = [IndivKey(cfg.spid, iid!(sc)) for _ in 1:npop]
     genos = [FSMGeno(ikey, indiv.start, indiv.ones, indiv.zeros, indiv.links) for ikey in ikeys]
     [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
 end

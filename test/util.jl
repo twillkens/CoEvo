@@ -1,48 +1,42 @@
 export testspawner, roulettespawner, testorder, vecorder, dummyikey, dummytkey, dummyvets
 
 function testspawner(
-    rng::AbstractRNG, spid::Symbol;
+    spid::Symbol;
     npop = 10, width = 10, phenocfg = SumPhenoConfig()
 )
-    sc = SpawnCounter()
-    Spawner(
+    spid => Spawner(
         spid = spid,
         npop = npop,
         icfg = VectorIndivConfig(
             spid = spid,
-            sc = sc,
-            rng = rng,
             dtype = Bool,
             width = width
         ),
         phenocfg = phenocfg,
-        replacer = TruncationReplacer(),
+        replacer = TruncationReplacer(npop = npop),
         selector = IdentitySelector(),
-        recombiner = CloneRecombiner(sc = sc),
+        recombiner = CloneRecombiner(),
         mutators = Mutator[]
     )
 end
 
 function roulettespawner(
-    rng::AbstractRNG, spid::Symbol;
+    spid::Symbol;
     npop = 50, width = 100, phenocfg = SumPhenoConfig()
 )
-    sc = SpawnCounter()
-    Spawner(
+    spid => Spawner(
         spid = spid,
         npop = npop,
         icfg = VectorIndivConfig(
             spid = spid,
-            sc = sc,
-            rng = rng,
             dtype = Bool,
             width = width
         ),
         phenocfg = phenocfg,
-        replacer = GenerationalReplacer(n_elite = 10),
-        selector =  RouletteSelector(rng = rng, μ = npop),
-        recombiner = CloneRecombiner(sc = sc),
-        mutators = [BitflipMutator(rng = rng, sc = sc, mutrate = 0.05)]
+        replacer = GenerationalReplacer(npop = npop, n_elite = 10),
+        selector =  RouletteSelector(μ = npop),
+        recombiner = CloneRecombiner(),
+        mutators = [BitflipMutator(mutrate = 0.05)]
     )
 end
 

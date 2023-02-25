@@ -30,7 +30,7 @@ function unfreeze(
     allggroup = jld2file["gens"]
     currgen = keys(allggroup)[end]
     ggroup = allggroup[currgen]
-    rng = ggroup["rng"]
+    evostate = ggroup["evostate"]
     allspgroup = ggroup["species"]
     sppairs = Pair{Symbol, <:Species}[]
     for spid in keys(allspgroup)
@@ -56,7 +56,7 @@ function unfreeze(
             )
         )
     end
-    return rng, parse(Int, currgen) + 1, Dict(sppairs...)
+    evostate, parse(Int, currgen) + 1, Dict(sppairs...)
 end
 
 function unfreeze(jldpath::String)
@@ -67,6 +67,6 @@ function unfreeze(jldpath::String)
     orders = jld2file["orders"]
     spawners = jld2file["spawners"]
     loggers = jld2file["loggers"]
-    rng, gen, sp = unfreeze(jld2file, spawners)
-    CoevConfig(key, trial, rng, jobcfg, orders, spawners, loggers, jld2file), gen, sp
+    evostate, gen, sp = unfreeze(jld2file, spawners)
+    CoevConfig(key, trial, evostate, jobcfg, orders, spawners, loggers, jld2file), gen, sp
 end
