@@ -34,3 +34,6 @@ function evolve(ngen::Int, npop::Int)
     end
     close(coev_cfg.jld2file)
 end
+
+Spawner{VectorIndivConfig, SumPhenoConfig, TruncationReplacer, IdentitySelector, CloneRecombiner, Mutator}(:A, 100, VectorIndivConfig(:A, Bool, 100, VectorIndiv), SumPhenoConfig(), TruncationReplacer(100), IdentitySelector(), CloneRecombiner(), Mutator[], Any[]) == 
+Spawner{VectorIndivConfig, SumPhenoConfig, TruncationReplacer, IdentitySelector, CloneRecombiner, Mutator}(:A, 100, VectorIndivConfig(:A, Bool, 100, VectorIndiv), SumPhenoConfig(), TruncationReplacer(100), IdentitySelector(), CloneRecombiner(), Mutator[], Any[])

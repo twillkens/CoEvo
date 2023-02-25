@@ -33,16 +33,14 @@ end
 @testset "VectorIndivConfig" begin
     # genome initialization with random values
     rng = StableRNG(42)
-    sc = SpawnCounter()
 
     icfg = VectorIndivConfig(
         spid = :A,
-        sc = sc,
-        rng = rng,
         dtype = Bool,
         width = 100
     )
-    indivs = sort(collect(values(icfg(10, false))), by = i -> i.iid)
+    es = EvoState(42, [:A])
+    indivs = sort(collect(values(icfg(es, 10, false))), by = i -> i.iid)
 
     indiv = indivs[1]
     @test length(indiv.genes) == 100
@@ -54,11 +52,11 @@ end
     @test indiv.genes[100].gid == 1000
     @test sum(genotype(indiv).genes) == 0
 
-    indivs = sort(collect(values(icfg(10, true))), by = i -> i.iid)
+    indivs = sort(collect(values(icfg(es, 10, true))), by = i -> i.iid)
     indiv = indivs[1]
     @test sum(genotype(indiv).genes) == 100
 
-    indivs = icfg(5)
+    indivs = icfg(es, 5)
     for indiv in values(indivs)
         @test sum(genotype(indiv).genes) != 0
         @test sum(genotype(indiv).genes) != 100
@@ -137,34 +135,37 @@ end
 end
 
 @testset "Spawner" begin
-    rng = StableRNG(42)
-    sc = SpawnCounter()
-    spawner = testspawner(rng, :A)
-    species = Species(spawner, false)
-    indivs = sort(collect(values(species.pop)), by = i -> i.iid)
+    spawners = Dict(testspawner(:A))
+    es = EvoState(42, spawners)
+    species = Species(es, spawners[:A], false)
+    indivs = sort(collect(values(species.children)), by = i -> i.iid)
     @test length(indivs) == 10
     @test all([:A == indivs[i].spid for i in 1:10])
     @test sum([sum(genotype(indiv).genes) for indiv in values(indivs)]) == 0
 
     vets = dummyvets(species)
 
-    species = spawner(vets)
+    species = spawners[:A](es, Dict(vets.spid => vets))
     @test length(species.children) == 10
     @test sort(collect([indiv.iid for indiv in values(species.children)])) == collect(11:20)
 end
  
 @testset "AllvsAllOrder/SerialConfig" begin
-    rng = StableRNG(42)
-    spawnerA = testspawner(rng, :A)
-    spawnerB = testspawner(rng, :B)
+    spawners = Dict(
+            testspawner(:A, npop = 5),
+            testspawner(:B, npop = 5)
+    )
+    es = EvoState(42, spawners)
     phenocfg = SumPhenoConfig()
 
-    speciesA = Species(:A, phenocfg, spawnerA.icfg(5, false), spawnerA.icfg(5, true))
-    speciesB = Species(:B, phenocfg, spawnerB.icfg(5, false), spawnerB.icfg(5, true))
-    allsp = Dict(:A => speciesA, :B => speciesB)
-
+    allsp = Dict(
+        :A => Species(
+            :A, phenocfg, spawners[:A].icfg(es, 5, false), spawners[:A].icfg(es, 5, true)),
+        :B => Species(
+            :B, phenocfg, spawners[:B].icfg(es, 5, false), spawners[:B].icfg(es, 5, true))
+    )
     order = testorder()
-    recipes = order(speciesA, speciesB)
+    recipes = order(allsp[:A], allsp[:B])
     @test length(recipes) == 100
     jobcfg = SerialPhenoJobConfig()
     job = jobcfg(allsp, order, recipes)
@@ -176,27 +177,33 @@ end
     @test all(fitness(vet) == 0 for (_, vet) in allvets[:B].pop)
     @test all(fitness(vet) == 5 for (_, vet) in allvets[:B].children)
 
-    newsp = spawnerA(allvets)
+    newsp = spawners[:A](es, allvets)
     @test Set(indiv.iid for indiv in values(newsp.pop)) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in values(newsp.children)) == Set(collect(11:15))
 
-    newsp = spawnerB(allvets)
+    newsp = spawners[:B](es, allvets)
     @test Set(indiv.iid for indiv in values(newsp.pop)) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in values(newsp.children)) == Set(collect(11:15))
 end
 
 @testset "AllvsAllOrder/ParallelJobConfig" begin
-    rng = StableRNG(42)
-    spawnerA = testspawner(rng, :A)
-    spawnerB = testspawner(rng, :B)
+    spawners = Dict(
+        testspawner(:A, npop = 5),
+        testspawner(:B, npop = 5),
+    )
+    es = EvoState(42, spawners)
     phenocfg = SumPhenoConfig()
 
-    speciesA = Species(:A, phenocfg, spawnerA.icfg(5, false), spawnerA.icfg(5, true))
-    speciesB = Species(:B, phenocfg, spawnerB.icfg(5, false), spawnerB.icfg(5, true))
-    allsp = Dict(:A => speciesA, :B => speciesB)
-
+    allsp = Dict(
+        :A => Species(
+            :A, phenocfg, spawners[:A].icfg(es, 5, false), spawners[:A].icfg(es, 5, true)
+        ),
+        :B => Species(
+            :B, phenocfg, spawners[:B].icfg(es, 5, false), spawners[:B].icfg(es, 5, true)
+        )
+    )
     order = testorder()
-    recipes = order(speciesA, speciesB)
+    recipes = order(allsp[:A], allsp[:B])
     @test length(recipes) == 100
     jobcfg = ParallelPhenoJobConfig(njobs = 5)
     jobs = jobcfg(allsp, order, recipes)
@@ -209,24 +216,25 @@ end
     @test all(fitness(vet) == 0 for (_, vet) in allvets[:B].pop)
     @test all(fitness(vet) == 5 for (_, vet) in allvets[:B].children)
 
-    newsp = spawnerA(allvets)
+    newsp = spawners[:A](es, allvets)
     @test Set(indiv.iid for indiv in values(newsp.pop)) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in values(newsp.children)) == Set(collect(11:15))
 
-    newsp = spawnerB(allvets)
+    newsp = spawners[:B](es, allvets)
     @test Set(indiv.iid for indiv in values(newsp.pop)) == Set(collect(6:10))
     @test Set(indiv.iid for indiv in values(newsp.children)) == Set(collect(11:15))
 end
 
 @testset "Outcomes: Vector Pheno" begin
-    rng = StableRNG(123)
-
-    spawnerA = testspawner(rng, :A; npop = 10, width = 100)
-    spawnerB = testspawner(rng, :B; npop = 10, width = 100)
+    spawners = Dict(
+        testspawner(:A; npop = 10, width = 100),
+        testspawner(:B; npop = 10, width = 100)
+    )
+    es = EvoState(42, spawners)
     phenocfg = SubvecPhenoConfig(subvec_width = 10)
 
-    speciesA = Species(:A, phenocfg, spawnerA.icfg(10, true))
-    speciesB = Species(:B, phenocfg, spawnerB.icfg(10, false))
+    speciesA = Species(:A, phenocfg, spawners[:A].icfg(es, 10, true))
+    speciesB = Species(:B, phenocfg, spawners[:B].icfg(es, 10, false))
     allsp = Dict(:A => speciesA, :B => speciesB)
     order = vecorder()
     recipes = order(allsp)
@@ -237,19 +245,22 @@ end
     outcomes = perform(work)
     @test length(outcomes) == 100
     allvets = makevets(allsp, outcomes)
-    @test sum(fitness(vet) for (_, vet) in allvets[:A].pop) == 100
-    @test sum(fitness(vet) for (_, vet) in allvets[:B].pop) == 0
+    @test sum(fitness(vet) for (_, vet) in allvets[:A].children) == 100
+    @test sum(fitness(vet) for (_, vet) in allvets[:B].children) == 0
 end
 
 @testset "Generational/Roulette/Bitflip" begin
-    rng = StableRNG(42)
-    spawnerA = roulettespawner(rng, :A, npop = 50, width = 100)
-    spawnerB = roulettespawner(rng, :B, npop = 50, width = 100)
+    spawners = Dict(
+        roulettespawner(:A, npop = 50, width = 100),
+        roulettespawner(:B, npop = 50, width = 100)
+    )
+    es = EvoState(42, spawners)
     phenocfg = SumPhenoConfig()
     order = testorder()
-    speciesA = Species(:A, phenocfg, spawnerA.icfg(50, false))
-    speciesB = Species(:B, phenocfg, spawnerB.icfg(50, false))
-    allsp = Dict(:A => speciesA, :B => speciesB)
+    allsp = Dict(
+        :A => Species(:A, phenocfg, spawners[:A].icfg(es, 50, false)), 
+        :B => Species(:B, phenocfg, spawners[:B].icfg(es, 50, false))
+    )
     
     recipes = order(allsp)
     @test length(recipes) == 2500
@@ -257,8 +268,9 @@ end
     work = jobcfg(allsp, order, recipes)
     outcomes = perform(work)
     allvets = makevets(allsp, outcomes)
-    newspA = spawnerA(allvets)
-    newspB = spawnerB(allvets)
+    
+    newspA = spawners[:A](es, allvets)
+    newspB = spawners[:B](es, allvets)
 
     allsp = Dict(:A => newspA, :B => newspB)
 
@@ -267,48 +279,54 @@ end
     work = jobcfg(allsp, order, recipes)
     outcomes = perform(work)
     allvets = makevets(allsp, outcomes)
-    newspA = spawnerA(allvets)
-    newspB = spawnerB(allvets)
+    newspA = spawners[:A](es, allvets)
+    newspB = spawners[:B](es, allvets)
     @test length(newspA.pop) == 50
     @test length(newspA.children) == 50
 end
 # 
 @testset "Coev/Unfreeze" begin
     # RNG #
-    coev_key = "NG: Gradient"
+    coevkey = "NG: Gradient"
     trial = 1
-    seed = UInt64(42)
-    rng = StableRNG(seed)
     phenocfg = SumPhenoConfig()
     logpath = "unfreeze.jld2"
-
-    coev_cfg = CoevConfig(;
+    spawners = Dict(
+        testspawner(:A; npop = 100, width = 100, phenocfg = phenocfg),
+        testspawner(:B; npop = 100, width = 100, phenocfg = phenocfg),
+    )
+    c1 = CoevConfig(;
         key = "Coev Test",
         trial = 1,
-        seed = seed,
-        rng = rng,
+        seed = UInt64(42),
         jobcfg = SerialPhenoJobConfig(),
         orders = Dict(:NG => testorder()),
-        spawners = Dict(
-            :A => testspawner(rng, :A; npop = 100, width = 100, phenocfg = phenocfg),
-            :B => testspawner(rng, :B; npop = 100, width = 100, phenocfg = phenocfg),
-        ),
+        spawners = spawners,
         loggers = Logger[SpeciesLogger(interval=1)],
         logpath = logpath,
     )
     gen = UInt16(1)
-    allsp = coev_cfg()
+    allsp = c1()
     while gen < 10
         println(gen)
-        allsp = coev_cfg(gen, allsp)
+        allsp = c1(gen, allsp)
         gen += UInt16(1)
     end
 
-    close(coev_cfg.jld2file)
+    close(c1.jld2file)
 
-    coevcfg2, gen, allsp = unfreeze(logpath)
+    c2, gen, allsp = unfreeze(logpath)
     @test gen == 10
-    @test coev_cfg == coevcfg2
+    @test c1.key == c2.key
+    @test c1.trial == c2.trial
+    @test c1.evostate == c2.evostate
+    @test c1.jobcfg == c2.jobcfg
+    s1, s2 = c1.spawners[:A], c2.spawners[:A]
+    @test all(getproperty(s1, fname) == getproperty(s2, fname) for fname in fieldnames(Spawner))
+    o1, o2 = c1.orders[:NG], c2.orders[:NG]
+    @test all(getproperty(o1, fname) == getproperty(o2, fname)
+        for fname in fieldnames(AllvsAllPlusOrder))
+    @test c1.loggers == c2.loggers
 end
 
 end

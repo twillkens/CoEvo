@@ -2,8 +2,6 @@ export LingPredMutator
 export addstate, rmstate, changelink, changelabel
 
 Base.@kwdef struct LingPredMutator <: Mutator
-    rng::AbstractRNG
-    sc::SpawnCounter
     nchanges::Int = 1
     probs::Dict{Function, Float64} = Dict(
         addstate => 0.25,
@@ -13,10 +11,10 @@ Base.@kwdef struct LingPredMutator <: Mutator
     )
 end
 
-function(m::LingPredMutator)(fsm::FSMIndiv)
-    fns = sample(m.rng, collect(keys(m.probs)), Weights(collect(values(m.probs))), m.nchanges)
+function(m::LingPredMutator)(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv,) 
+    fns = sample(rng, collect(keys(m.probs)), Weights(collect(values(m.probs))), m.nchanges)
     for fn in fns
-        fsm = fn(m, fsm)
+        fsm = fn(rng, sc, fsm)
     end
     fsm
 end
@@ -31,8 +29,8 @@ function randfsmstate(
     rand(rng, nodes)
 end
 
-function newstate!(m::LingPredMutator)
-    string(gid!(m.sc))
+function newstate!(sc::SpawnCounter, )
+    string(gid!(sc))
 end
 
 function addstate(
@@ -45,9 +43,9 @@ function addstate(
     FSMIndiv(fsm.ikey, newgeno, fsm.pids)
 end
 
-function addstate(m::LingPredMutator, fsm::FSMIndiv)
+function addstate(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv)
     label = rand(m.rng, Bool)
-    newstate = newstate!(m)
+    newstate = newstate!(sc)
     truedest = randfsmstate(m.rng, fsm; include = Set([newstate]))
     falsedest = randfsmstate(m.rng, fsm, include = Set([newstate]))
     addstate(fsm, newstate, label, truedest, falsedest)

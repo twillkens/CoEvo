@@ -1,5 +1,5 @@
 using Distributed
-@everywhere using Coevolutionary
+@everywhere using CoEvo
 @everywhere using Flux
 @everywhere using Flux: onecold, onehotbatch, logitcrossentropy
 @everywhere using Flux: DataLoader
@@ -7,9 +7,6 @@ using Distributed
 @everywhere using MLDatasets
 @everywhere using MLUtils
 @everywhere using LinearAlgebra, Random, Statistics
-@everywhere using JLD2
-@everywhere using StatsBase
-@everywhere using StableRNGs
 using MultivariateStats
 using Plots
 using RDatasets

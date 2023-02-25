@@ -1,5 +1,4 @@
 export SpawnCounter
-export gid!, iid!, gids!, iids!
 
 mutable struct SpawnCounter
     gid::UInt32
@@ -34,9 +33,5 @@ function Base.show(io::IO, i::UInt16)
 end
 
 function Base.show(io::IO, i::UInt32)
-    print(io, Int(i))
-end
-
-function Base.show(io::IO, i::UInt64)
     print(io, Int(i))
 end

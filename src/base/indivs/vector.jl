@@ -6,8 +6,6 @@ export genotype, clone, getgids, getvals
 
 Base.@kwdef struct VectorIndivConfig <: IndivConfig
     spid::Symbol
-    sc::SpawnCounter
-    rng::AbstractRNG
     dtype::Type{<:Real}
     width::Int
     itype::Type{<:Individual} = VectorIndiv
@@ -55,7 +53,7 @@ function getvals(indiv::VectorIndiv)
     [g.val for g in indiv.genes]
 end
 
-function VectorIndiv(spid::Symbol, iid::UInt32, genes::Vector{<:ScalarGene}, )
+function VectorIndiv(spid::Symbol, iid::UInt32, genes::Vector{<:ScalarGene},)
     VectorIndiv(IndivKey(spid, iid), genes, Set{UInt32}())
 end
 
@@ -82,29 +80,36 @@ function VectorIndiv(spid::Symbol, iid::Int, gids::Vector{UInt32}, vals::Vector{
     VectorIndiv(spid, UInt32(iid), gids, vals)
 end
 
-function(cfg::VectorIndivConfig)()
+function(cfg::VectorIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
     VectorIndiv(
         cfg.spid,
-        iid!(cfg.sc),
-        gids!(cfg.sc, cfg.width),
-        rand(cfg.rng, cfg.dtype, cfg.width))
+        iid!(sc),
+        gids!(sc, cfg.width),
+        rand(rng, cfg.dtype, cfg.width))
 end
 
-function(cfg::IndivConfig)(n_indiv::Int)
-    indivs = [cfg() for _ in 1:n_indiv]
-    Dict([indiv.ikey => indiv for indiv in indivs])
+function(cfg::IndivConfig)(rng::AbstractRNG, sc::SpawnCounter, n_indiv::Int)
+    indivs = [cfg(rng, sc) for _ in 1:n_indiv]
+    Dict(indiv.ikey => indiv for indiv in indivs)
 end
 
-function(cfg::VectorIndivConfig)(n_indiv::Int, vec::Vector{<:Real})
-    indivs = [VectorIndiv(spid, iid!(cfg.sc), gids!(cfg.sc, cfg.width), vec) for _ in 1:n_indiv]
-    Dict([indiv.ikey => indiv for indiv in indivs])
-end
-
-function(cfg::VectorIndivConfig)(n_indiv::Int, val::Real)
+function(cfg::VectorIndivConfig)(
+    ::AbstractRNG, sc::SpawnCounter, n_indiv::Int, vec::Vector{<:Real}
+)
     indivs = [
-        VectorIndiv(cfg.spid, iid!(cfg.sc), gids!(cfg.sc, cfg.width), fill(val, cfg.width))
-    for _ in 1:n_indiv]
-    Dict([indiv.ikey => indiv for indiv in indivs])
+        VectorIndiv(spid, iid!(sc), gids!(sc, cfg.width), vec)
+        for _ in 1:n_indiv
+    ]
+    Dict(indiv.ikey => indiv for indiv in indivs)
+end
+
+function(cfg::VectorIndivConfig)(::AbstractRNG, sc::SpawnCounter, n_indiv::Int, val::Real)
+    indivs = [
+        VectorIndiv(
+            cfg.spid, iid!(sc), gids!(sc, cfg.width), fill(val, cfg.width)
+        ) for _ in 1:n_indiv
+    ]
+    Dict(indiv.ikey => indiv for indiv in indivs)
 end
 
 function(cfg::VectorIndivConfig)(spid::String, iid::String, igroup::JLD2.Group)
