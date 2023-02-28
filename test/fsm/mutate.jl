@@ -280,30 +280,30 @@ end
     ones = Set(["1", "2", "6"])
     zeros = Set(["3", "4", "5"])
     links = LinkDict(
-                ("1", 0) => "2",
-                ("1", 1) => "3",
-                ("2", 0) => "1",
-                ("2", 1) => "4",
-                ("3", 0) => "5",
-                ("3", 1) => "6",
-                ("4", 0) => "5",
-                ("4", 1) => "6",
-                ("5", 0) => "5",
-                ("5", 1) => "6",
-                ("6", 0) => "6",
-                ("6", 1) => "6",
-                )
+        ("1", 0) => "2",
+        ("1", 1) => "3",
+        ("2", 0) => "1",
+        ("2", 1) => "4",
+        ("3", 0) => "5",
+        ("3", 1) => "6",
+        ("4", 0) => "5",
+        ("4", 1) => "6",
+        ("5", 0) => "5",
+        ("5", 1) => "6",
+        ("6", 0) => "6",
+        ("6", 1) => "6",
+    )
 
     fsm = FSMIndiv(ikey, start, ones, zeros, links)
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 7
-    mutator = LingPredMutator(rng = rng, sc = sc)
+    mutator = LingPredMutator()
 
 
     n = 10
     for i in 1:n
-        fsm = addstate(mutator, fsm)
+        fsm = addstate(rng, sc, fsm)
     end
 
     @test length(union(fsm.ones, fsm.zeros)) == 16
@@ -338,15 +338,15 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 8
-    mutator = LingPredMutator(rng = rng, sc = sc)
+    mutator = LingPredMutator()
     n = 4
     for i in 1:n
-        fsm = rmstate(mutator, fsm)
+        fsm = rmstate(rng, sc, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 4
     @test length(fsm.links) == 8
     for i in 1:50
-        fsm = rmstate(mutator, fsm)
+        fsm = rmstate(rng, sc, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 1
     @test length(fsm.links) == 2
@@ -380,10 +380,10 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 8
-    mutator = LingPredMutator(rng = rng, sc = sc)
+    mutator = LingPredMutator()
     n = 4
     for i in 1:n
-        fsm = changelink(mutator, fsm)
+        fsm = changelink(rng, sc, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 8
     @test length(fsm.links) == 16
@@ -418,10 +418,10 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 8
-    mutator = LingPredMutator(rng=rng, sc=sc)
+    mutator = LingPredMutator()
     n = 4
     for i in 1:n
-        fsm = changelabel(mutator, fsm)
+        fsm = changelabel(rng, sc, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 8
     @test length(fsm.links) == 16
@@ -452,27 +452,27 @@ end
     rng = StableRNG(42)
     sc = SpawnCounter()
     sc.gid = 7
-    mutator = LingPredMutator(rng = rng, sc = sc)
+    mutator = LingPredMutator()
     n = 4
     for i in 1:n
-        fsm = addstate(mutator, fsm)
+        fsm = addstate(rng, sc, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 10
     @test length(fsm.links) == 20
 
     for i in 1:n
-        fsm = rmstate(mutator, fsm)
+        fsm = rmstate(rng, sc, fsm)
     end
 
     @test length(union(fsm.ones, fsm.zeros)) == 6
     @test length(fsm.links) == 12
 
     for i in 1:n
-        fsm = changelink(mutator, fsm)
+        fsm = changelink(rng, sc, fsm)
     end
 
     for i in 1:n
-        fsm = changelabel(mutator, fsm)
+        fsm = changelabel(rng, sc, fsm)
     end
 
     @test length(union(fsm.ones, fsm.zeros)) == 6

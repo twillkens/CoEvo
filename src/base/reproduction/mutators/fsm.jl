@@ -44,10 +44,10 @@ function addstate(
 end
 
 function addstate(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv)
-    label = rand(m.rng, Bool)
+    label = rand(rng, Bool)
     newstate = newstate!(sc)
-    truedest = randfsmstate(m.rng, fsm; include = Set([newstate]))
-    falsedest = randfsmstate(m.rng, fsm, include = Set([newstate]))
+    truedest = randfsmstate(rng, fsm; include = Set([newstate]))
+    falsedest = randfsmstate(rng, fsm, include = Set([newstate]))
     addstate(fsm, newstate, label, truedest, falsedest)
 end
 
@@ -74,17 +74,17 @@ function getnew(rng::AbstractRNG, fsm::FSMIndiv, todelete::String)
     newstart, newlinks
 end
 
-function rmstate(m::LingPredMutator, fsm::FSMIndiv)
+function rmstate(rng::AbstractRNG, ::SpawnCounter, fsm::FSMIndiv)
     if length(union(fsm.ones, fsm.zeros)) < 2 return fsm end
-    todelete = randfsmstate(m.rng, fsm)
-    start, newlinks = getnew(m.rng, fsm, todelete)
+    todelete = randfsmstate(rng, fsm)
+    start, newlinks = getnew(rng, fsm, todelete)
     rmstate(fsm, todelete, start, newlinks)
 end
 
-function changelink(m::LingPredMutator, fsm::FSMIndiv)
-    state = randfsmstate(m.rng, fsm)
-    newdest = randfsmstate(m.rng, fsm)
-    bit = rand(m.rng, Bool)
+function changelink(rng::AbstractRNG, ::SpawnCounter, fsm::FSMIndiv)
+    state = randfsmstate(rng, fsm)
+    newdest = randfsmstate(rng, fsm)
+    bit = rand(rng, Bool)
     changelink(fsm, state, newdest, bit)
 end
 
@@ -94,8 +94,8 @@ function changelink(fsm::FSMIndiv, state::String, newdest::String, bit::Bool)
     FSMIndiv(fsm.ikey, geno, fsm.pids)
 end
 
-function changelabel(m::LingPredMutator, fsm::FSMIndiv)
-    state = randfsmstate(m.rng, fsm)
+function changelabel(rng::AbstractRNG, ::SpawnCounter, fsm::FSMIndiv)
+    state = randfsmstate(rng, fsm)
     changelabel(fsm, state)
 end
 
