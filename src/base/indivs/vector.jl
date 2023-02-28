@@ -1,8 +1,15 @@
 export VectorIndiv, VectorGeno
 export make_genotype
 export ScalarGene
-export VectorIndivConfig
+export VectorIndivConfig, VectorIndivArchiver
 export genotype, clone, getgids, getvals
+
+
+struct VectorIndiv{G <: ScalarGene} <: Individual
+    ikey::IndivKey
+    genes::Vector{G}
+    pids::Set{UInt32}
+end
 
 Base.@kwdef struct VectorIndivConfig <: IndivConfig
     spid::Symbol
@@ -11,10 +18,16 @@ Base.@kwdef struct VectorIndivConfig <: IndivConfig
     itype::Type{<:Individual} = VectorIndiv
 end
 
-struct VectorIndiv{G <: ScalarGene} <: Individual
-    ikey::IndivKey
-    genes::Vector{G}
-    pids::Set{UInt32}
+Base.@kwdef struct VectorIndivArchiver <: Archiver
+    interval::Int = 1
+    log_popids::Bool = true
+end
+
+function(a::VectorIndivArchiver)(children_group::JLD2.Group, child::VectorIndiv)
+    cgroup = make_group!(children_group, child.iid)
+    cgroup["gids"] = [gene.gid for gene in child.genes]
+    cgroup["vals"] = [gene.val for gene in child.genes]
+    cgroup["pids"] = collect(child.pids)
 end
 
 function Base.getproperty(indiv::VectorIndiv, prop::Symbol)

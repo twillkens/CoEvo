@@ -27,7 +27,6 @@ include("util.jl")
     @test indiv.gids == gids
     @test indiv.vals == vals
     @test genotype(indiv).genes == vals
-
 end
 
 @testset "VectorIndivConfig" begin
@@ -61,7 +60,6 @@ end
         @test sum(genotype(indiv).genes) != 0
         @test sum(genotype(indiv).genes) != 100
     end
-
 end
 
 @testset "NGGradient" begin
@@ -287,39 +285,38 @@ end
 # 
 @testset "Coev/Unfreeze" begin
     # RNG #
-    coevkey = "NG: Gradient"
-    trial = 1
-    phenocfg = SumPhenoConfig()
-    logpath = "unfreeze.jld2"
     spawners = Dict(
-        testspawner(:A; npop = 100, width = 100, phenocfg = phenocfg),
-        testspawner(:B; npop = 100, width = 100, phenocfg = phenocfg),
+        testspawner(:A; npop = 100, width = 100),
+        testspawner(:B; npop = 100, width = 100),
     )
+    eco = :test
+    trial = 1
     c1 = CoevConfig(;
-        key = "Coev Test",
-        trial = 1,
-        seed = UInt64(42),
+        eco = eco,
+        trial = trial,
+        seed = 42,
         jobcfg = SerialPhenoJobConfig(),
         orders = Dict(:NG => testorder()),
         spawners = spawners,
-        loggers = Logger[SpeciesLogger(interval=1)],
-        logpath = logpath,
     )
-    gen = UInt16(1)
+    gen = 1
     allsp = c1()
     while gen < 10
-        println(gen)
         allsp = c1(gen, allsp)
-        gen += UInt16(1)
+        gen += 1
     end
 
     close(c1.jld2file)
 
-    c2, gen, allsp = unfreeze(logpath)
+    gen, c2, allsp = unfreeze("test-1.jld2")
     @test gen == 10
-    @test c1.key == c2.key
+    @test c1.eco == c2.eco
     @test c1.trial == c2.trial
-    @test c1.evostate == c2.evostate
+    @test c1.evostate.rng == c2.evostate.rng
+    @test c1.evostate.counters[:A].iid == c2.evostate.counters[:A].iid + 100
+    @test c1.evostate.counters[:A].gid == c2.evostate.counters[:A].gid 
+    @test c1.evostate.counters[:B].iid == c2.evostate.counters[:B].iid + 100
+    @test c1.evostate.counters[:B].gid == c2.evostate.counters[:B].gid 
     @test c1.jobcfg == c2.jobcfg
     s1, s2 = c1.spawners[:A], c2.spawners[:A]
     @test all(getproperty(s1, fname) == getproperty(s2, fname) for fname in fieldnames(Spawner))

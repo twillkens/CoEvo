@@ -16,7 +16,8 @@ function testspawner(
         replacer = TruncationReplacer(npop = npop),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
-        mutators = Mutator[]
+        mutators = Mutator[],
+        archiver = VectorIndivArchiver(interval=1)
     )
 end
 
@@ -36,23 +37,24 @@ function roulettespawner(
         replacer = GenerationalReplacer(npop = npop, n_elite = 10),
         selector =  RouletteSelector(μ = npop),
         recombiner = CloneRecombiner(),
-        mutators = [BitflipMutator(mutrate = 0.05)]
+        mutators = [BitflipMutator(mutrate = 0.05)],
+        archiver = VectorIndivArchiver(interval=1)
     )
 end
 
-function testorder()
+function testorder(;oid::Symbol = :NG, spids::Vector{Symbol} = [:A, :B])
     AllvsAllPlusOrder(
-        oid = :NG,
-        spids = [:A, :B],
+        oid = oid,
+        spids = spids,
         domain = NGGradient(),
         obscfg = NGObsConfig(),
     )
 end
 
-function vecorder()
+function vecorder(; oid::Symbol = :NG, spids::Vector{Symbol} = [:A, :B])
     AllvsAllPlusOrder(
-        oid = :NG,
-        spids = [:A, :B],
+        oid = oid,
+        spids = spids,
         domain = NGFocusing(),
         obscfg = NGObsConfig(),
     )

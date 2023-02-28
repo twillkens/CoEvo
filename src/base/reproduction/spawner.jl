@@ -4,7 +4,7 @@ export EvoState
 
 @Base.kwdef struct Spawner{
     I <: IndivConfig, P <: PhenoConfig, RP <: Replacer, S <: Selector,
-    RC <: Recombiner, M <: Mutator
+    RC <: Recombiner, M <: Mutator, A <: Archiver
 }
     spid::Symbol
     npop::Int
@@ -14,6 +14,7 @@ export EvoState
     selector::S
     recombiner::RC
     mutators::Vector{M}
+    archiver::A
     spargs::Vector{Any} = Any[]
 end
 
