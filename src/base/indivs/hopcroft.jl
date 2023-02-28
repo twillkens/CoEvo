@@ -135,7 +135,7 @@ function FSMIndiv(fsm::FSMIndiv, P::Set{Set{String}})
     if newstart == ""
         throw(ArgumentError("Minimization failed"))
     end
-    geno = FSMGeno(fsm.ikey, newstart, newones, newzeros, newlinks)
+    geno = FSMGeno(newstart, newones, newzeros, newlinks)
     FSMIndiv(fsm.ikey, geno)
 end
 

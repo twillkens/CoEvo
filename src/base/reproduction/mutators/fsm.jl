@@ -39,7 +39,7 @@ function addstate(
     s = Set([newstate])
     ones, zeros = label ? (union(fsm.ones, s), fsm.zeros) : (fsm.ones, union(fsm.zeros, s))
     newlinks = Dict((newstate, true) => truedest, (newstate, false) => falsedest)
-    newgeno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, merge(fsm.links, newlinks))
+    newgeno = FSMGeno(fsm.start, ones, zeros, merge(fsm.links, newlinks))
     FSMIndiv(fsm.ikey, newgeno, fsm.pids)
 end
 
@@ -56,7 +56,7 @@ function rmstate(fsm::FSMIndiv, todelete::String, start::String, newlinks::LinkD
         (filter(s -> s != todelete, fsm.ones), fsm.zeros) :
         (fsm.ones, filter(s -> s != todelete, fsm.zeros))
     links = merge(filter(p -> p[1][1] != todelete, fsm.links), newlinks)
-    geno = FSMGeno(fsm.ikey, start, ones, zeros, links)
+    geno = FSMGeno(start, ones, zeros, links)
     FSMIndiv(fsm.ikey, geno, fsm.pids)
 end
 
@@ -90,7 +90,7 @@ end
 
 function changelink(fsm::FSMIndiv, state::String, newdest::String, bit::Bool)
     links = merge(fsm.links, Dict((state, bit) => newdest))
-    geno = FSMGeno(fsm.ikey, fsm.start, fsm.ones, fsm.zeros, links)
+    geno = FSMGeno(fsm.start, fsm.ones, fsm.zeros, links)
     FSMIndiv(fsm.ikey, geno, fsm.pids)
 end
 
@@ -104,6 +104,6 @@ function changelabel(fsm::FSMIndiv, state::String)
     ones, zeros = state ∈ fsm.ones ?
         (setdiff(fsm.ones, s), union(fsm.zeros, s)) :
         (union(fsm.ones, s), setdiff(fsm.zeros, s))
-    geno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, fsm.links)
+    geno = FSMGeno(fsm.start, ones, zeros, fsm.links)
     FSMIndiv(fsm.ikey, geno, fsm.pids)
 end

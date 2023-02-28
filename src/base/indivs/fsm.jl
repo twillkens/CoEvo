@@ -5,7 +5,6 @@ LinkDict = Dict{Tuple{String, Bool}, String}
 StateSet = Set{String}
 
 struct FSMGeno <: Genotype
-    ikey::IndivKey
     start::String
     ones::Set{String}
     zeros::Set{String}
@@ -30,11 +29,14 @@ function FSMIndiv(ikey::IndivKey, geno::FSMGeno)
     FSMIndiv(ikey, geno, Set{UInt32}())
 end
 
+function FSMIndiv(spid::Symbol, iid::UInt32, geno::FSMGeno, pids::Set{UInt32})
+    FSMIndiv(IndivKey(spid, iid), geno, pids)
+end
+
 Base.@kwdef struct FSMIndivConfig <: IndivConfig
     spid::Symbol
     itype::Type{<:Individual} = FSMIndiv
 end
-
 
 function(cfg::FSMIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
     ikey = IndivKey(cfg.spid, iid!(sc))
@@ -42,7 +44,6 @@ function(cfg::FSMIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
     ones, zeros = rand(rng, Bool) ?
         (Set([startstate]), Set{String}()) : (Set{String}(), Set([startstate]))
     geno = FSMGeno(
-        ikey,
         startstate,
         ones,
         zeros,
@@ -52,30 +53,29 @@ end
 
 function(cfg::FSMIndivConfig)(sc::SpawnCounter, geno::FSMGeno)
     ikey = IndivKey(cfg.spid, iid!(sc))
-    geno = FSMGeno(ikey, geno.start, geno.ones, geno.zeros, geno.links)
+    geno = FSMGeno(geno.start, geno.ones, geno.zeros, geno.links)
     FSMIndiv(ikey, geno)
 end
 
 function(cfg::FSMIndivConfig)(sc::SpawnCounter, n::Int, geno::FSMGeno)
     ikeys = [IndivKey(cfg.spid, iid!(sc)) for _ in 1:n]
-    genos = [FSMGeno(ikey, geno.start, geno.ones, geno.zeros, geno.links) for ikey in ikeys]
+    genos = [FSMGeno(geno.start, geno.ones, geno.zeros, geno.links) for ikey in ikeys]
     [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
 end
 
 function(cfg::FSMIndivConfig)(sc::SpawnCounter, npop::Int, indiv::FSMIndiv)
     ikeys = [IndivKey(cfg.spid, iid!(sc)) for _ in 1:npop]
-    genos = [FSMGeno(ikey, indiv.start, indiv.ones, indiv.zeros, indiv.links) for ikey in ikeys]
+    genos = [FSMGeno(indiv.start, indiv.ones, indiv.zeros, indiv.links) for ikey in ikeys]
     [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
 end
 
 function(cfg::FSMIndivConfig)(spid::Symbol, iid::Int, childgroup::JLD2.Group)
     geno = FSMGeno(
-        IndivKey(spid, iid),
         string(childgroup["start"]),
         Set(string(one) for one in childgroup["ones"]),
         Set(string(zero) for zero in childgroup["zeros"]),
         LinkDict(((source), bit) => target for (source, bit, target) in childgroup["links"]))
-    FSMIndiv(ikey, geno)
+    FSMIndiv(spid, iid, geno, childgroup["pids"])
 end
 
 function Base.getproperty(indiv::FSMIndiv, s::Symbol)
@@ -102,7 +102,7 @@ end
 
 function clone(iid::UInt32, parent::FSMIndiv)
     ikey = IndivKey(parent.spid, iid)
-    geno = FSMGeno(ikey, parent.start, parent.ones, parent.zeros, parent.links)
+    geno = FSMGeno(parent.start, parent.ones, parent.zeros, parent.links)
     FSMIndiv(ikey, geno, Set([parent.iid]))
 end
 
@@ -124,7 +124,7 @@ end
 function FSMIndiv(
     ikey::IndivKey, start::String, ones::Set{String}, zeros::Set{String}, links::LinkDict
 )
-    geno = FSMGeno(ikey, start, ones, zeros, links)
+    geno = FSMGeno(start, ones, zeros, links)
     FSMIndiv(ikey, geno)
 end
 
@@ -167,6 +167,6 @@ function FSMIndiv(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
     links = Dict(
         (s, w) => t for (s, w, t) in zip(igroup["sources"], igroup["bits"], igroup["targets"])
     )
-    geno = FSMGeno(IndivKey(spid, iid), start, ones, zeros, links)
-    FSMIndiv(geno.ikey, geno, pids)
+    geno = FSMGeno(start, ones, zeros, links)
+    FSMIndiv(spid, iid, geno, pids)
 end
