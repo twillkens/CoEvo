@@ -300,8 +300,10 @@ end
         spawners = spawners,
     )
     gen = 1
+    lastsp = nothing
     allsp = c1()
     while gen < 10
+        lastsp = allsp
         allsp = c1(gen, allsp)
         gen += 1
     end
