@@ -2,11 +2,11 @@ export CoevConfig
 export makevets
 export interact, archive!
 
-struct CoevConfig{O <: Order, S <: Spawner, L <: Logger}
-    key::String
+struct CoevConfig{J <: JobConfig, O <: Order, S <: Spawner, L <: Logger}
+    eco::Symbol
     trial::Int
     evostate::EvoState
-    jobcfg::JobConfig
+    jobcfg::J
     orders::Dict{Symbol, O}
     spawners::Dict{Symbol, S}
     loggers::Vector{L}
@@ -15,27 +15,26 @@ end
 
 
 function CoevConfig(;
-    key::String,
+    eco::Symbol,
     trial::Int,
     seed::Union{UInt64, Int},
     jobcfg::JobConfig, 
     orders::Dict{Symbol, <:Order},
     spawners::Dict{Symbol, <:Spawner},
-    loggers::Vector{<:Logger},
-    logpath::String = "log.jld2",
+    loggers::Vector{<:Logger} = Vector{Logger}(), 
 )
-    jld2file = jldopen(logpath, "w")
-    jld2file["key"] = key
+    jld2file = jldopen("$(eco)-$(trial).jld2", "w")
+    jld2file["eco"] = eco
     jld2file["trial"] = trial
     jld2file["seed"] = seed
     jld2file["jobcfg"] = jobcfg
     jld2file["orders"] = orders
     jld2file["spawners"] = deepcopy(spawners)
     jld2file["loggers"] = loggers
-    JLD2.Group(jld2file, "gens")
+    JLD2.Group(jld2file, "arxiv")
     rng = StableRNG(seed)
     evostate = EvoState(rng, collect(keys(spawners)))
-    CoevConfig(key, trial, evostate, jobcfg, orders, spawners, loggers, jld2file)
+    CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2file)
 end
 
 function makeresdict(outcomes::Vector{<:Outcome})
@@ -78,17 +77,19 @@ function interact(c::CoevConfig, allsp::Dict{Symbol, <:Species})
 end
 
 function archive!(
-    gen::UInt16, c::CoevConfig, allvets::Dict{Symbol, <:Species{<:Veteran}},
-    outcomes::Vector{<:Outcome}
+    gen::Int, c::CoevConfig, allsp::Dict{Symbol, <:Species},
 )
-    ggroup = JLD2.Group(c.jld2file["gens"], string(gen))
-    ggroup["evostate"] = deepcopy(c.evostate)
-    [logger(gen, ggroup, allvets, outcomes) for logger in c.loggers]
+    agroup = JLD2.Group(c.jld2file["arxiv"], string(gen))
+    agroup["evostate"] = deepcopy(c.evostate)
+    allspgroup = make_group!(agroup, "species")
+    [spawner.archiver(gen, allspgroup, spid, allsp[spid]) 
+    for (spid, spawner) in c.spawners]
 end
 
-function(c::CoevConfig)(gen::UInt16, allsp::Dict{Symbol, <:Species})
+function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
+    archive!(gen, c, allsp)
     allvets, outcomes = interact(c, allsp)
-    archive!(gen, c, allvets, outcomes)
+    #log!(gen, c, allvets, outcomes)
     Dict(spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners))
 end
 

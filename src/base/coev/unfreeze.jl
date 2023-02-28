@@ -3,7 +3,7 @@ export unfreeze
 function findpop(
     gen::Int,
     spid::String,
-    jld2file::JLD2.JLDFile,
+    arxivgroup::JLD2.Group,
     icfg::IndivConfig,
     popids::Vector{String}, 
     pop::Vector{<:Individual} = Individual[]
@@ -13,7 +13,7 @@ function findpop(
     elseif gen == 0
         throw(ArgumentError("Could not find all popids in the population."))
     end
-    childrengroup = jld2file["gens"][string(gen)]["species"][spid]["children"]
+    childrengroup = arxivgroup[string(gen)]["species"][spid]["children"]
     for iid in popids
         if iid in keys(childrengroup)
             push!(pop, icfg(spid, iid, childrengroup[iid]))
@@ -27,11 +27,11 @@ end
 function unfreeze(
     jld2file::JLD2.JLDFile, spawners::Dict{Symbol, <:Spawner}, getpop::Bool = false
 )
-    allggroup = jld2file["gens"]
-    currgen = keys(allggroup)[end]
-    ggroup = allggroup[currgen]
-    evostate = ggroup["evostate"]
-    allspgroup = ggroup["species"]
+    arxivgroup = jld2file["arxiv"]
+    currgen = keys(arxivgroup)[end]
+    gengroup = arxivgroup[currgen]
+    evostate = gengroup["evostate"]
+    allspgroup = gengroup["species"]
     sppairs = Pair{Symbol, <:Species}[]
     for spid in keys(allspgroup)
         spgroup = allspgroup[spid]
@@ -56,17 +56,17 @@ function unfreeze(
             )
         )
     end
-    evostate, parse(Int, currgen) + 1, Dict(sppairs...)
+    parse(Int, currgen) + 1, evostate, Dict(sppairs...)
 end
 
-function unfreeze(jldpath::String)
+function unfreeze(jldpath::String, getpop::Bool = false)
     jld2file = jldopen(jldpath, "a")
-    key = jld2file["key"]
+    eco = jld2file["eco"]
     trial = jld2file["trial"]
     jobcfg = jld2file["jobcfg"]
     orders = jld2file["orders"]
     spawners = jld2file["spawners"]
     loggers = jld2file["loggers"]
-    evostate, gen, sp = unfreeze(jld2file, spawners)
-    CoevConfig(key, trial, evostate, jobcfg, orders, spawners, loggers, jld2file), gen, sp
+    gen, evostate, allsp = unfreeze(jld2file, spawners, getpop)
+    gen, CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2file), allsp
 end

@@ -35,6 +35,7 @@ Base.@kwdef struct FSMIndivConfig <: IndivConfig
     itype::Type{<:Individual} = FSMIndiv
 end
 
+
 function(cfg::FSMIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
     ikey = IndivKey(cfg.spid, iid!(sc))
     startstate = string(gid!(sc))
@@ -127,15 +128,6 @@ function FSMIndiv(
     FSMIndiv(ikey, geno)
 end
 
-function FSMIndiv(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
-    ones = Set(string(o) for o in igroup["ones"])
-    zeros = Set(string(z) for z in igroup["zeros"])
-    pids = Set(p for p in igroup["pids"])
-    start = igroup["start"]
-    links = Dict((string(s), w) => string(t) for (s, w, t) in igroup["links"])
-    geno = FSMGeno(IndivKey(spid, iid), start, ones, zeros, links)
-    FSMIndiv(geno.ikey, geno, pids)
-end
 
 function FSMIndiv(spid::Symbol, iid::String, igroup::JLD2.Group)
     FSMIndiv(spid, parse(UInt32, iid), igroup)
@@ -147,4 +139,34 @@ end
 
 function FSMIndiv(ikey::IndivKey, igroup::JLD2.Group)
     FSMIndiv(ikey.spid, ikey.iid, igroup)
+end
+
+Base.@kwdef struct FSMIndivArchiver <: Archiver
+    interval::Int = 1
+    log_popids::Bool = false
+    minimize::Bool = true
+end
+
+function(a::FSMIndivArchiver)(children_group::JLD2.Group, child::FSMIndiv)
+    child = a.minimize ? minimize(child) : child
+    cgroup = make_group!(children_group, child.iid)
+    cgroup["start"] = child.start
+    cgroup["ones"] = child.ones
+    cgroup["zeros"] = child.zeros
+    cgroup["sources"] = [source for ((source, _), _) in child.links]
+    cgroup["bits"] = [bit for ((_, bit), _) in child.links]
+    cgroup["targets"] = [target for ((_, _), target) in child.links]
+    cgroup["pids"] = child.pids
+end
+
+function FSMIndiv(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
+    ones = igroup["ones"]
+    zeros = igroup["zeros"]
+    pids = igroup["pids"]
+    start = igroup["start"]
+    links = Dict(
+        (s, w) => t for (s, w, t) in zip(igroup["sources"], igroup["bits"], igroup["targets"])
+    )
+    geno = FSMGeno(IndivKey(spid, iid), start, ones, zeros, links)
+    FSMIndiv(geno.ikey, geno, pids)
 end
