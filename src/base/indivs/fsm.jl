@@ -4,24 +4,24 @@ export genotype, LinkDict, StateSet, act, FSMIndivConfig
 LinkDict = Dict{Tuple{String, Bool}, String}
 StateSet = Set{String}
 
-struct FSMGeno <: Genotype
-    start::String
-    ones::Set{String}
-    zeros::Set{String}
-    links::LinkDict
+struct FSMGeno{T} <: Genotype
+    start::T
+    ones::Set{T}
+    zeros::Set{T}
+    links::Dict{Tuple{T, Bool}, T}
 end
 
-struct FSMPheno <: Phenotype
+struct FSMPheno{T} <: Phenotype
     ikey::IndivKey
-    start::String
-    ones::Set{String}
-    zeros::Set{String}
-    links::LinkDict
+    start::T
+    ones::Set{T}
+    zeros::Set{T}
+    links::Dict{Tuple{T, Bool}, T}
 end
 
-struct FSMIndiv <: Individual
+struct FSMIndiv{G <: FSMGeno} <: Individual
     ikey::IndivKey
-    geno::FSMGeno
+    geno::G
     pids::Set{UInt32}
 end
 
@@ -31,51 +31,6 @@ end
 
 function FSMIndiv(spid::Symbol, iid::UInt32, geno::FSMGeno, pids::Set{UInt32})
     FSMIndiv(IndivKey(spid, iid), geno, pids)
-end
-
-Base.@kwdef struct FSMIndivConfig <: IndivConfig
-    spid::Symbol
-    itype::Type{<:Individual} = FSMIndiv
-end
-
-function(cfg::FSMIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
-    ikey = IndivKey(cfg.spid, iid!(sc))
-    startstate = string(gid!(sc))
-    ones, zeros = rand(rng, Bool) ?
-        (Set([startstate]), Set{String}()) : (Set{String}(), Set([startstate]))
-    geno = FSMGeno(
-        startstate,
-        ones,
-        zeros,
-        LinkDict(((startstate, true) => startstate, (startstate, false) => startstate)))
-    FSMIndiv(ikey, geno)
-end
-
-function(cfg::FSMIndivConfig)(sc::SpawnCounter, geno::FSMGeno)
-    ikey = IndivKey(cfg.spid, iid!(sc))
-    geno = FSMGeno(geno.start, geno.ones, geno.zeros, geno.links)
-    FSMIndiv(ikey, geno)
-end
-
-function(cfg::FSMIndivConfig)(sc::SpawnCounter, n::Int, geno::FSMGeno)
-    ikeys = [IndivKey(cfg.spid, iid!(sc)) for _ in 1:n]
-    genos = [FSMGeno(geno.start, geno.ones, geno.zeros, geno.links) for ikey in ikeys]
-    [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
-end
-
-function(cfg::FSMIndivConfig)(sc::SpawnCounter, npop::Int, indiv::FSMIndiv)
-    ikeys = [IndivKey(cfg.spid, iid!(sc)) for _ in 1:npop]
-    genos = [FSMGeno(indiv.start, indiv.ones, indiv.zeros, indiv.links) for ikey in ikeys]
-    [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
-end
-
-function(cfg::FSMIndivConfig)(spid::Symbol, iid::Int, childgroup::JLD2.Group)
-    geno = FSMGeno(
-        string(childgroup["start"]),
-        Set(string(one) for one in childgroup["ones"]),
-        Set(string(zero) for zero in childgroup["zeros"]),
-        LinkDict(((source), bit) => target for (source, bit, target) in childgroup["links"]))
-    FSMIndiv(spid, iid, geno, childgroup["pids"])
 end
 
 function Base.getproperty(indiv::FSMIndiv, s::Symbol)
@@ -96,24 +51,61 @@ function Base.getproperty(indiv::FSMIndiv, s::Symbol)
     end
 end
 
-function genotype(indiv::FSMIndiv)
-    indiv.geno
-end
-
 function clone(iid::UInt32, parent::FSMIndiv)
     ikey = IndivKey(parent.spid, iid)
-    geno = FSMGeno(parent.start, parent.ones, parent.zeros, parent.links)
-    FSMIndiv(ikey, geno, Set([parent.iid]))
+    FSMIndiv(ikey, parent.geno, Set([parent.iid]))
 end
 
-struct FSMPhenoCfg <: PhenoConfig
+Base.@kwdef struct FSMIndivConfig{T} <: IndivConfig
+    spid::Symbol
+    itype::Type{<:Individual} = FSMIndiv
+    dtype::Type{<:T}
 end
 
-function(cfg::FSMPhenoCfg)(geno::FSMGeno)
-    FSMPheno(geno.ikey, geno.start, geno.ones, geno.zeros, geno.links)
+function getstart(::FSMIndivConfig{String}, sc::SpawnCounter)
+    string(gid!(sc))
+end
+
+function getstart(::FSMIndivConfig{UInt32}, sc::SpawnCounter)
+    gid!(sc)
+end
+
+function(cfg::FSMIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
+    ikey = IndivKey(cfg.spid, iid!(sc))
+    startstate = getstart(cfg, sc)
+    ones, zeros = rand(rng, Bool) ?
+        (Set([startstate]), Set{cfg.dtype}()) : (Set{cfg.dtype}(), Set([startstate]))
+    geno = FSMGeno(
+        startstate,
+        ones,
+        zeros,
+        Dict(((startstate, true) => startstate, (startstate, false) => startstate)))
+    FSMIndiv(ikey, geno)
+end
+
+function(cfg::FSMIndivConfig)(sc::SpawnCounter, geno::FSMGeno)
+    ikey = IndivKey(cfg.spid, iid!(sc))
+    geno = FSMGeno(geno.start, geno.ones, geno.zeros, geno.links)
+    FSMIndiv(ikey, geno)
+end
+
+function(cfg::FSMIndivConfig)(sc::SpawnCounter, n::Int, geno::FSMGeno)
+    ikeys = [IndivKey(cfg.spid, iid!(sc)) for _ in 1:n]
+    genos = [FSMGeno(geno.start, geno.ones, geno.zeros, geno.links) for _ in 1:n]
+    [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
+end
+
+function(cfg::FSMIndivConfig)(sc::SpawnCounter, npop::Int, indiv::FSMIndiv)
+    cfg(sc, npop, indiv.geno)
+end
+
+
+Base.@kwdef struct FSMPhenoCfg <: PhenoConfig
+    minimize = true
 end
 
 function(cfg::FSMPhenoCfg)(indiv::FSMIndiv)
+    indiv = cfg.minimize ? minimize(indiv) : indiv
     FSMPheno(indiv.ikey, indiv.start, indiv.ones, indiv.zeros, indiv.links)
 end
 
@@ -122,15 +114,10 @@ function FSMIndiv(spid::Symbol, iid::UInt32, geno::FSMGeno)
 end
 
 function FSMIndiv(
-    ikey::IndivKey, start::String, ones::Set{String}, zeros::Set{String}, links::LinkDict
-)
+    ikey::IndivKey, start::String, ones::Set{T}, zeros::Set{T}, links::Dict{Tuple{T, Bool}, T}
+) where T
     geno = FSMGeno(start, ones, zeros, links)
     FSMIndiv(ikey, geno)
-end
-
-
-function FSMIndiv(spid::Symbol, iid::String, igroup::JLD2.Group)
-    FSMIndiv(spid, parse(UInt32, iid), igroup)
 end
 
 function FSMIndiv(spid::String, iid::String, igroup::JLD2.Group)
@@ -159,14 +146,14 @@ function(a::FSMIndivArchiver)(children_group::JLD2.Group, child::FSMIndiv)
     cgroup["pids"] = child.pids
 end
 
-function FSMIndiv(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
+function(cfg::FSMIndivConfig)(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
+    start = igroup["start"]
     ones = igroup["ones"]
     zeros = igroup["zeros"]
-    pids = igroup["pids"]
-    start = igroup["start"]
     links = Dict(
         (s, w) => t for (s, w, t) in zip(igroup["sources"], igroup["bits"], igroup["targets"])
     )
+    pids = igroup["pids"]
     geno = FSMGeno(start, ones, zeros, links)
     FSMIndiv(spid, iid, geno, pids)
 end
