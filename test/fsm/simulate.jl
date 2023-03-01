@@ -67,7 +67,7 @@ verbose = false
                 )
     fsm2 = FSMPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
-    outcome::Outcome{Float64, LingPredObs} = stir(mix)
+    outcome = stir(mix)
 
 
     @test outcome.rdict[fsm1.ikey].second ≈ 0.5
@@ -81,6 +81,47 @@ verbose = false
 
     # printsim(testname, fsm1, fsm2, goal1, goal2, states1, states2,
     #          traj1, traj2, loop1, loop2, score1, score2)
+end
+
+@testset "newsimpleint" begin
+    tname = :simple
+    domain = LingPredGame(MatchCoop())
+    obscfg = LingPredObsConfig()
+    ikey = IndivKey(:A, 1) 
+    start = 0
+    ones = Set([1])
+    zeros = Set([0])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (0, 0)  => 0,
+        (0, 1)  => 1,
+        (1, 0)  => 0,
+        (1, 1)  => 1,
+    )
+    fsm1 = FSMPheno(ikey,start, ones, zeros, links)
+
+    ikey = IndivKey(:B, 1)
+    start = 0
+    ones = Set([1])
+    zeros = Set([0])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (0, 0)  => 1,
+        (0, 1)  => 0,
+        (1, 0)  => 1,
+        (1, 1)  => 0,
+    )
+    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
+    outcome = stir(mix)
+
+
+    @test outcome.rdict[fsm1.ikey].second ≈ 0.5
+    @test outcome.rdict[fsm2.ikey].second ≈ 0.5
+    @test outcome.obs.outs[fsm1.ikey] == [0, 0, 1, 1, 0]
+    @test outcome.obs.outs[fsm2.ikey] == [0, 1, 1, 0, 0]
+    @test outcome.obs.states[fsm1.ikey] == [0, 0, 1, 1, 0]
+    @test outcome.obs.states[fsm2.ikey] == [0, 1, 1, 0, 0]
+    @test outcome.obs.outs[fsm1.ikey][outcome.obs.loopstart:end - 1] == [0, 0, 1, 1]
+    @test outcome.obs.outs[fsm2.ikey][outcome.obs.loopstart:end - 1] == [0, 1, 1, 0]
 end
 
 
@@ -112,7 +153,7 @@ end
                 )
     fsm2 = FSMPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
-    outcome::Outcome{Float64, LingPredObs} = stir(mix)
+    outcome = stir(mix)
 
     @test outcome.rdict[fsm1.ikey].second ≈ 1/3
     @test outcome.rdict[fsm2.ikey].second ≈ 1/3
@@ -153,7 +194,7 @@ end
                 )
     fsm2 = FSMPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
-    outcome::Outcome{Float64, LingPredObs} = stir(mix)
+    outcome = stir(mix)
 
     @test outcome.rdict[fsm1.ikey].second ≈ 2/3
     @test outcome.rdict[fsm2.ikey].second ≈ 1/3
@@ -197,7 +238,7 @@ end
                 )
     fsm2 = FSMPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
-    outcome::Outcome{Float64, LingPredObs} = stir(mix)
+    outcome = stir(mix)
 
     @test outcome.rdict[fsm1.ikey].second ≈ 2/3
     @test outcome.rdict[fsm2.ikey].second ≈ 2/3
@@ -242,7 +283,7 @@ end
                 )
     fsm2 = FSMPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
-    outcome::Outcome{Float64, LingPredObs} = stir(mix)
+    outcome = stir(mix)
 
     @test outcome.rdict[fsm1.ikey].second ≈ 2/3
     @test outcome.rdict[fsm2.ikey].second ≈ 1/3

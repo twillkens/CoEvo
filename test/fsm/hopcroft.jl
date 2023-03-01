@@ -59,6 +59,45 @@ end
     # printtest(source, example, max1, min1)
 end
 
+@testset "cornell1int" begin
+    source = "http://www.cs.cornell.edu/courses/cs2800/2013fa/Handouts/minimization.pdf"
+    example = "13.1"
+    start = 0
+    a = 0
+    b = 1
+    ones  = Set([0, 3])
+    zeros = Set([1, 2])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (0, a) => 1,
+        (0, b) => 2,
+        (1, a) => 3,
+        (1, b) => 3,
+        (2, a) => 3,
+        (2, b) => 3,
+        (3, a) => 3,
+        (3, b) => 3,
+    )
+
+    max1 = FSMGeno(start, ones, zeros, links)
+    min1, mm = minimize(max1; getmm = true)
+
+    @test min1.start == mm[0]
+    @test length(min1.links) == 6
+    @test min1.ones == Set([mm[0], mm[3]])
+    @test min1.zeros == Set([mm[1]])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (mm[0], a) => mm[1],
+        (mm[0], b) => mm[1],
+        (mm[1], a) => mm[3],
+        (mm[1], b) => mm[3],
+        (mm[3], a) => mm[3],
+        (mm[3], b) => mm[3],
+    )
+    @test min1.links == links
+
+    # printtest(source, example, max1, min1)
+end
+
 @testset "cornell2" begin
     source = "http://www.cs.cornell.edu/courses/cs2800/2013fa/Handouts/minimization.pdf"
     example = "13.2"
