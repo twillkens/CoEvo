@@ -14,18 +14,19 @@ function findpop(
         throw(ArgumentError("Could not find all popids in the population."))
     end
     childrengroup = arxivgroup[string(gen)]["species"][spid]["children"]
+    found = Set{String}()
     for iid in popids
         if iid in keys(childrengroup)
             push!(pop, icfg(spid, iid, childrengroup[iid]))
-            filter!(x -> x != iid, popids)
+            push!(found, iid)
         end
     end
-    println(popids)
-    findpop(gen - 1, spid, jld2file, icfg, popids, pop)
+    filter!(x -> x ∉ found, popids)
+    findpop(gen - 1, spid, arxivgroup, icfg, popids, pop)
 end
 
 function unfreeze(
-    jld2file::JLD2.JLDFile, spawners::Dict{Symbol, <:Spawner}, getpop::Bool = false
+    jld2file::JLD2.JLDFile, spawners::Dict{Symbol, <:Spawner}, getpop::Bool = true
 )
     arxivgroup = jld2file["arxiv"]
     currgen = keys(arxivgroup)[end]
@@ -40,10 +41,9 @@ function unfreeze(
         pop = getpop ? findpop(
             parse(Int, currgen) - 1,
             spid,
-            jld2file,
+            arxivgroup,
             icfg,
             string.(popids),
-            icfg.itype[]
         ) : Individual[]
         childrengroup = spgroup["children"]
         children = [icfg(spid, iid, childrengroup[iid]) for iid in keys(childrengroup)]
@@ -59,7 +59,7 @@ function unfreeze(
     parse(Int, currgen) + 1, evostate, Dict(sppairs...)
 end
 
-function unfreeze(jldpath::String, getpop::Bool = false)
+function unfreeze(jldpath::String, getpop::Bool = true)
     jld2file = jldopen(jldpath, "a")
     eco = jld2file["eco"]
     trial = jld2file["trial"]

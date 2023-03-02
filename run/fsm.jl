@@ -1,18 +1,15 @@
 
-function lingpredspawner(rng::AbstractRNG, spid::Symbol; npop = 50, spargs=Any[],
-    probs::Dict{Function, Float64} = Dict(
-        addstate => 0.25, rmstate => 0.25, changelink => 0.25, changelabel => 0.25 )
-)
-    sc = SpawnCounter()
+function lingpredspawner(spid::Symbol; npop::Int = 50, dtype::Type = Int, spargs = Any[])
     s = Spawner(
         spid = spid,
         npop = npop,
-        icfg = FSMIndivConfig(spid = spid, sc = sc, rng = rng),
-        phenocfg = FSMPhenoCfg(),
-        replacer = CommaReplacer(),
-        selector =  RouletteSelector(rng = rng, μ = npop),
-        recombiner = CloneRecombiner(sc = sc),
-        mutators = [LingPredMutator(rng = rng, sc = sc, probs = probs)],
+        icfg = FSMIndivConfig(spid = spid, dtype = dtype),
+        phenocfg = FSMPhenoCfg(minimize = true),
+        replacer = CommaReplacer(npop = npop),
+        selector =  RouletteSelector(μ = npop),
+        recombiner = CloneRecombiner(),
+        mutators = [LingPredMutator()],
+        archiver = FSMIndivArchiver(log_popids = true, minimize = true),
         spargs = spargs
     )
     spid => s
@@ -233,22 +230,20 @@ end
 function runmix(trial::Int, npop::Int, ngen::Int, domain1::Domain, domain2::Domain)
     v1 = typeof(domain1).parameters[1]
     v2 = typeof(domain2).parameters[1]
-    coevkey = "mix-$(v1)-$(v2)-$(trial)"
+    eco = Symbol("Mix-$(v1)-$(v2)")
     seed = rand(UInt64)
-    rng = StableRNG(seed)
 
-    spawner1 = lingpredspawner(rng, :host;     npop = npop)
-    spawner2 = lingpredspawner(rng, :symbiote; npop = npop)
-    spawner3 = lingpredspawner(rng, :parasite; npop = npop)
+    spawner1 = lingpredspawner(:host;     npop = npop)
+    spawner2 = lingpredspawner(:symbiote; npop = npop)
+    spawner3 = lingpredspawner(:parasite; npop = npop)
 
     order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], domain1)
     order2 = lingpredorder(:HostVsParasite, [:host, :parasite], domain2)
 
     coevcfg = CoevConfig(;
-        key = coevkey,
+        eco = eco,
         trial = trial,
         seed = seed,
-        rng = rng,
         jobcfg = SerialPhenoJobConfig(),
         orders = Dict(order1, order2),
         spawners = Dict(spawner1, spawner2, spawner3),
@@ -266,6 +261,8 @@ function runmix(trial::Int, npop::Int, ngen::Int, domain1::Domain, domain2::Doma
     end
     close(coevcfg.jld2file)
 end
+
+function runlingpred()
 
 function runmix(trial::Int, npop::Int, ngen::Int, domains::Vector{<:Domain})
     runmix(trial, npop, ngen, domains[1], domains[2])
