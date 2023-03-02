@@ -15,7 +15,6 @@ Base.@kwdef struct VectorIndivConfig <: IndivConfig
     spid::Symbol
     dtype::Type{<:Real}
     width::Int
-    itype::Type{<:Individual} = VectorIndiv
 end
 
 Base.@kwdef struct VectorIndivArchiver <: Archiver

@@ -23,7 +23,8 @@ function CoevConfig(;
     spawners::Dict{Symbol, <:Spawner},
     loggers::Vector{<:Logger} = Vector{Logger}(), 
 )
-    jld2file = jldopen("$(eco)-$(trial).jld2", "w")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2file = jldopen(joinpath(ecodir, "$(trial).jld2"), "w")
     jld2file["eco"] = eco
     jld2file["trial"] = trial
     jld2file["seed"] = seed

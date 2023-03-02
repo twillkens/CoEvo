@@ -1,5 +1,6 @@
 export FSMIndiv, FSMGeno, FSMPheno, FSMPhenoCfg
 export genotype, LinkDict, StateSet, act, FSMIndivConfig
+export FSMIndivArchiver
 
 LinkDict = Dict{Tuple{String, Bool}, String}
 StateSet = Set{String}
@@ -58,7 +59,6 @@ end
 
 Base.@kwdef struct FSMIndivConfig{T} <: IndivConfig
     spid::Symbol
-    itype::Type{<:Individual} = FSMIndiv
     dtype::Type{<:T}
 end
 
@@ -68,6 +68,10 @@ end
 
 function getstart(::FSMIndivConfig{UInt32}, sc::SpawnCounter)
     gid!(sc)
+end
+
+function getstart(::FSMIndivConfig{Int}, sc::SpawnCounter)
+    Int(gid!(sc))
 end
 
 function(cfg::FSMIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
@@ -95,7 +99,7 @@ function(cfg::FSMIndivConfig)(sc::SpawnCounter, n::Int, geno::FSMGeno)
     [FSMIndiv(ikey, geno) for (ikey, geno) in zip(ikeys, genos)]
 end
 
-function(cfg::FSMIndivConfig)(sc::SpawnCounter, npop::Int, indiv::FSMIndiv)
+function(cfg::FSMIndivConfig)(::AbstractRNG, sc::SpawnCounter, npop::Int, indiv::FSMIndiv)
     cfg(sc, npop, indiv.geno)
 end
 
@@ -130,8 +134,8 @@ end
 
 Base.@kwdef struct FSMIndivArchiver <: Archiver
     interval::Int = 1
-    log_popids::Bool = false
-    minimize::Bool = true
+    log_popids::Bool = true
+    minimize::Bool = false
 end
 
 function(a::FSMIndivArchiver)(children_group::JLD2.Group, child::FSMIndiv)
@@ -156,4 +160,8 @@ function(cfg::FSMIndivConfig)(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
     pids = igroup["pids"]
     geno = FSMGeno(start, ones, zeros, links)
     FSMIndiv(spid, iid, geno, pids)
+end
+
+function(cfg::IndivConfig)(spid::String, iid::String, igroup::JLD2.Group)
+    cfg(Symbol(spid), parse(UInt32, iid), igroup)
 end
