@@ -12,6 +12,7 @@ using Plots
 using RDatasets
 using Zygote
 using CUDA
+using JLD2
 
 @everywhere include("spec.jl")
 @everywhere include("fsmgraph.jl")

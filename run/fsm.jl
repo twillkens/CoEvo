@@ -192,40 +192,6 @@ end
     close(coevcfg.jld2file)
 end
 
-function runmix(i::Int)
-    coev_key = "mix-$(i)"
-    seed = rand(UInt64)
-    rng = StableRNG(seed)
-
-    spawner1 = lingpredspawner(rng, :host;     npop = 50)
-    spawner2 = lingpredspawner(rng, :symbiote; npop = 50)
-    spawner3 = lingpredspawner(rng, :parasite; npop = 50)
-
-    order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], LingPredGame(MatchCoop()))
-    order2 = lingpredorder(:HostVsParasite, [:host, :parasite], LingPredGame(MatchComp()))
-
-    coev_cfg = CoevConfig(;
-        key = coev_key,
-        trial = i,
-        seed = seed,
-        rng = rng,
-        jobcfg = SerialPhenoJobConfig(),
-        orders = Dict(order1, order2),
-        spawners = Dict(spawner1, spawner2, spawner3),
-        loggers = [SpeciesLogger()],
-        logpath = "$(ENV["FSM_DATA_DIR"])/mix-$(i).jld2"
-    )
-
-    allsp = coev_cfg()
-    println("go")
-    for gen in 1:10_000
-        allsp = coev_cfg(UInt16(gen), allsp)
-        if mod(gen, 1000) == 0
-            println("Generation: $gen")
-        end
-    end
-    close(coev_cfg.jld2file)
-end
 
 function runmix(trial::Int, npop::Int, ngen::Int, domain1::Domain, domain2::Domain)
     v1 = typeof(domain1).parameters[1]
@@ -247,14 +213,12 @@ function runmix(trial::Int, npop::Int, ngen::Int, domain1::Domain, domain2::Doma
         jobcfg = SerialPhenoJobConfig(),
         orders = Dict(order1, order2),
         spawners = Dict(spawner1, spawner2, spawner3),
-        loggers = [SpeciesLogger()],
-        logpath = "$(ENV["FSM_DATA_DIR"])/$(coevkey).jld2"
     )
 
     allsp = coevcfg()
-    println("starting: $(coevkey)")
+    println("starting: $eco")
     for gen in 1:ngen
-        allsp = coevcfg(UInt16(gen), allsp)
+        allsp = coevcfg(gen, allsp)
         if mod(gen, 1000) == 0
             println("Generation: $gen")
         end
@@ -262,17 +226,11 @@ function runmix(trial::Int, npop::Int, ngen::Int, domain1::Domain, domain2::Doma
     close(coevcfg.jld2file)
 end
 
-function runlingpred()
-
-function runmix(trial::Int, npop::Int, ngen::Int, domains::Vector{<:Domain})
-    runmix(trial, npop, ngen, domains[1], domains[2])
-end
-
 function pdispatch(;
     fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
-    domains::Vector{<:Domain} = [LingPredGame(MatchCoop()), LingPredGame(MatchComp())]
+    domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
 )
-    futures = [@spawnat :any fn(trial, npop, ngen, domains) for trial in trange] 
+    futures = [@spawnat :any fn(trial, npop, ngen, domains...) for trial in trange] 
     [fetch(f) for f in futures]
 end
 
@@ -280,5 +238,5 @@ function sdispatch(;
     fn::Function = runctrl, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
     domains::Vector{<:Domain} = [LingPredGame(MatchCoop()), LingPredGame(MatchComp())]
 )
-    [fn(trial, npop, ngen, domains) for trial in trange] 
+    [fn(trial, npop, ngen, domains...) for trial in trange] 
 end

@@ -289,7 +289,7 @@ end
         testspawner(:A; npop = 100, width = 100),
         testspawner(:B; npop = 100, width = 100),
     )
-    eco = :test
+    eco = :NumbersTest
     trial = 1
     c1 = CoevConfig(;
         eco = eco,
@@ -310,7 +310,7 @@ end
 
     close(c1.jld2file)
 
-    gen, c2, allsp = unfreeze("archives/test-1.jld2")
+    gen, c2, allsp = unfreeze("archives/NumbersTest/1.jld2")
     @test gen == 10
     @test c1.eco == c2.eco
     @test c1.trial == c2.trial
@@ -326,6 +326,7 @@ end
     @test all(getproperty(o1, fname) == getproperty(o2, fname)
         for fname in fieldnames(AllvsAllPlusOrder))
     @test c1.loggers == c2.loggers
+    rm("archives/NumbersTest", force = true, recursive = true)
 end
 
 end
