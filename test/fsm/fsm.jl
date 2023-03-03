@@ -1,6 +1,7 @@
 using Test
 using Random
 using StableRNGs
+using StatsBase
 using CoEvo
 
 include("mutate.jl")

@@ -1,9 +1,9 @@
 
-using Test
-using Random
-using StableRNGs
-using CoEvo
-using StatsBase
+# using Test
+# using Random
+# using StableRNGs
+# using CoEvo
+# using StatsBase
 
 function newDummyA()
     start = "A0"
@@ -82,6 +82,7 @@ end
     @test mean(meanfitness(vet) for (_, vet) in allvets[:parasite].children) ≈ 2/3
     @test mean(meanfitness(vet) for (_, vet) in allvets[:symbiote].children) ≈ 1/3
     close(coev_cfg.jld2file)
+    rm("archives/FSMTest/1.jld2")
 end
 
 @testset "Coev2/Unfreeze" begin
@@ -138,6 +139,7 @@ end
     @test all(getproperty(o1, fname) == getproperty(o2, fname)
         for fname in fieldnames(AllvsAllPlusOrder))
     @test c1.loggers == c2.loggers
+    rm("archives/FSMTest/2.jld2")
 end
 
 
