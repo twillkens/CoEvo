@@ -1,4 +1,5 @@
 using Distributed
+addprocs(5, exeflags="--project=.")
 @everywhere using CoEvo
 @everywhere using Flux
 @everywhere using Flux: onecold, onehotbatch, logitcrossentropy

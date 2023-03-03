@@ -38,8 +38,8 @@ function CoevConfig(;
     CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2file)
 end
 
-function makeresdict(outcomes::Vector{<:Outcome})
-    resdict = Dict{IndivKey, Vector{Pair{TestKey, <:Real}}}()
+function makeresdict(outcomes::Vector{Outcome{R, O}}) where {R <: Real, O <: Observation}
+    resdict = Dict{IndivKey, Vector{Pair{TestKey, R}}}()
     for outcome in outcomes
         for (ikey, pair) in outcome.rdict
             if ikey in keys(resdict)
@@ -53,9 +53,9 @@ function makeresdict(outcomes::Vector{<:Outcome})
 end
 
 function makevets(
-    indivs::Dict{IndivKey, I}, resdict::Dict{IndivKey, Vector{Pair{TestKey, <:Real}}}
-) where {I <: Individual}
-    checkd = ikey -> ikey in keys(resdict) ? Dict(resdict[ikey]) : Dict{TestKey, <:Real}()
+    indivs::Dict{IndivKey, I}, resdict::Dict{IndivKey, Vector{Pair{TestKey, R}}}
+) where {I <: Individual, R <: Real}
+    checkd = ikey -> ikey in keys(resdict) ? Dict(resdict[ikey]) : Dict{TestKey, R}()
     Veteran[Veteran(indiv.ikey, indiv, checkd(indiv.ikey)) for indiv in values(indivs)]
 end
 
@@ -88,8 +88,8 @@ function archive!(
 end
 
 function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
-    archive!(gen, c, allsp)
-    allvets, outcomes = interact(c, allsp)
+    @time archive!(gen, c, allsp)
+    @time allvets, outcomes = interact(c, allsp)
     #log!(gen, c, allvets, outcomes)
     Dict(spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners))
 end
