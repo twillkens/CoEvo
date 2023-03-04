@@ -1,17 +1,19 @@
 using CoEvo
 using Distributed
 
-function lingpredspawner(spid::Symbol; npop::Int = 50, dtype::Type = Int, spargs = Any[])
+function lingpredspawner(spid::Symbol; npop::Int = 50, dtype::Type = UInt32, spargs = Any[])
     s = Spawner(
         spid = spid,
         npop = npop,
         icfg = FSMIndivConfig(spid = spid, dtype = dtype),
-        phenocfg = FSMPhenoCfg(minimize = true),
+        phenocfg = FSMPhenoCfg(usemin = true, usesets = false),
         replacer = CommaReplacer(npop = npop),
         selector =  RouletteSelector(μ = npop),
         recombiner = CloneRecombiner(),
         mutators = [LingPredMutator()],
-        archiver = FSMIndivArchiver(log_popids = true, minimize = true),
+        archiver = FSMIndivArchiver(
+            log_popids = false, savegeno = false, savemingeno = false, loadmingeno = false
+        ),
         spargs = spargs
     )
     spid => s
@@ -210,7 +212,34 @@ end
     println("starting $eco-$trial")
     for gen in 1:ngen
         allsp = coevcfg(gen, allsp)
-        if mod(gen, 1000) == 0
+        if mod(gen, 100) == 0
+            println("$eco-$trial: $gen")
+        end
+    end
+    close(coevcfg.jld2file)
+end
+
+function runcomp(trial::Int, npop::Int, ngen::Int, parallel::Bool)
+    eco = :comp
+    seed = rand(UInt64)
+    spawner1 = lingpredspawner(:host; npop = npop)
+    spawner2 = lingpredspawner(:parasite; npop = npop)
+    order = lingpredorder(:CompMatch, [:host, :parasite], LingPredGame(MatchComp()))
+
+    coevcfg = CoevConfig(;
+        eco = eco,
+        trial = trial,
+        seed = seed,
+        jobcfg = parallel ? ParallelPhenoJobConfig() : SerialPhenoJobConfig(),
+        orders = Dict(order),
+        spawners = Dict(spawner1, spawner2),
+    )
+
+    allsp = coevcfg()
+    println("starting $eco-$trial")
+    for gen in 1:ngen
+        allsp = coevcfg(gen, allsp)
+        if mod(gen, 100) == 0
             println("$eco-$trial: $gen")
         end
     end

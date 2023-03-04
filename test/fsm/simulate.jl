@@ -13,7 +13,7 @@
         ("A1", 0)  => "A0",
         ("A1", 1)  => "A1",
     )
-    fsm1 = FSMPheno(ikey,start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey,start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = "B0"
@@ -25,18 +25,19 @@
                 ("B1", 0)  => "B1",
                 ("B1", 1)  => "B0",
                 )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
-    mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
-    outcome = stir(mix)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
 
-    @test outcome.rdict[fsm1.ikey].second ≈ 0.5
-    @test outcome.rdict[fsm2.ikey].second ≈ 0.5
-    @test outcome.obs.outs[fsm1.ikey] == [0, 0, 1, 1, 0]
-    @test outcome.obs.outs[fsm2.ikey] == [0, 1, 1, 0, 0]
-    @test outcome.obs.states[fsm1.ikey] == ["A0", "A0", "A1", "A1", "A0"]
-    @test outcome.obs.states[fsm2.ikey] == ["B0", "B1", "B1", "B0", "B0"]
-    @test outcome.obs.outs[fsm1.ikey][outcome.obs.loopstart:end - 1] == [0, 0, 1, 1]
-    @test outcome.obs.outs[fsm2.ikey][outcome.obs.loopstart:end - 1] == [0, 1, 1, 0]
+    oset = stir(Mix(tname, domain, obscfg, [fsm1, fsm2]))
+    omin = stir(Mix(tname, domain, obscfg, [FSMMinPheno(fsm1), FSMMinPheno(fsm2)]))
+
+    @test oset.rdict[fsm1.ikey].second ≈ 0.5 ≈ omin.rdict[fsm1.ikey].second
+    @test oset.rdict[fsm2.ikey].second ≈ 0.5 ≈ omin.rdict[fsm2.ikey].second
+    @test oset.obs.outs[fsm1.ikey] == [0, 0, 1, 1, 0] == omin.obs.outs[fsm1.ikey]
+    @test oset.obs.outs[fsm2.ikey] == [0, 1, 1, 0, 0] == omin.obs.outs[fsm2.ikey]
+    @test oset.obs.states[fsm1.ikey] == ["A0", "A0", "A1", "A1", "A0"] == omin.obs.states[fsm1.ikey]
+    @test oset.obs.states[fsm2.ikey] == ["B0", "B1", "B1", "B0", "B0"] == omin.obs.states[fsm2.ikey]
+    @test oset.obs.outs[fsm1.ikey][oset.obs.loopstart:end - 1] == [0, 0, 1, 1] == omin.obs.outs[fsm1.ikey][omin.obs.loopstart:end - 1]
+    @test oset.obs.outs[fsm2.ikey][oset.obs.loopstart:end - 1] == [0, 1, 1, 0] == omin.obs.outs[fsm2.ikey][omin.obs.loopstart:end - 1]
 end
 
 @testset "newsimpleint" begin
@@ -53,7 +54,7 @@ end
         (1, 0)  => 0,
         (1, 1)  => 1,
     )
-    fsm1 = FSMPheno(ikey,start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey,start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = 0
@@ -65,18 +66,21 @@ end
         (1, 0)  => 1,
         (1, 1)  => 0,
     )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
-    outcome = stir(mix)
+    #outcome = stir(mix)
 
-    @test outcome.rdict[fsm1.ikey].second ≈ 0.5
-    @test outcome.rdict[fsm2.ikey].second ≈ 0.5
-    @test outcome.obs.outs[fsm1.ikey] == [0, 0, 1, 1, 0]
-    @test outcome.obs.outs[fsm2.ikey] == [0, 1, 1, 0, 0]
-    @test outcome.obs.states[fsm1.ikey] == [0, 0, 1, 1, 0]
-    @test outcome.obs.states[fsm2.ikey] == [0, 1, 1, 0, 0]
-    @test outcome.obs.outs[fsm1.ikey][outcome.obs.loopstart:end - 1] == [0, 0, 1, 1]
-    @test outcome.obs.outs[fsm2.ikey][outcome.obs.loopstart:end - 1] == [0, 1, 1, 0]
+    oset = stir(Mix(tname, domain, obscfg, [fsm1, fsm2]))
+    omin = stir(Mix(tname, domain, obscfg, [FSMMinPheno(fsm1), FSMMinPheno(fsm2)]))
+
+    @test oset.rdict[fsm1.ikey].second ≈ 0.5 ≈ omin.rdict[fsm1.ikey].second
+    @test oset.rdict[fsm2.ikey].second ≈ 0.5 ≈ omin.rdict[fsm2.ikey].second
+    @test oset.obs.outs[fsm1.ikey] == [0, 0, 1, 1, 0] == omin.obs.outs[fsm1.ikey]
+    @test oset.obs.outs[fsm2.ikey] == [0, 1, 1, 0, 0] == omin.obs.outs[fsm2.ikey]
+    @test oset.obs.states[fsm1.ikey] == [0, 0, 1, 1, 0] == omin.obs.states[fsm1.ikey]
+    @test oset.obs.states[fsm2.ikey] == [0, 1, 1, 0, 0] == omin.obs.states[fsm2.ikey]
+    @test oset.obs.outs[fsm1.ikey][oset.obs.loopstart:end - 1] == [0, 0, 1, 1] == omin.obs.outs[fsm1.ikey][omin.obs.loopstart:end - 1]
+    @test oset.obs.outs[fsm2.ikey][oset.obs.loopstart:end - 1] == [0, 1, 1, 0] == omin.obs.outs[fsm2.ikey][omin.obs.loopstart:end - 1]
 end
 
 
@@ -94,7 +98,7 @@ end
                 ("A1", 0)  => "A1",
                 ("A1", 1)  => "A0",
                 )
-    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey, start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = "B0"
@@ -106,7 +110,7 @@ end
                 ("B1", 0)  => "B0",
                 ("B1", 1)  => "B1",
                 )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
     outcome = stir(mix)
 
@@ -134,7 +138,7 @@ end
         (1, 0)  => 1,
         (1, 1)  => 0,
     )
-    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey, start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = 0
@@ -146,7 +150,7 @@ end
         (1, 0)  => 0,
         (1, 1)  => 1,
     )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
     outcome = stir(mix)
     @test outcome.rdict[fsm1.ikey].second ≈ 1/3
@@ -174,7 +178,7 @@ end
                 ("A1", 0)  => "A1",
                 ("A1", 1)  => "A0",
                 )
-    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey, start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = "B0"
@@ -186,7 +190,7 @@ end
                 ("B1", 0)  => "B0",
                 ("B1", 1)  => "B1",
                 )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
     outcome = stir(mix)
 
@@ -213,7 +217,7 @@ end
         (1, 0)  => 1,
         (1, 1)  => 0,
     )
-    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey, start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = 0
@@ -225,7 +229,7 @@ end
         (1, 0)  => 0,
         (1, 1)  => 1,
     )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
     outcome = stir(mix)
     @test outcome.rdict[fsm1.ikey].second ≈ 2/3
@@ -253,7 +257,7 @@ end
                 ("c", 0)  => "c",
                 ("c", 1)  => "b",
                 )
-    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey, start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = "a"
@@ -267,7 +271,7 @@ end
                 ("c", 0)  => "a",
                 ("c", 1)  => "a",
                 )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
     outcome = stir(mix)
 
@@ -297,7 +301,7 @@ end
         (2, 0)  => 2,
         (2, 1)  => 1,
     )
-    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey, start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = 0
@@ -311,7 +315,7 @@ end
         (2, 0)  => 0,
         (2, 1)  => 0,
     )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
     outcome = stir(mix)
 
@@ -342,7 +346,7 @@ end
                 ("c", 0)  => "c",
                 ("c", 1)  => "b",
                 )
-    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey, start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = "a"
@@ -356,7 +360,7 @@ end
                 ("c", 0)  => "a",
                 ("c", 1)  => "a",
                 )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
     outcome = stir(mix)
 
@@ -386,7 +390,7 @@ end
         (2, 0)  => 2,
         (2, 1)  => 1,
     )
-    fsm1 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm1 = FSMSetPheno(ikey, start, ones, zeros, links)
 
     ikey = IndivKey(:B, 1)
     start = 0
@@ -400,7 +404,7 @@ end
         (2, 0)  => 0,
         (2, 1)  => 0,
     )
-    fsm2 = FSMPheno(ikey, start, ones, zeros, links)
+    fsm2 = FSMSetPheno(ikey, start, ones, zeros, links)
     mix = Mix(tname, domain, obscfg, [fsm1, fsm2])
     outcome = stir(mix)
 

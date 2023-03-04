@@ -16,7 +16,7 @@ function(cfg::LingPredObsConfig)(
     )
 end
 
-function NullObsConfig(args...; kwargs...)
+function(cfg::NullObsConfig)(args...; kwargs...)
     NullObs()
 end
 
@@ -34,7 +34,7 @@ function label(fsm::FSMPheno{T}, state::T) where T
     state in fsm.ones
 end
 
-function simulate(::LingPredGame, a1::FSMPheno, a2::FSMPheno)
+function simulate(::LingPredGame, a1::FSMSetPheno, a2::FSMSetPheno)
     t = 1
     state1, state2 = a1.start, a2.start
     statelog = Dict((state1, state2) => t)
