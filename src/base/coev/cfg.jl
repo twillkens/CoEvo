@@ -10,9 +10,8 @@ struct CoevConfig{J <: JobConfig, O <: Order, S <: Spawner, L <: Logger}
     orders::Dict{Symbol, O}
     spawners::Dict{Symbol, S}
     loggers::Vector{L}
-    jld2file::JLD2.JLDFile
+    jld2path::String
 end
-
 
 function CoevConfig(;
     eco::Symbol,
@@ -24,7 +23,8 @@ function CoevConfig(;
     loggers::Vector{<:Logger} = Vector{Logger}(), 
 )
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
-    jld2file = jldopen(joinpath(ecodir, "$(trial).jld2"), "w")
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    jld2file = jldopen(jld2path, "w")
     jld2file["eco"] = eco
     jld2file["trial"] = trial
     jld2file["seed"] = seed
@@ -33,9 +33,10 @@ function CoevConfig(;
     jld2file["spawners"] = deepcopy(spawners)
     jld2file["loggers"] = loggers
     JLD2.Group(jld2file, "arxiv")
+    close(jld2file)
     rng = StableRNG(seed)
     evostate = EvoState(rng, collect(keys(spawners)))
-    CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2file)
+    CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2path)
 end
 
 function makeresdict(outcomes::Vector{Outcome{R, O}}) where {R <: Real, O <: Observation}
@@ -80,18 +81,27 @@ end
 function archive!(
     gen::Int, c::CoevConfig, allsp::Dict{Symbol, <:Species},
 )
-    agroup = JLD2.Group(c.jld2file["arxiv"], string(gen))
+    jld2file = jldopen(c.jld2path, "a")
+    agroup = JLD2.Group(jld2file["arxiv"], string(gen))
     agroup["evostate"] = deepcopy(c.evostate)
     allspgroup = make_group!(agroup, "species")
     [spawner.archiver(gen, allspgroup, spid, allsp[spid]) 
     for (spid, spawner) in c.spawners]
+    close(jld2file)
 end
 
 function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
-    archive!(gen, c, allsp)
-    allvets, outcomes = interact(c, allsp)
+    println("archive time")
+    @time archive!(gen, c, allsp)
+    println("sim time")
+    @time allvets, outcomes = interact(c, allsp)
     #log!(gen, c, allvets, outcomes)
-    Dict(spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners))
+    println("reproduction time")
+    @time nextsp = Dict(
+        spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
+    )
+    println("done")
+    nextsp
 end
 
 function(c::CoevConfig)()

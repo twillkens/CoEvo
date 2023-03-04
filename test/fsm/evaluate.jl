@@ -81,7 +81,6 @@ end
     @test mean(meanfitness(vet) for (_, vet) in allvets[:host].children) ≈ 1/3
     @test mean(meanfitness(vet) for (_, vet) in allvets[:parasite].children) ≈ 2/3
     @test mean(meanfitness(vet) for (_, vet) in allvets[:symbiote].children) ≈ 1/3
-    close(coev_cfg.jld2file)
     rm("archives/FSMTest/1.jld2")
 end
 
@@ -117,7 +116,6 @@ end
         end
         allsp = c1(gen, allsp)
     end
-    close(c1.jld2file)
     gen, c2, allsp = unfreeze("archives/FSMTest/2.jld2")
     @test gen == 10
     @test c1.eco == c2.eco

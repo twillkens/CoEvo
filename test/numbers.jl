@@ -308,8 +308,6 @@ end
         gen += 1
     end
 
-    close(c1.jld2file)
-
     gen, c2, allsp = unfreeze("archives/NumbersTest/1.jld2")
     @test gen == 10
     @test c1.eco == c2.eco

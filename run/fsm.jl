@@ -22,7 +22,7 @@ using Distributed
         recombiner = CloneRecombiner(),
         mutators = [LingPredMutator(probs = probs)],
         archiver = FSMIndivArchiver(
-            log_popids = false, savegeno = true, savemingeno = false
+            log_popids = false, savegeno = true, savemingeno = true, interval = 10
         ),
     )
     spid => s
@@ -34,119 +34,112 @@ end
 
 @everywhere function rungrow(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
     eco = :grow
-    seed = rand(UInt64)
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        addprob = 9 / 30
+        otherprob = 7 / 30
+        probs = Dict(
+            addstate => addprob,
+            rmstate => otherprob,
+            changelabel => otherprob,
+            changelink => otherprob
+        )
+        spawner1 = lingpredspawner(:grow1; npop = npop, probs = probs)
+        spawner2 = lingpredspawner(:grow2; npop = npop, probs = probs)
+        order = lingpredorder(:ControlMatch, [:grow1, :grow2], LingPredGame(Control()))
 
-    addprob = 9 / 30
-    otherprob = 7 / 30
-    probs = Dict(
-        addstate => addprob,
-        rmstate => otherprob,
-        changelabel => otherprob,
-        changelink => otherprob
-    )
-    spawner1 = lingpredspawner(:grow1; npop = npop, probs = probs)
-    spawner2 = lingpredspawner(:grow2; npop = npop, probs = probs)
-    order = lingpredorder(:ControlMatch, [:grow1, :grow2], LingPredGame(Control()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order),
+            spawners = Dict(spawner1, spawner2),
+        )
 
-    coevcfg = CoevConfig(;
-        eco = eco,
-        trial = trial,
-        seed = seed,
-        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
-        orders = Dict(order),
-        spawners = Dict(spawner1, spawner2),
-    )
-
-    allsp = coevcfg()
-    println("starting $eco-$trial")
-    for gen in 1:ngen
-        allsp = coevcfg(gen, allsp)
-        if mod(gen, 100) == 0
-            println("$eco-$trial: $gen")
-        end
+        allsp = coevcfg()
     end
-    close(coevcfg.jld2file)
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
 @everywhere function runctrl(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
     eco = :ctrl
-    seed = rand(UInt64)
-    spawner1 = lingpredspawner(:ctrl1; npop = npop)
-    spawner2 = lingpredspawner(:ctrl2; npop = npop)
-    order = lingpredorder(:ControlMatch, [:ctrl1, :ctrl2], LingPredGame(Control()))
-
-    coevcfg = CoevConfig(;
-        eco = eco,
-        trial = trial,
-        seed = seed,
-        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
-        orders = Dict(order),
-        spawners = Dict(spawner1, spawner2),
-    )
-
-    allsp = coevcfg()
-    println("starting $eco-$trial")
-    for gen in 1:ngen
-        allsp = coevcfg(gen, allsp)
-        if mod(gen, 100) == 0
-            println("$eco-$trial: $gen")
-        end
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:ctrl1; npop = npop)
+        spawner2 = lingpredspawner(:ctrl2; npop = npop)
+        order = lingpredorder(:ControlMatch, [:ctrl1, :ctrl2], LingPredGame(Control()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order),
+            spawners = Dict(spawner1, spawner2),
+        )
+        allsp = coevcfg()
     end
-    close(coevcfg.jld2file)
+    println("starting $eco-$trial")
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
 @everywhere function runcoop(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
     eco = :coop
-    seed = rand(UInt64)
-    spawner1 = lingpredspawner(:host; npop = npop)
-    spawner2 = lingpredspawner(:symbiote; npop = npop)
-    order = lingpredorder(:CoopMatch, [:host, :symbiote], LingPredGame(MatchCoop()))
-
-    coevcfg = CoevConfig(;
-        eco = eco,
-        trial = trial,
-        seed = seed,
-        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
-        orders = Dict(order),
-        spawners = Dict(spawner1, spawner2),
-    )
-
-    allsp = coevcfg()
-    println("starting $eco-$trial")
-    for gen in 1:ngen
-        allsp = coevcfg(gen, allsp)
-        if mod(gen, 100) == 0
-            println("$eco-$trial: $gen")
-        end
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:host; npop = npop)
+        spawner2 = lingpredspawner(:symbiote; npop = npop)
+        order = lingpredorder(:CoopMatch, [:host, :symbiote], LingPredGame(MatchCoop()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order),
+            spawners = Dict(spawner1, spawner2),
+        )
+        allsp = coevcfg()
     end
-    close(coevcfg.jld2file)
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
 @everywhere function runcomp(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
     eco = :comp
-    seed = rand(UInt64)
-    spawner1 = lingpredspawner(:host; npop = npop)
-    spawner2 = lingpredspawner(:parasite; npop = npop)
-    order = lingpredorder(:CompMatch, [:host, :parasite], LingPredGame(MatchComp()))
-
-    coevcfg = CoevConfig(;
-        eco = eco,
-        trial = trial,
-        seed = seed,
-        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
-        orders = Dict(order),
-        spawners = Dict(spawner1, spawner2),
-    )
-
-    allsp = coevcfg()
-    println("starting $eco-$trial")
-    for gen in 1:ngen
-        allsp = coevcfg(gen, allsp)
-        if mod(gen, 100) == 0
-            println("$eco-$trial: $gen")
-        end
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:host; npop = npop)
+        spawner2 = lingpredspawner(:parasite; npop = npop)
+        order = lingpredorder(:CompMatch, [:host, :parasite], LingPredGame(MatchComp()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order),
+            spawners = Dict(spawner1, spawner2),
+        )
     end
-    close(coevcfg.jld2file)
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
 @everywhere function runmix(
@@ -154,34 +147,43 @@ end
 )
     v1 = typeof(domain1).parameters[1]
     v2 = typeof(domain2).parameters[1]
-    eco = Symbol("Mix-$(v1)-$(v2)")
-    seed = rand(UInt64)
+    eco = Symbol("$(v1)-$(v2)")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:host;     npop = npop)
+        spawner2 = lingpredspawner(:symbiote; npop = npop)
+        spawner3 = lingpredspawner(:parasite; npop = npop)
+        order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], domain1)
+        order2 = lingpredorder(:HostVsParasite, [:host, :parasite], domain2)
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order1, order2),
+            spawners = Dict(spawner1, spawner2, spawner3),
+        )
+        allsp = coevcfg()
+    end
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
+end
 
-    spawner1 = lingpredspawner(:host;     npop = npop)
-    spawner2 = lingpredspawner(:symbiote; npop = npop)
-    spawner3 = lingpredspawner(:parasite; npop = npop)
-
-    order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], domain1)
-    order2 = lingpredorder(:HostVsParasite, [:host, :parasite], domain2)
-
-    coevcfg = CoevConfig(;
-        eco = eco,
-        trial = trial,
-        seed = seed,
-        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
-        orders = Dict(order1, order2),
-        spawners = Dict(spawner1, spawner2, spawner3),
-    )
-
-    allsp = coevcfg()
+@everywhere function evolve!(
+    start::Int, ngen::Int, coevcfg::CoevConfig, allsp::Dict{Symbol, <:Species},
+    eco::Symbol, trial::Int
+)
     println("starting: $eco-$trial")
-    for gen in 1:ngen
+    for gen in start:ngen
         allsp = coevcfg(gen, allsp)
         if mod(gen, 100) == 0
             println("$eco-$trial: $gen")
         end
     end
-    close(coevcfg.jld2file)
 end
 
 function pdispatch(;

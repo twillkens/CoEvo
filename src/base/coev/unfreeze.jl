@@ -69,5 +69,5 @@ function unfreeze(jldpath::String, getpop::Bool = true)
     loggers = jld2file["loggers"]
     gen, evostate, allsp = unfreeze(jld2file, spawners, getpop)
     close(jld2file)
-    gen, CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2file), allsp
+    gen, CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jldpath), allsp
 end
