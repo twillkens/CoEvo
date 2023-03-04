@@ -26,12 +26,12 @@ struct LingPredObs{T} <: Observation
     states::Dict{IndivKey, Vector{T}}
 end
 
-function label(fsm::FSMPheno{T}, state::T) where T
-    state in fsm.ones
-end
-
 function act(fsm::FSMPheno{T}, state::T, bit::Bool) where T
     fsm.links[(state, bit)]
+end
+
+function label(fsm::FSMPheno{T}, state::T) where T
+    state in fsm.ones
 end
 
 function simulate(::LingPredGame, a1::FSMPheno, a2::FSMPheno)
@@ -45,6 +45,27 @@ function simulate(::LingPredGame, a1::FSMPheno, a2::FSMPheno)
         t += 1
         state1, state2 = act(a1, state1, bit2), act(a2, state2, bit1)
         bit1, bit2 = label(a1, state1), label(a2, state2)
+        push!(bits1, bit1)
+        push!(bits2, bit2)
+        push!(states1, state1)
+        push!(states2, state2)
+        logkey = (state1, state2)
+        if logkey in keys(statelog)
+            return statelog[logkey], states1, states2, bits1, bits2
+        end
+        statelog[logkey] = t
+    end
+end
+
+function simulate(::LingPredGame, a1::FSMMinPheno, a2::FSMMinPheno)
+    t = 1
+    (state1, bit1), (state2, bit2) = a1.start, a2.start
+    statelog = Dict((state1, state2) => t)
+    states1, states2 = [state1], [state2]
+    bits1, bits2 = [bit1], [bit2]
+    while true
+        t += 1
+        (state1, bit1), (state2, bit2) = act(a1, state1, bit2), act(a2, state2, bit1)
         push!(bits1, bit1)
         push!(bits2, bit2)
         push!(states1, state1)
