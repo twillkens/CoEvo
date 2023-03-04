@@ -1,6 +1,8 @@
 export FSMIndiv, FSMGeno, FSMPheno, FSMPhenoCfg
 export genotype, LinkDict, StateSet, act, FSMIndivConfig
-export FSMIndivArchiver
+export FSMIndivArchiver, FSMSetPheno, FSMMinPheno
+
+abstract type FSMPheno{T} <: Phenotype end
 
 LinkDict = Dict{Tuple{String, Bool}, String}
 StateSet = Set{String}
@@ -12,7 +14,7 @@ struct FSMGeno{T} <: Genotype
     links::Dict{Tuple{T, Bool}, T}
 end
 
-struct FSMPheno{T} <: Phenotype
+struct FSMSetPheno{T} <: FSMPheno{T}
     ikey::IndivKey
     start::T
     ones::Set{T}
@@ -20,10 +22,18 @@ struct FSMPheno{T} <: Phenotype
     links::Dict{Tuple{T, Bool}, T}
 end
 
-struct FSMMinPheno{T} <: Phenotype
+struct FSMMinPheno{T} <: FSMPheno{T}
     ikey::IndivKey
     start::Tuple{T, Bool}
     links::Dict{Tuple{T, Bool}, Tuple{T, Bool}}
+end
+
+function FSMMinPheno(pheno::FSMSetPheno)
+    newlinks = Dict(
+        ((source, bit) => (target, target in pheno.ones))
+        for ((source, bit), target) in pheno.links
+    )
+    FSMMinPheno(pheno.ikey, (pheno.start, pheno.start in pheno.ones), newlinks)
 end
 
 struct FSMIndiv{G <: FSMGeno} <: Individual
@@ -114,7 +124,7 @@ end
 
 Base.@kwdef struct FSMPhenoCfg <: PhenoConfig
     usemin::Bool = true
-    usesets::Bool = true
+    usesets::Bool = false
 end
 
 Base.@kwdef struct FSMMinPhenoCfg <: PhenoConfig
@@ -123,11 +133,11 @@ end
 
 function(cfg::FSMPhenoCfg)(ikey::IndivKey, geno::FSMGeno)
     if cfg.usesets
-        return FSMPheno(ikey, geno.start, geno.ones, geno.zeros, geno.links)
+        return FSMSetPheno(ikey, geno.start, geno.ones, geno.zeros, geno.links)
     end
     newlinks = Dict(
         ((source, bit) => (target, target in geno.ones))
-        for ((source, bit), target) in indiv.links
+        for ((source, bit), target) in geno.links
     )
     FSMMinPheno(
         ikey,
