@@ -44,7 +44,7 @@
     )
     @test fsm.links == expected
 
-    min1, mm = minimize(fsm; getmm = true)
+    min1, mm = vminimize(fsm)
 
     @test min1.start == mm[1]
     @test length(min1.links) == 8
@@ -105,7 +105,7 @@ end
     )
     @test fsm.links == expected
 
-    min1, mm = minimize(fsm; getmm = true)
+    min1, mm = vminimize(fsm)
 
     @test min1.start == mm[1]
     @test length(min1.links) == 8

@@ -1,5 +1,5 @@
 export hopcroft
-export minimize
+export minimize, vminimize
 export FSMPheno
 
 struct SetPack{T}
@@ -81,10 +81,8 @@ function prune(fsm::FSMGeno)
     ones, zeros, links
 end
 
-function hopcroft(fsm::FSMGeno; doprune::Bool=true)
-    ones, zeros, links = doprune ? 
-        prune(fsm) : 
-        (copy(fsm.ones), copy(fsm.zeros), copy(fsm.links))
+function hopcroft(fsm::FSMGeno)
+    ones, zeros, links = prune(fsm)
     P, W = Set([ones, zeros]), Set([ones, zeros])
     while length(W) > 0
         A = pop!(W)
@@ -138,9 +136,9 @@ function mergeP(fsm::FSMGeno{String}, P::Set{Set{String}})
     FSMGeno(newstart, newones, newzeros, newlinks), mergemap
 end
 
-function mergeP(fsm::FSMGeno{<:Real}, P::Set{<:Set{<:Real}})
+function mergeP(fsm::FSMGeno{R}, P::Set{<:Set{R}}) where R <: Real
     P = filter(s -> length(s) > 0, P)
-    mm = Dict(x => i for (i, part) in enumerate(P) for x in part if length(part) > 0)
+    mm = Dict(x => R(i) for (i, part) in enumerate(P) for x in part if length(part) > 0)
     newstart = mm[fsm.start]
     newones = Set(mm[x] for x in fsm.ones if x in keys(mm))
     newzeros = Set(mm[x] for x in fsm.zeros if x in keys(mm))
@@ -152,14 +150,20 @@ function mergeP(fsm::FSMGeno{<:Real}, P::Set{<:Set{<:Real}})
     FSMGeno(newstart, newones, newzeros, newlinks), mm
 end
 
-function minimize(fsm::FSMGeno; doprune::Bool = true, getmm::Bool = false)
-    P = hopcroft(fsm, doprune = doprune)
-    geno, mm = mergeP(fsm, P)
-    getmm ? (geno, mm) : geno
+
+function minimize(fsm::FSMGeno)
+    P = hopcroft(fsm)
+    geno, _ = mergeP(fsm, P)
+    geno 
 end
 
-function minimize(fsm::FSMIndiv; doprune::Bool=true)
-    mingeno = minimize(fsm.geno, doprune = doprune)
+function vminimize(fsm::FSMGeno)
+    P = hopcroft(fsm)
+    mergeP(fsm, P)
+end
+
+function minimize(fsm::FSMIndiv)
+    mingeno = minimize(fsm.geno)
     FSMIndiv(fsm.ikey, fsm.geno, mingeno, fsm.pids)
 end
 
