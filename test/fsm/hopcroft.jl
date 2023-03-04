@@ -79,7 +79,7 @@ end
     )
 
     max1 = FSMGeno(start, ones, zeros, links)
-    min1, mm = minimize(max1; getmm = true)
+    min1, mm = vminimize(max1)
 
     @test min1.start == mm[0]
     @test length(min1.links) == 6
@@ -170,7 +170,7 @@ end
     )
 
     max1 = FSMGeno(start, ones, zeros, links)
-    min1, mm = minimize(max1; getmm = true)
+    min1, mm = vminimize(max1)
 
     six = mm[0]
     seven = mm[1]
@@ -267,7 +267,7 @@ end
     )
 
     max1 = FSMGeno(start, ones, zeros, links)
-    min1, mm = minimize(max1; getmm = true)
+    min1, mm = vminimize(max1)
 
     six = mm[0]
     seven = mm[1]
@@ -361,7 +361,7 @@ end
         (7, b) => 7,
     )
     max1 = FSMGeno(start, ones, zeros, links)
-    min1, mm = minimize(max1; getmm = true)
+    min1, mm = vminimize(max1)
     @test min1.start == mm[1]
     @test length(min1.links) == 8
     @test min1.ones == Set([mm[1], mm[3], mm[7]])
@@ -447,7 +447,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true).mingeno
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "q0/q4"
     @test length(min1.links) == 10
@@ -488,7 +488,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true).mingeno
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "A/B"
     @test length(min1.links) == 6
@@ -527,7 +527,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true).mingeno
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "A/"
     @test length(min1.links) == 8
@@ -566,7 +566,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true).mingeno
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "q1/q3"
     @test length(min1.links) == 8
@@ -603,7 +603,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true).mingeno
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "1/5"
     @test length(min1.links) == 8
@@ -642,7 +642,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true).mingeno
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "1/"
     @test length(min1.links) == 12

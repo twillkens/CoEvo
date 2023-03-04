@@ -175,13 +175,12 @@ Base.@kwdef struct FSMIndivArchiver <: Archiver
     log_popids::Bool = true
     savegeno::Bool = true
     savemingeno::Bool = false
-    loadmingeno::Bool = false
 end
 
 function(a::FSMIndivArchiver)(geno_group::JLD2.Group, geno::FSMGeno)
     geno_group["start"] = geno.start
-    geno_group["ones"] = geno.ones
-    geno_group["zeros"] = geno.zeros
+    geno_group["ones"] = collect(geno.ones)
+    geno_group["zeros"] = collect(geno.zeros)
     geno_group["sources"] = [source for ((source, _), _) in geno.links]
     geno_group["bits"] = [bit for ((_, bit), _) in geno.links]
     geno_group["targets"] = [target for ((_, _), target) in geno.links]
@@ -202,10 +201,10 @@ end
 
 function(a::FSMIndivArchiver)(geno_group::JLD2.Group)
     start = geno_group["start"]
-    ones = geno_group["ones"]
-    zeros = geno_group["zeros"]
+    ones = Set(geno_group["ones"])
+    zeros = Set(geno_group["zeros"])
     links = Dict(
-        (s, w) => t for (s, w, t) in
+        (s, b) => t for (s, b, t) in
         zip(geno_group["sources"], geno_group["bits"], geno_group["targets"])
     )
     FSMGeno(start, ones, zeros, links)
@@ -213,15 +212,19 @@ end
 
 function(a::FSMIndivArchiver)(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
     pids = igroup["pids"]
-    if a.loadmingeno
-        geno_group = igroup["mingeno"]
-        mingeno = a(geno_group)
-        FSMIndiv(spid, iid, mingeno, mingeno, pids)
-    else
-        geno_group = igroup["geno"]
-        geno = a(geno_group)
-        mingeno = a.savemingeno ? a(igroup["mingeno"]) : minimize(geno)
+    if a.savegeno && a.savemingeno
+        geno = a(igroup["geno"])
+        mingeno = a(igroup["mingeno"])
         FSMIndiv(spid, iid, geno, mingeno, pids)
+    elseif !a.savegeno && a.savemingeno
+        mingeno = a(igroup["mingeno"])
+        FSMIndiv(spid, iid, mingeno, mingeno, pids)
+    elseif a.savegeno && !a.savemingeno
+        geno = a(igroup["geno"])
+        mingeno = minimize(geno)
+        FSMIndiv(spid, iid, geno, mingeno, pids)
+    else
+        throw(ArgumentError("FSMIndivArchiver must save at least one of geno or mingeno"))
     end
 end
 

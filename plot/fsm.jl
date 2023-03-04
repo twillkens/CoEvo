@@ -7,6 +7,8 @@ function countsize(eco::String, trial::Int)
     path = joinpath(dpath, string(eco), "$trial.jld2")
     jld = jldopen(path, "r")
     arxiv = jld["arxiv"]
+    spawners = jld["spawners"]
+
     spsizedict = Dict{String, Vector{Float64}}()
     for genkey in keys(arxiv)
         gengroup = arxiv[genkey]
@@ -18,10 +20,10 @@ function countsize(eco::String, trial::Int)
             allminsizes = Int[]
             for iid in keys(children_group)
                 childgroup = children_group[iid]
-                size = length(childgroup["geno"]["ones"]) + length(childgroup["geno"]["zeros"])
-                push!(allsizes, size)
-                size = length(childgroup["mingeno"]["ones"]) + length(childgroup["mingeno"]["zeros"])
-                push!(allminsizes, size)
+                geno = spawners[Symbol(spid)].archiver(childgroup["geno"])
+                mingeno = minimize(geno)
+                push!(allsizes, length(geno.ones) + length(geno.zeros))
+                push!(allminsizes, length(mingeno.ones) + length(mingeno.zeros))
             end
             # add to spsizedict the mean size of the population
             if spid in keys(spsizedict)
