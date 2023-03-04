@@ -43,7 +43,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "0/"
     @test length(min1.links) == 6
@@ -55,6 +55,45 @@ end
     @test min1.links[("1/2", b)] == "3/"
     @test min1.links[("3/",  a)] == "3/"
     @test min1.links[("3/",  b)] == "3/"
+
+    # printtest(source, example, max1, min1)
+end
+
+@testset "cornell1int" begin
+    source = "http://www.cs.cornell.edu/courses/cs2800/2013fa/Handouts/minimization.pdf"
+    example = "13.1"
+    start = 0
+    a = 0
+    b = 1
+    ones  = Set([0, 3])
+    zeros = Set([1, 2])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (0, a) => 1,
+        (0, b) => 2,
+        (1, a) => 3,
+        (1, b) => 3,
+        (2, a) => 3,
+        (2, b) => 3,
+        (3, a) => 3,
+        (3, b) => 3,
+    )
+
+    max1 = FSMGeno(start, ones, zeros, links)
+    min1, mm = vminimize(max1)
+
+    @test min1.start == mm[0]
+    @test length(min1.links) == 6
+    @test min1.ones == Set([mm[0], mm[3]])
+    @test min1.zeros == Set([mm[1]])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (mm[0], a) => mm[1],
+        (mm[0], b) => mm[1],
+        (mm[1], a) => mm[3],
+        (mm[1], b) => mm[3],
+        (mm[3], a) => mm[3],
+        (mm[3], b) => mm[3],
+    )
+    @test min1.links == links
 
     # printtest(source, example, max1, min1)
 end
@@ -84,7 +123,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1)
+    min1 = minimize(max1).mingeno
 
     six = "0/"
     seven = "1/2"
@@ -103,6 +142,56 @@ end
     @test min1.links[(eight, b)] == nine
     @test min1.links[(nine,  a)] == nine
     @test min1.links[(nine,  b)] == nine
+
+    # printtest(source, example, max1, min1)
+end
+
+@testset "cornell2int" begin
+    source = "http://www.cs.cornell.edu/courses/cs2800/2013fa/Handouts/minimization.pdf"
+    example = "13.2"
+    start = 0
+    a = 0
+    b = 1
+    ones  = Set([0, 3, 4])
+    zeros = Set([1, 2, 5])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (0, a) => 1,
+        (0, b) => 2,
+        (1, a) => 3,
+        (1, b) => 4,
+        (2, a) => 4,
+        (2, b) => 3,
+        (3, a) => 5,
+        (3, b) => 5,
+        (4, a) => 5,
+        (4, b) => 5,
+        (5, a) => 5,
+        (5, b) => 5,
+    )
+
+    max1 = FSMGeno(start, ones, zeros, links)
+    min1, mm = vminimize(max1)
+
+    six = mm[0]
+    seven = mm[1]
+    eight = mm[3]
+    nine = mm[5]
+
+    @test min1.start == six
+    @test length(min1.links) == 8
+    @test min1.ones == Set([six, eight])
+    @test min1.zeros == Set([seven, nine])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (six,   a) => seven,
+        (six,   b) => seven,
+        (seven, a) => eight,
+        (seven, b) => eight,
+        (eight, a) => nine,
+        (eight, b) => nine,
+        (nine,  a) => nine,
+        (nine,  b) => nine,
+    )
+    @test min1.links == links
 
     # printtest(source, example, max1, min1)
 end
@@ -134,7 +223,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1)
+    min1 = minimize(max1).mingeno
 
     six = "0/"
     seven = "1/2"
@@ -150,6 +239,53 @@ end
     @test min1.links[(seven, b)] == eight
     @test min1.links[(eight, a)] == eight
     @test min1.links[(eight, b)] == eight
+
+    # printtest(source, example, max1, min1)
+end
+
+@testset "cornell3int" begin
+    source = "http://www.cs.cornell.edu/courses/cs2800/2013fa/Handouts/minimization.pdf"
+    example = "13.3"
+    start = 0
+    a = 0
+    b = 1
+    ones  = Set([0, 1, 2])
+    zeros = Set([3, 4, 5])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (0, a) => 1,
+        (0, b) => 2,
+        (1, a) => 3,
+        (1, b) => 4,
+        (2, a) => 4,
+        (2, b) => 3,
+        (3, a) => 5,
+        (3, b) => 5,
+        (4, a) => 5,
+        (4, b) => 5,
+        (5, a) => 5,
+        (5, b) => 5,
+    )
+
+    max1 = FSMGeno(start, ones, zeros, links)
+    min1, mm = vminimize(max1)
+
+    six = mm[0]
+    seven = mm[1]
+    eight = mm[3]
+
+    @test min1.start == six
+    @test length(min1.links) == 6
+    @test min1.ones == Set([six, seven])
+    @test min1.zeros == Set([eight])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (six,   a) => seven,
+        (six,   b) => seven,
+        (seven, a) => eight,
+        (seven, b) => eight,
+        (eight, a) => eight,
+        (eight, b) => eight,
+    )
+    @test min1.links == links
 
     # printtest(source, example, max1, min1)
 end
@@ -181,7 +317,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "1/4"
     @test length(min1.links) == 8
@@ -197,6 +333,51 @@ end
     @test min1.links[("7/", b)] == "7/"
 
     # printtest(source, example, max1, min1)
+end
+
+@testset "cornell4int" begin
+    source = "http://www.cs.cornell.edu/courses/cs2800/2013fa/Handouts/minimization.pdf"
+    example = "13.4"
+    start = 1
+    a = 0
+    b = 1
+    ones = Set([1, 3, 4, 6, 7])
+    zeros = Set([2, 5])
+
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (1, a) => 7,
+        (1, b) => 2,
+        (2, a) => 7,
+        (2, b) => 3,
+        (3, a) => 7,
+        (3, b) => 4,
+        (4, a) => 7,
+        (4, b) => 5,
+        (5, a) => 7,
+        (5, b) => 6,
+        (6, a) => 7,
+        (6, b) => 1,
+        (7, a) => 7,
+        (7, b) => 7,
+    )
+    max1 = FSMGeno(start, ones, zeros, links)
+    min1, mm = vminimize(max1)
+    @test min1.start == mm[1]
+    @test length(min1.links) == 8
+    @test min1.ones == Set([mm[1], mm[3], mm[7]])
+    @test min1.zeros == Set([mm[2]])
+    newlinks = Dict{Tuple{Int, Bool}, Int}(
+        (mm[1], a) => mm[7],
+        (mm[1], b) => mm[2],
+        (mm[2], a) => mm[7],
+        (mm[2], b) => mm[3],
+        (mm[3], a) => mm[7],
+        (mm[3], b) => mm[1],
+        (mm[7], a) => mm[7],
+        (mm[7], b) => mm[7],
+    )
+
+    @test min1.links == newlinks
 end
 
 # 
@@ -221,7 +402,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "A/C"
     @test length(min1.links) == 8
@@ -266,7 +447,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "q0/q4"
     @test length(min1.links) == 10
@@ -307,7 +488,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "A/B"
     @test length(min1.links) == 6
@@ -346,7 +527,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "A/"
     @test length(min1.links) == 8
@@ -385,7 +566,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "q1/q3"
     @test length(min1.links) == 8
@@ -422,7 +603,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "1/5"
     @test length(min1.links) == 8
@@ -461,7 +642,7 @@ end
                 )
 
     max1 = FSMIndiv(ikey, start, ones, zeros, links)
-    min1 = minimize(max1, doprune=true)
+    min1 = minimize(max1).mingeno
 
     @test min1.start == "1/"
     @test length(min1.links) == 12

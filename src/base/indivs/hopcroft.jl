@@ -1,15 +1,15 @@
 export hopcroft
-export minimize
+export minimize, vminimize
 export FSMPheno
 
-struct SetPack
-    Y::Set{String}
-    isect::Set{String}
-    diff::Set{String}
+struct SetPack{T}
+    Y::Set{T}
+    isect::Set{T}
+    diff::Set{T}
 end
 
-function getX(c::Bool, A::Set{String}, links::LinkDict)
-    X = Set{String}()
+function getX(c::Bool, A::Set{T}, links::Dict{Tuple{T, Bool}, T}) where T
+    X = Set{T}()
     for ((origin, bit), dest) in links
         if bit == c && dest in A
             push!(X, origin)
@@ -18,8 +18,8 @@ function getX(c::Bool, A::Set{String}, links::LinkDict)
     X
 end
 
-function getpacks(P::Set{Set{String}}, X::Set{String})
-    Ys = Set{SetPack}()
+function getpacks(P::Set{Set{T}}, X::Set{T}) where T
+    Ys = Set{SetPack{T}}()
     for Y in P
         isect = intersect(X, Y)
         diff = setdiff(Y, X)
@@ -31,7 +31,7 @@ function getpacks(P::Set{Set{String}}, X::Set{String})
     Ys
 end
 
-function handlepack!(pack::SetPack, P::Set{Set{String}}, W::Set{Set{String}})
+function handlepack!(pack::SetPack, P::Set{Set{T}}, W::Set{Set{T}}) where T
     pop!(P, pack.Y)
     push!(P, pack.isect)
     push!(P, pack.diff)
@@ -48,8 +48,8 @@ function handlepack!(pack::SetPack, P::Set{Set{String}}, W::Set{Set{String}})
     end
 end
 
-function gettemp(new::Set{String}, links::LinkDict)
-    temp = Set{String}()
+function gettemp(new::Set{T}, links::Dict{Tuple{T, Bool}, T}) where T
+    temp = Set{T}()
     for q in new
         for c in [true, false]
             push!(temp, links[(q, c)])
@@ -58,9 +58,9 @@ function gettemp(new::Set{String}, links::LinkDict)
     temp
 end
 
-function prune(fsm::FSMIndiv)
-    reachable = Set{String}([fsm.start])
-    new = Set{String}([fsm.start])
+function prune(fsm::FSMGeno)
+    reachable = Set([fsm.start])
+    new = Set([fsm.start])
     ones = copy(fsm.ones)
     zeros = copy(fsm.zeros)
     links = copy(fsm.links)
@@ -81,10 +81,8 @@ function prune(fsm::FSMIndiv)
     ones, zeros, links
 end
 
-function hopcroft(fsm::FSMIndiv; doprune::Bool=true)
-    ones, zeros, links = doprune ? 
-        prune(fsm) : 
-        (copy(fsm.ones), copy(fsm.zeros), copy(fsm.links))
+function hopcroft(fsm::FSMGeno)
+    ones, zeros, links = prune(fsm)
     P, W = Set([ones, zeros]), Set([ones, zeros])
     while length(W) > 0
         A = pop!(W)
@@ -101,7 +99,7 @@ function mergepart(part::Set{String})
     contains(s, "/") ? s : string(s, "/")
 end
 
-function make_mergemap(fsm::FSMIndiv, P::Set{Set{String}})
+function make_mergemap(fsm::FSMGeno, P::Set{Set{String}})
     merged = map(mergepart, collect(P))
     mergemap = Dict{String, String}()
     for s in vcat(collect(fsm.ones), collect(fsm.zeros))
@@ -114,15 +112,15 @@ function make_mergemap(fsm::FSMIndiv, P::Set{Set{String}})
     mergemap
 end
 
-function FSMIndiv(fsm::FSMIndiv, P::Set{Set{String}})
+function mergeP(fsm::FSMGeno{String}, P::Set{Set{String}})
     mergemap = make_mergemap(fsm, P)
     filter!(s -> length(s) > 0, P)
-    newones = StateSet()
-    newzeros = StateSet()
-    newlinks = LinkDict()
-    newstart = ""
+    newones = Set{String}()
+    newzeros = Set{String}()
+    newlinks = Dict{Tuple{String, Bool}, String}()
+    newstart = nothing
     for part in P
-        oldorigin = rand(part)
+        oldorigin = first(part)
         neworigin = mergepart(part)
         newstart = fsm.start in part ? neworigin : newstart
         newset = oldorigin in fsm.ones ? newones : newzeros
@@ -132,16 +130,41 @@ function FSMIndiv(fsm::FSMIndiv, P::Set{Set{String}})
         oldfalsedest = fsm.links[(oldorigin, false)]
         newlinks[(neworigin, false)] = mergemap[oldfalsedest]
     end
-    if newstart == ""
+    if newstart === nothing
         throw(ArgumentError("Minimization failed"))
     end
-    geno = FSMGeno(fsm.ikey, newstart, newones, newzeros, newlinks)
-    FSMIndiv(fsm.ikey, geno)
+    FSMGeno(newstart, newones, newzeros, newlinks), mergemap
 end
 
-function minimize(fsm::FSMIndiv; doprune::Bool=true)
-    P = hopcroft(fsm, doprune = doprune)
-    FSMIndiv(fsm, P)
+function mergeP(fsm::FSMGeno{R}, P::Set{<:Set{R}}) where R <: Real
+    P = filter(s -> length(s) > 0, P)
+    mm = Dict(x => R(i) for (i, part) in enumerate(P) for x in part if length(part) > 0)
+    newstart = mm[fsm.start]
+    newones = Set(mm[x] for x in fsm.ones if x in keys(mm))
+    newzeros = Set(mm[x] for x in fsm.zeros if x in keys(mm))
+    newlinks = Dict(
+        (mm[s], w) => mm[d]
+        for ((s, w), d) in fsm.links
+        if s in keys(mm) && d in keys(mm)
+    )
+    FSMGeno(newstart, newones, newzeros, newlinks), mm
+end
+
+
+function minimize(fsm::FSMGeno)
+    P = hopcroft(fsm)
+    geno, _ = mergeP(fsm, P)
+    geno 
+end
+
+function vminimize(fsm::FSMGeno)
+    P = hopcroft(fsm)
+    mergeP(fsm, P)
+end
+
+function minimize(fsm::FSMIndiv)
+    mingeno = minimize(fsm.geno)
+    FSMIndiv(fsm.ikey, fsm.geno, mingeno, fsm.pids)
 end
 
 

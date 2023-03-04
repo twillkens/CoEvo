@@ -15,7 +15,6 @@ Base.@kwdef struct VectorIndivConfig <: IndivConfig
     spid::Symbol
     dtype::Type{<:Real}
     width::Int
-    itype::Type{<:Individual} = VectorIndiv
 end
 
 Base.@kwdef struct VectorIndivArchiver <: Archiver
@@ -28,6 +27,12 @@ function(a::VectorIndivArchiver)(children_group::JLD2.Group, child::VectorIndiv)
     cgroup["gids"] = [gene.gid for gene in child.genes]
     cgroup["vals"] = [gene.val for gene in child.genes]
     cgroup["pids"] = collect(child.pids)
+end
+
+function(cfg::VectorIndivArchiver)(spid::String, iid::String, igroup::JLD2.Group)
+    genes = [ScalarGene(gid, val) for (gid, val) in zip(igroup["gids"], igroup["vals"])]
+    pids = Set{UInt32}(igroup["pids"])
+    VectorIndiv(IndivKey(spid, iid), genes, pids)
 end
 
 function Base.getproperty(indiv::VectorIndiv, prop::Symbol)
@@ -125,11 +130,6 @@ function(cfg::VectorIndivConfig)(::AbstractRNG, sc::SpawnCounter, n_indiv::Int, 
     Dict(indiv.ikey => indiv for indiv in indivs)
 end
 
-function(cfg::VectorIndivConfig)(spid::String, iid::String, igroup::JLD2.Group)
-    genes = [ScalarGene(gid, val) for (gid, val) in zip(igroup["gids"], igroup["vals"])]
-    pids = Set{UInt32}(igroup["pids"])
-    VectorIndiv(IndivKey(spid, iid), genes, pids)
-end
 
 
 # function(r::NPointCrossoverRecombiner)(variator::Variator, gen::UInt16,

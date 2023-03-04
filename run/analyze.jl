@@ -1,4 +1,5 @@
 using Distributed
+addprocs(5, exeflags="--project=.")
 @everywhere using CoEvo
 @everywhere using Flux
 @everywhere using Flux: onecold, onehotbatch, logitcrossentropy
@@ -12,6 +13,7 @@ using Plots
 using RDatasets
 using Zygote
 using CUDA
+using JLD2
 
 @everywhere include("spec.jl")
 @everywhere include("fsmgraph.jl")

@@ -13,57 +13,60 @@ end
 
 function(m::LingPredMutator)(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv,) 
     fns = sample(rng, collect(keys(m.probs)), Weights(collect(values(m.probs))), m.nchanges)
+    geno = fsm.geno
     for fn in fns
-        fsm = fn(rng, sc, fsm)
+        geno = fn(rng, sc, geno)
     end
-    fsm
+    FSMIndiv(fsm.ikey, geno, minimize(geno), fsm.pids)
 end
 
 function randfsmstate(
-    rng::AbstractRNG, fsm::FSMIndiv;
-    include::Set{String} = Set{String}(), 
-    exclude::Set{String} = Set{String}()
-)
+    rng::AbstractRNG, fsm::FSMGeno{T};
+    include::Set{T} = Set{T}(), 
+    exclude::Set{T} = Set{T}()
+) where T
     nodes = union(fsm.ones, fsm.zeros, include)
     nodes = setdiff(nodes, exclude)
     rand(rng, nodes)
 end
 
-function newstate!(sc::SpawnCounter, )
+# add state
+
+function newstate!(sc::SpawnCounter, ::FSMGeno{String})
     string(gid!(sc))
 end
 
-function addstate(
-    fsm::FSMIndiv, newstate::String, label::Bool, truedest::String, falsedest::String
-)
-    s = Set([newstate])
-    ones, zeros = label ? (union(fsm.ones, s), fsm.zeros) : (fsm.ones, union(fsm.zeros, s))
-    newlinks = Dict((newstate, true) => truedest, (newstate, false) => falsedest)
-    newgeno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, merge(fsm.links, newlinks))
-    FSMIndiv(fsm.ikey, newgeno, fsm.pids)
+function newstate!(sc::SpawnCounter, ::FSMGeno{UInt32})
+    gid!(sc)
 end
 
-function addstate(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv)
-    label = rand(m.rng, Bool)
-    newstate = newstate!(sc)
-    truedest = randfsmstate(m.rng, fsm; include = Set([newstate]))
-    falsedest = randfsmstate(m.rng, fsm, include = Set([newstate]))
+function newstate!(sc::SpawnCounter, ::FSMGeno{Int})
+    Int(gid!(sc))
+end
+
+function addstate(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMGeno)
+    label = rand(rng, Bool)
+    newstate = newstate!(sc, fsm)
+    truedest = randfsmstate(rng, fsm; include = Set([newstate]))
+    falsedest = randfsmstate(rng, fsm, include = Set([newstate]))
     addstate(fsm, newstate, label, truedest, falsedest)
 end
 
-function rmstate(fsm::FSMIndiv, todelete::String, start::String, newlinks::LinkDict)
-    ones, zeros = todelete ∈ fsm.ones ?
-        (filter(s -> s != todelete, fsm.ones), fsm.zeros) :
-        (fsm.ones, filter(s -> s != todelete, fsm.zeros))
-    links = merge(filter(p -> p[1][1] != todelete, fsm.links), newlinks)
-    geno = FSMGeno(fsm.ikey, start, ones, zeros, links)
-    FSMIndiv(fsm.ikey, geno, fsm.pids)
+function addstate(
+    fsm::FSMGeno{T}, newstate::T, label::Bool, truedest::T, falsedest::T
+) where T
+    s = Set([newstate])
+    ones, zeros = label ? (union(fsm.ones, s), fsm.zeros) : (fsm.ones, union(fsm.zeros, s))
+    newlinks = Dict((newstate, true) => truedest, (newstate, false) => falsedest)
+    FSMGeno(fsm.start, ones, zeros, merge(fsm.links, newlinks))
 end
 
-function getnew(rng::AbstractRNG, fsm::FSMIndiv, todelete::String)
+# remove state
+
+function getnew(rng::AbstractRNG, fsm::FSMGeno{T}, todelete::T) where T
     newstart = todelete == fsm.start ?
         randfsmstate(rng, fsm; exclude = Set([todelete])) : fsm.start
-    newlinks = LinkDict()
+    newlinks = Dict{Tuple{T, Bool}, T}()
     for ((origin, bool), dest) in fsm.links
         if dest == todelete && origin != todelete
             newdest = fsm.links[(todelete, bool)]
@@ -74,36 +77,49 @@ function getnew(rng::AbstractRNG, fsm::FSMIndiv, todelete::String)
     newstart, newlinks
 end
 
-function rmstate(m::LingPredMutator, fsm::FSMIndiv)
+function rmstate(rng::AbstractRNG, ::SpawnCounter, fsm::FSMGeno)
     if length(union(fsm.ones, fsm.zeros)) < 2 return fsm end
-    todelete = randfsmstate(m.rng, fsm)
-    start, newlinks = getnew(m.rng, fsm, todelete)
+    todelete = randfsmstate(rng, fsm)
+    start, newlinks = getnew(rng, fsm, todelete)
     rmstate(fsm, todelete, start, newlinks)
 end
 
-function changelink(m::LingPredMutator, fsm::FSMIndiv)
-    state = randfsmstate(m.rng, fsm)
-    newdest = randfsmstate(m.rng, fsm)
-    bit = rand(m.rng, Bool)
+function rmstate(fsm::FSMGeno{T}, todelete::T, start::T, newlinks::Dict{Tuple{T, Bool}, T}
+) where T
+    ones, zeros = todelete ∈ fsm.ones ?
+        (filter(s -> s != todelete, fsm.ones), fsm.zeros) :
+        (fsm.ones, filter(s -> s != todelete, fsm.zeros))
+    links = merge(filter(p -> p[1][1] != todelete, fsm.links), newlinks)
+    FSMGeno(start, ones, zeros, links)
+end
+
+
+# change link
+
+
+function changelink(rng::AbstractRNG, ::SpawnCounter, fsm::FSMGeno)
+    state = randfsmstate(rng, fsm)
+    newdest = randfsmstate(rng, fsm)
+    bit = rand(rng, Bool)
     changelink(fsm, state, newdest, bit)
 end
 
-function changelink(fsm::FSMIndiv, state::String, newdest::String, bit::Bool)
+function changelink(fsm::FSMGeno{T}, state::T, newdest::T, bit::Bool) where T
     links = merge(fsm.links, Dict((state, bit) => newdest))
-    geno = FSMGeno(fsm.ikey, fsm.start, fsm.ones, fsm.zeros, links)
-    FSMIndiv(fsm.ikey, geno, fsm.pids)
+    FSMGeno(fsm.start, fsm.ones, fsm.zeros, links)
 end
 
-function changelabel(m::LingPredMutator, fsm::FSMIndiv)
-    state = randfsmstate(m.rng, fsm)
+# change label
+
+function changelabel(rng::AbstractRNG, ::SpawnCounter, fsm::FSMGeno)
+    state = randfsmstate(rng, fsm)
     changelabel(fsm, state)
 end
 
-function changelabel(fsm::FSMIndiv, state::String)
+function changelabel(fsm::FSMGeno{T}, state::T) where T
     s = Set([state])
     ones, zeros = state ∈ fsm.ones ?
         (setdiff(fsm.ones, s), union(fsm.zeros, s)) :
         (union(fsm.ones, s), setdiff(fsm.zeros, s))
-    geno = FSMGeno(fsm.ikey, fsm.start, ones, zeros, fsm.links)
-    FSMIndiv(fsm.ikey, geno, fsm.pids)
+    FSMGeno(fsm.start, ones, zeros, fsm.links)
 end

@@ -23,7 +23,8 @@ function CoevConfig(;
     spawners::Dict{Symbol, <:Spawner},
     loggers::Vector{<:Logger} = Vector{Logger}(), 
 )
-    jld2file = jldopen("$(eco)-$(trial).jld2", "w")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2file = jldopen(joinpath(ecodir, "$(trial).jld2"), "w")
     jld2file["eco"] = eco
     jld2file["trial"] = trial
     jld2file["seed"] = seed
@@ -37,8 +38,8 @@ function CoevConfig(;
     CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2file)
 end
 
-function makeresdict(outcomes::Vector{<:Outcome})
-    resdict = Dict{IndivKey, Vector{Pair{TestKey, <:Real}}}()
+function makeresdict(outcomes::Vector{Outcome{R, O}}) where {R <: Real, O <: Observation}
+    resdict = Dict{IndivKey, Vector{Pair{TestKey, R}}}()
     for outcome in outcomes
         for (ikey, pair) in outcome.rdict
             if ikey in keys(resdict)
@@ -52,9 +53,9 @@ function makeresdict(outcomes::Vector{<:Outcome})
 end
 
 function makevets(
-    indivs::Dict{IndivKey, I}, resdict::Dict{IndivKey, Vector{Pair{TestKey, <:Real}}}
-) where {I <: Individual}
-    checkd = ikey -> ikey in keys(resdict) ? Dict(resdict[ikey]) : Dict{TestKey, <:Real}()
+    indivs::Dict{IndivKey, I}, resdict::Dict{IndivKey, Vector{Pair{TestKey, R}}}
+) where {I <: Individual, R <: Real}
+    checkd = ikey -> ikey in keys(resdict) ? Dict(resdict[ikey]) : Dict{TestKey, R}()
     Veteran[Veteran(indiv.ikey, indiv, checkd(indiv.ikey)) for indiv in values(indivs)]
 end
 
