@@ -4,7 +4,7 @@ function findpop(
     gen::Int,
     spid::String,
     arxivgroup::JLD2.Group,
-    icfg::IndivConfig,
+    archiver::Archiver,
     popids::Vector{String}, 
     pop::Vector{<:Individual} = Individual[]
 )
@@ -17,12 +17,12 @@ function findpop(
     found = Set{String}()
     for iid in popids
         if iid in keys(childrengroup)
-            push!(pop, icfg(spid, iid, childrengroup[iid]))
+            push!(pop, archiver(spid, iid, childrengroup[iid]))
             push!(found, iid)
         end
     end
     filter!(x -> x ∉ found, popids)
-    findpop(gen - 1, spid, arxivgroup, icfg, popids, pop)
+    findpop(gen - 1, spid, arxivgroup, archiver, popids, pop)
 end
 
 function unfreeze(
@@ -36,17 +36,17 @@ function unfreeze(
     sppairs = Pair{Symbol, <:Species}[]
     for spid in keys(allspgroup)
         spgroup = allspgroup[spid]
-        icfg = spawners[Symbol(spid)].icfg
+        archiver = spawners[Symbol(spid)].archiver
         popids = spgroup["popids"]
         pop = getpop ? findpop(
             parse(Int, currgen) - 1,
             spid,
             arxivgroup,
-            icfg,
+            archiver,
             string.(popids),
         ) : Individual[]
         childrengroup = spgroup["children"]
-        children = [icfg(spid, iid, childrengroup[iid]) for iid in keys(childrengroup)]
+        children = [archiver(spid, iid, childrengroup[iid]) for iid in keys(childrengroup)]
         push!(sppairs, 
             Symbol(spid) => Species(
                 Symbol(spid),

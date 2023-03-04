@@ -159,8 +159,8 @@ function minimize(fsm::FSMGeno; doprune::Bool = true, getmm::Bool = false)
 end
 
 function minimize(fsm::FSMIndiv; doprune::Bool=true)
-    geno = minimize(fsm.geno, doprune = doprune)
-    FSMIndiv(fsm.ikey, geno, fsm.pids)
+    mingeno = minimize(fsm.geno, doprune = doprune)
+    FSMIndiv(fsm.ikey, fsm.geno, mingeno, fsm.pids)
 end
 
 
