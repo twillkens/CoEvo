@@ -1,5 +1,7 @@
 using Distributed
 #addprocs(4, exeflags="--project=.")
+@everywhere using Pkg
+@everywhere Pkg.activate(".")
 @everywhere using CoEvo
 
 @everywhere function lingpredspawner(
@@ -30,7 +32,7 @@ end
     oid => AllvsAllCommaOrder(oid, spvec, domain, NullObsConfig())
 end
 
-@everywhere function rungrow(trial::Int, npop::Int, ngen::Int, parallel::Bool)
+@everywhere function rungrow(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
     eco = :grow
     seed = rand(UInt64)
 
@@ -50,7 +52,7 @@ end
         eco = eco,
         trial = trial,
         seed = seed,
-        jobcfg = parallel ? ParallelPhenoJobConfig() : SerialPhenoJobConfig(),
+        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
         orders = Dict(order),
         spawners = Dict(spawner1, spawner2),
     )
@@ -66,7 +68,7 @@ end
     close(coevcfg.jld2file)
 end
 
-@everywhere function runctrl(trial::Int, npop::Int, ngen::Int, parallel::Bool)
+@everywhere function runctrl(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
     eco = :ctrl
     seed = rand(UInt64)
     spawner1 = lingpredspawner(:ctrl1; npop = npop)
@@ -77,7 +79,7 @@ end
         eco = eco,
         trial = trial,
         seed = seed,
-        jobcfg = parallel ? ParallelPhenoJobConfig() : SerialPhenoJobConfig(),
+        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
         orders = Dict(order),
         spawners = Dict(spawner1, spawner2),
     )
@@ -93,7 +95,7 @@ end
     close(coevcfg.jld2file)
 end
 
-@everywhere function runcoop(trial::Int, npop::Int, ngen::Int, parallel::Bool)
+@everywhere function runcoop(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
     eco = :coop
     seed = rand(UInt64)
     spawner1 = lingpredspawner(:host; npop = npop)
@@ -104,7 +106,7 @@ end
         eco = eco,
         trial = trial,
         seed = seed,
-        jobcfg = parallel ? ParallelPhenoJobConfig() : SerialPhenoJobConfig(),
+        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
         orders = Dict(order),
         spawners = Dict(spawner1, spawner2),
     )
@@ -120,7 +122,7 @@ end
     close(coevcfg.jld2file)
 end
 
-@everywhere function runcomp(trial::Int, npop::Int, ngen::Int, parallel::Bool)
+@everywhere function runcomp(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
     eco = :comp
     seed = rand(UInt64)
     spawner1 = lingpredspawner(:host; npop = npop)
@@ -131,7 +133,7 @@ end
         eco = eco,
         trial = trial,
         seed = seed,
-        jobcfg = parallel ? ParallelPhenoJobConfig() : SerialPhenoJobConfig(),
+        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
         orders = Dict(order),
         spawners = Dict(spawner1, spawner2),
     )
@@ -148,7 +150,7 @@ end
 end
 
 @everywhere function runmix(
-    trial::Int, npop::Int, ngen::Int, parallel::Bool, domain1::Domain, domain2::Domain
+    trial::Int, npop::Int, ngen::Int, njobs::Int, domain1::Domain, domain2::Domain
 )
     v1 = typeof(domain1).parameters[1]
     v2 = typeof(domain2).parameters[1]
@@ -166,17 +168,17 @@ end
         eco = eco,
         trial = trial,
         seed = seed,
-        jobcfg = parallel ? ParallelPhenoJobConfig() : SerialPhenoJobConfig(),
+        jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
         orders = Dict(order1, order2),
         spawners = Dict(spawner1, spawner2, spawner3),
     )
 
     allsp = coevcfg()
-    println("starting: $eco")
+    println("starting: $eco-$trial")
     for gen in 1:ngen
         allsp = coevcfg(gen, allsp)
         if mod(gen, 100) == 0
-            println("Generation: $gen")
+            println("$eco-$trial: $gen")
         end
     end
     close(coevcfg.jld2file)
@@ -184,15 +186,17 @@ end
 
 function pdispatch(;
     fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
+    njobs::Int = 0,
     domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
 )
-    futures = [@spawnat :any fn(trial, npop, ngen, false, domains...) for trial in trange] 
+    futures = [@spawnat :any fn(trial, npop, ngen, njobs, domains...) for trial in trange] 
     [fetch(f) for f in futures]
 end
 
 function sdispatch(;
-    fn::Function = runctrl, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
-    domains::Vector{<:Domain} = [LingPredGame(MatchCoop()), LingPredGame(MatchComp())]
+    fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
+    njobs::Int = 0,
+    domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
 )
-    [fn(trial, npop, ngen, false, domains...) for trial in trange] 
+    [fn(trial, npop, ngen, njobs, domains...) for trial in trange] 
 end

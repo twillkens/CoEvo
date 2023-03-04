@@ -5,3 +5,4 @@ todo/*
 .vscode/
 *.jls
 archives/
+Manifest.toml
