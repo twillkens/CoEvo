@@ -1,5 +1,5 @@
 using Distributed
-addprocs(4, exeflags="--project=.")
+#addprocs(4, exeflags="--project=.")
 @everywhere using CoEvo
 
 @everywhere function lingpredspawner(
