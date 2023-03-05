@@ -95,23 +95,28 @@ function archive!(
 end
 
 function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
-    
-    #println("---------")
-        # println("arxiv")
-        #@time archive!(gen, c, allsp)
-    archive!(gen, c, allsp)
-    #println("sim")
-    #@time allvets, outcomes = interact(c, allsp)
-    allvets, outcomes = interact(c, allsp)
-    #log!(gen, c, allvets, outcomes)
-    #println("spawn")
-    #@time nextsp = Dict(
-    #    spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
-    #)
-    nextsp = Dict(
-        spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
-    )
-    nextsp
+    if gen % 100 == 0
+        println("---------")
+        t = time()
+        archive!(gen, c, allsp)
+        println("arxiv: $(time() - t)")
+        t = time()
+        allvets, outcomes = interact(c, allsp)
+        println("interact: $(time() - t)")
+        t = time()
+        nextsp = Dict(
+            spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
+        )
+        println("spawn: $(time() - t)")
+        nextp
+    else
+        archive!(gen, c, allsp)
+        allvets, outcomes = interact(c, allsp)
+        nextsp = Dict(
+            spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
+        )
+        nextsp
+    end
 end
 
 function(c::CoevConfig)()
