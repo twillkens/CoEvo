@@ -11,6 +11,7 @@ struct CoevConfig{J <: JobConfig, O <: Order, S <: Spawner, L <: Logger}
     spawners::Dict{Symbol, S}
     loggers::Vector{L}
     jld2path::String
+    arxiv_interval::Int
 end
 
 function CoevConfig(;
@@ -21,6 +22,7 @@ function CoevConfig(;
     orders::Dict{Symbol, <:Order},
     spawners::Dict{Symbol, <:Spawner},
     loggers::Vector{<:Logger} = Vector{Logger}(), 
+    arxiv_interval::Int = 1,
 )
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
@@ -32,11 +34,14 @@ function CoevConfig(;
     jld2file["orders"] = orders
     jld2file["spawners"] = deepcopy(spawners)
     jld2file["loggers"] = loggers
+    jld2file["arxiv_interval"] = arxiv_interval
     JLD2.Group(jld2file, "arxiv")
     close(jld2file)
     rng = StableRNG(seed)
     evostate = EvoState(rng, collect(keys(spawners)))
-    CoevConfig(eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2path)
+    CoevConfig(
+        eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2path, arxiv_interval
+    )
 end
 
 function makeresdict(outcomes::Vector{Outcome{R, O}}) where {R <: Real, O <: Observation}
@@ -91,16 +96,23 @@ function archive!(
 end
 
 function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
-    println("archive time")
-    @time archive!(gen, c, allsp)
-    println("sim time")
-    @time allvets, outcomes = interact(c, allsp)
+    #println("---------")
+    if c.arxiv_interval > 0 && gen % c.arxiv_interval == 0
+        # println("arxiv")
+        #@time archive!(gen, c, allsp)
+        archive!(gen, c, allsp)
+    end
+    #println("sim")
+    #@time allvets, outcomes = interact(c, allsp)
+    allvets, outcomes = interact(c, allsp)
     #log!(gen, c, allvets, outcomes)
-    println("reproduction time")
-    @time nextsp = Dict(
+    #println("spawn")
+    #@time nextsp = Dict(
+    #    spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
+    #)
+    nextsp = Dict(
         spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
     )
-    println("done")
     nextsp
 end
 

@@ -22,7 +22,7 @@ using Distributed
         recombiner = CloneRecombiner(),
         mutators = [LingPredMutator(probs = probs)],
         archiver = FSMIndivArchiver(
-            log_popids = false, savegeno = true, savemingeno = true, interval = 10
+            log_popids = false, savegeno = true, savemingeno = false, interval = 10
         ),
     )
     spid => s
@@ -32,7 +32,7 @@ end
     oid => AllvsAllCommaOrder(oid, spvec, domain, NullObsConfig())
 end
 
-@everywhere function rungrow(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
+@everywhere function rungrow(trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int)
     eco = :grow
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
@@ -60,14 +60,16 @@ end
             jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
             orders = Dict(order),
             spawners = Dict(spawner1, spawner2),
+            arxiv_interval = arxiv_interval
         )
-
         allsp = coevcfg()
     end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
-@everywhere function runctrl(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
+@everywhere function runctrl(
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int
+)
     eco = :ctrl
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
@@ -86,6 +88,7 @@ end
             jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
             orders = Dict(order),
             spawners = Dict(spawner1, spawner2),
+            arxiv_interval = arxiv_interval
         )
         allsp = coevcfg()
     end
@@ -93,7 +96,7 @@ end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
-@everywhere function runcoop(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
+@everywhere function runcoop(trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int)
     eco = :coop
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
@@ -112,13 +115,14 @@ end
             jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
             orders = Dict(order),
             spawners = Dict(spawner1, spawner2),
+            arxiv_interval = arxiv_interval
         )
         allsp = coevcfg()
     end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
-@everywhere function runcomp(trial::Int, npop::Int, ngen::Int, njobs::Int = 0)
+@everywhere function runcomp(trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int)
     eco = :comp
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
@@ -137,13 +141,15 @@ end
             jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
             orders = Dict(order),
             spawners = Dict(spawner1, spawner2),
+            arxiv_interval = arxiv_interval
         )
     end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
 @everywhere function runmix(
-    trial::Int, npop::Int, ngen::Int, njobs::Int, domain1::Domain, domain2::Domain
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int, 
+    domain1::Domain, domain2::Domain
 )
     v1 = typeof(domain1).parameters[1]
     v2 = typeof(domain2).parameters[1]
@@ -167,6 +173,7 @@ end
             jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
             orders = Dict(order1, order2),
             spawners = Dict(spawner1, spawner2, spawner3),
+            arxiv_interval = arxiv_interval,
         )
         allsp = coevcfg()
     end
@@ -179,26 +186,31 @@ end
 )
     println("starting: $eco-$trial")
     for gen in start:ngen
-        allsp = coevcfg(gen, allsp)
         if mod(gen, 100) == 0
             println("$eco-$trial: $gen")
+            @time allsp = coevcfg(gen, allsp)
+        else
+            allsp = coevcfg(gen, allsp)
         end
     end
 end
 
 function pdispatch(;
     fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
-    njobs::Int = 0,
+    njobs::Int = 0, arxiv_interval::Int = 10,
     domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
 )
-    futures = [@spawnat :any fn(trial, npop, ngen, njobs, domains...) for trial in trange] 
+    futures = [
+        @spawnat :any fn(trial, npop, ngen, njobs, arxiv_interval, domains...) 
+        for trial in trange
+    ] 
     [fetch(f) for f in futures]
 end
 
 function sdispatch(;
     fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
-    njobs::Int = 0,
+    njobs::Int = 0, arxiv_interval::Int = 10,
     domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
 )
-    [fn(trial, npop, ngen, njobs, domains...) for trial in trange] 
+    [fn(trial, npop, ngen, njobs, arxiv_interval, domains...) for trial in trange] 
 end
