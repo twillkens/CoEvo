@@ -37,13 +37,11 @@ function make_group!(parent_group::JLD2.Group, key::Union{Symbol, UInt32, Int})
     make_group!(parent_group, string(key))
 end
 
-function(a::Archiver)(gen::Int, allspgroup::JLD2.Group, spid::Symbol, sp::Species)
-    if gen % a.interval == 0
-        spgroup = make_group!(allspgroup, string(spid))
-        spgroup["popids"] = a.log_popids ? [ikey.iid for ikey in keys(sp.pop)] : UInt32[]
-        cngroup = make_group!(spgroup, "children")
-        for indiv in values(sp.children)
-            a(cngroup, indiv)
-        end
+function(a::Archiver)(::Int, allspgroup::JLD2.Group, spid::Symbol, sp::Species)
+    spgroup = make_group!(allspgroup, string(spid))
+    spgroup["popids"] = a.log_popids ? [ikey.iid for ikey in keys(sp.pop)] : UInt32[]
+    cngroup = make_group!(spgroup, "children")
+    for indiv in values(sp.children)
+        a(cngroup, indiv)
     end
 end

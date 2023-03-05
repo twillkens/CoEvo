@@ -12,6 +12,7 @@ struct CoevConfig{J <: JobConfig, O <: Order, S <: Spawner, L <: Logger}
     loggers::Vector{L}
     jld2path::String
     arxiv_interval::Int
+    spchache::Dict{Int, Dict{Symbol, Species}}
 end
 
 function CoevConfig(;
@@ -40,7 +41,8 @@ function CoevConfig(;
     rng = StableRNG(seed)
     evostate = EvoState(rng, collect(keys(spawners)))
     CoevConfig(
-        eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2path, arxiv_interval
+        eco, trial, evostate, jobcfg, orders, spawners, loggers, jld2path, arxiv_interval,
+        Dict{Int, Dict{Symbol, Species}}()
     )
 end
 
@@ -86,17 +88,27 @@ end
 function archive!(
     gen::Int, c::CoevConfig, allsp::Dict{Symbol, <:Species},
 )
-    jld2file = jldopen(c.jld2path, "a")
-    agroup = JLD2.Group(jld2file["arxiv"], string(gen))
-    agroup["evostate"] = deepcopy(c.evostate)
-    allspgroup = make_group!(agroup, "species")
-    [spawner.archiver(gen, allspgroup, spid, allsp[spid]) for (spid, spawner) in c.spawners]
-    close(jld2file)
+    push!(c.spchache, gen => allsp)
+    if gen % c.arxiv_interval == 0
+        jld2file = jldopen(c.jld2path, "a")
+        for (gen, allsp) in c.spchache
+            agroup = JLD2.Group(jld2file["arxiv"], string(gen))
+            agroup["evostate"] = deepcopy(c.evostate)
+            allspgroup = make_group!(agroup, "species")
+            [
+                spawner.archiver(gen, allspgroup, spid, allsp[spid]) 
+                for (spid, spawner) in c.spawners
+            ]
+        end
+        close(jld2file)
+        empty!(c.spchache)
+    end
 end
 
 function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
     if gen % 100 == 0
         println("---------")
+        println("$(c.eco) $(c.trial) gen: $gen")
         t = time()
         archive!(gen, c, allsp)
         println("arxiv: $(time() - t)")
@@ -108,7 +120,7 @@ function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
             spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
         )
         println("spawn: $(time() - t)")
-        nextp
+        nextsp
     else
         archive!(gen, c, allsp)
         allvets, outcomes = interact(c, allsp)

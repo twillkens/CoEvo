@@ -298,6 +298,7 @@ end
         jobcfg = SerialPhenoJobConfig(),
         orders = Dict(:NG => testorder()),
         spawners = spawners,
+        arxiv_interval = 1,
     )
     gen = 1
     lastsp = nothing

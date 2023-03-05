@@ -42,7 +42,7 @@ function lingpredspawner(spid::Symbol; npop::Int = 50, dtype::Type = Int, spargs
         selector =  RouletteSelector(μ = npop),
         recombiner = CloneRecombiner(),
         mutators = [LingPredMutator()],
-        archiver = FSMIndivArchiver(log_popids = true, savegeno = true, savemingeno = true),
+        archiver = FSMIndivArchiver(; log_popids = true, savegeno = true, savemingeno = true),
         spargs = spargs
     )
     spid => s
@@ -139,33 +139,3 @@ end
     @test c1.loggers == c2.loggers
     rm("archives/FSMTest/2.jld2")
 end
-
-
-# @testset "Coev2" begin
-#     coev_key = "Coev2"
-#     seed = UInt64(42)
-#     rng = StableRNG(seed)
-# 
-#     spawner1 = lingpredspawner(rng, :host;     npop = 50)
-#     spawner2 = lingpredspawner(rng, :symbiote; npop = 50)
-#     spawner3 = lingpredspawner(rng, :parasite; npop = 50)
-# 
-#     order1 = lingpredorder(:HostVsParasite, [:host, :parasite], LingPredGame(MatchComp()))
-#     order2 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], LingPredGame(MatchCoop()))
-# 
-#     coev_cfg = CoevConfig(;
-#         key = coev_key,
-#         trial = 1,
-#         seed = seed,
-#         rng = rng,
-#         jobcfg = SerialPhenoJobConfig(),
-#         orders = Dict(order1, order2),
-#         spawners = Dict(spawner1, spawner2, spawner3),
-#         loggers = Logger[]
-#     )
-# 
-#     allsp = coev_cfg()
-#     for gen in 1:100
-#         allsp = coev_cfg(UInt16(gen), allsp)
-#     end
-# end

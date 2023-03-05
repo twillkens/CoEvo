@@ -47,7 +47,8 @@ function unfreeze(
         ) : Individual[]
         childrengroup = spgroup["children"]
         children = [archiver(spid, iid, childrengroup[iid]) for iid in keys(childrengroup)]
-        push!(sppairs, 
+        push!(
+            sppairs, 
             Symbol(spid) => Species(
                 Symbol(spid),
                 spawners[Symbol(spid)].phenocfg,
@@ -73,7 +74,8 @@ function unfreeze(jldpath::String, getpop::Bool = true)
     (
         gen, 
         CoevConfig(
-            eco, trial, evostate, jobcfg, orders, spawners, loggers, jldpath, arxiv_interval
+            eco, trial, evostate, jobcfg, orders, spawners, loggers, 
+            jldpath, arxiv_interval, Dict{Int, Dict{Symbol, Species}}()
         ),
         allsp
     )

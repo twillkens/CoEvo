@@ -2,7 +2,6 @@ export FSMIndiv, FSMGeno, FSMPheno, FSMPhenoCfg
 export genotype, LinkDict, StateSet, act, FSMIndivConfig
 export FSMIndivArchiver, FSMSetPheno, FSMMinPheno
 
-abstract type FSMPheno{T} <: Phenotype end
 
 LinkDict = Dict{Tuple{String, Bool}, String}
 StateSet = Set{String}
@@ -13,6 +12,11 @@ struct FSMGeno{T} <: Genotype
     zeros::Set{T}
     links::Dict{Tuple{T, Bool}, T}
 end
+
+
+# Phenotype
+
+abstract type FSMPheno{T} <: Phenotype end
 
 struct FSMSetPheno{T} <: FSMPheno{T}
     ikey::IndivKey
@@ -35,6 +39,9 @@ function FSMMinPheno(pheno::FSMSetPheno)
     )
     FSMMinPheno(pheno.ikey, (pheno.start, pheno.start in pheno.ones), newlinks)
 end
+
+
+# Indiv
 
 struct FSMIndiv{G <: FSMGeno} <: Individual
     ikey::IndivKey
@@ -73,6 +80,9 @@ function clone(iid::UInt32, parent::FSMIndiv)
     ikey = IndivKey(parent.spid, iid)
     FSMIndiv(ikey, parent.geno, parent.mingeno, Set([parent.iid]))
 end
+
+
+# IndivConfig
 
 Base.@kwdef struct FSMIndivConfig{T} <: IndivConfig
     spid::Symbol
@@ -122,6 +132,9 @@ function(cfg::FSMIndivConfig)(::AbstractRNG, sc::SpawnCounter, npop::Int, indiv:
     cfg(sc, npop, indiv.geno)
 end
 
+
+# PhenoConfig
+
 Base.@kwdef struct FSMPhenoCfg <: PhenoConfig
     usemin::Bool = true
     usesets::Bool = false
@@ -150,6 +163,9 @@ function(cfg::FSMPhenoCfg)(indiv::FSMIndiv)
     cfg(indiv.ikey, cfg.usemin ? indiv.mingeno : indiv.geno)
 end
 
+
+# Loading
+
 function FSMIndiv(spid::Symbol, iid::UInt32, geno::FSMGeno, mingeno::FSMGeno)
     FSMIndiv(IndivKey(spid, iid), geno, mingeno)
 end
@@ -170,8 +186,10 @@ function FSMIndiv(ikey::IndivKey, igroup::JLD2.Group)
     FSMIndiv(ikey.spid, ikey.iid, igroup)
 end
 
+
+# Archiver
+
 Base.@kwdef struct FSMIndivArchiver <: Archiver
-    interval::Int = 1
     log_popids::Bool = true
     savegeno::Bool = true
     savemingeno::Bool = false
@@ -224,7 +242,7 @@ function(a::FSMIndivArchiver)(spid::Symbol, iid::UInt32, igroup::JLD2.Group)
         mingeno = minimize(geno)
         FSMIndiv(spid, iid, geno, mingeno, pids)
     else
-        throw(ArgumentError("FSMIndivArchiver must save at least one of geno or mingeno"))
+        throw(ArgumentError("FSMIndivArchiver requires at least one of geno or mingeno to load"))
     end
 end
 
