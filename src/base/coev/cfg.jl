@@ -90,18 +90,16 @@ function archive!(
     agroup = JLD2.Group(jld2file["arxiv"], string(gen))
     agroup["evostate"] = deepcopy(c.evostate)
     allspgroup = make_group!(agroup, "species")
-    [spawner.archiver(gen, allspgroup, spid, allsp[spid]) 
-    for (spid, spawner) in c.spawners]
+    [spawner.archiver(gen, allspgroup, spid, allsp[spid]) for (spid, spawner) in c.spawners]
     close(jld2file)
 end
 
 function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
+    
     #println("---------")
-    if c.arxiv_interval > 0 && gen % c.arxiv_interval == 0
         # println("arxiv")
         #@time archive!(gen, c, allsp)
-        archive!(gen, c, allsp)
-    end
+    archive!(gen, c, allsp)
     #println("sim")
     #@time allvets, outcomes = interact(c, allsp)
     allvets, outcomes = interact(c, allsp)

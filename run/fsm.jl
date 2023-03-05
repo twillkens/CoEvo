@@ -22,7 +22,7 @@ using Distributed
         recombiner = CloneRecombiner(),
         mutators = [LingPredMutator(probs = probs)],
         archiver = FSMIndivArchiver(
-            log_popids = false, savegeno = true, savemingeno = false, interval = 10
+            log_popids = false, savegeno = true, savemingeno = false, interval = 1
         ),
     )
     spid => s
@@ -197,7 +197,7 @@ end
 
 function pdispatch(;
     fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
-    njobs::Int = 0, arxiv_interval::Int = 10,
+    njobs::Int = 0, arxiv_interval::Int = 1,
     domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
 )
     futures = [
@@ -209,7 +209,7 @@ end
 
 function sdispatch(;
     fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
-    njobs::Int = 0, arxiv_interval::Int = 10,
+    njobs::Int = 0, arxiv_interval::Int = 1,
     domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
 )
     [fn(trial, npop, ngen, njobs, arxiv_interval, domains...) for trial in trange] 
