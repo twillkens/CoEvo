@@ -92,7 +92,7 @@ function archive!(
     if gen % c.arxiv_interval == 0
         jld2file = jldopen(c.jld2path, "a")
         for (gen, allsp) in c.spchache
-            agroup = JLD2.Group(jld2file["arxiv"], string(gen))
+            agroup = make_group!(jld2file["arxiv"], string(gen))
             agroup["evostate"] = deepcopy(c.evostate)
             allspgroup = make_group!(agroup, "species")
             [
