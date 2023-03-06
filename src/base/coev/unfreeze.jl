@@ -26,10 +26,11 @@ function findpop(
 end
 
 function unfreeze(
-    jld2file::JLD2.JLDFile, spawners::Dict{Symbol, <:Spawner}, getpop::Bool = true
+    jld2file::JLD2.JLDFile, spawners::Dict{Symbol, <:Spawner},
+    getpop::Bool = true, gen::Int = -1
 )
     arxivgroup = jld2file["arxiv"]
-    currgen = keys(arxivgroup)[end]
+    currgen = gen == - 1 ? keys(arxivgroup)[end] : string(gen)
     gengroup = arxivgroup[currgen]
     evostate = gengroup["evostate"]
     allspgroup = gengroup["species"]
@@ -60,8 +61,8 @@ function unfreeze(
     parse(Int, currgen) + 1, evostate, Dict(sppairs...)
 end
 
-function unfreeze(jldpath::String, getpop::Bool = true)
-    jld2file = jldopen(jldpath, "a")
+function unfreeze(jldpath::String, getpop::Bool = true, gen::Int = -1)
+    jld2file = jldopen(jldpath, "r")
     eco = jld2file["eco"]
     trial = jld2file["trial"]
     jobcfg = jld2file["jobcfg"]
@@ -69,7 +70,7 @@ function unfreeze(jldpath::String, getpop::Bool = true)
     spawners = jld2file["spawners"]
     loggers = jld2file["loggers"]
     arxiv_interval = jld2file["arxiv_interval"]
-    gen, evostate, allsp = unfreeze(jld2file, spawners, getpop)
+    gen, evostate, allsp = unfreeze(jld2file, spawners, getpop, gen)
     close(jld2file)
     (
         gen, 
@@ -79,4 +80,12 @@ function unfreeze(jldpath::String, getpop::Bool = true)
         ),
         allsp
     )
+end
+
+function unfreeze(jldpath::String, getpop::Bool, genrange:: UnitRange{Int})
+    jld2file = jldopen(jldpath, "r")
+    spawners = jld2file["spawners"]
+    allspvec = [unfreeze(jld2file, spawners, getpop, gen)[3] for gen in genrange]
+    close(jld2file)
+    allspvec
 end

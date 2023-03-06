@@ -4,29 +4,38 @@ export StatFeatures
 export SpeciesLogger
 
 Base.@kwdef struct StatFeatures
-    sum::Float64
-    mean::Float64
-    variance::Float64
-    std::Float64
-    minimum::Float64
-    lower_quartile::Float64
-    median::Float64
-    upper_quartile::Float64
-    maximum::Float64
+    sum::Float64 = 0
+    mean::Float64 = 0
+    variance::Float64 = 0
+    std::Float64 = 0
+    minimum::Float64 = 0
+    lower_quartile::Float64 = 0
+    median::Float64 = 0
+    upper_quartile::Float64 = 0
+    maximum::Float64 = 0
 end
 
 function StatFeatures(vec::Vector{<:Real})
-    min_, lower_, med_, upper_, max_, = nquantile(vec, 4)
-    StatFeatures(
-        mean = mean(vec),
-        variance = var(vec),
-        std = std(vec),
-        minimum = min_,
-        lower_quartile = lower_,
-        median = med_,
-        upper_quartile = upper_,
-        maximum = max_,
-    )
+    if length(vec) == 0
+        StatFeatures()
+    else
+        min_, lower_, med_, upper_, max_, = nquantile(vec, 4)
+        StatFeatures(
+            sum = sum(vec),
+            mean = mean(vec),
+            variance = var(vec),
+            std = std(vec),
+            minimum = min_,
+            lower_quartile = lower_,
+            median = med_,
+            upper_quartile = upper_,
+            maximum = max_,
+        )
+    end
+end
+
+function StatFeatures(vec::Vector{StatFeatures}, field::Symbol)
+    StatFeatures([getfield(sf, field) for sf in vec])
 end
 
 function make_group!(parent_group::JLD2.Group, key::String)
