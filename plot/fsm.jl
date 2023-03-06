@@ -1,53 +1,22 @@
+using Distributed
 using Plots
 using JLD2
 using StatsBase
-using CoEvo
+@everywhere using Pkg
+@everywhere Pkg.activate(".")
+@everywhere using CoEvo
 using DataFrames
-
-function countsizes(eco::String, trial::Int)
-    dpath = ENV["COEVO_DATA_DIR"]
-    path = joinpath(dpath, string(eco), "$trial.jld2")
-    jld = jldopen(path, "r")
-    arxiv = jld["arxiv"]
-    spawners = jld["spawners"]
-
-    spsizedict = Dict{String, Vector{Float64}}()
-    for genkey in keys(arxiv)
-        gengroup = arxiv[genkey]
-        allspgroup = gengroup["species"]
-        for spid in keys(allspgroup)
-            spgroup = allspgroup[spid]
-            children_group = spgroup["children"]
-            allsizes = Int[]
-            allminsizes = Int[]
-            for iid in keys(children_group)
-                childgroup = children_group[iid]
-                geno = spawners[Symbol(spid)].archiver(childgroup["geno"])
-                mingeno = minimize(geno)
-                push!(allsizes, length(geno.ones) + length(geno.zeros))
-                push!(allminsizes, length(mingeno.ones) + length(mingeno.zeros))
-            end
-            # add to spsizedict the mean size of the population
-            if spid in keys(spsizedict)
-                push!(spsizedict[spid], mean(allsizes))
-                push!(spsizedict["$spid-min"], mean(allminsizes))
-            else
-                spsizedict[spid] = [mean(allsizes)]
-                spsizedict["$spid-min"] = [mean(allminsizes)]
-            end
-        end
-    end
-    close(jld)
-    return spsizedict
-end
-
 
 function getecosp(
     ecopath::String, trange::UnitRange{Int} = 1:20, genrange::UnitRange{Int} = 1:10_000
 )
-    Dict(
-        trial => unfreeze(joinpath(ecopath, "$trial.jld2"), false, genrange) 
+    futures = [
+        @spawnat :any unfreeze(ecopath, trial, false, genrange) 
         for trial in trange
+    ]
+    Dict(
+        trial => fetch(future) 
+        for (trial, future) in zip(trange, futures)
     )
 end
 
@@ -56,16 +25,12 @@ struct FSMSpeciesSizeFeatures
     mingenosf::StatFeatures
 end
 
-function FSMSpeciesSizeFeatures(sp::Species, domingeno::Bool)
+function FSMSpeciesSizeFeatures(sp::Species)
     allsizes = Vector{Int}()
     allminsizes = Vector{Int}()
     for child in values(sp.children)
-        geno = child.geno
-        push!(allsizes, length(geno.ones) + length(geno.zeros))
-        if domingeno
-            mingeno = minimize(geno)
-            push!(allminsizes, length(mingeno.ones) + length(mingeno.zeros))
-        end
+        push!(allsizes, length(child.geno.ones) + length(child.geno.zeros))
+        push!(allminsizes, length(child.mingeno.ones) + length(child.mingeno.zeros))
     end
     FSMSpeciesSizeFeatures(StatFeatures(allsizes), StatFeatures(allminsizes))
 end
@@ -77,11 +42,11 @@ function FSMSpeciesSizeFeatures(v::Vector{FSMSpeciesSizeFeatures}, field::Symbol
     )
 end
 
-function sizestats(spvec::Vector{<:Dict{Symbol, <:Species}}, domingeno::Bool)
+function sizestats(spvec::Vector{<:Dict{Symbol, <:Species}})
     spsizedict = Dict{Symbol, Vector{FSMSpeciesSizeFeatures}}()
     for spdict in spvec
         for (spid, sp) in spdict
-            feat = FSMSpeciesSizeFeatures(sp, domingeno)
+            feat = FSMSpeciesSizeFeatures(sp)
             if spid in keys(spsizedict)
                 push!(spsizedict[spid], feat)
             else
@@ -92,10 +57,10 @@ function sizestats(spvec::Vector{<:Dict{Symbol, <:Species}}, domingeno::Bool)
     spsizedict
 end
 
-function count_ecosp(ecosp::Dict{Int, <:Vector{<:Dict{Symbol, <:Species}}}, domingeno::Bool)
+function count_ecosp(ecosp::Dict{Int, <:Vector{<:Dict{Symbol, <:Species}}})
 #function count_ecosp(ecosp::Dict{Int, Vector{T}}, domingeno::Bool) where T
     Dict(
-        trial => sizestats(spvec, domingeno) 
+        trial => sizestats(spvec) 
         for (trial, spvec) in ecosp
     )
 end
@@ -137,14 +102,13 @@ function getcountdata(
     eco::String, 
     trange::UnitRange{Int} = 1:20, 
     genrange::UnitRange{Int} = 1:50_000, 
-    domingeno::Bool = false,
     field::Symbol = :median
 )
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], string(eco))
     println("1")
     ecosp = getecosp(ecopath, trange, genrange)
     println("2")
-    ecospcounts = count_ecosp(ecosp, domingeno)
+    ecospcounts = count_ecosp(ecosp)
     println("3")
     spfeatdict = make_spfeatdict(ecospcounts)
     println("4")
@@ -191,6 +155,7 @@ function plotsizes(eco::String)
     statspath = joinpath(ecopath, "sizestats.jld2")
     statjld = jldopen(statspath, "r")
     mfeats = statjld["mfeats"]
+    
     for (spid, featvec) in mfeats
         println(spid)
         for feat in featvec

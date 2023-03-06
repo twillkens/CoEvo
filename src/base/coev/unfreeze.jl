@@ -82,8 +82,9 @@ function unfreeze(jldpath::String, getpop::Bool = true, gen::Int = -1)
     )
 end
 
-function unfreeze(jldpath::String, getpop::Bool, genrange:: UnitRange{Int})
-    jld2file = jldopen(jldpath, "r")
+function unfreeze(ecopath::String, trial::Int, getpop::Bool, genrange:: UnitRange{Int})
+    jld2path = joinpath(ecopath, "$trial.jld2")
+    jld2file = jldopen(jld2path, "r")
     spawners = jld2file["spawners"]
     allspvec = [unfreeze(jld2file, spawners, getpop, gen)[3] for gen in genrange]
     close(jld2file)
