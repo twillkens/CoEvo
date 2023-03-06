@@ -1,11 +1,51 @@
 using Distributed
 using Plots
-using JLD2
+@everywhere using JLD2
 using StatsBase
 @everywhere using Pkg
 @everywhere Pkg.activate(".")
 @everywhere using CoEvo
 using DataFrames
+
+@everywhere function fillmingeno!(eco::String, trial::Int)
+    ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
+    archiver = FSMIndivArchiver()
+    jld2path = joinpath(ecopath, "$trial.jld2")
+    jld2file = jldopen(jld2path, "a+")
+    for genkey in keys(jld2file["arxiv"])
+        if parse(Int, genkey) % 100 == 0
+            println("$trial-$genkey")
+            close(jld2file)
+            jld2file = jldopen(jld2path, "a+")
+        end
+        gengroup = jld2file["arxiv"][genkey]
+        allspgroup = gengroup["species"]
+        for spid in keys(allspgroup)
+            spgroup = allspgroup[spid]
+            childrengroup = spgroup["children"]
+            for iid in keys(childrengroup)
+                childgroup = childrengroup[iid]
+                if "mingeno" in keys(childgroup)
+                    continue
+                end
+                geno = archiver(childgroup["geno"])
+                mingeno = minimize(geno)
+                make_group!(childgroup, "mingeno")
+                mingenogroup = childgroup["mingeno"]
+                archiver(mingenogroup, mingeno)
+            end
+        end
+    end
+    close(jld2file)
+end
+
+
+function fillmingeno!(eco::String, trials::UnitRange{Int})
+    futures = [
+        @spawnat :any fillmingeno!(eco, trial) 
+        for trial in trials]
+    [fetch(future) for future in futures]
+end
 
 function getecosp(
     ecopath::String, trange::UnitRange{Int} = 1:20, genrange::UnitRange{Int} = 1:10_000

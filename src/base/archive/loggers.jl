@@ -2,6 +2,7 @@ export FitnessLogger
 export BasicGeneLogger
 export StatFeatures
 export SpeciesLogger
+export make_group!
 
 Base.@kwdef struct StatFeatures
     sum::Float64 = 0
