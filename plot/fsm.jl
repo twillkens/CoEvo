@@ -7,15 +7,15 @@ using StatsBase
 @everywhere using CoEvo
 using DataFrames
 
-@everywhere function fillmingeno!(eco::String, trial::Int)
+@everywhere function fillmingeno!(eco::String, trial::Int, writefreq::Int = 1000)
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
     archiver = FSMIndivArchiver()
     jld2path = joinpath(ecopath, "$trial.jld2")
     jld2file = jldopen(jld2path, "a+")
     for genkey in keys(jld2file["arxiv"])
-        if parse(Int, genkey) % 100 == 0
+        if parse(Int, genkey) % writefreq == 0
             println("$trial-$genkey")
-            close(jld2file)
+            @time close(jld2file)
             jld2file = jldopen(jld2path, "a+")
         end
         gengroup = jld2file["arxiv"][genkey]
