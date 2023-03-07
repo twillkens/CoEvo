@@ -40,7 +40,7 @@ end
             break
         end
         if genkey % 1000 == 0
-            println("$spid-$genkey")
+            println("$(myid())-$spid-$genkey")
         end
         childrengroup = jld2file["arxiv/$genkey/species/$spid/children"]
         new_tagdict = Dict{String, Int}()
