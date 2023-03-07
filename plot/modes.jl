@@ -25,7 +25,7 @@ end
 
 
 @everywhere function pfilter(
-    jld2file::JLD2.JLDFile, spid::String, t::Int, until::Int = typemax(Int), closefile = true
+    jld2file::JLD2.JLDFile, spid::String, t::Int, until::Int = typemax(Int)
 )
     # archiver = FSMIndivArchiver()
     tagdict = Dict{String, Int}()
@@ -39,7 +39,6 @@ end
         push!(ftags, ftag)
     end
     pfiltered = [ftags]
-
 
     for gen in 2:length(keys(jld2file["arxiv"]))
         if gen > until
@@ -73,9 +72,7 @@ end
         tagdict = new_tagdict
     end
     pop!(pfiltered)
-    if closefile
-        close(jld2file)
-    end
+    close(jld2file)
     pfiltered
 end
 
@@ -85,7 +82,6 @@ end
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
     jld2path = joinpath(ecopath, "$trial.jld2")
     jld2file = jldopen(jld2path, "r")
-    println(keys(jld2file["arxiv/1/species"]))
     pfilter(jld2file, spid, t, until)
 end
 
@@ -95,8 +91,9 @@ end
     jld2path = joinpath(ecopath, "$trial.jld2")
     jld2file = jldopen(jld2path, "r")
     spids = keys(jld2file["arxiv/1/species"])
+    close(jld2file)
     println("spids: $spids")
-    spfiltered = Dict(spid => pfilter(jld2file, spid, t, until, false) for spid in spids)
+    spfiltered = Dict(spid => pfilter(eco, trial, spid, t, until) for spid in spids)
     close(jld2file)
     spfiltered
 end
