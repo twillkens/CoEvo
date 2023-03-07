@@ -21,7 +21,6 @@ end
 )
     archiver = FSMIndivArchiver()
     tagdict = Dict{String, Int}()
-    pfiltered = SortedDict{Int, Vector{FilterIndiv}}()
 
     childrengroup = jld2file["arxiv/1/species/$spid/children"]
     findivs = Vector{FilterIndiv}()
@@ -32,7 +31,7 @@ end
         findiv = FilterIndiv(indiv, prevtag, tag)
         push!(findivs, findiv)
     end
-    pfiltered[1] = findivs
+    pfiltered = [findivs]
 
 
     for genkey in 2:length(keys(jld2file["arxiv"]))
@@ -40,7 +39,7 @@ end
             break
         end
         if genkey % 1000 == 0
-            println("$(myid())-$spid-$genkey")
+            println("$(myid() - 1)-$spid-$genkey")
         end
         childrengroup = jld2file["arxiv/$genkey/species/$spid/children"]
         new_tagdict = Dict{String, Int}()
@@ -53,7 +52,9 @@ end
                 findiv = FilterIndiv(indiv, prevtag, tag)
                 push!(findivs, findiv)
             end
-            pfiltered[genkey] = findivs
+            nexttags = Set([findiv.prevtag for findiv in findivs])
+            filter!(findiv -> findiv.currtag in nexttags, pfiltered[end])
+            push!(pfiltered, findivs)
         else
             for iid in keys(childrengroup)
                 pid = first(childrengroup[iid]["pids"])
@@ -62,17 +63,9 @@ end
         end
         tagdict = new_tagdict
     end
+    pop!(pfiltered)
     if closefile
         close(jld2file)
-    end
-    vecs = collect(values(pfiltered))
-    for (idx, v) in enumerate(vecs)
-        if idx == length(vecs)
-            break
-        end
-        nextv = vecs[idx + 1]
-        nexttags = Set([findiv.prevtag for findiv in nextv])
-        filter!(findiv -> findiv.currtag in nexttags, v)
     end
     pfiltered
 end
