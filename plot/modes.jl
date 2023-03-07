@@ -8,6 +8,7 @@ using Distributed
 using StatsBase
 using DataFrames
 @everywhere using DataStructures
+using Serialization
 
 @everywhere struct FilterIndiv{I <: FSMIndiv}
     indiv::I
@@ -27,9 +28,7 @@ end
 @everywhere function pfilter(
     jld2file::JLD2.JLDFile, spid::String, t::Int, until::Int = typemax(Int)
 )
-    # archiver = FSMIndivArchiver()
     tagdict = Dict{String, Int}()
-
     childrengroup = jld2file["arxiv/1/species/$spid/children"]
     ftags = Vector{FilterTag}()
     for (tag, iid) in enumerate(keys(childrengroup))
@@ -52,8 +51,6 @@ end
         if gen % t == 0
             ftags = Vector{FilterTag}()
             for (tag, iid) in enumerate(keys(childrengroup))
-                #jldpath = "arxiv/$gen/species/$spid/children/$iid"
-                #indiv = archiver(spid, iid, childrengroup[iid])
                 new_tagdict[iid] = tag
                 pid = first(childrengroup[iid]["pids"])
                 prevtag = tagdict[string(pid)]
@@ -180,4 +177,62 @@ function writeindivs(eco::String)
         end
         close(indiv_jld2file)
     end
+end
+
+function writecounts(eco::String)
+    ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
+    indivs_jld2file = jldopen(joinpath(ecopath, "pfilter-indivs.jld2"), "r")
+    counts_jld2file = jldopen(joinpath(ecopath, "pfilter-counts.jld2"), "w")
+    spids = keys(indivs_jld2file)
+    for spid in spids
+        println(spid)
+        trials = keys(indivs_jld2file[spid])
+        for trial in trials
+            println(trial)
+            allspindivs = indivs_jld2file["$spid/$trial"]
+            for (fgen, findivs) in enumerate(allspindivs)
+                counts_jld2file["$fgen/$spid/$trial"] = [findiv.indiv for findiv in findivs]
+            end
+        end
+    end
+    close(indivs_jld2file)
+    dfdict = Dict{String, Vector{Float64}}()
+    for fgen in keys(counts_jld2file)
+        println(fgen)
+        for spid in keys(counts_jld2file[fgen])
+            if "$spid-geno-med" ∉ keys(dfdict)
+                dfdict["$spid-geno-med"] = Vector{Float64}()
+                dfdict["$spid-geno-upper"] = Vector{Float64}()
+                dfdict["$spid-geno-lower"] = Vector{Float64}()
+                dfdict["$spid-min-med"] = Vector{Float64}()
+                dfdict["$spid-min-upper"] = Vector{Float64}()
+                dfdict["$spid-min-lower"] = Vector{Float64}()
+            end
+            allindivs = FSMIndiv[]
+            for trial in keys(counts_jld2file[fgen][spid])
+                append!(allindivs, counts_jld2file["$fgen/$spid/$trial"])
+            end
+            allgenocounts = [
+                length(indiv.geno.ones) + length(indiv.geno.zeros) for indiv in allindivs
+            ]
+            allmingenocounts = [
+                length(indiv.mingeno.ones) + length(indiv.mingeno.zeros) for indiv in allindivs
+            ]
+            genosf = StatFeatures(allgenocounts)
+            mingenosf = StatFeatures(allmingenocounts)
+            counts_jld2file["$fgen/$spid/genosf"] = genosf
+            counts_jld2file["$fgen/$spid/mingenosf"] = mingenosf
+            push!(dfdict["$spid-geno-med"], genosf.median)
+            push!(dfdict["$spid-geno-upper"], genosf.upper_quartile)
+            push!(dfdict["$spid-geno-lower"], genosf.lower_quartile)
+            push!(dfdict["$spid-min-med"], mingenosf.median)
+            push!(dfdict["$spid-min-upper"], mingenosf.upper_quartile)
+            push!(dfdict["$spid-min-lower"], mingenosf.lower_quartile)
+        end
+    end
+    df = DataFrame(dfdict)
+    counts_jld2file["df"] = df
+    serialize(joinpath(ecopath, "$eco-counts.jls"), df)
+
+    close(counts_jld2file)
 end
