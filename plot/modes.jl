@@ -167,6 +167,8 @@ function writeindivs(eco::String)
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
     tags_jld2file = jldopen(joinpath(ecopath, "pfilter-tags.jld2"), "r")
     indivs_jld2path = joinpath(ecopath, "pfilter-indivs.jld2")
+    jld = jldopen(indivs_jld2path, "w")
+    close(jld)
 
     for trial in keys(tags_jld2file)
         println(trial)
