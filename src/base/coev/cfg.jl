@@ -113,19 +113,18 @@ end
 
 function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
     if gen % 100 == 0
-        println("---------")
-        println("$(c.eco) $(c.trial) gen: $gen")
         t = time()
         archive!(gen, c, allsp)
-        println("arxiv: $(time() - t)")
+        atime = time() - t
         t = time()
         allvets, outcomes = interact(c, allsp)
-        println("interact: $(time() - t)")
+        itime = time() - t
         t = time()
         nextsp = Dict(
             spawner.spid => spawner(c.evostate, allvets) for spawner in values(c.spawners)
         )
-        println("spawn: $(time() - t)")
+        stime = time() - t
+        println("trial: $(c.trial) gen: $gen, archive: $atime, interact: $itime, spawn: $stime")
         nextsp
     else
         archive!(gen, c, allsp)
