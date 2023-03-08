@@ -90,7 +90,7 @@ function archive!(
 )
     push!(c.spchache, gen => allsp)
     if gen % c.arxiv_interval == 0
-        lockpath = joinpath(dirname(c.jld2path), "lock-$(myid() % 5)")
+        lockpath = joinpath(dirname(c.jld2path), "lock-$(myid() % 2)")
         lock = mkpidlock(lockpath)
         println("archiving: $(c.trial), gen : $gen")
         jld2file = jldopen(c.jld2path, "a")

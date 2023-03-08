@@ -237,6 +237,12 @@ function writecounts(eco::String)
     close(counts_jld2file)
 end
 
+function modesfilter((eco::String, trials::UnitRange{Int}, t::Int, until::Int = typemax(Int)))
+    writepfilter(eco, trials, t, until)
+    writeindivs(eco)
+    writecounts(eco)
+end
+
 function changenov(eco::String, spid::Symbol, trial::Int)
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
     indivs_jld2path = joinpath(ecopath, "pfilter-indivs.jld2")
