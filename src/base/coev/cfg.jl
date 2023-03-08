@@ -107,6 +107,7 @@ function archive!(
         println("done archiving: $(c.trial), gen : $gen")
         close(lock)
         empty!(c.spchache)
+        GC.gc()
     end
 end
 

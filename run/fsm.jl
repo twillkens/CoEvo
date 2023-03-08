@@ -275,12 +275,7 @@ end
 )
     println("starting: $eco-$trial")
     for gen in start:ngen
-        if mod(gen, 100) == 0
-            println("$eco-$trial: $gen")
-            @time allsp = coevcfg(gen, allsp)
-        else
-            allsp = coevcfg(gen, allsp)
-        end
+        allsp = coevcfg(gen, allsp)
     end
 end
 
