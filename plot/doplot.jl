@@ -301,3 +301,23 @@ function doall()
     plot_compcycle()
     plot_fitness()
 end
+
+
+using StatsPlots
+
+function raincloud(data)
+    p = violin(data,
+               side=:left,
+               show_mean = true,
+               show_median = true,
+               quantiles = [0.25, 0.75],
+               leg=false)
+
+    for col in 1:size(data)[2]
+        display(scatter!(col .+ 0.1 .+ 0.3 .* rand(size(data)[1]),
+                data[:, col], color=col))
+    end
+
+end
+
+# raincloud(rand(100, 5))
