@@ -8,6 +8,7 @@ using Combinatorics
 using Distributions
 using JLD2
 using DataStructures
+using Pidfile
 
 include("abstract/abstract.jl")
 

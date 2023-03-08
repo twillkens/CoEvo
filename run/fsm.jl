@@ -147,13 +147,41 @@ end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
-@everywhere function runmix(
+@everywhere function run_matchcycle(
     trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int, 
-    domain1::Domain, domain2::Domain
 )
-    v1 = typeof(domain1).parameters[1]
-    v2 = typeof(domain2).parameters[1]
-    eco = Symbol("$(v1)-$(v2)")
+    eco = Symbol("matchcycle")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:x; npop = npop)
+        spawner2 = lingpredspawner(:y; npop = npop)
+        spawner3 = lingpredspawner(:z; npop = npop)
+        order1 = lingpredorder(:xy, [:x, :y], LingPredGame(MatchComp()))
+        order2 = lingpredorder(:yz, [:y, :z], LingPredGame(MatchComp()))
+        order3 = lingpredorder(:zx, [:z, :x], LingPredGame(MatchComp()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order1, order2, order3),
+            spawners = Dict(spawner1, spawner2, spawner3),
+            arxiv_interval = arxiv_interval,
+        )
+        allsp = coevcfg()
+    end
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
+end
+
+@everywhere function run_matchmix(
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int
+)
+    eco = Symbol("matchmix")
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
@@ -164,8 +192,38 @@ end
         spawner1 = lingpredspawner(:host;     npop = npop)
         spawner2 = lingpredspawner(:symbiote; npop = npop)
         spawner3 = lingpredspawner(:parasite; npop = npop)
-        order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], domain1)
-        order2 = lingpredorder(:HostVsParasite, [:host, :parasite], domain2)
+        order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], LingPredGame(MatchCoop()))
+        order2 = lingpredorder(:HostVsParasite, [:host, :parasite], LingPredGame(MatchComp()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order1, order2),
+            spawners = Dict(spawner1, spawner2, spawner3),
+            arxiv_interval = arxiv_interval,
+        )
+        allsp = coevcfg()
+    end
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
+end
+
+@everywhere function run_mismatchmix(
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int
+)
+    eco = Symbol("matchmix")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:host;     npop = npop)
+        spawner2 = lingpredspawner(:symbiote; npop = npop)
+        spawner3 = lingpredspawner(:parasite; npop = npop)
+        order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], LingPredGame(MatchCoop()))
+        order2 = lingpredorder(:HostVsParasite, [:host, :parasite], LingPredGame(MismatchComp()))
         coevcfg = CoevConfig(;
             eco = eco,
             trial = trial,
@@ -196,21 +254,19 @@ end
 end
 
 function pdispatch(;
-    fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
-    njobs::Int = 0, arxiv_interval::Int = 100,
-    domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
+    fn::Function = runctrl, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 50_000,
+    njobs::Int = 0, arxiv_interval::Int = 1000,
 )
     futures = [
-        @spawnat :any fn(trial, npop, ngen, njobs, arxiv_interval, domains...) 
+        @spawnat :any fn(trial, npop, ngen, njobs, arxiv_interval) 
         for trial in trange
     ] 
     [fetch(f) for f in futures]
 end
 
 function sdispatch(;
-    fn::Function = runmix, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 10_000,
-    njobs::Int = 0, arxiv_interval::Int = 100,
-    domains::Vector{<:Domain} = [LingPredGame(MismatchCoop()), LingPredGame(MatchComp())]
+    fn::Function = runctrl, trange::UnitRange = 1:20, npop::Int = 50, ngen::Int = 50_000,
+    njobs::Int = 0, arxiv_interval::Int = 1000,
 )
-    [fn(trial, npop, ngen, njobs, arxiv_interval, domains...) for trial in trange] 
+    [fn(trial, npop, ngen, njobs, arxiv_interval) for trial in trange] 
 end
