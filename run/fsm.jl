@@ -178,6 +178,37 @@ end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
+@everywhere function run_mismatchcycle(
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int, 
+)
+    eco = Symbol("mismatchcycle")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:x; npop = npop)
+        spawner2 = lingpredspawner(:y; npop = npop)
+        spawner3 = lingpredspawner(:z; npop = npop)
+        order1 = lingpredorder(:xy, [:x, :y], LingPredGame(MatchComp()))
+        order2 = lingpredorder(:yz, [:y, :z], LingPredGame(MismatchComp()))
+        order3 = lingpredorder(:zx, [:z, :x], LingPredGame(MatchComp()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order1, order2, order3),
+            spawners = Dict(spawner1, spawner2, spawner3),
+            arxiv_interval = arxiv_interval,
+        )
+        allsp = coevcfg()
+    end
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
+end
+
 @everywhere function run_matchmix(
     trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int
 )
@@ -211,7 +242,7 @@ end
 @everywhere function run_mismatchmix(
     trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int
 )
-    eco = Symbol("matchmix")
+    eco = Symbol("mismatchmix")
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
