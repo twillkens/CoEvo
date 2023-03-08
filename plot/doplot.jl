@@ -1,3 +1,4 @@
+using Plots
 using Plots: plot
 using StatsBase
 using Distributions

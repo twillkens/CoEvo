@@ -1,0 +1,256 @@
+Base.@kwdef mutable struct AliasCounter
+    i::Int = 0
+end
+
+function(cnt::AliasCounter)()
+    cnt.i += 1
+    cnt.i
+end
+
+function Base.hash(x::FSMGeno, h::UInt)
+    hash(aliasgeno(x), h)
+end
+
+function Base.:(==)(x::FSMGeno{T}, y::FSMGeno{T}) where T
+    if length(x.ones) != length(y.ones) || length(x.zeros) != length(y.zeros)
+        return false
+    end
+    aliasgeno(x) == aliasgeno(y)
+end
+
+function aliasgeno(geno::FSMGeno)
+    adict, cnt = build_aliasdict(geno)
+    [push!(adict, s => cnt()) for s in geno.ones if s ∉ keys(adict)]
+    [push!(adict, s => cnt()) for s in geno.zeros if s ∉ keys(adict)]
+    aliasones = Set(adict[source] for source in geno.ones)
+    aliaszeros = Set(adict[source] for source in geno.zeros)
+    aliaslinks = Dict(
+        (adict[source], bit) => (adict[target], adict[target] in aliasones)
+        for ((source, bit), target) in geno.links
+    )
+    adict[geno.start], aliasones, aliaszeros, aliaslinks
+end
+
+function build_aliasdict(
+    geno::FSMGeno{T},
+    s::T = geno.start,
+    adict::Dict{T, Int} = Dict{T, Int}(), 
+    cnt::AliasCounter = AliasCounter()
+) where T
+    if s in keys(adict)
+        return adict, cnt
+    end
+    adict[s] = cnt()
+    build_aliasdict(geno, geno.links[(s, true)], adict, cnt)
+    build_aliasdict(geno, geno.links[(s, false)], adict, cnt)
+end
+
+@testset "FSMGeno Equals" begin
+@testset "basic equals" begin
+    start = 1
+    ones = Set([1, 2, 3, 4])
+    zeros = Set([5])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 3,
+    )
+    fsm1 = FSMGeno(start, ones, zeros, links)
+    fsm2 = FSMGeno(start, ones, zeros, links)
+    @test fsm1 == fsm2
+end
+
+@testset "wrong start" begin
+    start1 = 1
+    start2 = 5
+    ones = Set([1, 2, 3, 4])
+    zeros = Set([5])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 3,
+    )
+    fsm1 = FSMGeno(start1, ones, zeros, links)
+    fsm2 = FSMGeno(start2, ones, zeros, links)
+    @test fsm1 != fsm2
+end
+
+@testset "different link" begin 
+    start = 1
+    ones = Set([1, 2, 3, 4])
+    zeros = Set([5])
+    links1 = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 3, # different
+    )
+    links2 = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 4, # different
+    )
+    fsm1 = FSMGeno(start, ones, zeros, links1)
+    fsm2 = FSMGeno(start, ones, zeros, links2)
+    @test fsm1 != fsm2
+end
+
+@testset "different size" begin
+    start = 1
+    ones1 = Set([1, 2, 3, 4])
+    ones2 = Set([1, 2, 3, 4, 6])
+    zeros = Set([5])
+    links1 = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 3,
+    )
+    links2 = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 3,
+        (6, 0) => 2,
+        (6, 1) => 3,
+    )
+    fsm1 = FSMGeno(start, ones1, zeros, links1)
+    fsm2 = FSMGeno(start, ones2, zeros, links2)
+    @test fsm1 != fsm2
+end
+
+@testset "different names still returns true" begin
+    start = 1
+    ones = Set([1, 2, 3, 4])
+    zeros = Set([5])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 3,
+    )
+    geno1 = FSMGeno(start, ones, zeros, links)
+
+    start = 6
+    ones = Set([6, 7, 8, 9])
+    zeros = Set([10])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (6, 0) => 7,
+        (6, 1) => 8,
+        (7, 0) => 7,
+        (7, 1) => 9,
+        (8, 0) => 7,
+        (8, 1) => 8,
+        (9, 0) => 7,
+        (9, 1) => 10,
+        (10, 0) => 7,
+        (10, 1) => 8,
+    )
+    geno2 = FSMGeno(start, ones, zeros, links)
+    @test geno1 == geno2
+end
+
+@testset "sets of FSMGeno" begin
+    start = 1
+    ones = Set([1, 2, 3, 4])
+    zeros = Set([5])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 3,
+    )
+    geno1 = FSMGeno(start, ones, zeros, links)
+    geno2 = FSMGeno(start, ones, zeros, links)
+    @test Set([geno1, geno2]) == Set([geno1])
+end
+
+@testset "sets of FSMGeno with different names" begin
+    start = 1
+    ones = Set([1, 2, 3, 4])
+    zeros = Set([5])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (1, 0) => 2,
+        (1, 1) => 3,
+        (2, 0) => 2,
+        (2, 1) => 4,
+        (3, 0) => 2,
+        (3, 1) => 3,
+        (4, 0) => 2,
+        (4, 1) => 5,
+        (5, 0) => 2,
+        (5, 1) => 3,
+    )
+    geno1 = FSMGeno(start, ones, zeros, links)
+
+    start = 6
+    ones = Set([6, 7, 8, 9])
+    zeros = Set([10])
+    links = Dict{Tuple{Int, Bool}, Int}(
+        (6, 0) => 7,
+        (6, 1) => 8,
+        (7, 0) => 7,
+        (7, 1) => 9,
+        (8, 0) => 7,
+        (8, 1) => 8,
+        (9, 0) => 7,
+        (9, 1) => 10,
+        (10, 0) => 7,
+        (10, 1) => 8,
+    )
+    geno2 = FSMGeno(start, ones, zeros, links)
+    @test geno1 == geno2
+    @test Set([geno1, geno2]) == Set([geno1])
+end
+end

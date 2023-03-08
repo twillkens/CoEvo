@@ -236,3 +236,28 @@ function writecounts(eco::String)
 
     close(counts_jld2file)
 end
+
+function changenov(eco::String, spid::Symbol, trial::Int)
+    ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
+    counts_jld2path = joinpath(ecopath, "pfilter-indivs.jld2")
+    counts_jld2file = jldopen(counts_jld2path, "r")
+    allspindivs = counts_jld2file["$spid/$trial"]
+    change = Vector{Int}()
+    novelty = Vector{Int}()
+    allgenos = Set([f.indiv.mingeno for f in allspindivs[1]])
+    for i in 2:(length(allspindivs))
+        prevgenos = Set([f.indiv.mingeno for f in allspindivs[i - 1]])
+        currgenos = Set([f.indiv.mingeno for f in allspindivs[i]])
+        push!(change, length([geno for geno in currgenos if geno ∉ prevgenos]))
+        nov = 0
+        for geno in currgenos
+            if geno ∉ allgenos
+                nov += 1
+                push!(allgenos, geno)
+            end
+        end
+        push!(novelty, nov)
+    end
+    change, novelty
+end
+
