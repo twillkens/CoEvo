@@ -237,7 +237,7 @@ function writecounts(eco::String)
     close(counts_jld2file)
 end
 
-function modesfilter((eco::String, trials::UnitRange{Int}, t::Int, until::Int = typemax(Int)))
+function modesfilter(eco::String, trials::UnitRange{Int}, t::Int, until::Int = typemax(Int))
     writepfilter(eco, trials, t, until)
     writeindivs(eco)
     writecounts(eco)
