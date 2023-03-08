@@ -261,3 +261,5 @@ function changenov(eco::String, spid::Symbol, trial::Int)
     change, novelty
 end
 
+
+x, y = changenov("MatchCoop-MatchComp", :host, 1)
