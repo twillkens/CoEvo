@@ -7,6 +7,8 @@ using Distributed
 @everywhere include("fssf.jl")
 using StatsBase
 using DataFrames
+@everywhere using StableRNGs
+@everywhere using Random
 @everywhere using DataStructures
 using Serialization
 
@@ -271,7 +273,7 @@ function changenov(eco::String, spid::Symbol, trial::Int)
     change, novelty, allgenos, allgenovec
 end
 
-function get_allgenindivs(eco::String, spid::Symbol, trial::Int, gen::Int)
+@everywhere function get_allgenphenos(eco::String, spid::String, trial::Int, gen::Int)
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
     trialpath = joinpath(ecopath, "$trial.jld2")
     jld2file = jldopen(trialpath, "r")
@@ -281,29 +283,127 @@ function get_allgenindivs(eco::String, spid::Symbol, trial::Int, gen::Int)
         for i in keys(jld2file["arxiv/$gen/species/$spid/children"])
     ]
     close(jld2file)
-    genindivs
+    pcfg = FSMPhenoCfg()
+    [pcfg(indiv) for indiv in genindivs]
 end
 
-struct KOPheno
-    prime::FSMPheno
-    kos::Vector{FSMPheno}
+@everywhere mutable struct KOPheno{I <: FSMIndiv}
+    indiv::I
+    prime::FSMPheno{UInt32}
+    score::Float64
+    kos::Dict{UInt32, FSMPheno{UInt32}}
+    koscores::Dict{UInt32, Float64}
 end
 
-function KOPheno(indiv::FSMIndiv)
-    onekos = [rmstate(geno, i) for i in indiv.mingeno.ones if i != indiv.mingeno.start]
-    zerokos = [rmstate(geno, i) for i in indiv.mingeno.zeros if i != indiv.mingeno.start]
-    KOPheno(FSMPheno(geno), [onekos ; zerokos])
+@everywhere function KOPheno(indiv::FSMIndiv, rng::AbstractRNG = StableRNG(42)) 
+    pcfg = FSMPhenoCfg()
+    onekos = [
+        i => pcfg(indiv.ikey, rmstate(rng, indiv.mingeno, i)) 
+        for i in indiv.mingeno.ones if i != indiv.mingeno.start
+    ]
+    zerokos = [
+        i => pcfg(indiv.ikey, rmstate(rng, indiv.mingeno, i))
+        for i in indiv.mingeno.zeros if i != indiv.mingeno.start
+    ]
+    kos = Dict{UInt32, FSMPheno{UInt32}}()
+    [push!(kos, ko) for ko in onekos]
+    [push!(kos, ko) for ko in zerokos]
+    koscores = Dict(i => 0.0 for i in keys(kos))
+    KOPheno(indiv, pcfg(indiv), 0.0, kos, koscores)
 end
 
-function genocomplexity(eco::String, trial::Int, gen::Int)
+@everywhere function KOPheno(findiv::FilterIndiv)
+    KOPheno(findiv.indiv)
+end
+
+@everywhere function fight!(kop1::KOPheno, kop2::KOPheno, domain::Domain)
+    o_prime = stir(:ko, domain, NullObsConfig(), kop1.prime, kop2.prime)
+    kop1.score += getscore(kop1.prime.ikey, o_prime)
+    kop2.score += getscore(kop2.prime.ikey, o_prime)
+    ko_outcomes1 = Dict(
+        s => stir(:ko, domain, NullObsConfig(), ko, kop2.prime) 
+        for (s, ko) in kop1.kos
+    )
+    ko_outcomes2 = Dict(
+        s => stir(:ko, domain, NullObsConfig(), kop1.prime, ko) 
+        for (s, ko) in kop2.kos
+    )
+
+    ko_scores1 = Dict(s => getscore(kop1.prime.ikey, outcome) for (s, outcome) in ko_outcomes1)
+    ko_scores2 = Dict(s => getscore(kop2.prime.ikey, outcome) for (s, outcome) in ko_outcomes2)
+    for (s, score) in ko_scores1
+        kop1.koscores[s] += score
+    end
+    for (s, score) in ko_scores2
+        kop2.koscores[s] += score
+    end
+end
+
+@everywhere function fight!(kop::KOPheno, p::FSMPheno{UInt32}, domain::Domain)
+    o_prime = stir(:ko, domain, NullObsConfig(), kop.prime, p)
+    kop.score += getscore(kop.prime.ikey, o_prime)
+    ko_outcomes = Dict(
+        s => stir(:ko, domain, NullObsConfig(), ko, p) 
+        for (s, ko) in kop.kos
+    )
+    ko_scores = Dict(s => getscore(kop.prime.ikey, outcome) for (s, outcome) in ko_outcomes)
+    for (s, score) in ko_scores
+        kop.koscores[s] += score
+    end
+end
+
+@everywhere function genocomplexity(eco::String, trial::Int, domains::Dict{Tuple{String, String}, <:Domain})
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
     indivs_jld2path = joinpath(ecopath, "pfilter-indivs.jld2")
     indivs_jld2file = jldopen(indivs_jld2path, "r")
+
     spkeys = keys(indivs_jld2file)
-    allspindivs = indivs_jld2file["$spid/$trial"]
-    for 
-    # genindivs = get_allgenindivs(eco, spid, trial, gen)
-    for indiv in allspindivs
+    spdict = Dict(
+        spid => [
+            [KOPheno(indiv) for indiv in genvec]
+            for genvec in indivs_jld2file["$spid/$trial"] 
+        ]
+        for spid in spkeys
+    )
+    close(indivs_jld2file)
+    for ((spid1, spid2), domain) in domains
+        genvec1 = spdict[spid1]
+        genvec2 = spdict[spid2]
+        for (i, (kophenos1, kophenos2)) in enumerate(zip(genvec1, genvec2))
+            gen = i == 1 ? 1 : (i - 1) * 50
+            println("fighting $spid1 vs $spid2 at gen $gen")
+            phenos1 = get_allgenphenos(eco, spid1, trial, gen)
+            phenos2 = get_allgenphenos(eco, spid2, trial, gen)
+            for kop in kophenos1
+                for p in phenos2
+                    fight!(kop, p, domain)
+                end
+            end
+            for kop in kophenos2
+                for p in phenos1
+                    fight!(kop, p, domain)
+                end
+            end
+        end
+    end
+    spdict
+end
 
-
+function genocomplexity(
+    eco::String, trange::UnitRange{Int}, domains::Dict{Tuple{String, String}, <:Domain}
+)
+    futures = [
+        @spawn genocomplexity(eco, trial, domains) 
+        for trial in trange
+    ]
+    tdicts = [fetch(f) for f in futures]
+    complexity_jld2file = jldopen(
+        joinpath(ENV["COEVO_DATA_DIR"], eco, "genocomplexity.jld2"), "w"
+    )
+    for (trial, tdict) in enumerate(tdicts)
+        for (spid, kophenos) in tdict
+            complexity_jld2file["$spid/$trial"] = kophenos
+        end
+    end
+    close(complexity_jld2file)
 end

@@ -22,7 +22,9 @@ Base.@kwdef struct VectorIndivArchiver <: Archiver
     log_popids::Bool = true
 end
 
-function(a::VectorIndivArchiver)(children_group::JLD2.Group, child::VectorIndiv)
+function(a::VectorIndivArchiver)(
+    children_group::JLD2.Group, child::VectorIndiv, ::Bool
+)
     cgroup = make_group!(children_group, child.iid)
     cgroup["gids"] = [gene.gid for gene in child.genes]
     cgroup["vals"] = [gene.val for gene in child.genes]

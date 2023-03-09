@@ -13,6 +13,7 @@ using Pidfile
 include("abstract/abstract.jl")
 
 const KEY_SPLIT_TOKEN = "-"
+const PFILTER_T = 25
 
 include("base/base.jl")
 include("domains/domains.jl")

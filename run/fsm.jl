@@ -337,6 +337,75 @@ end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
+@everywhere function run_4MismatchMatchMix(
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int, 
+)
+    eco = Symbol("4MismatchMatchMix")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(
+                lingpredorder(:AB, [:A, :B], LingPredGame(MatchComp())),
+                lingpredorder(:AC, [:A, :C], LingPredGame(MismatchCoop())),
+                lingpredorder(:BD, [:B, :D], LingPredGame(MatchCoop())),
+            ),
+            spawners = Dict(
+                lingpredspawner(:A; npop = npop), 
+                lingpredspawner(:B; npop = npop), 
+                lingpredspawner(:C; npop = npop), 
+                lingpredspawner(:D; npop = npop),
+            ),
+            arxiv_interval = arxiv_interval,
+        )
+        allsp = coevcfg()
+    end
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
+end
+
+@everywhere function run_4MismatchMix(
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int, 
+)
+    eco = Symbol("4MismatchMix")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        start, coevcfg, allsp = unfreeze(jld2path)
+    else
+        start = 1
+        seed = rand(UInt64)
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(
+                lingpredorder(:AB, [:A, :B], LingPredGame(MatchComp())),
+                lingpredorder(:AC, [:A, :C], LingPredGame(MismatchCoop())),
+                lingpredorder(:BD, [:B, :D], LingPredGame(MismatchCoop())),
+            ),
+            spawners = Dict(
+                lingpredspawner(:A; npop = npop), 
+                lingpredspawner(:B; npop = npop), 
+                lingpredspawner(:C; npop = npop), 
+                lingpredspawner(:D; npop = npop),
+            ),
+            arxiv_interval = arxiv_interval,
+        )
+        allsp = coevcfg()
+    end
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
+end
+
+
 @everywhere function evolve!(
     start::Int, ngen::Int, coevcfg::CoevConfig, allsp::Dict{Symbol, <:Species},
     eco::Symbol, trial::Int

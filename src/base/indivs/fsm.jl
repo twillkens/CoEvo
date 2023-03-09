@@ -204,16 +204,20 @@ function(a::FSMIndivArchiver)(geno_group::JLD2.Group, geno::FSMGeno)
     geno_group["targets"] = [target for ((_, _), target) in geno.links]
 end
 
-function(a::FSMIndivArchiver)(children_group::JLD2.Group, child::FSMIndiv)
+function(a::FSMIndivArchiver)(
+    children_group::JLD2.Group, child::FSMIndiv, writegenos::Bool = true
+)
     cgroup = make_group!(children_group, child.iid)
     cgroup["pids"] = child.pids
-    if a.savegeno
-        geno_group = make_group!(cgroup, "geno")
-        a(geno_group, child.geno)
-    end
-    if a.savemingeno
-        mingeno_group = make_group!(cgroup, "mingeno")
-        a(mingeno_group, child.mingeno)
+    if writegenos
+        if a.savegeno
+            geno_group = make_group!(cgroup, "geno")
+            a(geno_group, child.geno)
+        end
+        if a.savemingeno
+            mingeno_group = make_group!(cgroup, "mingeno")
+            a(mingeno_group, child.mingeno)
+        end
     end
 end
 

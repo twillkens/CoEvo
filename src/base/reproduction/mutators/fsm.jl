@@ -84,7 +84,7 @@ function rmstate(rng::AbstractRNG, ::SpawnCounter, fsm::FSMGeno)
     rmstate(fsm, todelete, start, newlinks)
 end
 
-function rmstate(fsm::FSMGeno{T}, todelete::T) where T
+function rmstate(rng::AbstractRNG, fsm::FSMGeno{T}, todelete::T) where T
     if length(fsm.ones) + length(fsm.zeros) < 2 return fsm end
     start, newlinks = getnew(rng, fsm, todelete)
     rmstate(fsm, todelete, start, newlinks)

@@ -100,7 +100,10 @@ function archive!(
             agroup["evostate"] = deepcopy(c.evostate)
             allspgroup = make_group!(agroup, "species")
             [
-                spawner.archiver(gen, allspgroup, spid, allsp[spid]) 
+                spawner.archiver(
+                    gen, allspgroup, spid, allsp[spid],
+                    gen % PFILTER_T == 0 || gen == 1
+                ) 
                 for (spid, spawner) in c.spawners
             ]
         end
