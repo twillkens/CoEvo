@@ -87,11 +87,15 @@ function doplot(df::DataFrame, specs::Vector{LineSpec}; kwargs...)
     p
 end
 
-function plot_eco_geno(df::DataFrame, linespecs::Vector{LineSpec})
+function plot_eco_geno(
+    df::DataFrame, linespecs::Vector{LineSpec},
+    xticks::Vector{Int} = [0, 25000, 50000],
+    yticks::Vector{Int} = [0, 50, 100, 150, 200, 250, 300]
+)
     legend = :topleft
-    xticks = ([0, 25000, 50000])
+    xticks = (xticks)
     xlabel = "Generation"
-    yticks =([0, 50, 100, 150, 200, 250, 300])
+    yticks = (yticks)
     ylabel = "Complexity"
     xformatter = :plain
     yformatter = :plain
@@ -104,11 +108,16 @@ function plot_eco_geno(df::DataFrame, linespecs::Vector{LineSpec})
     )
 end
 
-function plot_eco_mingeno(df::DataFrame, linespecs::Vector{LineSpec})
+function plot_eco_mingeno(
+    df::DataFrame, linespecs::Vector{LineSpec},
+    xticks::Vector{Int} = [0, 25000, 50000],
+    yticks::Vector{Int} = [0, 50, 100, 150, 200, 250, 300]
+)
+
     legend = false
-    xticks = ([0, 25000, 50000])
+    xticks = (xticks)
     xlabel = "Generation"
-    yticks =([0, 50, 100, 150, 200, 250, 300])
+    yticks = (yticks)
     ylabel = ""
     xformatter = :plain
     yformatter = (y) -> ""
@@ -194,102 +203,49 @@ function plot_mismatchcoop()
          left_margin=8mm,right_margin=5mm, top_margin=5mm, bottom_margin=10mm)
     savefig("img/mismatchcoop.png")
 end
-function plot_mix()
-    dfs = load_dfs("mix-roulette")
-    host = LineSpec("Roulette", "H", "blue", "cnavg_graph_host")
-    symb = LineSpec("Roulette", "S", "green", "cnavg_graph_symbiote")
-    para = LineSpec("Roulette", "P", "red", "cnavg_graph_parasite")
-    roulette = plot_eco_roulette(dfs, [host, symb, para])
-    dfs = load_dfs("mix-disco")
-    host = LineSpec("DISCO", "H", "blue", "cnavg_graph_host")
-    symb = LineSpec("DISCO", "S", "green", "cnavg_graph_symbiote")
-    para = LineSpec("DISCO", "P", "red", "cnavg_graph_parasite")
-    disco = plot_eco_disco(dfs, [host, symb, para])
-    plot(roulette, disco,
+
+function plot_mismatchcycle()
+    df = deserialize("counts/mismatchcycle-counts.jls")
+    geno1 = LineSpec("MismatchCycle-Geno", "X", "blue", "x-geno")
+    geno2 = LineSpec("MismatchCycle-Geno", "Y", "green", "y-geno")
+    geno3 = LineSpec("MismatchCycle-Geno", "Z", "red", "z-geno")
+    geno = plot_eco_geno(df, [geno1, geno2, geno3])
+    min1 = LineSpec("MismatchCoop-Min", "X", "blue", "x-min")
+    min2 = LineSpec("MismatchCoop-Min", "Y", "green", "y-min")
+    min3 = LineSpec("MismatchCoop-Min", "Z", "red", "z-min")
+    mingeno = plot_eco_mingeno(df, [min1, min2, min3])
+    plot(geno, mingeno,
          size=(1025, 325), dpi=300,
          left_margin=8mm,right_margin=5mm, top_margin=5mm, bottom_margin=10mm)
-    savefig("img/species/mix.png")
+    savefig("img/mismatchcycle.png")
 end
 
-function plot_cycle()
-    dfs = load_dfs("cycle-roulette")
-    host = LineSpec("Roulette", "H", "blue", "cnavg_graph_host")
-    symb = LineSpec("Roulette", "S", "green", "cnavg_graph_symbiote")
-    para = LineSpec("Roulette", "P", "red", "cnavg_graph_parasite")
-    roulette = plot_eco_roulette(dfs, [host, symb, para])
-    dfs = load_dfs("cycle-disco")
-    host = LineSpec("DISCO", "H", "blue", "cnavg_graph_host")
-    symb = LineSpec("DISCO", "S", "green", "cnavg_graph_symbiote")
-    para = LineSpec("DISCO", "P", "red", "cnavg_graph_parasite")
-    disco = plot_eco_disco(dfs, [host, symb, para])
-    plot(roulette, disco,
+function plot_4MatchMix()
+    df = deserialize("counts/4MatchMix-counts.jls")
+    geno = plot_eco_geno(
+        df, 
+        [
+            LineSpec("4MatchMix-Geno", "A", "blue", "A-geno"),
+            LineSpec("4MatchMix-Geno", "B", "green", "B-geno"),
+            LineSpec("4MatchMix-Geno", "C", "red", "C-geno"),
+            LineSpec("4MatchMix-Geno", "D", "orange", "D-geno"),
+        ], 
+        [0, 250, 500]
+    )
+    mingeno = plot_eco_mingeno(
+        df,
+        [
+            LineSpec("4MatchMix-Min", "A", "blue", "A-min"),
+            LineSpec("4MatchMix-Min", "B", "green", "B-min"),
+            LineSpec("4MatchMix-Min", "C", "red", "C-min"),
+            LineSpec("4MatchMix-Min", "D", "orange", "D-min"),
+        ],
+        [0, 250, 500]
+    )
+    plot(geno, mingeno,
          size=(1025, 325), dpi=300,
          left_margin=8mm,right_margin=5mm, top_margin=5mm, bottom_margin=10mm)
-    savefig("img/species/cycle.png")
-end
-
-function plot_compcycle()
-    dfs = load_dfs("compcycle-roulette")
-    host = LineSpec("Roulette", "X", "blue", "cnavg_graph_host")
-    symb = LineSpec("Roulette", "Y", "green", "cnavg_graph_symbiote")
-    para = LineSpec("Roulette", "Z", "red", "cnavg_graph_parasite")
-    roulette = plot_eco_roulette(dfs, [host, symb, para])
-    dfs = load_dfs("compcycle-disco")
-    host = LineSpec("DISCO", "X", "blue", "cnavg_graph_host")
-    symb = LineSpec("DISCO", "Y", "green", "cnavg_graph_symbiote")
-    para = LineSpec("DISCO", "Z", "red", "cnavg_graph_parasite")
-    disco = plot_eco_disco(dfs, [host, symb, para])
-    plot(roulette, disco,
-         size=(1025, 325), dpi=300,
-         left_margin=8mm,right_margin=5mm, top_margin=5mm, bottom_margin=10mm)
-    savefig("img/species/compcycle.png")
-end
-
-function plot_fitness()
-    dfs = load_dfs("mix-roulette")
-    host = LineSpec("Roulette", "Host", "blue", "fitavg_host", (0, 1))
-    symb = LineSpec("Roulette", "Symbiote", "green", "fitavg_symbiote", (0, 1))
-    para = LineSpec("Roulette", "Parasite", "red", "fitavg_parasite", (0, 1))
-    linespecs = [host, symb, para]
-
-    legend = false
-    xticks = ([0, 12500, 25000])
-    xlabel = "Generation"
-    yticks =([0, 0.5, 1.0])
-    ylabel = "Fitness"
-    xformatter = :plain
-    yformatter = :plain
-    roulette = doplot(dfs, linespecs;
-           legend=legend,
-           xticks = xticks, yticks=yticks,
-           xlabel=xlabel, ylabel=ylabel,
-           xformatter = xformatter, yformatter = yformatter
-           )
-
-
-    dfs = load_dfs("mix-disco")
-    host = LineSpec("DISCO", "H", "blue", "fitavg_host", (0, 1))
-    symb = LineSpec("DISCO", "S", "green", "fitavg_symbiote", (0, 1))
-    para = LineSpec("DISCO", "P", "red", "fitavg_parasite", (0, 1))
-    linespecs = [host, symb, para]
-
-    legend = :outertopright
-    xticks = ([0, 12500, 25000])
-    xlabel = "Generation"
-    yticks =([0, 0.5, 1.0])
-    ylabel = ""
-    xformatter = :plain
-    yformatter = (y) -> ""
-    disco = doplot(dfs, linespecs;
-           legend=legend,
-           xticks = xticks, yticks=yticks,
-           xlabel=xlabel, ylabel=ylabel,
-           xformatter = xformatter, yformatter = yformatter
-           )
-    plot(roulette, disco,
-         size=(1025, 325), dpi=300,
-         left_margin=8mm,right_margin=5mm, top_margin=5mm, bottom_margin=10mm, linealpha=0.3)
-    savefig("img/species/fitness.png")
+    savefig("img/4MatchMix.png")
 end
 
 function doall()

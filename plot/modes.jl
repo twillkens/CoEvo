@@ -70,6 +70,7 @@ end
     end
     pop!(pfiltered)
     close(jld2file)
+    GC.gc()
     pfiltered
 end
 
@@ -268,4 +269,41 @@ function changenov(eco::String, spid::Symbol, trial::Int)
     end
     close(indivs_jld2file)
     change, novelty, allgenos, allgenovec
+end
+
+function get_allgenindivs(eco::String, spid::Symbol, trial::Int, gen::Int)
+    ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
+    trialpath = joinpath(ecopath, "$trial.jld2")
+    jld2file = jldopen(trialpath, "r")
+    archiver = FSMIndivArchiver()
+    genindivs = [
+        archiver(string(spid), i, jld2file["arxiv/$gen/species/$spid/children/$i"]) 
+        for i in keys(jld2file["arxiv/$gen/species/$spid/children"])
+    ]
+    close(jld2file)
+    genindivs
+end
+
+struct KOPheno
+    prime::FSMPheno
+    kos::Vector{FSMPheno}
+end
+
+function KOPheno(indiv::FSMIndiv)
+    onekos = [rmstate(geno, i) for i in indiv.mingeno.ones if i != indiv.mingeno.start]
+    zerokos = [rmstate(geno, i) for i in indiv.mingeno.zeros if i != indiv.mingeno.start]
+    KOPheno(FSMPheno(geno), [onekos ; zerokos])
+end
+
+function genocomplexity(eco::String, trial::Int, gen::Int)
+    ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
+    indivs_jld2path = joinpath(ecopath, "pfilter-indivs.jld2")
+    indivs_jld2file = jldopen(indivs_jld2path, "r")
+    spkeys = keys(indivs_jld2file)
+    allspindivs = indivs_jld2file["$spid/$trial"]
+    for 
+    # genindivs = get_allgenindivs(eco, spid, trial, gen)
+    for indiv in allspindivs
+
+
 end

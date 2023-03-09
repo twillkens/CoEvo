@@ -78,8 +78,14 @@ function getnew(rng::AbstractRNG, fsm::FSMGeno{T}, todelete::T) where T
 end
 
 function rmstate(rng::AbstractRNG, ::SpawnCounter, fsm::FSMGeno)
-    if length(union(fsm.ones, fsm.zeros)) < 2 return fsm end
+    if length(fsm.ones) + length(fsm.zeros) < 2 return fsm end
     todelete = randfsmstate(rng, fsm)
+    start, newlinks = getnew(rng, fsm, todelete)
+    rmstate(fsm, todelete, start, newlinks)
+end
+
+function rmstate(fsm::FSMGeno{T}, todelete::T) where T
+    if length(fsm.ones) + length(fsm.zeros) < 2 return fsm end
     start, newlinks = getnew(rng, fsm, todelete)
     rmstate(fsm, todelete, start, newlinks)
 end
