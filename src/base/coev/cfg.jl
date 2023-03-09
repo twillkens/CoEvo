@@ -93,6 +93,7 @@ function archive!(
         #lockpath = joinpath(dirname(c.jld2path), "lock-$(myid() % 2)")
         lockpath = joinpath(dirname(c.jld2path), "lock")
         lock = mkpidlock(lockpath)
+        sleep(1)
         println("archiving: $(c.trial), gen : $gen")
         jld2file = jldopen(c.jld2path, "a")
         for (gen, allsp) in c.spchache
@@ -109,6 +110,7 @@ function archive!(
         end
         close(jld2file)
         println("done archiving: $(c.trial), gen : $gen")
+        sleep(1)
         close(lock)
         empty!(c.spchache)
         GC.gc()

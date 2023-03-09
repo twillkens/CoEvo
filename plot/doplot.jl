@@ -248,6 +248,34 @@ function plot_4MatchMix()
     savefig("img/4MatchMix.png")
 end
 
+function plot_4MatchMismatchMix()
+    df = deserialize("counts/4MatchMismatchMix-counts.jls")
+    geno = plot_eco_geno(
+        df, 
+        [
+            LineSpec("4MatchMismatchMix-Geno", "A", "blue", "A-geno"),
+            LineSpec("4MatchMismatchMix-Geno", "B", "green", "B-geno"),
+            LineSpec("4MatchMismatchMix-Geno", "C", "red", "C-geno"),
+            LineSpec("4MatchMismatchMix-Geno", "D", "orange", "D-geno"),
+        ], 
+        [0, 250, 500]
+    )
+    mingeno = plot_eco_mingeno(
+        df,
+        [
+            LineSpec("4MatchMismatchMix-Min", "A", "blue", "A-min"),
+            LineSpec("4MatchMismatchMix-Min", "B", "green", "B-min"),
+            LineSpec("4MatchMismatchMix-Min", "C", "red", "C-min"),
+            LineSpec("4MatchMismatchMix-Min", "D", "orange", "D-min"),
+        ],
+        [0, 250, 500]
+    )
+    plot(geno, mingeno,
+         size=(1025, 325), dpi=300,
+         left_margin=8mm,right_margin=5mm, top_margin=5mm, bottom_margin=10mm)
+    savefig("img/4MatchMismatchMix.png")
+end
+
 function doall()
     plot_control()
     plot_coop()
