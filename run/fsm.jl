@@ -306,7 +306,7 @@ end
 @everywhere function run_4MatchMismatchMix(
     trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int, 
 )
-    eco = Symbol("4MatchMix")
+    eco = Symbol("4MatchMismatchMix")
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
