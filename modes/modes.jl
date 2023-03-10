@@ -133,23 +133,36 @@ end
     geno::G1
     mingeno::G2
     modegeno::G3
-    fitness::Float64
+    minfitness::Float64
+    modefitness::Float64
     eplen::Float64
 end
 
-@everywhere function FilterIndiv(p::KOPheno)
+@everywhere function FilterIndiv(
+    p::KOPheno, 
+    genphenodict::Dict{String, <:Vector{<:FSMPheno}},
+    domains::Dict{Tuple{String, String}, <:Domain}
+)
     modegeno = p.indiv.mingeno
     for (s, score) in p.koscores
         if score >= p.score
             modegeno = rmstate(StableRNG(42), modegeno, s)
         end
     end
+    modepheno = FSMPhenoCfg()(p.indiv.ikey, modegeno)
+    modeko = KOPheno(
+        p.ftag, p.indiv, modepheno, 0.0, 0, 
+        Dict{UInt32, FSMPheno{UInt32}}(), Dict{UInt32, Float64}(), Dict{IndivKey, Outcome}()
+    )
+    fight!(p.ftag.spid, [modeko], genphenodict, domains)
     FilterIndiv(
         p.ftag, 
         p.indiv.geno, #nothing 
         p.indiv.mingeno, 
         minimize(modegeno), 
-        p.score / 50, p.eplen / 50
+        p.score / length(genphenodict),
+        modeko.score / length(genphenodict),
+        p.eplen / length(genphenodict),
     )
 end
 
@@ -237,11 +250,10 @@ end
     genostats::Union{ModesStats, Nothing}
     minstats::Union{ModesStats, Nothing}
     modestats::ModesStats
-    fitnesses::Vector{Float64}
+    minfitness::Vector{Float64}
+    modefitness::Vector{Float64}
     eplens::Vector{Float64}
 end
-
-
 
 @everywhere function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
     println("getting stats for $spid")
@@ -257,10 +269,11 @@ end
         [[findiv.modegeno for findiv in findivs] 
         for findivs in allfindivs]
     )
-    fitnesses = getfitnesses(allfindivs)
+    minfitness = [mean([findiv.minfitness for findiv in findivs]) for findivs in allfindivs]
+    modefitness = [mean([findiv.modefitness for findiv in findivs]) for findivs in allfindivs]
     eplens = geteplens(allfindivs)
     #SpeciesStats(spid, genostats, mingenostats, modestats, fitnesses, eplens)
-    SpeciesStats(spid, genostats, mingenostats, modestats, fitnesses, eplens)
+    SpeciesStats(spid, genostats, mingenostats, modestats, minfitness, modefitness, eplens)
 end
 
 @everywhere struct FilterResults{I <: FilterIndiv}
@@ -284,7 +297,7 @@ end
         kophenos = get_kophenos(jld2file, ftags)
         genphenodict = get_genphenodict(jld2file, gen, spid)
         fight!(spid, kophenos, genphenodict, domains)
-        push!(allfindivs, [FilterIndiv(kopheno) for kopheno in kophenos])
+        push!(allfindivs, [FilterIndiv(kopheno, genphenodict, domains) for kopheno in kophenos])
         if gen % 1_000 == 0
             println("filtering $spid at gen $gen")
             GC.gc()
@@ -472,8 +485,11 @@ function pfilter(
     fill_statdict!(d, "modes-ecology", StatFeatures.(
         zip([ecostats.stats.modestats.ecology for ecostats in allecostats]...)
     ))
-    fill_statdict!(d, "fitness", StatFeatures.(
-        zip([ecostats.stats.fitnesses for ecostats in allecostats]...)
+    fill_statdict!(d, "minfitness", StatFeatures.(
+        zip([ecostats.stats.minfitness for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "modefitness", StatFeatures.(
+        zip([ecostats.stats.modefitness for ecostats in allecostats]...)
     ))
     fill_statdict!(d, "eplen", StatFeatures.(
         zip([ecostats.stats.eplens for ecostats in allecostats]...)
@@ -517,8 +533,11 @@ function pfilter(
         fill_statdict!(d, "$spid-modes-ecology", StatFeatures.(
             zip([ecostats.spstats[spid].modestats.ecology for ecostats in allecostats]...)
         ))
-        fill_statdict!(d, "$spid-fitness", StatFeatures.(
-            zip([ecostats.spstats[spid].fitnesses for ecostats in allecostats]...)
+        fill_statdict!(d, "$spid-minfitness", StatFeatures.(
+            zip([ecostats.spstats[spid].minfitness for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-modefitness", StatFeatures.(
+            zip([ecostats.spstats[spid].modefitness for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-eplen", StatFeatures.(
             zip([ecostats.spstats[spid].eplens for ecostats in allecostats]...)
