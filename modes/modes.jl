@@ -482,28 +482,28 @@ function pfilter(
     spids = allecostats[1].spstats |> keys |> collect
     for spid in spids
         fill_statdict!(d, "$spid-geno-complexity", StatFeatures.(
-            zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].genostats.complexity for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-geno-novelty", StatFeatures.(
-            zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].genostats.novelty for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-geno-change", StatFeatures.(
-            zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
+            zip([ecostats.spstats[spid].genostats.change for ecostats in allecostats]...))
         )
         fill_statdict!(d, "$spid-geno-ecology", StatFeatures.(
-            zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].genostats.ecology for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-min-complexity", StatFeatures.(
-            zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].minstats.complexity for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-min-novelty", StatFeatures.(
-            zip([ecostats.stats.minstats.novelty for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].minstats.novelty for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-min-change", StatFeatures.(
-            zip([ecostats.stats.minstats.change for ecostats in allecostats]...))
+            zip([ecostats.spstats[spid].minstats.change for ecostats in allecostats]...))
         )
         fill_statdict!(d, "$spid-min-ecology", StatFeatures.(
-            zip([ecostats.stats.minstats.ecology for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].minstats.ecology for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-modes-complexity", StatFeatures.(
             zip([ecostats.spstats[spid].modestats.complexity for ecostats in allecostats]...)
