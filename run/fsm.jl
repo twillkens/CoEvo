@@ -253,8 +253,8 @@ end
         spawner1 = lingpredspawner(:host;     npop = npop)
         spawner2 = lingpredspawner(:symbiote; npop = npop)
         spawner3 = lingpredspawner(:parasite; npop = npop)
-        order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], LingPredGame(MatchCoop()))
-        order2 = lingpredorder(:HostVsParasite, [:host, :parasite], LingPredGame(MismatchComp()))
+        order1 = lingpredorder(:HostVsSymbiote, [:host, :symbiote], LingPredGame(MismatchCoop()))
+        order2 = lingpredorder(:HostVsParasite, [:host, :parasite], LingPredGame(MatchComp()))
         coevcfg = CoevConfig(;
             eco = eco,
             trial = trial,

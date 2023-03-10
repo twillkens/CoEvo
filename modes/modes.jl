@@ -417,16 +417,40 @@ function pfilter(
     ]
     allecostats = [fetch(future) for future in futures]
     d = Dict{String, Vector{Float64}}()
-    fill_statdict!(d, "complexity", StatFeatures.(
+    fill_statdict!(d, "geno-complexity", StatFeatures.(
+        zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "geno-novelty", StatFeatures.(
+        zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "geno-change", StatFeatures.(
+        zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
+    )
+    fill_statdict!(d, "geno-ecology", StatFeatures.(
+        zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "min-complexity", StatFeatures.(
+        zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "min-novelty", StatFeatures.(
+        zip([ecostats.stats.minstats.novelty for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "min-change", StatFeatures.(
+        zip([ecostats.stats.minstats.change for ecostats in allecostats]...))
+    )
+    fill_statdict!(d, "min-ecology", StatFeatures.(
+        zip([ecostats.stats.minstats.ecology for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "modes-complexity", StatFeatures.(
         zip([ecostats.stats.modestats.complexity for ecostats in allecostats]...)
     ))
-    fill_statdict!(d, "novelty", StatFeatures.(
+    fill_statdict!(d, "modes-novelty", StatFeatures.(
         zip([ecostats.stats.modestats.novelty for ecostats in allecostats]...)
     ))
-    fill_statdict!(d, "change", StatFeatures.(
+    fill_statdict!(d, "modes-change", StatFeatures.(
         zip([ecostats.stats.modestats.change for ecostats in allecostats]...))
     )
-    fill_statdict!(d, "ecology", StatFeatures.(
+    fill_statdict!(d, "modes-ecology", StatFeatures.(
         zip([ecostats.stats.modestats.ecology for ecostats in allecostats]...)
     ))
     fill_statdict!(d, "fitness", StatFeatures.(
@@ -438,16 +462,40 @@ function pfilter(
 
     spids = allecostats[1].spstats |> keys |> collect
     for spid in spids
-        fill_statdict!(d, "$spid-complexity", StatFeatures.(
+        fill_statdict!(d, "$spid-geno-complexity", StatFeatures.(
+            zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-geno-novelty", StatFeatures.(
+            zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-geno-change", StatFeatures.(
+            zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
+        )
+        fill_statdict!(d, "$spid-geno-ecology", StatFeatures.(
+            zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-min-complexity", StatFeatures.(
+            zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-min-novelty", StatFeatures.(
+            zip([ecostats.stats.minstats.novelty for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-min-change", StatFeatures.(
+            zip([ecostats.stats.minstats.change for ecostats in allecostats]...))
+        )
+        fill_statdict!(d, "$spid-min-ecology", StatFeatures.(
+            zip([ecostats.stats.minstats.ecology for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-modes-complexity", StatFeatures.(
             zip([ecostats.stats.modestats.complexity for ecostats in allecostats]...)
         ))
-        fill_statdict!(d, "$spid-novelty", StatFeatures.(
+        fill_statdict!(d, "$spid-modes-novelty", StatFeatures.(
             zip([ecostats.stats.modestats.novelty for ecostats in allecostats]...)
         ))
-        fill_statdict!(d, "$spid-change", StatFeatures.(
+        fill_statdict!(d, "$spid-modes-change", StatFeatures.(
             zip([ecostats.stats.modestats.change for ecostats in allecostats]...))
         )
-        fill_statdict!(d, "$spid-ecology", StatFeatures.(
+        fill_statdict!(d, "$spid-modes-ecology", StatFeatures.(
             zip([ecostats.stats.modestats.ecology for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-fitness", StatFeatures.(
@@ -458,22 +506,81 @@ function pfilter(
         ))
     end
     d = DataFrame(d)
-    serialize(joinpath(ENV["COEVO_DATA_DIR"], "modes.jls"), d)
+    serialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "modes.jls"), d)
+    d
 end
 
-function modesfilter(
-    eco::String, 
-    trials::UnitRange{Int},
-    t::Int,
-    domains::Dict{Tuple{String, String}, <:Domain},
-    until::Int = typemax(Int)
+function pfilter_ctrl()
+    domains = Dict(
+        ("ctrl1", "ctrl2") => LingPredGame(Control())
+    )
+    pfilter("coop", 1:20, 50, domains)
+end
+function pfilter_coop()
+    domains = Dict(
+        ("host", "symbiote") => LingPredGame(MatchCoop())
+    )
+    pfilter("coop", 1:20, 50, domains)
+end
+
+function pfilter_comp(
+    t::Int = 50,
+    until::Int = 25_000
 )
-    spfiltered = pfilter(eco, trials, t, domains, until)
-    spmodes = Dict{String, Vector{Vector{FilterIndiv}}}()
-    for (spid, allfindivs) in spfiltered
-        spmodes[spid] = [findivs for findivs in allfindivs if !isempty(findivs)]
-    end
-    spmodes
+    domains = Dict(
+        ("host", "parasite") => LingPredGame(MatchComp())
+    )
+    pfilter("comp", 1:20, t, domains, until)
 end
 
+function pfilter_matchmix()
+    domains = Dict(
+        ("host", "symbiote") => LingPredGame(MatchCoop()),
+        ("host", "parasite") => LingPredGame(MatchComp())
+    )
+    pfilter("matchmix", 1:20, 50, domains)
+end
 
+function pfilter_mismatchmix()
+    domains = Dict(
+        ("host", "symbiote") => LingPredGame(MatchCoop()),
+        ("host", "parasite") => LingPredGame(MismatchComp())
+    )
+    pfilter("mismatchmix", 1:20, 50, domains)
+end
+
+function pfilter_4MatchMix()
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MatchCoop()),
+        ("B", "D") => LingPredGame(MatchCoop()),
+    )
+    pfilter("4MatchMix", 1:20, 50, domains)
+end
+
+function pfilter_4MatchMismatchMix()
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MatchCoop()),
+        ("B", "D") => LingPredGame(MismatchCoop()),
+    )
+    pfilter("4MatchMismatchMix", 1:20, 50, domains)
+end
+
+function pfilter_4MismatchMatchMix()
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MismatchCoop()),
+        ("B", "D") => LingPredGame(MatchCoop()),
+    )
+    pfilter("4MismatchMatchMix", 1:20, 50, domains)
+end
+
+function pfilter_4MismatchMix()
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MismatchCoop()),
+        ("B", "D") => LingPredGame(MismatchCoop()),
+    )
+    pfilter("4MismatchMix", 1:20, 50, domains)
+end
