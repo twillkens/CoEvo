@@ -287,7 +287,7 @@ end
         genphenodict = get_genphenodict(jld2file, gen, spid)
         fight!(spid, kophenos, genphenodict, domains)
         push!(allfindivs, [FilterIndiv(kopheno) for kopheno in kophenos])
-        if gen % 2_500 == 0
+        if gen % 1_000 == 0
             println("filtering $spid at gen $gen")
             GC.gc()
         end
@@ -366,6 +366,7 @@ end
             tpass!(jld2file, gen, spid, tagdict)
     end
     pop!(pftags)
+    GC.gc()
     pfilter(jld2file, spid, pftags, t, domains)
 end
 
@@ -405,6 +406,7 @@ end
     spids = keys(jld2file["arxiv/1/species"])
     fdict = Dict(spid => pfilter(jld2file, spid, t, domains, until) for spid in spids)
     close(jld2file)
+    GC.gc()
     EcoStats(eco, trial, t, fdict)
 end
 
