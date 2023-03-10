@@ -288,6 +288,7 @@ end
         genphenodict = get_genphenodict(jld2file, gen, spid)
         fight!(spid, kophenos, genphenodict, domains)
         push!(allfindivs, [FilterIndiv(kopheno) for kopheno in kophenos])
+        GC.gc()
     end
     FilterResults(spid, t, allfindivs, SpeciesStats(spid, allfindivs))
 end
