@@ -514,7 +514,7 @@ function pfilter_ctrl()
     domains = Dict(
         ("ctrl1", "ctrl2") => LingPredGame(Control())
     )
-    pfilter("coop", 1:20, 50, domains)
+    pfilter("ctrl", 1:20, 50, domains)
 end
 function pfilter_coop()
     domains = Dict(
@@ -543,8 +543,8 @@ end
 
 function pfilter_mismatchmix()
     domains = Dict(
-        ("host", "symbiote") => LingPredGame(MatchCoop()),
-        ("host", "parasite") => LingPredGame(MismatchComp())
+        ("host", "symbiote") => LingPredGame(MismatchCoop()),
+        ("host", "parasite") => LingPredGame(MatchComp())
     )
     pfilter("mismatchmix", 1:20, 50, domains)
 end
