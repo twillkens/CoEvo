@@ -240,6 +240,7 @@ end
 
 
 @everywhere function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
+    println("getting stats for $spid")
     genostats = ModesStats(
         [[findiv.geno for findiv in findivs] 
         for findivs in allfindivs]
@@ -275,6 +276,7 @@ end
     allfindivs = Vector{Vector{FilterIndiv}}()
     for (gen, ftags) in enumerate(pftags)
         gen = gen == 1 ? 1 : (gen - 1) * t
+        println("filtering $spid at gen $gen")
         kophenos = get_kophenos(jld2file, ftags)
         genphenodict = get_genphenodict(jld2file, gen, spid)
         fight!(spid, kophenos, genphenodict, domains)
