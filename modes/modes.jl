@@ -86,7 +86,11 @@ end
         stir(:ko, domain, LingPredObsConfig(), p, kop.prime)
 
     kop.score += getscore(kop.prime.ikey, o_prime)
-    kop.eplen += length(first(values(o_prime.obs.states)))
+    try 
+        kop.eplen += length(first(values(o_prime.obs.states)))
+    catch
+        kop.eplen += 0
+    end
     kop.outcomes[p.ikey] = o_prime
     ko_outcomes = Dict(
         s => kofirst ? 
