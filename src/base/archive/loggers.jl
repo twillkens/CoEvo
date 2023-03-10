@@ -35,6 +35,10 @@ function StatFeatures(vec::Vector{<:Real})
     end
 end
 
+function StatFeatures(tup::Tuple{Vararg{<:Real}})
+    StatFeatures(collect(tup))
+end
+
 function StatFeatures(vec::Vector{StatFeatures}, field::Symbol)
     StatFeatures([getfield(sf, field) for sf in vec])
 end

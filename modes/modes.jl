@@ -3,8 +3,8 @@ using Distributed
 @everywhere Pkg.activate(".")
 @everywhere using CoEvo
 @everywhere using JLD2
-using StatsBase
-using DataFrames
+@everywhere using StatsBase
+@everywhere using DataFrames
 @everywhere using StableRNGs
 @everywhere using Random
 @everywhere using DataStructures
@@ -122,11 +122,11 @@ end
     end
 end
 
-@everywhere mutable struct FilterIndiv
+@everywhere mutable struct FilterIndiv{G1 <: FSMGeno, G2 <: FSMGeno, G3 <: FSMGeno}
     ftag::FilterTag
-    geno::FSMGeno
-    mingeno::FSMGeno
-    modegeno::FSMGeno
+    geno::G1
+    mingeno::G2
+    modegeno::G3
     fitness::Float64
     eplen::Float64
 end
@@ -143,31 +143,6 @@ end
         p.indiv.geno, p.indiv.mingeno, minimize(modegeno), 
         p.score / 50, p.eplen / 50
     )
-end
-
-@everywhere struct ModesStats
-    change::Vector{Int}
-    novelty::Vector{Int}
-    complexity::Vector{Float64}
-end
-
-@everywhere function ModesStats(allfgenos::Vector{<:Vector{<:FSMGeno}})
-    allfsets = [Set(fgenos) for fgenos in allfgenos]
-    change = getchanges(allfsets)
-    novelty = getnovelties(allfsets)
-    complexity = getcomplexities(allfsets)
-    #ecology = getecologies(allfsets)
-    ModesStats(change, novelty, complexity) #, ecology)
-end
-
-@everywhere struct SpeciesStats{I <: FilterIndiv}
-    spid::String
-    # allfindivs::Vector{Vector{I}}
-    genostats::ModesStats
-    minstats::ModesStats
-    modestats::ModesStats
-    fitnesses::Vector{Float64}
-    eplens::Vector{Float64}
 end
 
 @everywhere function getchanges(allfsets::Vector{<:Set{<:FSMGeno}})
@@ -203,6 +178,27 @@ end
     complexities
 end
 
+@everywhere function getecologies(
+    allfvecs::Vector{<:Vector{<:FSMGeno}}, allfsets::Vector{<:Set{<:FSMGeno}}
+)
+    ecologies = Float64[]
+    for (fvec, fset) in zip(allfvecs, allfsets)
+        pcs = Float64[]
+        for s in fset
+            pc = 0
+            for v in fvec
+                if v == s
+                    pc += 1
+                end
+            end
+            push!(pcs, pc / length(fvec))
+        end
+        push!(ecologies, -sum(pc * log(2, pc) for pc in pcs))
+    end
+    ecologies
+end
+
+
 @everywhere function getfitnesses(allfindivs::Vector{<:Vector{<:FilterIndiv}})
     [mean([findiv.fitness for findiv in findivs]) for findivs in allfindivs]
 end
@@ -210,6 +206,34 @@ end
 @everywhere function geteplens(allfindivs::Vector{<:Vector{<:FilterIndiv}})
     [mean([findiv.eplen for findiv in findivs]) for findivs in allfindivs]
 end
+
+@everywhere struct ModesStats
+    change::Vector{Int}
+    novelty::Vector{Int}
+    complexity::Vector{Float64}
+    ecology::Vector{Float64}
+end
+
+@everywhere function ModesStats(allfvecs::Vector{<:Vector{<:FSMGeno}})
+    allfsets = [Set(fgenos) for fgenos in allfvecs]
+    change = getchanges(allfsets)
+    novelty = getnovelties(allfsets)
+    complexity = getcomplexities(allfsets)
+    ecology = getecologies(allfvecs, allfsets)
+    ModesStats(change, novelty, complexity, ecology)
+end
+
+
+@everywhere struct SpeciesStats
+    spid::String
+    genostats::ModesStats
+    minstats::ModesStats
+    modestats::ModesStats
+    fitnesses::Vector{Float64}
+    eplens::Vector{Float64}
+end
+
+
 
 @everywhere function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
     genostats = ModesStats(
@@ -226,7 +250,14 @@ end
     )
     fitnesses = getfitnesses(allfindivs)
     eplens = geteplens(allfindivs)
-    SpeciesStats(spid, allfindivs, genostats, mingenostats, modestats, fitnesses, eplens)
+    SpeciesStats(spid, genostats, mingenostats, modestats, fitnesses, eplens)
+end
+
+@everywhere struct FilterResults{I <: FilterIndiv}
+    spid::String
+    t::Int
+    allfindivs::Vector{Vector{I}}
+    stats::SpeciesStats
 end
 
 # get meaningful sites for each persistent individual
@@ -245,7 +276,7 @@ end
         fight!(spid, kophenos, genphenodict, domains)
         push!(allfindivs, [FilterIndiv(kopheno) for kopheno in kophenos])
     end
-    SpeciesStats(spid, allfindivs)
+    FilterResults(spid, t, allfindivs, SpeciesStats(spid, allfindivs))
 end
 
 # filter to get the tags of the persistent individuals
@@ -322,6 +353,30 @@ end
     pfilter(jld2file, spid, pftags, t, domains)
 end
 
+@everywhere struct EcoStats
+    eco::String
+    trial::Int
+    t::Int
+    stats::SpeciesStats
+    spstats::Dict{String, SpeciesStats}
+end
+
+@everywhere function EcoStats(
+    eco::String, trial::Int, t::Int, fdict::Dict{String, <:FilterResults}
+)
+    spstats = Dict(spid => fresults.stats for (spid, fresults) in fdict)
+    allindivs = [fresults.allfindivs for fresults in values(fdict)]
+    allindivs = collect(vcat(y...) for y in zip(allindivs...))
+    metastats = SpeciesStats(eco, allindivs)
+    EcoStats(
+        eco,
+        trial,
+        t,
+        metastats,
+        spstats, 
+    )
+end
+
 @everywhere function pfilter(
     eco::String, 
     trial::Int,
@@ -332,9 +387,21 @@ end
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
     jld2file = jldopen(joinpath(ecopath, "$trial.jld2"), "r")
     spids = keys(jld2file["arxiv/1/species"])
-    spfiltered = Dict(spid => pfilter(jld2file, spid, t, domains, until) for spid in spids)
+    fdict = Dict(spid => pfilter(jld2file, spid, t, domains, until) for spid in spids)
     close(jld2file)
-    spfiltered
+    EcoStats(eco, trial, t, fdict)
+end
+
+
+function fill_statdict!(
+    d::Dict{String, Vector{Float64}}, metric::String, alls::Vector{StatFeatures}
+)
+    d["$metric-med"] =   [s.median for s in alls]
+    d["$metric-std"] =   [s.std for s in alls]
+    d["$metric-var"] =   [s.variance for s in alls]
+    d["$metric-mean"] =  [s.mean for s in alls]
+    d["$metric-upper"] = [s.upper_quartile for s in alls]
+    d["$metric-lower"] = [s.lower_quartile for s in alls]
 end
 
 function pfilter(
@@ -342,13 +409,56 @@ function pfilter(
     trials::UnitRange{Int},
     t::Int,
     domains::Dict{Tuple{String, String}, <:Domain},
-    until::Int = typemax(Int)
+    until::Int = 25_000
 )
     futures = [
         @spawnat :any pfilter(eco, trial, t, domains, until) 
         for trial in trials
     ]
-    pfdict = [fetch(future) for future in futures]
+    allecostats = [fetch(future) for future in futures]
+    d = Dict{String, Vector{Float64}}()
+    fill_statdict!(d, "complexity", StatFeatures.(
+        zip([ecostats.stats.modestats.complexity for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "novelty", StatFeatures.(
+        zip([ecostats.stats.modestats.novelty for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "change", StatFeatures.(
+        zip([ecostats.stats.modestats.change for ecostats in allecostats]...))
+    )
+    fill_statdict!(d, "ecology", StatFeatures.(
+        zip([ecostats.stats.modestats.ecology for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "fitness", StatFeatures.(
+        zip([ecostats.stats.fitnesses for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "eplen", StatFeatures.(
+        zip([ecostats.stats.eplens for ecostats in allecostats]...)
+    ))
+
+    spids = allecostats[1].spstats |> keys |> collect
+    for spid in spids
+        fill_statdict!(d, "$spid-complexity", StatFeatures.(
+            zip([ecostats.stats.modestats.complexity for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-novelty", StatFeatures.(
+            zip([ecostats.stats.modestats.novelty for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-change", StatFeatures.(
+            zip([ecostats.stats.modestats.change for ecostats in allecostats]...))
+        )
+        fill_statdict!(d, "$spid-ecology", StatFeatures.(
+            zip([ecostats.stats.modestats.ecology for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-fitness", StatFeatures.(
+            zip([ecostats.stats.fitnesses for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-eplen", StatFeatures.(
+            zip([ecostats.stats.eplens for ecostats in allecostats]...)
+        ))
+    end
+    d = DataFrame(d)
+    serialize(joinpath(ENV["COEVO_DATA_DIR"], "modes.jls"), d)
 end
 
 function modesfilter(
