@@ -283,12 +283,12 @@ end
     allfindivs = Vector{Vector{FilterIndiv}}()
     for (gen, ftags) in enumerate(pftags)
         gen = gen == 1 ? 1 : (gen - 1) * t
-        println("filtering $spid at gen $gen")
         kophenos = get_kophenos(jld2file, ftags)
         genphenodict = get_genphenodict(jld2file, gen, spid)
         fight!(spid, kophenos, genphenodict, domains)
         push!(allfindivs, [FilterIndiv(kopheno) for kopheno in kophenos])
-        if gen % 5_000 == 0
+        if gen % 2_500 == 0
+            println("filtering $spid at gen $gen")
             GC.gc()
         end
     end
