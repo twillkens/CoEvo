@@ -130,10 +130,34 @@ function plot_eco_mingeno(
     )
 end
 
+
+function plotmodes(df::DataFrame, eco::String, metric::String, color::String, ylim::Tuple{Int, Int})
+    savefig(
+        plot(df[!, "modes-$metric-mean"], 
+            title = "$eco-$metric", 
+            ylim=ylim,
+            color = color
+            ),  
+        "img/modes/$eco/$metric.png"
+    )
+end
+
+
+function plot_eco(eco::String, color::String = "black")
+    df = deserialize("modesdata/$eco.jls")
+    rm("img/modes/$eco", recursive=true, force=true)
+    mkdir("img/modes/$eco")
+    plotmodes(df, eco, "change", color, (0, 5))
+    plotmodes(df, eco, "novelty", color, (0, 5))
+    plotmodes(df, eco, "complexity", color, (0, 20))
+    plotmodes(df, eco, "ecology", color, (0, 5))
+end
+
+
 function plot_control()
-    df = deserialize("counts/ctrl.jls")
-    geno1 = LineSpec("Control-Geno", "ctrl1", "red", "ctrl1-geno")
-    geno2 = LineSpec("Control-Geno", "ctrl2", "blue", "ctrl2-geno")
+    df = deserialize("modesdata/ctrl.jls")
+    geno1 = LineSpec("Control-Complexity", "ctrl1", "red", "ctrl1-min-complexity")
+    geno2 = LineSpec("Control-Complexity", "ctrl2", "blue", "ctrl2-min-complexity")
     geno = plot_eco_geno(df, [geno1, geno2])
     min1 = LineSpec("Control-Min ", "ctrl1", "red", "ctrl1-min")
     min2 = LineSpec("Control-Min ", "ctrl2", "blue", "ctrl2-min")

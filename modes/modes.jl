@@ -146,10 +146,8 @@ end
     end
     FilterIndiv(
         p.ftag, 
-        nothing,
-        nothing,
-        # p.indiv.geno, 
-        # p.indiv.mingeno, 
+        p.indiv.geno, #nothing 
+        p.indiv.mingeno, 
         minimize(modegeno), 
         p.score / 50, p.eplen / 50
     )
@@ -247,14 +245,14 @@ end
 
 @everywhere function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
     println("getting stats for $spid")
-    # genostats = ModesStats(
-    #     [[findiv.geno for findiv in findivs] 
-    #     for findivs in allfindivs]
-    # )
-    # mingenostats = ModesStats(
-    #     [[findiv.mingeno for findiv in findivs] 
-    #     for findivs in allfindivs]
-    # )
+    genostats = ModesStats(
+        [[findiv.geno for findiv in findivs] 
+        for findivs in allfindivs]
+    )
+    mingenostats = ModesStats(
+        [[findiv.mingeno for findiv in findivs] 
+        for findivs in allfindivs]
+    )
     modestats = ModesStats(
         [[findiv.modegeno for findiv in findivs] 
         for findivs in allfindivs]
@@ -262,7 +260,7 @@ end
     fitnesses = getfitnesses(allfindivs)
     eplens = geteplens(allfindivs)
     #SpeciesStats(spid, genostats, mingenostats, modestats, fitnesses, eplens)
-    SpeciesStats(spid, nothing, nothing, modestats, fitnesses, eplens)
+    SpeciesStats(spid, genostats, mingenostats, modestats, fitnesses, eplens)
 end
 
 @everywhere struct FilterResults{I <: FilterIndiv}
@@ -292,6 +290,8 @@ end
             GC.gc()
         end
     end
+    GC.gc()
+    #FilterResults(spid, t, nothing, SpeciesStats(spid, allfindivs))
     FilterResults(spid, t, allfindivs, SpeciesStats(spid, allfindivs))
 end
 
@@ -374,7 +374,7 @@ end
     eco::String
     trial::Int
     t::Int
-    stats::SpeciesStats
+    stats::Union{SpeciesStats, Nothing}
     spstats::Dict{String, SpeciesStats}
 end
 
@@ -389,6 +389,7 @@ end
         eco,
         trial,
         t,
+        #nothing, #metastats,
         metastats,
         spstats, 
     )
@@ -427,7 +428,7 @@ function pfilter(
     trials::UnitRange{Int},
     t::Int,
     domains::Dict{Tuple{String, String}, <:Domain},
-    until::Int = 25_000
+    until::Int = 50_000
 )
     futures = [
         @spawnat :any pfilter(eco, trial, t, domains, until) 
@@ -435,30 +436,30 @@ function pfilter(
     ]
     allecostats = [fetch(future) for future in futures]
     d = Dict{String, Vector{Float64}}()
-    # fill_statdict!(d, "geno-complexity", StatFeatures.(
-    #     zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
-    # ))
-    # fill_statdict!(d, "geno-novelty", StatFeatures.(
-    #     zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
-    # ))
-    # fill_statdict!(d, "geno-change", StatFeatures.(
-    #     zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
-    # )
-    # fill_statdict!(d, "geno-ecology", StatFeatures.(
-    #     zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
-    # ))
-    # fill_statdict!(d, "min-complexity", StatFeatures.(
-    #     zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
-    # ))
-    # fill_statdict!(d, "min-novelty", StatFeatures.(
-    #     zip([ecostats.stats.minstats.novelty for ecostats in allecostats]...)
-    # ))
-    # fill_statdict!(d, "min-change", StatFeatures.(
-    #     zip([ecostats.stats.minstats.change for ecostats in allecostats]...))
-    # )
-    # fill_statdict!(d, "min-ecology", StatFeatures.(
-    #     zip([ecostats.stats.minstats.ecology for ecostats in allecostats]...)
-    # ))
+     fill_statdict!(d, "geno-complexity", StatFeatures.(
+         zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
+     ))
+     fill_statdict!(d, "geno-novelty", StatFeatures.(
+         zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
+     ))
+     fill_statdict!(d, "geno-change", StatFeatures.(
+         zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
+     )
+     fill_statdict!(d, "geno-ecology", StatFeatures.(
+         zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
+     ))
+    fill_statdict!(d, "min-complexity", StatFeatures.(
+        zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "min-novelty", StatFeatures.(
+        zip([ecostats.stats.minstats.novelty for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "min-change", StatFeatures.(
+        zip([ecostats.stats.minstats.change for ecostats in allecostats]...))
+    )
+    fill_statdict!(d, "min-ecology", StatFeatures.(
+        zip([ecostats.stats.minstats.ecology for ecostats in allecostats]...)
+    ))
     fill_statdict!(d, "modes-complexity", StatFeatures.(
         zip([ecostats.stats.modestats.complexity for ecostats in allecostats]...)
     ))
@@ -480,47 +481,47 @@ function pfilter(
 
     spids = allecostats[1].spstats |> keys |> collect
     for spid in spids
-        #fill_statdict!(d, "$spid-geno-complexity", StatFeatures.(
-        #    zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
-        #))
-        #fill_statdict!(d, "$spid-geno-novelty", StatFeatures.(
-        #    zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
-        #))
-        #fill_statdict!(d, "$spid-geno-change", StatFeatures.(
-        #    zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
-        #)
-        #fill_statdict!(d, "$spid-geno-ecology", StatFeatures.(
-        #    zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
-        #))
-        #fill_statdict!(d, "$spid-min-complexity", StatFeatures.(
-        #    zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
-        #))
-        #fill_statdict!(d, "$spid-min-novelty", StatFeatures.(
-        #    zip([ecostats.stats.minstats.novelty for ecostats in allecostats]...)
-        #))
-        #fill_statdict!(d, "$spid-min-change", StatFeatures.(
-        #    zip([ecostats.stats.minstats.change for ecostats in allecostats]...))
-        #)
-        #fill_statdict!(d, "$spid-min-ecology", StatFeatures.(
-        #    zip([ecostats.stats.minstats.ecology for ecostats in allecostats]...)
-        #))
+        fill_statdict!(d, "$spid-geno-complexity", StatFeatures.(
+            zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-geno-novelty", StatFeatures.(
+            zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-geno-change", StatFeatures.(
+            zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
+        )
+        fill_statdict!(d, "$spid-geno-ecology", StatFeatures.(
+            zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-min-complexity", StatFeatures.(
+            zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-min-novelty", StatFeatures.(
+            zip([ecostats.stats.minstats.novelty for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-min-change", StatFeatures.(
+            zip([ecostats.stats.minstats.change for ecostats in allecostats]...))
+        )
+        fill_statdict!(d, "$spid-min-ecology", StatFeatures.(
+            zip([ecostats.stats.minstats.ecology for ecostats in allecostats]...)
+        ))
         fill_statdict!(d, "$spid-modes-complexity", StatFeatures.(
-            zip([ecostats.stats.modestats.complexity for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].modestats.complexity for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-modes-novelty", StatFeatures.(
-            zip([ecostats.stats.modestats.novelty for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].modestats.novelty for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-modes-change", StatFeatures.(
-            zip([ecostats.stats.modestats.change for ecostats in allecostats]...))
+            zip([ecostats.spstats[spid].modestats.change for ecostats in allecostats]...))
         )
         fill_statdict!(d, "$spid-modes-ecology", StatFeatures.(
-            zip([ecostats.stats.modestats.ecology for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].modestats.ecology for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-fitness", StatFeatures.(
-            zip([ecostats.stats.fitnesses for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].fitnesses for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-eplen", StatFeatures.(
-            zip([ecostats.stats.eplens for ecostats in allecostats]...)
+            zip([ecostats.spstats[spid].eplens for ecostats in allecostats]...)
         ))
     end
     d = DataFrame(d)
@@ -541,14 +542,11 @@ function pfilter_coop()
     pfilter("coop", 1:20, 50, domains)
 end
 
-function pfilter_comp(
-    t::Int = 50,
-    until::Int = 25_000
-)
+function pfilter_comp()
     domains = Dict(
         ("host", "parasite") => LingPredGame(MatchComp())
     )
-    pfilter("comp", 1:20, t, domains, until)
+    pfilter("comp", 1:20, 50, domains)
 end
 
 function pfilter_matchmix()
