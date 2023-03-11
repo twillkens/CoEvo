@@ -96,10 +96,6 @@ function FilterIndiv(
     ::Dict{Tuple{String, String}, <:Domain}
 )
     n_others = sum([length(v) for v in values(others)])
-    println("n_others: $(n_others)")
-    println("score: $(p.score)")
-    println("prunescore: $(p.prunescore)")
-    println("eplen: $(p.eplen)")
     FilterIndiv(
         p.ftag, 
         p.indiv.geno, #nothing 
