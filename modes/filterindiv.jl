@@ -19,5 +19,6 @@ mutable struct FilterIndiv{
     modefitness::Float64
     min_eplen::Float64
     mode_eplen::Float64
+    levdist::Float64
 end
 

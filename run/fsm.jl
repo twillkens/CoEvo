@@ -143,6 +143,7 @@ end
             spawners = Dict(spawner1, spawner2),
             arxiv_interval = arxiv_interval
         )
+        allsp = coevcfg()
     end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end

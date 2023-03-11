@@ -8,6 +8,8 @@ using Distributed
 @everywhere using StableRNGs
 @everywhere using Random
 @everywhere using DataStructures
+@everywhere using StringDistances
+@everywhere using Serialization
 @everywhere include("abstract.jl")
 @everywhere include("util.jl")
 @everywhere include("filterindiv.jl")
@@ -18,7 +20,6 @@ using Distributed
 @everywhere include("spstats.jl")
 @everywhere include("ptags.jl")
 @everywhere include("pfilter.jl")
-@everywhere using Serialization
 
 
 # get meaningful sites for each persistent individual
@@ -86,6 +87,9 @@ function domodes(
     fill_statdict!(d, "modes-fitness", StatFeatures.(
         zip([ecostats.stats.modefitness for ecostats in allecostats]...)
     ))
+    fill_statdict!(d, "levdist", StatFeatures.(
+        zip([ecostats.stats.levdist for ecostats in allecostats]...)
+    ))
 
     spids = allecostats[1].spstats |> keys |> collect
     for spid in spids
@@ -125,6 +129,9 @@ function domodes(
         fill_statdict!(d, "$spid-modes-eplen", StatFeatures.(
             zip([ecostats.spstats[spid].mode_eplen for ecostats in allecostats]...)
         ))
+        fill_statdict!(d, "$spid-levdist", StatFeatures.(
+            zip([ecostats.spstats[spid].levdist for ecostats in allecostats]...)
+        ))
         fill_statdict!(d, "$spid-modes-complexity", StatFeatures.(
             zip([ecostats.spstats[spid].modestats.complexity for ecostats in allecostats]...)
         ))
@@ -162,7 +169,7 @@ function modes_coop(;
     domodes("coop", trials, t, domains, prunecfg, dtag)
 end
 
-function modes_comp(
+function modes_comp(;
     trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), 
     dtag::String = "",
 )
@@ -172,7 +179,7 @@ function modes_comp(
     domodes("comp", trials, t, domains, prunecfg, dtag)
 end
 
-function modes_matchmix(
+function modes_matchmix(;
     trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), 
     dtag::String = "",
 )
@@ -183,7 +190,7 @@ function modes_matchmix(
     domodes("matchmix", trials, t, domains, prunecfg, dtag)
 end
 
-function modes_mismatchmix(
+function modes_mismatchmix(;
     trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), dtag::String = "",
 )
     domains = Dict(

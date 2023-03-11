@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "ebf6779b52e5cf34f02e6d6a92157153fd05fe19"
+project_hash = "f6f65dd609b997431755f413326c1b37dd73851d"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -961,6 +961,12 @@ deps = ["AbstractFFTs", "Clustering", "DataStructures", "DataValues", "Distribut
 git-tree-sha1 = "e0d5bc26226ab1b7648278169858adcfbd861780"
 uuid = "f3b207a7-027a-5e70-b257-86293d7955fd"
 version = "0.15.4"
+
+[[deps.StringDistances]]
+deps = ["Distances", "StatsAPI"]
+git-tree-sha1 = "ceeef74797d961aee825aabf71446d6aba898acb"
+uuid = "88034a9c-02f8-509d-84a9-84ec65e18404"
+version = "0.11.2"
 
 [[deps.StringManipulation]]
 git-tree-sha1 = "46da2434b41f41ac3594ee9816ce5541c6096123"

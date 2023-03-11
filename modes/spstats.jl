@@ -9,6 +9,7 @@ struct SpeciesStats
     modefitness::Vector{Float64}
     min_eplen::Vector{Float64}
     mode_eplen::Vector{Float64}
+    levdist::Vector{Float64}
 end
 
 function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
@@ -28,8 +29,13 @@ function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
     minfitness = [mean([findiv.minfitness for findiv in findivs]) for findivs in allfindivs]
     modefitness = [mean([findiv.modefitness for findiv in findivs]) for findivs in allfindivs]
     min_eplen, mode_eplen = geteplens(allfindivs)
+    levdist = [mean([findiv.levdist for findiv in findivs]) for findivs in allfindivs]
     SpeciesStats(
-        spid, genostats, mingenostats, modestats, minfitness, modefitness, min_eplen, mode_eplen
+        spid, 
+        genostats, mingenostats, modestats, 
+        minfitness, modefitness, 
+        min_eplen, mode_eplen,
+        levdist,
     )
 end
 

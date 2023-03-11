@@ -9,6 +9,7 @@ using Distributions
 using JLD2
 using DataStructures
 using HypothesisTests
+using StringDistances
 using Pidfile
 
 include("abstract/abstract.jl")
