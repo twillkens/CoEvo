@@ -406,7 +406,6 @@ end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
-
 @everywhere function evolve!(
     start::Int, ngen::Int, coevcfg::CoevConfig, allsp::Dict{Symbol, <:Species},
     eco::Symbol, trial::Int

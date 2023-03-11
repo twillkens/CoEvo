@@ -200,38 +200,47 @@ function modes_mismatchmix(;
     domodes("mismatchmix", trials, t, domains, prunecfg, dtag)
 end
 
-# function pfilter_4MatchMix()
-#     domains = Dict(
-#         ("A", "B") => LingPredGame(MatchComp()),
-#         ("A", "C") => LingPredGame(MatchCoop()),
-#         ("B", "D") => LingPredGame(MatchCoop()),
-#     )
-#     pfilter("4MatchMix", 1:20, 50, domains)
-# end
-# 
-# function pfilter_4MatchMismatchMix()
-#     domains = Dict(
-#         ("A", "B") => LingPredGame(MatchComp()),
-#         ("A", "C") => LingPredGame(MatchCoop()),
-#         ("B", "D") => LingPredGame(MismatchCoop()),
-#     )
-#     pfilter("4MatchMismatchMix", 1:20, 50, domains)
-# end
-# 
-# function pfilter_4MismatchMatchMix()
-#     domains = Dict(
-#         ("A", "B") => LingPredGame(MatchComp()),
-#         ("A", "C") => LingPredGame(MismatchCoop()),
-#         ("B", "D") => LingPredGame(MatchCoop()),
-#     )
-#     pfilter("4MismatchMatchMix", 1:20, 50, domains)
-# end
-# 
-# function pfilter_4MismatchMix()
-#     domains = Dict(
-#         ("A", "B") => LingPredGame(MatchComp()),
-#         ("A", "C") => LingPredGame(MismatchCoop()),
-#         ("B", "D") => LingPredGame(MismatchCoop()),
-#     )
-#     pfilter("4MismatchMix", 1:20, 50, domains)
-# end
+
+function modes_4MatchMix(;
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), dtag::String = "",
+)
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MatchCoop()),
+        ("B", "D") => LingPredGame(MatchCoop()),
+    )
+    domodes("4MatchMix", trials, t, domains, prunecfg, dtag)
+end
+
+function modes_4MatchMismatchMix(;
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), dtag::String = "",
+)
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MatchCoop()),
+        ("B", "D") => LingPredGame(MismatchCoop()),
+    )
+    domodes("4MatchMix", trials, t, domains, prunecfg, dtag)
+end
+
+function modes_4MismatchMatchMix(;
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), dtag::String = "",
+)
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MismatchCoop()),
+        ("B", "D") => LingPredGame(MatchCoop()),
+    )
+    domodes("4MatchMix", trials, t, domains, prunecfg, dtag)
+end
+
+function modes_4MismatchMix(;
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), dtag::String = "",
+)
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MismatchCoop()),
+        ("B", "D") => LingPredGame(MismatchCoop()),
+    )
+    domodes("4MatchMix", trials, t, domains, prunecfg, dtag)
+end
