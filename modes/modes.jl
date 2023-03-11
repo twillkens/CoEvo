@@ -151,7 +151,7 @@ function domodes(
 end
 
 function modes_ctrl(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(),
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(),
     dtag::String = "",
 )
     domains = Dict(
@@ -160,7 +160,7 @@ function modes_ctrl(;
     domodes("ctrl", trials, t, domains, prunecfg, dtag)
 end
 function modes_coop(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), 
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), 
     dtag::String = "",
 )
     domains = Dict(
@@ -170,7 +170,7 @@ function modes_coop(;
 end
 
 function modes_comp(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), 
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), 
     dtag::String = "",
 )
     domains = Dict(
@@ -180,7 +180,7 @@ function modes_comp(;
 end
 
 function modes_matchmix(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), 
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), 
     dtag::String = "",
 )
     domains = Dict(
@@ -191,7 +191,7 @@ function modes_matchmix(;
 end
 
 function modes_mismatchmix(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), dtag::String = "",
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), dtag::String = "",
 )
     domains = Dict(
         ("host", "symbiote") => LingPredGame(MismatchCoop()),

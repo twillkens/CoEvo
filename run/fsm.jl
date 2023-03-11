@@ -37,7 +37,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -74,7 +74,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -101,7 +101,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -127,7 +127,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -155,7 +155,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -186,7 +186,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -217,7 +217,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -247,7 +247,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -277,7 +277,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -311,7 +311,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -345,7 +345,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)
@@ -379,7 +379,7 @@ end
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
     jld2path = joinpath(ecodir, "$(trial).jld2")
     if isfile(jld2path)
-        start, coevcfg, allsp = unfreeze(jld2path)
+        throw("file already exists: $(jld2path)")
     else
         start = 1
         seed = rand(UInt64)

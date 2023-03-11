@@ -83,19 +83,15 @@ function getmatches(loopstart::Int, traj1::Vector{Bool}, traj2::Vector{Bool})
 end
 
 function stir(
-    oid::Symbol, ::LingPredGame{Control}, ::ObsConfig,
+    oid::Symbol, domain::LingPredGame{Control}, obscfg::ObsConfig,
     pheno1::FSMPheno, pheno2::FSMPheno
 )
-    Outcome(oid, pheno1 => 1.0, pheno2 => 1.0, NullObs())
+    loopstart, states1, states2, traj1, traj2 = simulate(domain, pheno1, pheno2)
+    score = 1
+    obs = obscfg(loopstart, pheno1, pheno2, states1, states2, traj1, traj2)
+    Outcome(oid, pheno1 => score, pheno2 => score, obs)
 end
 
-function score(
-    ::LingPredGame{Control}, loopstart::Int, states1::Vector{T1}, states2::Vector{T2},
-    traj1::Vector{Bool}, traj2::Vector{Bool}
-) where {T1, T2}
-    matches = getmatches(loopstart, traj1, traj2)
-    mean(matches)
-end
 
 function stir(
     oid::Symbol, domain::LingPredGame{MatchCoop}, obscfg::ObsConfig,
