@@ -39,6 +39,7 @@ end
 function ptags!(
     jld2file::JLD2.JLDFile, 
     eco::String,
+    trial::Int,
     spid::String,
     t::Int, 
     until::Int = typemax(Int)
@@ -56,7 +57,8 @@ function ptags!(
             tpass!(jld2file, gen, spid, tagdict)
     end
     pop!(pftags)
-    tagspath = joinpath(ENV["COEVO_DATA_DIR"], eco, "tags-$spid.jls")
+    mkpath(joinpath(ENV["COEVO_DATA_DIR"], eco, "tags"))
+    tagspath = joinpath(ENV["COEVO_DATA_DIR"], eco, "tags", "$spid-$trial.jls")
     serialize(tagspath, pftags)
 end
 
@@ -69,10 +71,9 @@ function ptags!(
     ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
     jld2file = jldopen(joinpath(ecopath, "$trial.jld2"), "r")
     spids = keys(jld2file["arxiv/1/species"])
-    [ptags!(jld2file, eco, spid, t, until) for spid in spids]
+    [ptags!(jld2file, eco, trial, spid, t, until) for spid in spids]
     close(jld2file)
 end
-
 
 function dotags!(
     eco::String, 

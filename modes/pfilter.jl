@@ -51,7 +51,7 @@ function pfilter(
     jld2file = jldopen(joinpath(ecopath, "$trial.jld2"), "r")
     spids = keys(jld2file["arxiv/1/species"])
     pftags = Dict(
-        spid => deserialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "tags-$spid.jls"))
+        spid => deserialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "tags", "$spid-$trial.jls"))
         for spid in spids
     )
     fdict = Dict(
