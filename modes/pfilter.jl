@@ -85,7 +85,7 @@ function pfilter(
     prunecfg::PruneCfg,
     until::Int = typemax(Int)
 )
-    tagspath = joinpath(ENV["COEVO_DATA_DIR"], eco, "tags.jls")
+    tagspath = joinpath(ENV["COEVO_DATA_DIR"], eco, "tags-$spid.jls")
     if isfile(tagspath)
         pftags = deserialize(tagspath)
         return pfilter(jld2file, spid, pftags, t, domains, prunecfg)

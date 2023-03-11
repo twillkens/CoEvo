@@ -48,6 +48,9 @@ function domodes(
     #fill_statdict!(d, "geno-ecology", StatFeatures.(
     #    zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
     #))
+    fill_statdict!(d, "min-fitness", StatFeatures.(
+        zip([ecostats.stats.minfitness for ecostats in allecostats]...)
+    ))
     fill_statdict!(d, "min-complexity", StatFeatures.(
         zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
     ))
@@ -72,9 +75,6 @@ function domodes(
     fill_statdict!(d, "modes-ecology", StatFeatures.(
         zip([ecostats.stats.modestats.ecology for ecostats in allecostats]...)
     ))
-    fill_statdict!(d, "min-fitness", StatFeatures.(
-        zip([ecostats.stats.minfitness for ecostats in allecostats]...)
-    ))
     fill_statdict!(d, "modes-fitness", StatFeatures.(
         zip([ecostats.stats.modefitness for ecostats in allecostats]...)
     ))
@@ -96,6 +96,9 @@ function domodes(
         #fill_statdict!(d, "$spid-geno-ecology", StatFeatures.(
         #    zip([ecostats.spstats[spid].genostats.ecology for ecostats in allecostats]...)
         #))
+        fill_statdict!(d, "$spid-min-fitness", StatFeatures.(
+            zip([ecostats.spstats[spid].minfitness for ecostats in allecostats]...)
+        ))
         fill_statdict!(d, "$spid-min-complexity", StatFeatures.(
             zip([ecostats.spstats[spid].minstats.complexity for ecostats in allecostats]...)
         ))
@@ -108,6 +111,9 @@ function domodes(
         fill_statdict!(d, "$spid-min-ecology", StatFeatures.(
             zip([ecostats.spstats[spid].minstats.ecology for ecostats in allecostats]...)
         ))
+        fill_statdict!(d, "$spid-modes-fitness", StatFeatures.(
+            zip([ecostats.spstats[spid].modefitness for ecostats in allecostats]...)
+        ))
         fill_statdict!(d, "$spid-modes-complexity", StatFeatures.(
             zip([ecostats.spstats[spid].modestats.complexity for ecostats in allecostats]...)
         ))
@@ -119,12 +125,6 @@ function domodes(
         )
         fill_statdict!(d, "$spid-modes-ecology", StatFeatures.(
             zip([ecostats.spstats[spid].modestats.ecology for ecostats in allecostats]...)
-        ))
-        fill_statdict!(d, "$spid-min-fitness", StatFeatures.(
-            zip([ecostats.spstats[spid].minfitness for ecostats in allecostats]...)
-        ))
-        fill_statdict!(d, "$spid-modes-fitness", StatFeatures.(
-            zip([ecostats.spstats[spid].modefitness for ecostats in allecostats]...)
         ))
         fill_statdict!(d, "$spid-eplen", StatFeatures.(
             zip([ecostats.spstats[spid].eplens for ecostats in allecostats]...)

@@ -30,6 +30,11 @@ function get_genphenodict(jld2file::JLD2.JLDFile, gen::Int, myspid::String)
             )
             for iid in keys(jld2file["arxiv/$gen/species/$spid/children"])
         ]
-        for spid in keys(jld2file["arxiv/$gen/species"])
+        for spid in keys(jld2file["arxiv/$gen/species"]) if spid != myspid
     )
+    #k = keys(jld2file["arxiv/$gen/species"])
+    #gk = keys(d)
+    #ok = [spid == myspid for spid in keys(jld2file["arxiv/$gen/species"])]
+    #println("myspid: $myspid, jlkeys: $k, genkeys: $gk, ok: $ok")
+    #d
 end

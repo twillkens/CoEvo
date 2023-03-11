@@ -6,7 +6,7 @@ mutable struct BFTPrune{I <: FSMIndiv}
     score::Float64
     currgeno::FSMGeno{UInt32}
     currscore::Float64
-    eplen::Int
+    eplen::Float64
 end
 
 function traverse!(
@@ -31,13 +31,12 @@ function traverse!(
         opponents = spid1 == bft.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
         for pheno in opponents
             p1, p2 = spid1 == bft.ftag.spid ? (prunepheno, pheno) : (pheno, prunepheno)
-            o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
+            o = stir(:bft, domain, NullObsConfig(), p1, p2) 
             score += getscore(bft.indiv.ikey, o)
         end
     end
     if score >= bft.score
         bft.currgeno = prunegeno
-        bft.currscore = score
     end
     traverse!(bft, queue, visited, genphenodict, domains)
 end
@@ -49,6 +48,7 @@ function fight!(
 )
     bftpheno = FSMPhenoCfg()(bft.indiv.ikey, bft.currgeno)
     for ((spid1, spid2), domain) in domains
+        #println("fighting $spid1 vs $spid2, bfspid: $(bft.ftag.spid), ok: $(spid1 == bft.ftag.spid), keys: $(keys(genphenodict))")
         opponents = spid1 == bft.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
         for pheno in opponents
             p1, p2 = spid1 == bft.ftag.spid ? (bftpheno, pheno) : (pheno, bftpheno)
@@ -62,6 +62,17 @@ function fight!(
     pushfirst!(queue, first(act(bftpheno, first(bftpheno.start), false)))
     visited = Set([first(bftpheno.start)])
     traverse!(bft, queue, visited, genphenodict, domains)
+
+    bftpheno = FSMPhenoCfg()(bft.indiv.ikey, bft.currgeno)
+    for ((spid1, spid2), domain) in domains
+        #println("fighting $spid1 vs $spid2, bfspid: $(bft.ftag.spid), ok: $(spid1 == bft.ftag.spid), keys: $(keys(genphenodict))")
+        opponents = spid1 == bft.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
+        for pheno in opponents
+            p1, p2 = spid1 == bft.ftag.spid ? (bftpheno, pheno) : (pheno, bftpheno)
+            o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
+            bft.currscore += getscore(bftpheno.ikey, o)
+        end
+    end
 end
 
 function fight!(
@@ -76,7 +87,7 @@ function fight!(
 end
 
 function BFTPrune(ftag::FilterTag, indiv::FSMIndiv,) 
-    BFTPrune(ftag, indiv, 0.0, indiv.mingeno, 0.0, 0)
+    BFTPrune(ftag, indiv, 0.0, indiv.mingeno, 0.0, 0.0)
 end
 
 struct BFTPruneCfg <: PruneCfg end
@@ -98,17 +109,17 @@ end
 
 function FilterIndiv(
     p::BFTPrune, 
-    genphenodict::Dict{String, <:Vector{<:FSMPheno}},
+    others::Dict{String, <:Vector{<:FSMPheno}},
     ::Dict{Tuple{String, String}, <:Domain}
 )
-    n = sum([length(genphenodict[spid]) for spid in keys(genphenodict)])
+    n_others = sum([length(v) for v in values(others)])
     FilterIndiv(
         p.ftag, 
         p.indiv.geno, #nothing 
         p.indiv.mingeno, 
         minimize(p.currgeno), 
-        p.score / n,
-        p.currscore / n,
-        p.eplen / n,
+        p.score / n_others,
+        p.currscore / n_others,
+        p.eplen / n_others,
     )
 end
