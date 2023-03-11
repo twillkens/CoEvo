@@ -6,7 +6,11 @@ mutable struct BFTPrune{I <: FSMIndiv}
     score::Float64
     currgeno::FSMGeno{UInt32}
     currscore::Float64
+    prunegeno::FSMGeno{UInt32}
+    prunescore::Float64
     eplen::Float64
+    prunelen::Float64
+    levdist::Float64
 end
 
 function traverse!(
@@ -50,8 +54,8 @@ function fight!(
     for ((spid1, spid2), domain) in domains
         #println("fighting $spid1 vs $spid2, bfspid: $(bft.ftag.spid), ok: $(spid1 == bft.ftag.spid), keys: $(keys(genphenodict))")
         opponents = spid1 == bft.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
-        for pheno in opponents
-            p1, p2 = spid1 == bft.ftag.spid ? (bftpheno, pheno) : (pheno, bftpheno)
+        for opp in opponents
+            p1, p2 = spid1 == bft.ftag.spid ? (bftpheno, opp) : (opp, bftpheno)
             o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
             bft.score += getscore(bftpheno.ikey, o)
             bft.eplen += length(first(values(o.obs.states)))
@@ -67,8 +71,8 @@ function fight!(
     for ((spid1, spid2), domain) in domains
         #println("fighting $spid1 vs $spid2, bfspid: $(bft.ftag.spid), ok: $(spid1 == bft.ftag.spid), keys: $(keys(genphenodict))")
         opponents = spid1 == bft.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
-        for pheno in opponents
-            p1, p2 = spid1 == bft.ftag.spid ? (bftpheno, pheno) : (pheno, bftpheno)
+        for opp in opponents
+            p1, p2 = spid1 == bft.ftag.spid ? (bftpheno, opp) : (opp, bftpheno)
             o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
             bft.currscore += getscore(bftpheno.ikey, o)
         end

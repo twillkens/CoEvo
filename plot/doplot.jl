@@ -9,6 +9,30 @@ Plots.default(fontfamily = ("Times Roman"))# titlefont = ("Times Roman"), legend
 gr()
 
 
+function quickplot(eco::String, tag::String, metric::String, mini::Bool = false)
+    dir = !mini ? "modesdata" : joinpath(ENV["COEVO_DATA_DIR"], eco)
+    df = deserialize("$dir/$eco-$tag.jls")
+    quickplot(df, metric)
+end
+
+function quickplot(eco::String, tag::String, sp::String, metric::String, mini::Bool = false)
+    dir = !mini ? "modesdata" : joinpath(ENV["COEVO_DATA_DIR"], eco)
+    df = deserialize("$dir/$eco-$tag.jls")
+    quickplot(df, metric, sp)
+end
+
+function quickplot(df::DataFrame, x::String)
+    p1 = plot(df[!, "min-$x-mean"], ribbon=((df[!, "min-$x-lower-conf"], df[!, "min-$x-upper-conf"])), fillalpha=0.25)
+    p2 = plot(df[!, "modes-$x-mean"], ribbon=((df[!, "modes-$x-lower-conf"], df[!, "modes-$x-upper-conf"])), fillalpha=0.25)
+    plot(p1, p2)
+end
+
+function quickplot(df::DataFrame, x::String, sp::String)
+    p1 = plot(df[!, "$sp-min-$x-mean"], ribbon=((df[!, "$sp-min-$x-lower-conf"], df[!, "$sp-min-$x-upper-conf"])), fillalpha=0.25)
+    p2 = plot(df[!, "$sp-modes-$x-mean"], ribbon=((df[!, "$sp-modes-$x-lower-conf"], df[!, "$sp-modes-$x-upper-conf"])), fillalpha=0.25)
+    plot(p1, p2)
+end
+
 struct LineSpec
     title::String
     label::String

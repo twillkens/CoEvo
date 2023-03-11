@@ -58,10 +58,6 @@ function getfitnesses(allfindivs::Vector{<:Vector{<:FilterIndiv}})
     [mean([findiv.fitness for findiv in findivs]) for findivs in allfindivs]
 end
 
-function geteplens(allfindivs::Vector{<:Vector{<:FilterIndiv}})
-    ([mean([findiv.min_eplen for findiv in findivs]) for findivs in allfindivs],
-    [mean([findiv.mode_eplen for findiv in findivs]) for findivs in allfindivs])
-end
 
 struct ModesStats
     change::Vector{Int}
