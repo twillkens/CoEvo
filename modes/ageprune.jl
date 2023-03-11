@@ -94,11 +94,11 @@ function fight!(
     for ((spid1, spid2), domain) in domains
         opponents = spid1 == aprune.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
         for opp in opponents
-            p1, p2 = spid1 == aprune.ftag.spid ? (apheno, opp) : (opp, apheno)
+            p1, p2 = spid1 == aprune.ftag.spid ? (prunepheno, opp) : (opp, prunepheno)
             o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
             aprune.prunescore += getscore(prunepheno.ikey, o)
             aprune.prunelen += length(first(values(o.obs.states)))
-            aprune.levdist += lev(o.obs.states[prunepheno.ikey], o.obs.states[opp.ikey])
+            aprune.levdist += lev(o.obs.outs[prunepheno.ikey], o.obs.outs[opp.ikey])
         end
     end
 end
