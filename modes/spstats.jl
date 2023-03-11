@@ -28,7 +28,6 @@ function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
     modefitness = [mean([findiv.modefitness for findiv in findivs]) for findivs in allfindivs]
     eplens = geteplens(allfindivs)
     SpeciesStats(spid, genostats, mingenostats, modestats, minfitness, modefitness, eplens)
-    # SpeciesStats(spid, nothing, mingenostats, modestats, minfitness, modefitness, eplens)
 end
 
 struct FilterResults{I <: FilterIndiv}

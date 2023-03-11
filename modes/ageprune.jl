@@ -1,5 +1,4 @@
-
-export BFTPrune, traverse!, get_bftphenos
+export AgePrune, AgePruneCfg
 
 mutable struct AgePrune{I <: FSMIndiv}
     ftag::FilterTag
@@ -8,38 +7,7 @@ mutable struct AgePrune{I <: FSMIndiv}
     prunegeno::FSMGeno{UInt32}
     prunescore::Float64
     eplen::Float64
-end
-
-function traverse!(
-    bft::BFTPrune, 
-    queue::Deque{UInt32},
-    visited::Set{UInt32},
-    genphenodict::Dict{String, <:Vector{<:FSMPheno}}, 
-    domains::Dict{Tuple{String, String}, <:Domain}
-)
-    state = pop!(queue)
-    if state in visited
-        return
-    end
-    push!(visited, state)
-    prunepheno = FSMPhenoCfg()(bft.indiv.ikey, bft.currgeno)
-    pushfirst!(queue, first(act(prunepheno, state, true)))
-    pushfirst!(queue, first(act(prunepheno, state, false)))
-    prunegeno = rmstate(StableRNG(42), bft.currgeno, state)
-    prunepheno = FSMPhenoCfg()(bft.indiv.ikey, prunegeno)
-    score = 0.0
-    for ((spid1, spid2), domain) in domains
-        opponents = spid1 == bft.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
-        for pheno in opponents
-            p1, p2 = spid1 == bft.ftag.spid ? (prunepheno, pheno) : (pheno, prunepheno)
-            o = stir(:bft, domain, NullObsConfig(), p1, p2) 
-            score += getscore(bft.indiv.ikey, o)
-        end
-    end
-    if score >= bft.score
-        bft.currgeno = prunegeno
-    end
-    traverse!(bft, queue, visited, genphenodict, domains)
+    rev::Bool
 end
 
 function fight!(
@@ -47,51 +15,64 @@ function fight!(
     genphenodict::Dict{String, <:Vector{<:FSMPheno}}, 
     domains::Dict{Tuple{String, String}, <:Domain}
 )
-    apheno = FSMPhenoCfg()(aprune.indiv.ikey, aprune.currgeno)
+    apheno = FSMPhenoCfg()(aprune.indiv.ikey, aprune.prunegeno)
     for ((spid1, spid2), domain) in domains
-        #println("fighting $spid1 vs $spid2, bfspid: $(bft.ftag.spid), ok: $(spid1 == bft.ftag.spid), keys: $(keys(genphenodict))")
-        opponents = spid1 == bft.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
+        opponents = spid1 == aprune.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
         for pheno in opponents
-            p1, p2 = spid1 == bft.ftag.spid ? (bftpheno, pheno) : (pheno, bftpheno)
-            o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
-            bft.score += getscore(bftpheno.ikey, o)
-            bft.eplen += length(first(values(o.obs.states)))
+            p1, p2 = spid1 == aprune.ftag.spid ? (apheno, pheno) : (pheno, apheno)
+            o = stir(:age, domain, LingPredObsConfig(), p1, p2) 
+            aprune.score += getscore(apheno.ikey, o)
+            aprune.eplen += length(first(values(o.obs.states)))
         end
     end
-    queue = Deque{UInt32}()
-    pushfirst!(queue, first(act(bftpheno, first(bftpheno.start), true)))
-    pushfirst!(queue, first(act(bftpheno, first(bftpheno.start), false)))
-    visited = Set([first(bftpheno.start)])
-    traverse!(bft, queue, visited, genphenodict, domains)
+    states = union(aprune.prunegeno.ones, aprune.prunegeno.zeros)
+    delete!(states, aprune.prunegeno.start)
+    for state in sort(collect(states), rev=aprune.rev)
+        prunegeno = rmstate(StableRNG(42), aprune.prunegeno, state)
+        prunepheno = FSMPhenoCfg()(aprune.indiv.ikey, prunegeno)
+        score = 0.0
+        for ((spid1, spid2), domain) in domains
+            opponents = spid1 == aprune.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
+            for pheno in opponents
+                p1, p2 = spid1 == aprune.ftag.spid ? (prunepheno, pheno) : (pheno, prunepheno)
+                o = stir(:age, domain, LingPredObsConfig(), p1, p2) 
+                score += getscore(apheno.ikey, o)
+            end
+        end
+        if score >= aprune.score
+            aprune.prunegeno = prunegeno
+        end
+    end
 
-    bftpheno = FSMPhenoCfg()(bft.indiv.ikey, bft.currgeno)
+    prunepheno = FSMPhenoCfg()(aprune.indiv.ikey, aprune.prunegeno)
     for ((spid1, spid2), domain) in domains
-        #println("fighting $spid1 vs $spid2, bfspid: $(bft.ftag.spid), ok: $(spid1 == bft.ftag.spid), keys: $(keys(genphenodict))")
-        opponents = spid1 == bft.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
+        opponents = spid1 == aprune.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
         for pheno in opponents
-            p1, p2 = spid1 == bft.ftag.spid ? (bftpheno, pheno) : (pheno, bftpheno)
+            p1, p2 = spid1 == aprune.ftag.spid ? (apheno, pheno) : (pheno, apheno)
             o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
-            bft.currscore += getscore(bftpheno.ikey, o)
+            aprune.prunescore += getscore(prunepheno.ikey, o)
         end
     end
 end
 
 function fight!(
     ::String, 
-    bfts::Vector{<:BFTPrune}, 
+    aprunes::Vector{<:AgePrune}, 
     genphenodict::Dict{String, <:Vector{<:FSMPheno}},
     domains::Dict{Tuple{String, String}, <:Domain}
 )
-    for bft in bfts
-        fight!(bft, genphenodict, domains)
+    for ap in aprunes
+        fight!(ap, genphenodict, domains)
     end
 end
 
-function AgePrune(ftag::FilterTag, indiv::FSMIndiv,) 
-    AgePrune(ftag, indiv, 0.0, indiv.mingeno, 0.0, 0.0)
+function AgePrune(ftag::FilterTag, indiv::FSMIndiv, rev::Bool = true)
+    AgePrune(ftag, indiv, 0.0, indiv.mingeno, 0.0, 0.0, rev)
 end
 
-struct AgePruneCfg <: PruneCfg end
+Base.@kwdef struct AgePruneCfg <: PruneCfg 
+    rev::Bool = true
+end
 
 function(cfg::AgePruneCfg)(jld2file::JLD2.JLDFile, ftags::Vector{FilterTag})
     archiver = FSMIndivArchiver()
@@ -103,6 +84,7 @@ function(cfg::AgePruneCfg)(jld2file::JLD2.JLDFile, ftags::Vector{FilterTag})
                 ftag.iid, 
                 jld2file["arxiv/$(ftag.gen)/species/$(ftag.spid)/children/$(ftag.iid)"]
             ),
+            cfg.rev
         )
         for ftag in ftags
     ]
@@ -114,13 +96,17 @@ function FilterIndiv(
     ::Dict{Tuple{String, String}, <:Domain}
 )
     n_others = sum([length(v) for v in values(others)])
+    println("n_others: $(n_others)")
+    println("score: $(p.score)")
+    println("prunescore: $(p.prunescore)")
+    println("eplen: $(p.eplen)")
     FilterIndiv(
         p.ftag, 
         p.indiv.geno, #nothing 
         p.indiv.mingeno, 
-        minimize(p.currgeno), 
+        minimize(p.prunegeno), 
         p.score / n_others,
-        p.currscore / n_others,
+        p.prunescore / n_others,
         p.eplen / n_others,
     )
 end

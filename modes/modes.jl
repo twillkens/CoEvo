@@ -13,6 +13,7 @@ using Distributed
 @everywhere include("filterindiv.jl")
 @everywhere include("koprune.jl")
 @everywhere include("bftprune.jl")
+@everywhere include("ageprune.jl")
 @everywhere include("mstats.jl")
 @everywhere include("spstats.jl")
 @everywhere include("ptags.jl")
@@ -29,6 +30,7 @@ function domodes(
     t::Int,
     domains::Dict{Tuple{String, String}, <:Domain},
     prunecfg::PruneCfg,
+    dtag::String,
 )
     futures = [
         @spawnat :any pfilter(eco, trial, t, domains, prunecfg) 
@@ -36,18 +38,18 @@ function domodes(
     ]
     allecostats = [fetch(future) for future in futures]
     d = Dict{String, Vector{Float64}}()
-    #fill_statdict!(d, "geno-complexity", StatFeatures.(
-    #    zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
-    #))
-    #fill_statdict!(d, "geno-novelty", StatFeatures.(
-    #    zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
-    #))
-    #fill_statdict!(d, "geno-change", StatFeatures.(
-    #    zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
-    #)
-    #fill_statdict!(d, "geno-ecology", StatFeatures.(
-    #    zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
-    #))
+    fill_statdict!(d, "geno-complexity", StatFeatures.(
+        zip([ecostats.stats.genostats.complexity for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "geno-novelty", StatFeatures.(
+        zip([ecostats.stats.genostats.novelty for ecostats in allecostats]...)
+    ))
+    fill_statdict!(d, "geno-change", StatFeatures.(
+        zip([ecostats.stats.genostats.change for ecostats in allecostats]...))
+    )
+    fill_statdict!(d, "geno-ecology", StatFeatures.(
+        zip([ecostats.stats.genostats.ecology for ecostats in allecostats]...)
+    ))
     fill_statdict!(d, "min-fitness", StatFeatures.(
         zip([ecostats.stats.minfitness for ecostats in allecostats]...)
     ))
@@ -84,18 +86,18 @@ function domodes(
 
     spids = allecostats[1].spstats |> keys |> collect
     for spid in spids
-        #fill_statdict!(d, "$spid-geno-complexity", StatFeatures.(
-        #    zip([ecostats.spstats[spid].genostats.complexity for ecostats in allecostats]...)
-        #))
-        #fill_statdict!(d, "$spid-geno-novelty", StatFeatures.(
-        #    zip([ecostats.spstats[spid].genostats.novelty for ecostats in allecostats]...)
-        #))
-        #fill_statdict!(d, "$spid-geno-change", StatFeatures.(
-        #    zip([ecostats.spstats[spid].genostats.change for ecostats in allecostats]...))
-        #)
-        #fill_statdict!(d, "$spid-geno-ecology", StatFeatures.(
-        #    zip([ecostats.spstats[spid].genostats.ecology for ecostats in allecostats]...)
-        #))
+        fill_statdict!(d, "$spid-geno-complexity", StatFeatures.(
+            zip([ecostats.spstats[spid].genostats.complexity for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-geno-novelty", StatFeatures.(
+            zip([ecostats.spstats[spid].genostats.novelty for ecostats in allecostats]...)
+        ))
+        fill_statdict!(d, "$spid-geno-change", StatFeatures.(
+            zip([ecostats.spstats[spid].genostats.change for ecostats in allecostats]...))
+        )
+        fill_statdict!(d, "$spid-geno-ecology", StatFeatures.(
+            zip([ecostats.spstats[spid].genostats.ecology for ecostats in allecostats]...)
+        ))
         fill_statdict!(d, "$spid-min-fitness", StatFeatures.(
             zip([ecostats.spstats[spid].minfitness for ecostats in allecostats]...)
         ))
@@ -131,54 +133,58 @@ function domodes(
         ))
     end
     d = DataFrame(d)
-    serialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "modes.jls"), d)
+    serialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "modes-$dtag.jls"), d)
     d
 end
 
-function modes_ctrl(
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg()
+function modes_ctrl(;
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(),
+    dtag::String = "",
 )
     domains = Dict(
         ("ctrl1", "ctrl2") => LingPredGame(Control())
     )
-    domodes("ctrl", trials, t, domains, prunecfg)
+    domodes("ctrl", trials, t, domains, prunecfg, dtag)
 end
-function modes_coop(
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg()
+function modes_coop(;
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), 
+    dtag::String = "",
 )
     domains = Dict(
         ("host", "symbiote") => LingPredGame(MatchCoop())
     )
-    domodes("coop", trials, t, domains, prunecfg)
+    domodes("coop", trials, t, domains, prunecfg, dtag)
 end
 
 function modes_comp(
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg()
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), 
+    dtag::String = "",
 )
     domains = Dict(
         ("host", "parasite") => LingPredGame(MatchComp())
     )
-    domodes("comp", trials, t, domains, prunecfg)
+    domodes("comp", trials, t, domains, prunecfg, dtag)
 end
 
 function modes_matchmix(
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg()
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), 
+    dtag::String = "",
 )
     domains = Dict(
         ("host", "symbiote") => LingPredGame(MatchCoop()),
         ("host", "parasite") => LingPredGame(MatchComp())
     )
-    domodes("matchmix", trials, t, domains, prunecfg)
+    domodes("matchmix", trials, t, domains, prunecfg, dtag)
 end
 
 function modes_mismatchmix(
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg()
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = BFTPruneCfg(), dtag::String = "",
 )
     domains = Dict(
         ("host", "symbiote") => LingPredGame(MismatchCoop()),
         ("host", "parasite") => LingPredGame(MatchComp())
     )
-    domodes("mismatchmix", trials, t, domains, prunecfg)
+    domodes("mismatchmix", trials, t, domains, prunecfg, dtag)
 end
 
 # function pfilter_4MatchMix()
