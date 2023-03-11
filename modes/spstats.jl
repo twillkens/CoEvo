@@ -1,0 +1,64 @@
+export SpeciesStats, EcoStats, FilterResults
+
+struct SpeciesStats
+    spid::String
+    genostats::Union{ModesStats, Nothing}
+    minstats::Union{ModesStats, Nothing}
+    modestats::ModesStats
+    minfitness::Vector{Float64}
+    modefitness::Vector{Float64}
+    eplens::Vector{Float64}
+end
+
+function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
+    println("getting stats for $spid")
+    #genostats = ModesStats(
+    #    [[findiv.geno for findiv in findivs] 
+    #    for findivs in allfindivs]
+    #)
+    mingenostats = ModesStats(
+        [[findiv.mingeno for findiv in findivs] 
+        for findivs in allfindivs]
+    )
+    modestats = ModesStats(
+        [[findiv.modegeno for findiv in findivs] 
+        for findivs in allfindivs]
+    )
+    minfitness = [mean([findiv.minfitness for findiv in findivs]) for findivs in allfindivs]
+    modefitness = [mean([findiv.modefitness for findiv in findivs]) for findivs in allfindivs]
+    eplens = geteplens(allfindivs)
+    #SpeciesStats(spid, genostats, mingenostats, modestats, fitnesses, eplens)
+    SpeciesStats(spid, nothing, mingenostats, modestats, minfitness, modefitness, eplens)
+end
+
+struct FilterResults{I <: FilterIndiv}
+    spid::String
+    t::Int
+    allfindivs::Vector{Vector{I}}
+    stats::SpeciesStats
+end
+
+struct EcoStats
+    eco::String
+    trial::Int
+    t::Int
+    stats::Union{SpeciesStats, Nothing}
+    spstats::Dict{String, SpeciesStats}
+end
+
+function EcoStats(
+    eco::String, trial::Int, t::Int, fdict::Dict{String, <:FilterResults}
+)
+    spstats = Dict(spid => fresults.stats for (spid, fresults) in fdict)
+    allindivs = [fresults.allfindivs for fresults in values(fdict)]
+    allindivs = collect(vcat(y...) for y in zip(allindivs...))
+    metastats = SpeciesStats(eco, allindivs)
+    EcoStats(
+        eco,
+        trial,
+        t,
+        #nothing, #metastats,
+        metastats,
+        spstats, 
+    )
+end

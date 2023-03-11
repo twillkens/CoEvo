@@ -4,9 +4,12 @@ export StatFeatures
 export SpeciesLogger
 export make_group!
 
+
 Base.@kwdef struct StatFeatures
     sum::Float64 = 0
+    upper_confidence = 0
     mean::Float64 = 0
+    lower_confidence = 0
     variance::Float64 = 0
     std::Float64 = 0
     minimum::Float64 = 0
@@ -21,9 +24,12 @@ function StatFeatures(vec::Vector{<:Real})
         StatFeatures()
     else
         min_, lower_, med_, upper_, max_, = nquantile(vec, 4)
+        loconf, hiconf = confint(OneSampleTTest(vec))
         StatFeatures(
             sum = sum(vec),
+            lower_confidence = loconf,
             mean = mean(vec),
+            upper_confidence = hiconf,
             variance = var(vec),
             std = std(vec),
             minimum = min_,
