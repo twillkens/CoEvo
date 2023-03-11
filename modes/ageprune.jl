@@ -7,6 +7,7 @@ mutable struct AgePrune{I <: FSMIndiv}
     prunegeno::FSMGeno{UInt32}
     prunescore::Float64
     eplen::Float64
+    prunelen::Float64
     rev::Bool
 end
 
@@ -51,6 +52,7 @@ function fight!(
             p1, p2 = spid1 == aprune.ftag.spid ? (apheno, pheno) : (pheno, apheno)
             o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
             aprune.prunescore += getscore(prunepheno.ikey, o)
+            aprune.prunelen += length(first(values(o.obs.states)))
         end
     end
 end
@@ -67,7 +69,7 @@ function fight!(
 end
 
 function AgePrune(ftag::FilterTag, indiv::FSMIndiv, rev::Bool = true)
-    AgePrune(ftag, indiv, 0.0, indiv.mingeno, 0.0, 0.0, rev)
+    AgePrune(ftag, indiv, 0.0, indiv.mingeno, 0.0, 0.0, 0.0, rev)
 end
 
 Base.@kwdef struct AgePruneCfg <: PruneCfg 
@@ -104,6 +106,7 @@ function FilterIndiv(
         p.score / n_others,
         p.prunescore / n_others,
         p.eplen / n_others,
+        p.prunelen / n_others,
     )
 end
 

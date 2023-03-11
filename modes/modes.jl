@@ -53,6 +53,9 @@ function domodes(
     fill_statdict!(d, "min-fitness", StatFeatures.(
         zip([ecostats.stats.minfitness for ecostats in allecostats]...)
     ))
+    fill_statdict!(d, "min-eplen", StatFeatures.(
+        zip([ecostats.stats.min_eplen for ecostats in allecostats]...)
+    ))
     fill_statdict!(d, "min-complexity", StatFeatures.(
         zip([ecostats.stats.minstats.complexity for ecostats in allecostats]...)
     ))
@@ -68,6 +71,9 @@ function domodes(
     fill_statdict!(d, "modes-complexity", StatFeatures.(
         zip([ecostats.stats.modestats.complexity for ecostats in allecostats]...)
     ))
+    fill_statdict!(d, "modes-eplen", StatFeatures.(
+        zip([ecostats.stats.mode_eplen for ecostats in allecostats]...)
+    ))
     fill_statdict!(d, "modes-novelty", StatFeatures.(
         zip([ecostats.stats.modestats.novelty for ecostats in allecostats]...)
     ))
@@ -79,9 +85,6 @@ function domodes(
     ))
     fill_statdict!(d, "modes-fitness", StatFeatures.(
         zip([ecostats.stats.modefitness for ecostats in allecostats]...)
-    ))
-    fill_statdict!(d, "eplen", StatFeatures.(
-        zip([ecostats.stats.eplens for ecostats in allecostats]...)
     ))
 
     spids = allecostats[1].spstats |> keys |> collect
@@ -104,6 +107,9 @@ function domodes(
         fill_statdict!(d, "$spid-min-complexity", StatFeatures.(
             zip([ecostats.spstats[spid].minstats.complexity for ecostats in allecostats]...)
         ))
+        fill_statdict!(d, "$spid-min-eplen", StatFeatures.(
+            zip([ecostats.spstats[spid].min_eplen for ecostats in allecostats]...)
+        ))
         fill_statdict!(d, "$spid-min-novelty", StatFeatures.(
             zip([ecostats.spstats[spid].minstats.novelty for ecostats in allecostats]...)
         ))
@@ -116,6 +122,9 @@ function domodes(
         fill_statdict!(d, "$spid-modes-fitness", StatFeatures.(
             zip([ecostats.spstats[spid].modefitness for ecostats in allecostats]...)
         ))
+        fill_statdict!(d, "$spid-modes-eplen", StatFeatures.(
+            zip([ecostats.spstats[spid].mode_eplen for ecostats in allecostats]...)
+        ))
         fill_statdict!(d, "$spid-modes-complexity", StatFeatures.(
             zip([ecostats.spstats[spid].modestats.complexity for ecostats in allecostats]...)
         ))
@@ -127,9 +136,6 @@ function domodes(
         )
         fill_statdict!(d, "$spid-modes-ecology", StatFeatures.(
             zip([ecostats.spstats[spid].modestats.ecology for ecostats in allecostats]...)
-        ))
-        fill_statdict!(d, "$spid-eplen", StatFeatures.(
-            zip([ecostats.spstats[spid].eplens for ecostats in allecostats]...)
         ))
     end
     d = DataFrame(d)

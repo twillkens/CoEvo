@@ -17,6 +17,7 @@ mutable struct FilterIndiv{
     modegeno::G3
     minfitness::Float64
     modefitness::Float64
-    eplen::Float64
+    min_eplen::Float64
+    mode_eplen::Float64
 end
 
