@@ -15,6 +15,7 @@ using Distributed
 @everywhere include("bftprune.jl")
 @everywhere include("mstats.jl")
 @everywhere include("spstats.jl")
+@everywhere include("ptags.jl")
 @everywhere include("pfilter.jl")
 @everywhere using Serialization
 
@@ -28,10 +29,9 @@ function domodes(
     t::Int,
     domains::Dict{Tuple{String, String}, <:Domain},
     prunecfg::PruneCfg,
-    until::Int = 50_000
 )
     futures = [
-        @spawnat :any pfilter(eco, trial, t, domains, prunecfg, until) 
+        @spawnat :any pfilter(eco, trial, t, domains, prunecfg) 
         for trial in trials
     ]
     allecostats = [fetch(future) for future in futures]
