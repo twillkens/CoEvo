@@ -301,6 +301,36 @@ end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
+@everywhere function run_3comp(
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int
+)
+    eco = Symbol("3comp")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        throw("file already exists: $(jld2path)")
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:A;     npop = npop)
+        spawner2 = lingpredspawner(:B; npop = npop)
+        spawner3 = lingpredspawner(:C; npop = npop)
+        order1 = lingpredorder(:AB, [:A, :B], LingPredGame(MatchComp()))
+        order2 = lingpredorder(:AC, [:A, :C], LingPredGame(MatchComp()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order1, order2),
+            spawners = Dict(spawner1, spawner2, spawner3),
+            arxiv_interval = arxiv_interval,
+        )
+        allsp = coevcfg()
+    end
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
+end
+
 @everywhere function run_4MatchMix(
     trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int, 
 )

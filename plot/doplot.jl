@@ -12,33 +12,131 @@ function label(args...)
     lstrip(join(args, '-'), '-')
 end
 
-function quickplot(
-    eco::String; 
+function spplot(eco::String, metric::String, sp1::String, sp2::String)
+    X1, low1, hi1 = getline(eco = eco, tag = "ko-40", geno = "min", metric = metric, sp = sp1)
+    X2, low2, hi2 = getline(eco = eco, tag = "ko-40", geno = "modes", metric = metric, sp = sp1)
+    X3, low3, hi3 = getline(eco = eco, tag = "ko-40", geno = "min", metric = metric, sp = sp2)
+    X4, low4, hi4 = getline(eco = eco, tag = "ko-40", geno = "modes", metric = metric, sp = sp2)
+    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue)
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red)
+    p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green)
+    p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange)
+    tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
+    ydict = Dict(
+        "complexity" => "Complexity",
+        "novelty" => "Novelty",
+        "ecology" => "Ecology",
+        "levdist" => "Levenshtein Distance",
+        "change" => "Change",
+        "fitness" => "Fitness",
+        "eplen" => "Episode Length",
+    )
+    ylimdict = Dict(
+        "complexity" => (0, 100),
+        "novelty" => (0, 5),
+        "ecology" => (0, 5),
+        "levdist" => (0, 25),
+        "change" => (0, 5),
+        "fitness" => (0, 1),
+        "eplen" => (0, 25),
+    )
+    plot(
+        p,
+        ylim = ylimdict[metric],
+        xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
+        xlabel = "Generations",
+        ylabel = ydict[metric],
+    )
+end
+
+function twoplots(metric::String)
+    X1, low1, hi1 = getline(eco = "ctrl", tag = "ko-40", geno = "min", metric = metric,)
+    X2, low2, hi2 = getline(eco = "comp", tag = "ko-40", geno = "min", metric = metric,)
+    X3, low3, hi3 = getline(eco = "coop", tag = "ko-40", geno = "min", metric = metric,)
+    X4, low4, hi4 = getline(eco = "comp", tag = "ko-40", geno = "modes", metric = metric)
+    X5, low5, hi5 = getline(eco = "coop", tag = "ko-40", geno = "modes", metric = metric)
+    p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "Comp")
+    p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "Coop")
+    p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "Comp-KO")
+    p = plot(p, 1:1000, X5, ribbon = (low5, hi5), fillalpha = 0.25, color = :violet, label = "Coop-KO")
+    tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
+    ydict = Dict(
+        "complexity" => "Complexity",
+        "novelty" => "Novelty",
+        "ecology" => "Ecology",
+        "levdist" => "Levenshtein Distance",
+        "change" => "Change",
+        "fitness" => "Fitness",
+        "eplen" => "Episode Length",
+    )
+    ylimdict = Dict(
+        "complexity" => (0, 100),
+        "novelty" => (0, 6),
+        "ecology" => (0, 6),
+        "levdist" => (0, 25),
+        "change" => (0, 6),
+        "fitness" => (0, 25),
+        "eplen" => (0, 25),
+    )
+    FSIZE = 20
+    plot(
+        p,
+        ylim = ylimdict[metric],
+        xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
+        xlabel = "Generations",
+        ylabel = ydict[metric],
+        title = "Two Species: $(ydict[metric])",
+        size = (1025, 650), 
+        dpi = 300,
+        left_margin = 8mm,
+        right_margin = 5mm,
+        top_margin = 5mm,
+        bottom_margin = 10mm,
+        ylabelfontsize = FSIZE,
+        xlabelfontsize = FSIZE,
+        tickfontsize = FSIZE - 4,
+        legendfontsize=FSIZE - 8,
+        #top_margin=0mm, 
+        #bottom_margin=0mm, 
+        #left_margin=0mm, 
+        #right_margin=0mm, 
+        titlefontsize=FSIZE+1,
+    )
+end
+
+function levdist(eco::String, tag1::String, tag2::String)
+    X1, low1, hi1 = getline(eco = eco, tag = tag1, geno = "", metric = "levdist")
+    X2, low2, hi2 = getline(eco = eco, tag = tag2, geno = "", metric = "levdist")
+    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :red)
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :blue)
+end
+
+
+
+function getline(;
+    eco::String = "comp", 
+    tag::String = "age-40", 
+    geno::String = "min",
+    metric::String = "complexity", 
+    sp::String = "",
+    trial::Int = -1,
     dir::String = "modesdata",
-    tags::Vector{String} = ["age-40", "ko-40"], 
-    species::Vector{String} = ["host", "symbiote"],
-    genos::Vector{String} = ["min", "modes"],
-    metrics::Vector{String} = [
-        "complexity", "ecology", "fitness", "change", "novelty", "eplen"
-    ], 
-    trials::UnitRange{Int} = 1:40
+    mid::String = "mean",
+    upper::String = "upper-conf",
+    lower::String = "lower-conf",
 )
-    for tag in tags
-        for geno in genos
-            for metric in metrics
-                savepath = joinpath(dir, "plots", eco, tag, geno, metric)
-                quickplot(eco = eco, tag = tag, geno = geno, metric = metric)
-                for sp in species
-                    quickplot(eco = eco, tag = tag, geno = geno, metric = metric, sp = sp)
-                    #for trial in trials
-                    #    quickplot(
-                    #        eco = eco, tag = tag, geno = geno, 
-                    #        metric = metric, sp = sp, trial = trial
-                    #    )
-                    #end
-                end
-            end
-        end
+    df = deserialize("$dir/$eco-$tag.jls")
+    if trial == - 1
+        X = df[!, label(sp, geno, metric, mid)]
+        lower = df[!, label(sp, geno, metric, lower)]
+        upper = df[!, label(sp, geno, metric, upper)]
+
+        rlow = [x - l for (x, l) in zip(X, lower)]
+        rhi = [u - x for (u, x) in zip(upper, X)] 
+        return X, rlow, rhi
+    else
+        df[!, label(sp, geno, metric, trial)]
     end
 end
 
@@ -54,30 +152,23 @@ function quickplot(;
     upper::String = "upper-conf",
     lower::String = "lower-conf",
     fillalpha::Float64 = 0.25,
-    savepath::String = "",
 )
     df = deserialize("$dir/$eco-$tag.jls")
-    p = nothing
     if trial == - 1
-        X = df[!, label(sp, geno, metric, mid, trial)]
-        lower = df[!, label(sp, geno, metric, lower, trial)]
-        upper = df[!, label(sp, geno, metric, upper, trial)]
+        X = df[!, label(sp, geno, metric, mid)]
+        lower = df[!, label(sp, geno, metric, lower)]
+        upper = df[!, label(sp, geno, metric, upper)]
 
         rlow = [x - l for (x, l) in zip(X, lower)]
         rhi = [u - x for (u, x) in zip(upper, X)] 
 
-        p = plot(X,
+        return plot(X,
             ribbon = (rlow, rhi), 
             fillalpha = fillalpha
         )
     else
         X = df[!, label(sp, geno, metric, trial)]
-        p = plot(X)
-    end
-    if savepath != ""
-        savefig(p, savepath)
-    else
-        display(p)
+        return plot(X)
     end
 end
 

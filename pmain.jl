@@ -1,7 +1,7 @@
 include("run/fsm.jl")
 
 pdispatch(;
-    fn = run_4MatchMismatchMix,
+    fn = run_3comp,
     ngen = 50_000,
-    trange = 21:40
+    trange = 1:40
 )
