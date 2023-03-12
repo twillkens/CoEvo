@@ -15,7 +15,18 @@ function fill_statdict!(
 end
 
 # get phenotypes of all other species at a given generation, excluding my species
-function get_genphenodict(jld2file::JLD2.JLDFile, gen::Int, myspid::String) 
+function get_genphenodict(
+    jld2file::JLD2.JLDFile, 
+    gen::Int, 
+    myspid::String, 
+    domains::Dict{Tuple{String, String}, <:Domain}
+) 
+    # make a set out of the unpacked tuple keys of the domains dict
+    spidset = union(
+        Set([spid for (spid, _) in keys(domains)]), 
+        Set([spid for (_, spid) in keys(domains)])
+    )
+    delete!(spidset, myspid)
 
     pcfg = FSMPhenoCfg()
     archiver = FSMIndivArchiver()
@@ -30,7 +41,7 @@ function get_genphenodict(jld2file::JLD2.JLDFile, gen::Int, myspid::String)
             )
             for iid in keys(jld2file["arxiv/$gen/species/$spid/children"])
         ]
-        for spid in keys(jld2file["arxiv/$gen/species"]) if spid != myspid
+        for spid in keys(jld2file["arxiv/$gen/species"]) if spid ∈ spidset
     )
     #k = keys(jld2file["arxiv/$gen/species"])
     #gk = keys(d)

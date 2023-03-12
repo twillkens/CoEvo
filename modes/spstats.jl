@@ -26,11 +26,11 @@ function SpeciesStats(spid::String, allfindivs::Vector{<:Vector{<:FilterIndiv}})
         [[findiv.modegeno for findiv in findivs] 
         for findivs in allfindivs]
     )
-    minfitness = [mean([findiv.minfitness for findiv in findivs]) for findivs in allfindivs]
-    modefitness = [mean([findiv.modefitness for findiv in findivs]) for findivs in allfindivs]
-    min_eplen = [mean([findiv.min_eplen for findiv in findivs]) for findivs in allfindivs]
-    mode_eplen = [mean([findiv.mode_eplen for findiv in findivs]) for findivs in allfindivs]
-    levdist = [mean([findiv.levdist for findiv in findivs]) for findivs in allfindivs]
+    minfitness = [mean(findiv.minfitness for findiv in findivs) for findivs in allfindivs]
+    modefitness = [mean(findiv.modefitness for findiv in findivs) for findivs in allfindivs]
+    min_eplen = [mean(findiv.min_eplen for findiv in findivs) for findivs in allfindivs]
+    mode_eplen = [mean(findiv.mode_eplen for findiv in findivs) for findivs in allfindivs]
+    levdist = [mean(findiv.levdist for findiv in findivs) for findivs in allfindivs]
     #println("ends of all vecs: $(minfitness[end]), $(modefitness[end]), $(min_eplen[end]), $(mode_eplen[end]), $(levdist[end])")
     SpeciesStats(
         spid, 

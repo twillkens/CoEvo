@@ -42,6 +42,9 @@ function FilterIndiv(
     ::Dict{Tuple{String, String}, <:Domain}
 )
     n_others = sum([length(v) for v in values(others)])
+    # if p.indiv.ikey.spid == :host
+    #     println("hi ", p.score, " ", n_others, " ", keys(others))
+    # end
     FilterIndiv(
         p.ftag, 
         p.indiv.geno, #nothing 
@@ -62,14 +65,20 @@ function fight!(
 )
     apheno = FSMPhenoCfg()(aprune.indiv.ikey, aprune.prunegeno)
     for ((spid1, spid2), domain) in domains
+        ss = 0
         opponents = spid1 == aprune.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
         for pheno in opponents
             p1, p2 = spid1 == aprune.ftag.spid ? (apheno, pheno) : (pheno, apheno)
             o = stir(:age, domain, LingPredObsConfig(), p1, p2) 
-            aprune.score += getscore(apheno.ikey, o)
+            s = getscore(apheno.ikey, o)
+            aprune.score += s
+            ss += s
             aprune.eplen += length(first(values(o.obs.states)))
         end
     end
+    # if aprune.indiv.ikey.spid == :host
+    #     println("in fight myspid: $(aprune.ftag.spid) score: $(aprune.score), domains: $(collect(keys(domains)))")
+    # end
     states = union(aprune.prunegeno.ones, aprune.prunegeno.zeros)
     delete!(states, aprune.prunegeno.start)
     for state in sort(collect(states), rev=aprune.rev)
@@ -95,10 +104,13 @@ function fight!(
         opponents = spid1 == aprune.ftag.spid ? genphenodict[spid2] : genphenodict[spid1]
         for opp in opponents
             p1, p2 = spid1 == aprune.ftag.spid ? (prunepheno, opp) : (opp, prunepheno)
-            o = stir(:bft, domain, LingPredObsConfig(), p1, p2) 
-            aprune.prunescore += getscore(prunepheno.ikey, o)
-            aprune.prunelen += length(first(values(o.obs.states)))
-            aprune.levdist += lev(o.obs.outs[prunepheno.ikey], o.obs.outs[opp.ikey])
+            o1 = stir(:age, domain, LingPredObsConfig(), p1, p2) 
+            aprune.prunescore += getscore(prunepheno.ikey, o1)
+            aprune.prunelen += length(first(values(o1.obs.states)))
+            minpheno = FSMPhenoCfg()(aprune.indiv.ikey, aprune.indiv.mingeno)
+            p1, p2 = spid1 == aprune.ftag.spid ? (minpheno, opp) : (opp, minpheno)
+            o2 = stir(:age, domain, LingPredObsConfig(), p1, p2) 
+            aprune.levdist += lev(o1.obs.outs[prunepheno.ikey], o2.obs.outs[minpheno.ikey])
         end
     end
 end

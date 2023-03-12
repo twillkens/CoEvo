@@ -12,7 +12,7 @@ function pfilter(
     for (gen, ftags) in enumerate(pftags)
         gen = gen == 1 ? 1 : (gen - 1) * t
         prunes = prunecfg(jld2file, ftags)
-        genphenodict = get_genphenodict(jld2file, gen, spid)
+        genphenodict = get_genphenodict(jld2file, gen, spid, domains)
         fight!(spid, prunes, genphenodict, domains)
         push!(allfindivs, [FilterIndiv(prune, genphenodict, domains) for prune in prunes])
         if gen % 1_000 == 0
@@ -55,7 +55,15 @@ function pfilter(
         for spid in spids
     )
     fdict = Dict(
-        spid => pfilter(jld2file, spid, pftags[spid], t, domains, prunecfg) for spid in spids
+        spid => pfilter(
+            jld2file, 
+            spid, 
+            pftags[spid], 
+            t, 
+            filter(d -> spid ∈ first(d), domains), 
+            prunecfg
+        ) 
+        for spid in spids
     )
     close(jld2file)
     GC.gc()
