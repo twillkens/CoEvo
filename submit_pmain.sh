@@ -1,10 +1,10 @@
 #!/usr/bin/bash
 
-#SBATCH --output=coop2.log
-#SBATCH --error=coop2.err
-#SBATCH --job-name=coop2
+#SBATCH --output=3ctrl.log
+#SBATCH --error=3ctrl.err
+#SBATCH --job-name=3ctrl
 #SBATCH --partition=guest-compute
-#SBATCH --cpus-per-task=21
+#SBATCH --cpus-per-task=41
 #SBATCH --tasks=1
 #SBATCH --qos=low
 #SBATCH --account=guest
@@ -15,4 +15,4 @@ source /home/twillkens/.bashrc
 conda activate "/home/twillkens/.conda/envs/coevo"
 
 #julia --project -e 'push!(LOAD_PATH, "@CoEvo"); using PkgLock; PkgLock.instantiate_precompile()'
-julia --project=. -p 20 pmain.jl
+julia --project=. -p 40 pmain.jl

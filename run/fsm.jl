@@ -96,6 +96,37 @@ end
     evolve!(start, ngen, coevcfg, allsp, eco, trial)
 end
 
+@everywhere function run_3ctrl(
+    trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int
+)
+    eco = Symbol("3ctrl")
+    ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+    jld2path = joinpath(ecodir, "$(trial).jld2")
+    if isfile(jld2path)
+        throw("file already exists: $(jld2path)")
+    else
+        start = 1
+        seed = rand(UInt64)
+        spawner1 = lingpredspawner(:ctrl1; npop = npop)
+        spawner2 = lingpredspawner(:ctrl2; npop = npop)
+        spawner3 = lingpredspawner(:ctrl3; npop = npop)
+        order1 = lingpredorder(:ControlMatch, [:ctrl1, :ctrl2], LingPredGame(Control()))
+        order2 = lingpredorder(:ControlMatch, [:ctrl2, :ctrl3], LingPredGame(Control()))
+        coevcfg = CoevConfig(;
+            eco = eco,
+            trial = trial,
+            seed = seed,
+            jobcfg = njobs == 0 ? SerialPhenoJobConfig() : ParallelPhenoJobConfig(njobs = njobs),
+            orders = Dict(order1, order2),
+            spawners = Dict(spawner1, spawner2, spawner3),
+            arxiv_interval = arxiv_interval
+        )
+        allsp = coevcfg()
+    end
+    println("starting $eco-$trial")
+    evolve!(start, ngen, coevcfg, allsp, eco, trial)
+end
+
 @everywhere function runcoop(trial::Int, npop::Int, ngen::Int, njobs::Int, arxiv_interval::Int)
     eco = :coop
     ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))

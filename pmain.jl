@@ -1,7 +1,7 @@
 include("run/fsm.jl")
 
 pdispatch(;
-    fn = runctrl,
+    fn = run_3ctrl,
     ngen = 50_000,
-    trange = 21:40
+    trange = 1:40
 )

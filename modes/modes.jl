@@ -181,6 +181,18 @@ function modes_ctrl(;
     )
     domodes("ctrl", trials, t, domains, prunecfg, dtag)
 end
+
+function modes_3ctrl(;
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(),
+    dtag::String = "",
+)
+    domains = Dict(
+        ("ctrl1", "ctrl2") => LingPredGame(Control()),
+        ("ctrl2", "ctrl3") => LingPredGame(Control()),
+    )
+    domodes("3ctrl", trials, t, domains, prunecfg, dtag)
+end
+
 function modes_coop(;
     trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), 
     dtag::String = "",

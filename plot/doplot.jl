@@ -12,20 +12,52 @@ function label(args...)
     lstrip(join(args, '-'), '-')
 end
 
-function quickplot(;
+function quickplot(
+    eco::String; 
     dir::String = "modesdata",
+    tags::Vector{String} = ["age-40", "ko-40"], 
+    species::Vector{String} = ["host", "symbiote"],
+    genos::Vector{String} = ["min", "modes"],
+    metrics::Vector{String} = [
+        "complexity", "ecology", "fitness", "change", "novelty", "eplen"
+    ], 
+    trials::UnitRange{Int} = 1:40
+)
+    for tag in tags
+        for geno in genos
+            for metric in metrics
+                savepath = joinpath(dir, "plots", eco, tag, geno, metric)
+                quickplot(eco = eco, tag = tag, geno = geno, metric = metric)
+                for sp in species
+                    quickplot(eco = eco, tag = tag, geno = geno, metric = metric, sp = sp)
+                    #for trial in trials
+                    #    quickplot(
+                    #        eco = eco, tag = tag, geno = geno, 
+                    #        metric = metric, sp = sp, trial = trial
+                    #    )
+                    #end
+                end
+            end
+        end
+    end
+end
+
+function quickplot(;
     eco::String = "comp", 
     tag::String = "age-40", 
-    metric::String = "complexity", 
-    mid::String = "med",
-    upper::String = "upper-quart",
-    lower::String = "lower-quart",
     geno::String = "min",
+    metric::String = "complexity", 
     sp::String = "",
     trial::Int = -1,
+    dir::String = "modesdata",
+    mid::String = "mean",
+    upper::String = "upper-conf",
+    lower::String = "lower-conf",
     fillalpha::Float64 = 0.25,
+    savepath::String = "",
 )
     df = deserialize("$dir/$eco-$tag.jls")
+    p = nothing
     if trial == - 1
         X = df[!, label(sp, geno, metric, mid, trial)]
         lower = df[!, label(sp, geno, metric, lower, trial)]
@@ -34,13 +66,18 @@ function quickplot(;
         rlow = [x - l for (x, l) in zip(X, lower)]
         rhi = [u - x for (u, x) in zip(upper, X)] 
 
-        plot(X,
+        p = plot(X,
             ribbon = (rlow, rhi), 
             fillalpha = fillalpha
         )
     else
         X = df[!, label(sp, geno, metric, trial)]
-        plot(X)
+        p = plot(X)
+    end
+    if savepath != ""
+        savefig(p, savepath)
+    else
+        display(p)
     end
 end
 
