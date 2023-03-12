@@ -145,6 +145,28 @@ function domodes(
             zip([ecostats.spstats[spid].modestats.ecology for ecostats in allecostats]...)
         ))
     end
+
+    for ecostat in allecostats
+        for (spid, spstat) in ecostat.spstats
+            d["$spid-geno-complexity-$(ecostat.trial)"] = spstat.genostats.complexity
+            d["$spid-geno-novelty-$(ecostat.trial)"] = spstat.genostats.novelty
+            d["$spid-geno-change-$(ecostat.trial)"] = spstat.genostats.change
+            d["$spid-geno-ecology-$(ecostat.trial)"] = spstat.genostats.ecology 
+            d["$spid-min-fitness-$(ecostat.trial)"] = spstat.minfitness
+            d["$spid-min-complexity-$(ecostat.trial)"] = spstat.minstats.complexity
+            d["$spid-min-eplen-$(ecostat.trial)"] = spstat.min_eplen
+            d["$spid-min-novelty-$(ecostat.trial)"] = spstat.minstats.novelty
+            d["$spid-min-change-$(ecostat.trial)"] = spstat.minstats.change
+            d["$spid-min-ecology-$(ecostat.trial)"] = spstat.minstats.ecology
+            d["$spid-modes-fitness-$(ecostat.trial)"] = spstat.modefitness
+            d["$spid-modes-eplen-$(ecostat.trial)"] = spstat.mode_eplen
+            d["$spid-modes-complexity-$(ecostat.trial)"] = spstat.modestats.complexity
+            d["$spid-modes-novelty-$(ecostat.trial)"] = spstat.modestats.novelty
+            d["$spid-modes-change-$(ecostat.trial)"] = spstat.modestats.change
+            d["$spid-modes-ecology-$(ecostat.trial)"] = spstat.modestats.ecology
+            d["$spid-levdist-$(ecostat.trial)"] = spstat.levdist
+        end
+    end
     d = DataFrame(d)
     serialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "modes-$dtag.jls"), d)
     d

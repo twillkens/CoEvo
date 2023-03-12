@@ -8,43 +8,39 @@ using Serialization
 Plots.default(fontfamily = ("Times Roman"))# titlefont = ("Times Roman"), legendfont = ("Times Roman"))
 gr()
 
+function label(args...)
+    lstrip(join(args, '-'), '-')
+end
 
-function quickplot(
-    eco::String, tag::String, metric::String, mini::Bool = false, minmode::Bool = true
+function quickplot(;
+    dir::String = "modesdata",
+    eco::String = "comp", 
+    tag::String = "age-40", 
+    metric::String = "complexity", 
+    mid::String = "med",
+    upper::String = "upper-quart",
+    lower::String = "lower-quart",
+    geno::String = "min",
+    sp::String = "",
+    trial::Int = -1,
+    fillalpha::Float64 = 0.25,
 )
-    dir = !mini ? "modesdata" : joinpath(ENV["COEVO_DATA_DIR"], eco)
     df = deserialize("$dir/$eco-$tag.jls")
-    quickplot(df, metric, minmode)
-end
+    if trial == - 1
+        X = df[!, label(sp, geno, metric, mid, trial)]
+        lower = df[!, label(sp, geno, metric, lower, trial)]
+        upper = df[!, label(sp, geno, metric, upper, trial)]
 
-function quickplot(
-    eco::String, tag::String, sp::String, metric::String, mini::Bool = false, 
-    minmode::Bool = true
-)
-    dir = !mini ? "modesdata" : joinpath(ENV["COEVO_DATA_DIR"], eco)
-    df = deserialize("$dir/$eco-$tag.jls")
-    quickplot(df, metric, sp, minmode)
-end
+        rlow = [x - l for (x, l) in zip(X, lower)]
+        rhi = [u - x for (u, x) in zip(upper, X)] 
 
-function quickplot(df::DataFrame, x::String, minmode::Bool = true)
-    println(mean(df[!, "min-$x-mean"]), " ", mean(df[!, "modes-$x-mean"]))
-    if minmode
-        p1 = plot(df[!, "min-$x-mean"], ribbon=((df[!, "min-$x-lower-conf"], df[!, "min-$x-upper-conf"])), fillalpha=0.25)
-        p2 = plot(df[!, "modes-$x-mean"], ribbon=((df[!, "modes-$x-lower-conf"], df[!, "modes-$x-upper-conf"])), fillalpha=0.25)
-        plot(p1, p2)
+        plot(X,
+            ribbon = (rlow, rhi), 
+            fillalpha = fillalpha
+        )
     else
-        plot(df[!, "$x-mean"], ribbon=((df[!, "$x-lower-conf"], df[!, "$x-upper-conf"])), fillalpha=0.25)
-    end
-end
-
-function quickplot(df::DataFrame, x::String, sp::String, minmode::Bool = true)
-    println(mean(df[!, "$sp-min-$x-mean"]), " ", mean(df[!, "$sp-modes-$x-mean"]))
-    if minmode
-        p1 = plot(df[!, "$sp-min-$x-mean"], ribbon=((df[!, "$sp-min-$x-lower-conf"], df[!, "$sp-min-$x-upper-conf"])), fillalpha=0.25)
-        p2 = plot(df[!, "$sp-modes-$x-mean"], ribbon=((df[!, "$sp-modes-$x-lower-conf"], df[!, "$sp-modes-$x-upper-conf"])), fillalpha=0.25)
-        plot(p1, p2)
-    else
-        plot(df[!, "$x-mean"], ribbon=((df[!, "$x-lower-conf"], df[!, "$x-upper-conf"])), fillalpha=0.25)
+        X = df[!, label(sp, geno, metric, trial)]
+        plot(X)
     end
 end
 
