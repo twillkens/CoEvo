@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
-#SBATCH --output=4Match.log
-#SBATCH --error=4Match.err
-#SBATCH --job-name=4Match
+#SBATCH --output=4Mismatch.log
+#SBATCH --error=4Mismatch.err
+#SBATCH --job-name=4Mismatch
 #SBATCH --partition=guest-compute
 #SBATCH --cpus-per-task=21
 #SBATCH --tasks=1
