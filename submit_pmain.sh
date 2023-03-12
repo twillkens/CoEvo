@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
-#SBATCH --output=4MisMat.log
-#SBATCH --error=4MisMat.err
-#SBATCH --job-name=4MisMat
+#SBATCH --output=4MatMis.log
+#SBATCH --error=4MatMis.err
+#SBATCH --job-name=4MatMis
 #SBATCH --partition=guest-compute
 #SBATCH --cpus-per-task=21
 #SBATCH --tasks=1
