@@ -79,7 +79,7 @@ function threeplots(metric::String, tag::String)
         "fitness" => (0, 25),
         "eplen" => (0, 25),
     )
-    FSIZE = 20
+    FSIZE = 30
     plot(
         p,
         ylim = ylimdict[metric],
@@ -135,7 +135,7 @@ function twoplots(metric::String)
         "fitness" => (0, 25),
         "eplen" => (0, 25),
     )
-    FSIZE = 20
+    FSIZE = 23
     plot(
         p,
         ylim = ylimdict[metric],
@@ -145,10 +145,14 @@ function twoplots(metric::String)
         title = "Two Species: $(ydict[metric])",
         size = (1025, 650), 
         dpi = 300,
-        left_margin = 8mm,
-        right_margin = 5mm,
-        top_margin = 5mm,
-        bottom_margin = 10mm,
+        left_margin = 5mm,
+        right_margin = 2mm,
+        top_margin = 2mm,
+        bottom_margin = 7mm,
+        #left_margin = 8mm,
+        #right_margin = 5mm,
+        #top_margin = 5mm,
+        #bottom_margin = 10mm,
         ylabelfontsize = FSIZE,
         xlabelfontsize = FSIZE,
         tickfontsize = FSIZE - 4,

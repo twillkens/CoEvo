@@ -213,6 +213,17 @@ function modes_comp(;
     domodes("comp", trials, t, domains, prunecfg, dtag)
 end
 
+function modes_3comp(;
+    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), 
+    dtag::String = "",
+)
+    domains = Dict(
+        ("A", "B") => LingPredGame(MatchComp()),
+        ("A", "C") => LingPredGame(MatchComp())
+    )
+    domodes("3comp", trials, t, domains, prunecfg, dtag)
+end
+
 function modes_matchmix(;
     trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = AgePruneCfg(), 
     dtag::String = "",
