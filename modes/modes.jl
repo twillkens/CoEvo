@@ -254,7 +254,7 @@ function modes_4MatchMismatchMix(;
         ("A", "C") => LingPredGame(MatchCoop()),
         ("B", "D") => LingPredGame(MismatchCoop()),
     )
-    domodes("4MatchMix", trials, t, domains, prunecfg, dtag)
+    domodes("4MatchMismatchMix", trials, t, domains, prunecfg, dtag)
 end
 
 function modes_4MismatchMatchMix(;
@@ -265,7 +265,7 @@ function modes_4MismatchMatchMix(;
         ("A", "C") => LingPredGame(MismatchCoop()),
         ("B", "D") => LingPredGame(MatchCoop()),
     )
-    domodes("4MatchMix", trials, t, domains, prunecfg, dtag)
+    domodes("4MismatchMatchMix", trials, t, domains, prunecfg, dtag)
 end
 
 function modes_4MismatchMix(;
@@ -276,5 +276,5 @@ function modes_4MismatchMix(;
         ("A", "C") => LingPredGame(MismatchCoop()),
         ("B", "D") => LingPredGame(MismatchCoop()),
     )
-    domodes("4MatchMix", trials, t, domains, prunecfg, dtag)
+    domodes("4MismatchMix", trials, t, domains, prunecfg, dtag)
 end

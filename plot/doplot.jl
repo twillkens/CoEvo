@@ -12,11 +12,11 @@ function label(args...)
     lstrip(join(args, '-'), '-')
 end
 
-function spplot(eco::String, metric::String, sp1::String, sp2::String)
-    X1, low1, hi1 = getline(eco = eco, tag = "ko-40", geno = "min", metric = metric, sp = sp1)
-    X2, low2, hi2 = getline(eco = eco, tag = "ko-40", geno = "modes", metric = metric, sp = sp1)
-    X3, low3, hi3 = getline(eco = eco, tag = "ko-40", geno = "min", metric = metric, sp = sp2)
-    X4, low4, hi4 = getline(eco = eco, tag = "ko-40", geno = "modes", metric = metric, sp = sp2)
+function spplot(eco::String, metric::String, sp1::String, sp2::String, tag::String = "ko-40")
+    X1, low1, hi1 = getline(eco = eco, tag = tag, geno = "min", metric = metric, sp = sp1)
+    X2, low2, hi2 = getline(eco = eco, tag = tag, geno = "modes", metric = metric, sp = sp1)
+    X3, low3, hi3 = getline(eco = eco, tag = tag, geno = "min", metric = metric, sp = sp2)
+    X4, low4, hi4 = getline(eco = eco, tag = tag, geno = "modes", metric = metric, sp = sp2)
     p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue)
     p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red)
     p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green)
@@ -46,6 +46,62 @@ function spplot(eco::String, metric::String, sp1::String, sp2::String)
         xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
         xlabel = "Generations",
         ylabel = ydict[metric],
+    )
+end
+
+function threeplots(metric::String, tag::String)
+    X1, low1, hi1 = getline(eco = "ctrl", tag = "$tag-40", geno = "min", metric = metric,)
+    X2, low2, hi2 = getline(eco = "matchmix", tag = "$tag-40", geno = "min", metric = metric,)
+    X3, low3, hi3 = getline(eco = "mismatchmix", tag = "$tag-20", geno = "min", metric = metric,)
+    X4, low4, hi4 = getline(eco = "matchmix", tag = "$tag-40", geno = "modes", metric = metric)
+    X5, low5, hi5 = getline(eco = "mismatchmix", tag = "$tag-20", geno = "modes", metric = metric)
+    p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "MatchMix")
+    p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "MismatchMix")
+    p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "MatchMix-KO")
+    p = plot(p, 1:1000, X5, ribbon = (low5, hi5), fillalpha = 0.25, color = :violet, label = "MismatchMix-KO")
+    tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
+    ydict = Dict(
+        "complexity" => "Complexity",
+        "novelty" => "Novelty",
+        "ecology" => "Ecology",
+        "levdist" => "Levenshtein Distance",
+        "change" => "Change",
+        "fitness" => "Fitness",
+        "eplen" => "Episode Length",
+    )
+    ylimdict = Dict(
+        "complexity" => (0, 100),
+        "novelty" => (0, 6),
+        "ecology" => (0, 6),
+        "levdist" => (0, 25),
+        "change" => (0, 6),
+        "fitness" => (0, 25),
+        "eplen" => (0, 25),
+    )
+    FSIZE = 20
+    plot(
+        p,
+        ylim = ylimdict[metric],
+        xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
+        xlabel = "Generations",
+        ylabel = ydict[metric],
+        title = "Three Species: $(ydict[metric])",
+        size = (1025, 650), 
+        dpi = 300,
+        left_margin = 8mm,
+        right_margin = 5mm,
+        top_margin = 5mm,
+        bottom_margin = 10mm,
+        ylabelfontsize = FSIZE,
+        xlabelfontsize = FSIZE,
+        tickfontsize = FSIZE - 4,
+        legendfontsize=FSIZE - 8,
+        #top_margin=0mm, 
+        #bottom_margin=0mm, 
+        #left_margin=0mm, 
+        #right_margin=0mm, 
+        titlefontsize=FSIZE+1,
     )
 end
 
