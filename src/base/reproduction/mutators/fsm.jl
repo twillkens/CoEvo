@@ -9,6 +9,7 @@ Base.@kwdef struct LingPredMutator <: Mutator
         changelink => 0.25,
         changelabel => 0.25
     )
+    do_hopcroft::Bool = false
 end
 
 function(m::LingPredMutator)(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv,) 
@@ -17,7 +18,11 @@ function(m::LingPredMutator)(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv,)
     for fn in fns
         geno = fn(rng, sc, geno)
     end
-    FSMIndiv(fsm.ikey, geno, minimize(geno), fsm.pids)
+    if m.do_hopcroft
+        FSMIndiv(fsm.ikey, geno, minimize(geno), fsm.pids)
+    else
+        FSMIndiv(fsm.ikey, geno, geno, fsm.pids)
+    end
 end
 
 function randfsmstate(
