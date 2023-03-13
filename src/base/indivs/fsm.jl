@@ -87,6 +87,7 @@ end
 Base.@kwdef struct FSMIndivConfig{T} <: IndivConfig
     spid::Symbol
     dtype::Type{<:T}
+    do_hopcroft::Bool = false
 end
 
 function getstart(::FSMIndivConfig{String}, sc::SpawnCounter)
@@ -117,14 +118,22 @@ end
 function(cfg::FSMIndivConfig)(sc::SpawnCounter, geno::FSMGeno)
     ikey = IndivKey(cfg.spid, iid!(sc))
     geno = FSMGeno(geno.start, geno.ones, geno.zeros, geno.links)
-    mingeno = minimize(geno)
+    if cfg.do_hopcroft
+        mingeno = minimize(geno)
+    else
+        mingeno = geno
+    end
     FSMIndiv(ikey, geno, mingeno)
 end
 
 function(cfg::FSMIndivConfig)(sc::SpawnCounter, n::Int, geno::FSMGeno)
     ikeys = [IndivKey(cfg.spid, iid!(sc)) for _ in 1:n]
     genos = [FSMGeno(geno.start, geno.ones, geno.zeros, geno.links) for _ in 1:n]
-    mingenos = [minimize(geno) for geno in genos]
+    if cfg.do_hopcroft
+        mingenos = [minimize(geno) for geno in genos]
+    else
+        mingenos = genos
+    end
     [FSMIndiv(ikey, geno, mingeno) for (ikey, geno, mingeno) in zip(ikeys, genos, mingenos)]
 end
 

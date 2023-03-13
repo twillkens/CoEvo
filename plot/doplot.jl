@@ -8,11 +8,60 @@ using Serialization
 Plots.default(fontfamily = ("Times Roman"))# titlefont = ("Times Roman"), legendfont = ("Times Roman"))
 gr()
 
-function label(args...)
-    lstrip(join(args, '-'), '-')
+function label(a::Vector{String})
+    filter!(x -> x != "", a)
+    lstrip(join(a, '-'), '-')
+end
+function fitplot()
+    X1, low1, hi1 = getline(eco = "coop", tag = "ko-40", geno = "min", metric = "fitness", sp = "symbiote")
+    X2, low2, hi2 = getline(eco = "coop", tag = "ko-40", geno = "modes", metric = "fitness", sp = "symbiote")
+    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Symbiote")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "Symbiote-KO")
+    tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
+    ydict = Dict(
+        "complexity" => "Complexity",
+        "novelty" => "Novelty",
+        "ecology" => "Ecology",
+        "levdist" => "Levenshtein Distance",
+        "change" => "Change",
+        "fitness" => "Fitness",
+        "eplen" => "Episode Length",
+    )
+    ylimdict = Dict(
+        "complexity" => (0, 100),
+        "novelty" => (0, 5),
+        "ecology" => (0, 5),
+        "levdist" => (0, 25),
+        "change" => (0, 5),
+        "fitness" => (0, 1),
+        "eplen" => (0, 25),
+    )
+    plot(
+        p,
+        ylim = (0, 1),
+        xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
+        xlabel = "Generations",
+        ylabel = "Fitness",
+        title = "ThreeMix Symbiote Fitness",
+        size = (1025, 650), 
+        dpi = 300,
+        left_margin = 5mm,
+        right_margin = 2mm,
+        top_margin = 2mm,
+        bottom_margin = 7mm,
+        ylabelfontsize = FSIZE,
+        xlabelfontsize = FSIZE,
+        tickfontsize = FSIZE - 4,
+        legendfontsize=FSIZE - 8,
+        #top_margin=0mm, 
+        #bottom_margin=0mm, 
+        #left_margin=0mm, 
+        #right_margin=0mm, 
+        titlefontsize=FSIZE+1,
+    )
 end
 
-function spplot(eco::String, metric::String, sp1::String, sp2::String, tag::String = "ko-40")
+function spplot(eco::String, metric::String, sp1::String, sp2::String, tag::String = "ko-20")
     X1, low1, hi1 = getline(eco = eco, tag = tag, geno = "min", metric = metric, sp = sp1)
     X2, low2, hi2 = getline(eco = eco, tag = tag, geno = "modes", metric = metric, sp = sp1)
     X3, low3, hi3 = getline(eco = eco, tag = tag, geno = "min", metric = metric, sp = sp2)
@@ -46,20 +95,37 @@ function spplot(eco::String, metric::String, sp1::String, sp2::String, tag::Stri
         xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
         xlabel = "Generations",
         ylabel = ydict[metric],
+        title = "Three Species: $(ydict[metric])",
+        size = (1025, 650), 
+        dpi = 300,
+        left_margin = 5mm,
+        right_margin = 2mm,
+        top_margin = 2mm,
+        bottom_margin = 7mm,
+        ylabelfontsize = FSIZE,
+        xlabelfontsize = FSIZE,
+        tickfontsize = FSIZE - 4,
+        legendfontsize=FSIZE - 8,
+        #top_margin=0mm, 
+        #bottom_margin=0mm, 
+        #left_margin=0mm, 
+        #right_margin=0mm, 
+        titlefontsize=FSIZE+1,
     )
 end
 
-function threeplots(metric::String, tag::String)
-    X1, low1, hi1 = getline(eco = "ctrl", tag = "$tag-40", geno = "min", metric = metric,)
-    X2, low2, hi2 = getline(eco = "matchmix", tag = "$tag-40", geno = "min", metric = metric,)
+
+function threeplots(metric::String, tag::String = "ko")
+    X1, low1, hi1 = getline(eco = "3ctrl", tag = "$tag-20", geno = "min", metric = metric,)
+    X2, low2, hi2 = getline(eco = "3comp", tag = "$tag-20", geno = "min", metric = metric,)
     X3, low3, hi3 = getline(eco = "mismatchmix", tag = "$tag-20", geno = "min", metric = metric,)
-    X4, low4, hi4 = getline(eco = "matchmix", tag = "$tag-40", geno = "modes", metric = metric)
+    X4, low4, hi4 = getline(eco = "3comp", tag = "$tag-20", geno = "modes", metric = metric)
     X5, low5, hi5 = getline(eco = "mismatchmix", tag = "$tag-20", geno = "modes", metric = metric)
     p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
-    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "MatchMix")
-    p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "MismatchMix")
-    p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "MatchMix-KO")
-    p = plot(p, 1:1000, X5, ribbon = (low5, hi5), fillalpha = 0.25, color = :violet, label = "MismatchMix-KO")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "ThreeComp")
+    p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "ThreeMix")
+    p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "ThreeComp-KO")
+    p = plot(p, 1:1000, X5, ribbon = (low5, hi5), fillalpha = 0.25, color = :violet, label = "ThreeMix-KO")
     tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
     ydict = Dict(
         "complexity" => "Complexity",
@@ -71,15 +137,15 @@ function threeplots(metric::String, tag::String)
         "eplen" => "Episode Length",
     )
     ylimdict = Dict(
-        "complexity" => (0, 100),
-        "novelty" => (0, 6),
-        "ecology" => (0, 6),
+        "complexity" => (0, 150),
+        "novelty" => (0, 10),
+        "ecology" => (0, 10),
         "levdist" => (0, 25),
-        "change" => (0, 6),
+        "change" => (0, 10),
         "fitness" => (0, 25),
         "eplen" => (0, 25),
     )
-    FSIZE = 30
+    FSIZE = 23
     plot(
         p,
         ylim = ylimdict[metric],
@@ -89,10 +155,10 @@ function threeplots(metric::String, tag::String)
         title = "Three Species: $(ydict[metric])",
         size = (1025, 650), 
         dpi = 300,
-        left_margin = 8mm,
-        right_margin = 5mm,
-        top_margin = 5mm,
-        bottom_margin = 10mm,
+        left_margin = 5mm,
+        right_margin = 2mm,
+        top_margin = 2mm,
+        bottom_margin = 7mm,
         ylabelfontsize = FSIZE,
         xlabelfontsize = FSIZE,
         tickfontsize = FSIZE - 4,
@@ -165,11 +231,33 @@ function twoplots(metric::String)
     )
 end
 
-function levdist(eco::String, tag1::String, tag2::String)
-    X1, low1, hi1 = getline(eco = eco, tag = tag1, geno = "", metric = "levdist")
-    X2, low2, hi2 = getline(eco = eco, tag = tag2, geno = "", metric = "levdist")
-    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :red)
-    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :blue)
+function levdist()
+    X1, low1, hi1 = getline(eco = "coop", sp="symbiote", tag = "ko-40", geno = "", metric = "levdist")
+    X2, low2, hi2 = getline(eco = "mismatchmix", sp="symbiote", tag = "ko-20", geno = "", metric = "levdist")
+    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :red, label = "Coop (Symbiote)")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :blue, label = "ThreeMix (Symbiote)",
+    
+    
+        title = "Levenshtein Distance",
+        size = (1025, 650), 
+        dpi = 300,
+        left_margin = 5mm,
+        right_margin = 2mm,
+        top_margin = 2mm,
+        bottom_margin = 7mm,
+        ylabelfontsize = FSIZE,
+        xlabelfontsize = FSIZE,
+        tickfontsize = FSIZE - 4,
+        legendfontsize=FSIZE - 8,
+        xlabel = "Generations",
+        ylabel = "Distance",
+        #top_margin=0mm, 
+        #bottom_margin=0mm, 
+        #left_margin=0mm, 
+        #right_margin=0mm, 
+        titlefontsize=FSIZE+1,
+    
+    )
 end
 
 
@@ -188,15 +276,15 @@ function getline(;
 )
     df = deserialize("$dir/$eco-$tag.jls")
     if trial == - 1
-        X = df[!, label(sp, geno, metric, mid)]
-        lower = df[!, label(sp, geno, metric, lower)]
-        upper = df[!, label(sp, geno, metric, upper)]
+        X = df[!, label([sp, geno, metric, mid])]
+        lower = df[!, label([sp, geno, metric, lower])]
+        upper = df[!, label([sp, geno, metric, upper])]
 
         rlow = [x - l for (x, l) in zip(X, lower)]
         rhi = [u - x for (u, x) in zip(upper, X)] 
         return X, rlow, rhi
     else
-        df[!, label(sp, geno, metric, trial)]
+        df[!, label([sp, geno, metric, trial])]
     end
 end
 
@@ -215,9 +303,9 @@ function quickplot(;
 )
     df = deserialize("$dir/$eco-$tag.jls")
     if trial == - 1
-        X = df[!, label(sp, geno, metric, mid)]
-        lower = df[!, label(sp, geno, metric, lower)]
-        upper = df[!, label(sp, geno, metric, upper)]
+        X = df[!, label([sp, geno, metric, mid])]
+        lower = df[!, label([sp, geno, metric, lower])]
+        upper = df[!, label([sp, geno, metric, upper])]
 
         rlow = [x - l for (x, l) in zip(X, lower)]
         rhi = [u - x for (u, x) in zip(upper, X)] 
