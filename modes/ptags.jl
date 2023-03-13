@@ -49,8 +49,9 @@ function ptags!(
         if gen > until
             break
         end
-        if gen % 1000 == 0
+        if gen % 5000 == 0
             println("$(myid() - 1)-$spid-$gen")
+            GC.gc()
         end
         tagdict = gen % t == 0 ? 
             tfilter!(jld2file, gen, spid, pftags, tagdict) : 
