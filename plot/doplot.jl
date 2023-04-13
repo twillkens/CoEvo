@@ -15,8 +15,8 @@ end
 function fitplot()
     X1, low1, hi1 = getline(eco = "coop", tag = "ko-40", geno = "min", metric = "fitness", sp = "symbiote")
     X2, low2, hi2 = getline(eco = "coop", tag = "ko-40", geno = "modes", metric = "fitness", sp = "symbiote")
-    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Symbiote")
-    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "Symbiote-KO")
+    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "3-Mixed: Cooperator")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "3-Mixed-KO: Cooperator")
     tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
     ydict = Dict(
         "complexity" => "Complexity",
@@ -42,7 +42,7 @@ function fitplot()
         xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
         xlabel = "Generations",
         ylabel = "Fitness",
-        title = "ThreeMix Symbiote Fitness",
+        title = "3-Mixed Cooperator Fitness",
         size = (1025, 650), 
         dpi = 300,
         left_margin = 5mm,
@@ -116,16 +116,16 @@ end
 
 
 function threeplots(metric::String, tag::String = "ko")
-    X1, low1, hi1 = getline(eco = "3ctrl", tag = "$tag-20", geno = "min", metric = metric,)
-    X2, low2, hi2 = getline(eco = "3comp", tag = "$tag-20", geno = "min", metric = metric,)
-    X3, low3, hi3 = getline(eco = "mismatchmix", tag = "$tag-20", geno = "min", metric = metric,)
-    X4, low4, hi4 = getline(eco = "3comp", tag = "$tag-20", geno = "modes", metric = metric)
-    X5, low5, hi5 = getline(eco = "mismatchmix", tag = "$tag-20", geno = "modes", metric = metric)
+    X1, low1, hi1 = getline(eco = "3ctrl", tag = "$tag", geno = "min", metric = metric,)
+    X2, low2, hi2 = getline(eco = "3comp", tag = "$tag", geno = "min", metric = metric,)
+    X3, low3, hi3 = getline(eco = "mismatchmix", tag = "$tag", geno = "min", metric = metric,)
+    X4, low4, hi4 = getline(eco = "3comp", tag = "$tag", geno = "modes", metric = metric)
+    X5, low5, hi5 = getline(eco = "mismatchmix", tag = "$tag", geno = "modes", metric = metric)
     p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
-    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "ThreeComp")
-    p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "ThreeMix")
-    p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "ThreeComp-KO")
-    p = plot(p, 1:1000, X5, ribbon = (low5, hi5), fillalpha = 0.25, color = :violet, label = "ThreeMix-KO")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "3-Comp")
+    p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "3-Mixed")
+    p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "3-Comp-KO")
+    p = plot(p, 1:1000, X5, ribbon = (low5, hi5), fillalpha = 0.25, color = :violet, label = "3-Mixed-KO")
     tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
     ydict = Dict(
         "complexity" => "Complexity",
@@ -232,20 +232,33 @@ function twoplots(metric::String)
 end
 
 function levdist()
+
+    ylimdict = Dict(
+        "complexity" => (0, 100),
+        "novelty" => (0, 6),
+        "ecology" => (0, 6),
+        "levdist" => (0, 25),
+        "change" => (0, 6),
+        "fitness" => (0, 25),
+        "eplen" => (0, 25),
+    )
+    tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
     X1, low1, hi1 = getline(eco = "coop", sp="symbiote", tag = "ko-40", geno = "", metric = "levdist")
-    X2, low2, hi2 = getline(eco = "mismatchmix", sp="symbiote", tag = "ko-20", geno = "", metric = "levdist")
-    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :red, label = "Coop (Symbiote)")
-    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :blue, label = "ThreeMix (Symbiote)",
+    X2, low2, hi2 = getline(eco = "mismatchmix", sp="symbiote", tag = "ko-40", geno = "", metric = "levdist")
+    p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :red, label = "Coop: Cooperator")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :blue, label = "3-Mixed: Cooperator",
     
     
         title = "Levenshtein Distance",
         size = (1025, 650), 
         dpi = 300,
+        ylim = (0, 10),
         left_margin = 5mm,
         right_margin = 2mm,
         top_margin = 2mm,
         bottom_margin = 7mm,
         ylabelfontsize = FSIZE,
+        xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
         xlabelfontsize = FSIZE,
         tickfontsize = FSIZE - 4,
         legendfontsize=FSIZE - 8,
