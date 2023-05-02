@@ -40,6 +40,19 @@ function mutate_weights(rng::StableRNG, geno::GNARLGeno, weight_factor::Float64)
     )
 end
 
+function addnode(rng::StableRNG, geno::GNARLGeno)
+    node = GNARLNodeGene(sc, rand(rng))
+    GNARLGeno(geno.inputs, [geno.hidden; node], geno.outputs, geno.connections)
+end
+
+function rmnode(rng::StableRNG, geno::GNARLGeno)
+    if length(geno.hidden) == 0
+        return geno
+    end
+    k = rand(rng, geno.hidden)
+    GNARLGeno(geno.inputs, filter(x -> x != k, geno.hidden), geno.outputs, geno.connections)
+end
+
 function indexof(a::Array{Float32}, f::Float32)
     findall(x->x==f, a)[1]
 end
@@ -73,71 +86,24 @@ function addconn(rng::StableRNG, sc::SpawnCounter, geno::GNARLGeno)
     end
     # Filter invalid ones
     conns = findall(valid)
-    if length(conns) > 0
-        shuffle!(rng, conns) # Pick random
-        i = ind.neuron_pos[conns[1][1]]
-        j = ind.neuron_pos[conns[1][2]]
-        if j <= 0 # Catching error where destination is an input
-            return
-        end
-        if (i, j) in keys(pop.currgenes)
-            inno_nb = pop.currgenes[(i, j)]
-            g = Gene(inno_nb, i, j)
-            ind.genes[inno_nb] = g
-        else
-            pop.innovation_no += 1
-            g = Gene(pop.innovation_no, i, j)
-            ind.genes[pop.innovation_no] = g
-            pop.currgenes[(i, j)] = pop.innovation_no
-        end
+    if length(conns) == 0
+        return geno
     end
+    shuffle!(rng, conns) # Pick random
+    i = neuron_pos[conns[1][1]]
+    j = neuron_pos[conns[1][2]]
+    if j <= 0 # Catching error where destination is an input
+        throw("Invalid connection")
+    end
+    new_conn = GNARLConnectionGene(sc, i, j)
+    GNARLGeno(geno.inputs, geno.hidden, geno.outputs, [geno.connections; new_conn])
 end
 
 "Remove a random connection"
-function mutate_disconnect!(rng::StableRNG, ind::GNARLIndividual)
-    if length(ind.genes)<=1 # Always keep 1 gene
-        return
+function rmconn(rng::StableRNG, geno::GNARLGeno)
+    if length(ind.genes) == 0
+        return geno
     end
-    k = rand(rng, collect(keys(ind.genes))) # pick a random gene
-    pop!(ind.genes, k) # remove it
-end
-
-function mutate_add_neuron!(rng::StableRNG, ind::GNARLIndividual)
-    n = random_position(rng, 0.0f0, 1.0f0)
-    push!(ind.neuron_pos, n)
-    sort!(ind.neuron_pos)
-end
-
-function mutate_delete_neuron!(rng::StableRNG, ind::GNARLIndividual, pop::Population)
-    hidden = filter(x -> 0.0f0 < x < 1.0f0, ind.neuron_pos)
-    if length(hidden) == 0
-        return
-    end
-    del_key = rand(rng, hidden)
-    filter!(x -> x != del_key, ind.neuron_pos)
-    to_replace = 0
-    for gene in values(ind.genes)
-        if del_key == gene.origin || del_key == gene.destination
-            delete!(ind.genes, gene.inno_nb)
-            to_replace += 1
-        end
-    end
-    for _ in 1:to_replace
-        mutate_connect!(rng, ind, pop)
-    end
-end
-
-function mutate!(rng::StableRNG, ind::GNARLIndividual, pop::Population)
-    mutate_weight!(rng, ind, pop.cfg)
-    n = 4
-    r = rand(rng)
-    if r < 1 / n
-        mutate_add_neuron!(rng, ind)
-    elseif r < 2 / n
-        mutate_delete_neuron!(rng, ind, pop)
-    elseif r < 3 / n
-        mutate_connect!(rng, ind, pop)
-    elseif r < 4 / n
-        mutate_disconnect!(rng, ind)
-    end
+    k = rand(rng, geno.connections) # pick a random gene
+    GNARLGeno(geno.inputs, geno.hidden, geno.outputs, filter(x -> x != k, geno.connections))
 end

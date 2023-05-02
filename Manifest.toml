@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "ef9a611e15f232c1fd05b32ccb980b059cbcb36e"
+project_hash = "5f7652ad17aa5ded0577072763f95a9746714f94"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -381,6 +381,11 @@ version = "0.10.11"
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
 uuid = "83e8ac13-25f8-5344-8a64-a9f2b223428f"
 version = "0.5.1"
+
+[[deps.IntegerMathUtils]]
+git-tree-sha1 = "f366daebdfb079fd1fe4e3d560f99a0c892e15bc"
+uuid = "18e54dd8-cb9d-406c-a71d-865a43cbb235"
+version = "0.1.0"
 
 [[deps.IntelOpenMP_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -780,6 +785,12 @@ deps = ["Crayons", "Formatting", "LaTeXStrings", "Markdown", "Reexport", "String
 git-tree-sha1 = "96f6db03ab535bdb901300f88335257b0018689d"
 uuid = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 version = "2.2.2"
+
+[[deps.Primes]]
+deps = ["IntegerMathUtils"]
+git-tree-sha1 = "311a2aa90a64076ea0fac2ad7492e914e6feeb81"
+uuid = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
+version = "0.5.3"
 
 [[deps.Printf]]
 deps = ["Unicode"]
