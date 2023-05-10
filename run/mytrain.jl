@@ -96,7 +96,7 @@ function mytrain(dataset, model::Union{GNNChain, Nothing} = nothing; kws...)
 
     model = model === nothing ?
         GNNChain(GraphConv(nin => args.nhidden1, relu),
-                 GrachConv(args.nhidden1 => args.nhidden2, relu),
+                 GraphConv(args.nhidden1 => args.nhidden2, relu),
                  GraphConv(args.nhidden2 => args.nout, relu),
                  GlobalPool(mean)) |> device :
         model

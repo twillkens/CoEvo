@@ -54,8 +54,14 @@ mutable struct GPGeno <: Genotype
     terms::Set{ExprNode}
 end
 
+mutable struct GPTree
+    root::ExprNode
+    nodes::Set{ExprNode}
+    funcs::Set{ExprNode}
+    terms::Set{ExprNode}
+end
+
 struct GPIndiv <: Individual
-    
     geno::GPGeno
 end
 
