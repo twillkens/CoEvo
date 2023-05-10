@@ -7,7 +7,8 @@ function laplacian_matrix(
     return (D - A) * 2
 end
 
-function graphspectrum(g::GNNGraph; add_self_loops = false, dir = :both, usenorm::Bool = true)
+function graphspectrum(g::GNNGraph; add_self_loops = true, dir = :both, usenorm::Bool = true)
+    println(g)
     lp = usenorm ?
         normalized_laplacian(g, add_self_loops = add_self_loops, dir = dir) :
         laplacian_matrix(g, add_self_loops = add_self_loops, dir = dir)

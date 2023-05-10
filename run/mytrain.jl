@@ -165,7 +165,6 @@ function testdoit(nsample::Int = 1_000, ntrain::Int = 500)
         map(pair -> pair.g2.graph, pairs)
     ]
     embs = []
-    n
     for (i, g) in enumerate(graphs)
         g = g |> cpu
         emb = model(g, g.ndata.x) |> vec
@@ -179,4 +178,50 @@ function testdoit(nsample::Int = 1_000, ntrain::Int = 500)
     p = scatter(M.proj[1:9999, :])
     savefig(p, "test.png")
     close(jld)
+end
+
+function doit2(nsample::Int = 1_000, ntrain::Int = 500)
+    #jld = jldopen("test.jld2", "w")
+    indivs = get_indivs(["comp", "coop", "ctrl"], 1:5)
+    filter(indiv -> length(union(indiv.indiv.mingeno.ones, indiv.indiv.mingeno.zeros)) > 1, indivs)
+    println(typeof(indivs[1]))
+    pairidxs1 = rand(1:length(indivs), nsample)
+    pairidxs2 = rand(1:length(indivs), nsample)
+    pairs = [
+        PairResult(indivs[i], indivs[j]) 
+        for (i, j) in zip(pairidxs1, pairidxs2)
+    ]
+    #jld["pairs"] = pairs
+    model = mytrain(pairs; numtrain=ntrain)
+    #jld["model"] = model
+    lineage_fsms = get_lineage("comp", 1, "host")
+    println(length(lineage_fsms))
+
+    #jld["fsms"] = fsms
+
+    graphs = [
+        map(fsm -> fsm.graph, lineage_fsms);
+        map(pair -> pair.g1.graph, pairs);
+        map(pair -> pair.g2.graph, pairs)
+    ]
+    #embs = []
+    #for (i, g) in enumerate(graphs)
+    #    g = Flux.batch([g]) |> gpu
+    #    emb = model(g, g.ndata.x) |> vec |> cpu
+    #    println(emb)
+    #    push!(embs, emb)
+    #end
+
+    #bs = Flux.batch(graphs) |> gpu
+    #embs = model(bs, bs.ndata.x) |> vec |> cpu
+    #println(embs)
+
+    X = [model(g, g.ndata.x) |> vec |> cpu for g in graphs |> gpu]
+    Xtr = vec_to_matrix(X)
+    return Xtr
+    #M = fit(PCA, Xtr; maxoutdim=2)
+    ##jld["M"] = M
+    #p = scatter(M.proj[1:2000, :])
+    #savefig(p, "test.png")
+    #close(jld)
 end

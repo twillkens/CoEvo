@@ -29,21 +29,28 @@
 \maketitle
 
 \section*{Background}
-Much of the artificial life community is currently focused on the problem of understanding
+A core research concern of the artificial life community is the study of
 \textit{open-ended evolutionary systems}, which can be broadly defined as evolving systems that
 never settle into a single stable equilibrium state. The Earth's biosphere provides the most
-obvious example of an open-ended system, as new and ever more complex forms of life evolve over 
-time. However, the dynamics of these systems are impossible to capture in closed form, and they
-have proven difficult to model \citep{thurner2018}.
-Open areas of research in the field include the establishment of metrics for measuring open-ended behavior, the 
-identification of systems believed capable of open-ended growth, and the characterization of 
-such systems in terms of activity and complexity \citep{packard2019,stepney2021modelling}.
+obvious example of an open-ended system, as new and ever more complex forms of life have evolved over 
+time. However, the emergence of new species through \textit{coevolution} 
+provides a challenge for traditional evolutionary models
+such as the \textit{replicator equation} which requires the set of species and interactions to be 
+fixed and prestated. Rather than model open-ended systems as, for example, a set of diffential equations, 
+the recommended approach is to present ``general evolution'' as an algorithmic update equation;
+rather than integrating this equation, we must let it evolve and study the \textit{statistics}
+of its output (see Chapter 5 in \citep{thurner2018}). 
+Open areas of research in the field include the establishment of metrics such as 
+\textit{activity} and \textit{complexity} for quantifying open-ended behavior, the 
+identification of systems believed capable of open-ended growth, and methods for visualizing 
+and interpreting evolutionary dynamics given often massive amounts of data produced in novel 
+contexts \citep{packard2019,stepney2021modelling,dolson2020}.
 
 Pioneering work in the field of open-ended evolution includes the identification of punctuated 
 equilibria within a variation of the
 iterated prisoner's dilemma in \citet{lindgren1994evolutionary}, the self-replicating machine 
 code of Tierra and Avida \citep{ray1992evolution,ofria2004avida} and the evolutionary activity 
-statistics of \citet{Channon2001PassingTA}. While more recent work has produced  
+statistics of \citet{Channon2001PassingTA}. While more recent work such as the Chromaria environment has produced  
 systems that exhibit features of open-endedness
 by certain metrics \citep{adams2017formal,soros2014identifying}, an unambiguously open-ended 
 system has yet to be developed and is considered 
@@ -52,11 +59,11 @@ general are agreed to be poorly understood, but novel analytical frameworks such
 \textit{Measurements of Open-Ended Dynamics in Evolutionary Systems} (MODES) Toolbox have been
 proposed to in an effort to better characterize them \citep{dolson2019modes}.
 
-The DEMO Lab of Jordan Pollack has produced much work in the related area of \textit{coevolution} and 
+The DEMO Lab of Jordan Pollack has produced much work in the related area of 
 \textit{coevolutionary algorithms} (CEAs). CEAs have found practical use on a number of 
 difficult problems, such as the sorting networks of \citet{hillis1990co} and the game playing strategies of 
-\citet{rosin1995methods}. It has been argued in \citet{togelius2019} that part of the success 
-of some deep-reinforcement learning systems such as AlphaStar can be attributed to the use of 
+\citet{rosin1995methods}. It has been argued in \citet{togelius2019} that the success 
+of some deep reinforcement learning systems such as AlphaStar can be partly attributed to the use of 
 competitive coevolutionary principles. However, experimental work by the DEMO Lab showed that 
 coevolutionary systems are  prone to unique pathologies that may stall adaptive progress in
 certain domains \citep{watson2001coevolutionary}. Theoretical 
@@ -71,19 +78,31 @@ previous hypotheses regarding conditions necessary for open-ended growth in thes
 such as the presence of both cooperative and competitive interactions, in fact do not hold
 in the general case. Moreover, certain systems were found to be sensitive to the 
 selection method employed, with more sophisticated coevolutionary algorithms producing dramatically
-greater rates of complexity growth.
+greater rates of complexity growth. It is difficult to picture the behavior of these systems 
+from static images and plots alone, and so interested readers are encouraged to view the 
+\href{https://docs.google.com/presentation/d/1tklPPoT9hPfJkl9Fy-eHtzVZWNgh4hqUpuVcSHMLBWs/edit?usp=sharing}{presentation slides}
+for the 2022 ALIFE conference which include a number of dynamic neural network visualizations.
+
+Work accepted for publication in the 2023 Conference on Artificial Life, ``MODES Analysis of Prediction Games,''
+showed that the complexity growth observed in the original work by \citet{moran2019evolving}
+cannot be interpreted on face value, and that it may possible
+for nonadaptive yet highly complex strutures to emerge through coevolutionary processes. My
+work has shown that intuitions often fail us when it comes to understanding the dynamics
+of these systems and reveals the need for  a new set of analytical perspectives
+when approaching them.
 
 \section*{Chapter 1: Introduction}
 The introduction will outline the general aims of the dissertation, summarize the prior 
 literature on the subject, and provide an overview of the necessary terminology.
 
-The intent of this work is help pave the way for the creation of truly open-ended systems 
-through a careful statistical analysis of a set of novel yet simple systems known to exhibit 
-open-ended complexity growth. We identify
+The intent of this work is to pave the way for the understanding and creation of truly open-ended systems 
+through a careful statistical analysis of a set of novel yet simple systems known to exhibit forms of
+open-ended genotypic complexity growth. We identify
 these systems as \textit{coevolutionary prediction games}. They are some of the simplest systems
-known to produce such behavior and are therefore ideal for statistical analysis. The intent is 
+known to produce such behavior and are therefore ideal for simulation and analysis. The goal is 
 to better describe the dynamics of these systems and identify general principles that may apply
-to more complex applications such as generative modeling and multi-agent reinforcement learning problems.
+to more complex applications such as generative modeling and multi-agent reinforcement learning problems,
+as well as features of the natural world.
 
 The substantive contributions of this work include the following:
 \begin{enumerate}
@@ -93,15 +112,15 @@ The substantive contributions of this work include the following:
         and the \textit{Harmonic Prediction Game}
     \item The introduction of a new artificial organism model based on the \textit{Genetic Program Parse Tree}
         (GP-Tree) of \citet{Koza92}.
-    \item The introduction of a novel analytical technique, 
+    \item The introduction of a novel visulization and analytical technique, 
         \textit{Qualitative Dynamical Evolutionary Stable State Analysis} (Q-DESSA)
 \end{enumerate}
 
 In our experiments, we study the coevolutionary dynamics of populations of 
 \textit{artificial organisms} within \textit{coevolutionary ecosystems}.
 Organism genotypes are represented as \textit{heterogenous graphs} corresponding to phenotypes
-that take the form of \textit{abstract machines}. A coevolutionary system comprises the populations
-of organisms and the interactions that take place between within a given \textit{interactive domain}.
+that take the form of \textit{abstract machines}. A coevolutionary system comprises populations
+of organisms and interactions that take place between them within a given \textit{interactive domain}.
 These interactions often have either a ``cooperative'' or ``competitive'' nature, in which two
 organisms will have aligned or opposing interests, respectively.
 
@@ -146,16 +165,17 @@ We employ two analytical paradigms:
 
 \subsection*{CoEvo}
 It is necessary to perform these experiments under the same conditions and with the same analytical framework.
-For this purpose, the CoEvo framework was developed. Comprising over 8,000 lines of Julia code,
+For this purpose, the CoEvo framework has developed. Comprising over 8,000 lines of Julia code,
 the framework is designed to be modular and extensible and is equipped with an extensive test
 suite. Genotypes are stored on disk in stable JLD2 dataformat along with random seeds and other metadata.
 It is possible to ``revive'' organisms at any point in the evolutionary timeline to evaluate 
 their complexity, study their interactions, and continue their evolutionary progress in a 
 reproducible way. 
 
-The framework is the first of its kind to provide a unified interface for high-performance 
-simulation and analysis of arbitrary coevolutionary systems. It will be made freely available to researchers and practitioners
-on GitHub.
+The framework will be the first of its kind to provide a unified interface for high-performance 
+simulation and analysis of arbitrary coevolutionary systems. A link to the repository can be 
+found at \href{https://github.com/twillkens/coevo}{here}; it is currently being refactored and
+prepared for public release.
 
 \subsection*{Open Science}
 The disseration shall be undertaken in the spirit of open science movement 
@@ -174,9 +194,9 @@ The \textit{MODES Toolbox} is a set of metrics and analytical techniques introdu
   current intuitions and understanding of systems such as rugged NK landscapes and the Avida 
   digital evolution platform \citep{Lenski2003TheEO, KAUFFMAN198711}. 
 
-Before applying the metrics to data resulting from an evolutionary system, it is necessary to 
+Before applying the metrics to data resulting from an evolutionary system, it is beneficial to 
 first screen out deleterious and neutral genotypes so that the focus is placed on truly adaptive 
-mutations. The primary tool for doing so is the application of a \textit{persistence filter}, 
+mutations. The primary tool for this is the \textit{persistence filter}, 
 which has its roots in \textit{coalescence theory}, an area of theoretical population genetics 
 \citep{Fu1999CoalescingIT}. This is done by identifying the \textit{persistent lineages} 
 according to a sliding window of length $t$ generations. Coalescence theory predicts that in the 
@@ -191,7 +211,7 @@ retrospectively identified.
 
 \begin{figure}[H]
     \begin{center}
-        \includegraphics[width=4in]{modes.png}
+        \includegraphics[width=2in]{modes.png}
         \caption{Illustration of persistence filtering taken from \citet{dolson2019modes}.
         At timepoint $A$, the purple lineage has proven to be persistent and therefore the 
         original component from $A - t$ will be considered meaningful. Similarly, the green and 
@@ -235,32 +255,56 @@ For example, two systems might both exhibit cycling behavior, evidenced by a neg
 the novelty metric. But we do not get a sense of the frequency of the cycles, the geometry of
 the genotype space, or the regions in which those cycles occur.
 
+The visualization framework presented in \cite{dolson2020}, in particular the \textit{lineage trajectories} 
+drawn over a fitness landscape, provides inspiration for how to approach this problem. The 
+problem is that in our coevolutionary setting, the fitness function is not fixed and we have
+multiple populations of interacting individuals.
+
 \textit{Q-DESSA} (Qualitative Dynamical Evolutionary Stable State Analysis) is a proposed method for 
 analyzing these aspects of potentially open-ended systems. The method employs a graph neural
 network component trained in an unsupervised fashion over the dataset of persistent organisms 
 filtered using MODES. An advantage of all the models considered in our prediction game is that 
-the all have a natural graph representation, and so this method can be applied to all of them
-in a similar fashion. We collect together the set of all persistent individuals across all trials of all
-ecosystems for a given artifical organism type. The \textit{UGraphEmb framework}
-\citep{Ding2019UNSUPERVISEDIW} may be employed to obtain a 
-graph-level embedding that
-reflects the graph edit distance between the genotypes of the organisms. In such a fashion we can
+they have a natural graph representation, and so this method can be applied 
+in similar fashion to each. We collect together the set of all persistent individuals across all trials of all
+ecosystems for a given artifical organism type. An approach such as the \textit{UGraphEmb framework}
+\citep{Ding2019UNSUPERVISEDIW} may be employed to obtain graph-level embeddings that
+reflect the \textit{graph edit distance} between the genotypes of the organisms. In such a fashion we can
 derive a vector space in which the embeddings of the two graphs preserve their graph-graph 
-proximity. The resulting dataset of graph embeddings can be reduced in dimensionality using 
-a method such as \textit{t-distributed Stochastic Neighbor Embedding} (t-SNE) and visualized in a 
-2D space \citep{van2008visualizing}. 
+proximity.
 
-Preliminary experiments have shown that the resulting embeddings capture intuitive notions such as that 
-members of one population will tend to be clustered together in the embedding space, distinctly
-from members of other populations.
+In \cite{Ding2019UNSUPERVISEDIW}, the resulting embeddings are reduced in dimensionality using 
+\textit{t-distributed Stochastic Neighbor Embedding} (t-SNE) and visualized in a 
+2D space \citep{van2008visualizing}. However, it is known that t-SNE may prioritize local structure
+at the expense of global structure, which can introduce significant distortion resulting in 
+misleading interpretations; to mitigate this, we plan to experiment with the recent PaCMAP
+dimensionality reduction method which is believed to produce a better tradeoff between local and
+global structure \citep{wang2021}. The UGraphEmb framework uses the \textit{graph edit distance}
+as a measure of similarity between graphs, which we plan to implement using the GEDLIB C++
+framework \citep{Blumenthal2019GEDLIBAC}. Experiments are currently being performed using the 
+difference between the Laplacian spectra of the graphs as a measure of similarity as in 
+\cite{deLang2014}, which is fast to compute but provides less precision as edge and node label
+information is lost.
 
-We then turn to dynamical systems theory of \citet{strogatz:2000}, considering each 2D reduced
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[width=3.5in]{embeddings-stellar.png}
+        \caption{This figure from preliminary experiments represents the reduced embeddings of GNARL neural networks, where 
+        the colors denote the species of each organism and the letters A-T represent the trial number 1-20.
+        This was produced using the StellarGraph Python library from experimental data taken from the final generation.
+        Despite some distortion and error, the resulting embeddings capture the intuitive notion 
+        that members of one population tend to be clustered together in the embedding space. The 
+        full Q-DESSA approach would produce lineage trajectories for organisms that pass the MODES filter.}
+        \label{dfsm}
+    \end{center}
+\end{figure}
+
+As an analogy, we may borrow concepts from the dynamical systems theory of \citet{strogatz:2000}, considering each 2D reduced
 embedding as a \textit{phase point} in a dynamical system. In this sense, each point taken from a lineage 
 at generation
-$A$, $A + t\dots$ forms a \textit{trajectory} in the phase space. The path the trajectory takes is a
-reflection of the evolutionary dynamics of the system, and by considering the trajectories taken
+$A$, $A + t\dots$ forms a \textit{trajectory} in the phase space. The path the trajectory takes 
+reflects the evolutionary dynamics of the system, and by considering the trajectories taken
 by different species within each ecosystem, we can better understand the evolutionary relationship
-between each population. It is possible then to identify the presence of evolutionary stable
+between each population. It may be possible then to qualitatively identify the presence of evolutionary stable
 states as well as to classify them according to the terminology of \citet{watson2001coevolutionary}:
 
 \begin{enumerate}
@@ -280,18 +324,29 @@ states as well as to classify them according to the terminology of \citet{watson
         bound will not remain within any region.
 \end{enumerate}
 
-The combination of MODES and Q-DESSA will give a richer picture of the dynamics of these 
-systems than in the previous literature. Moreover, it allows the measurement of differences between 
-evolutionary trajectories and between trials with different random seeds. 
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[width=4.5in]{random-walker.png}
+        \caption{Site visitations and waiting time plot, taken from \cite{Regnier2023}}
+        \label{walker}
+    \end{center}
+\end{figure}
+
+To quantify these notions in a stastical fashion, we propose that the theory of random walks 
+could be applied as in \cite{Regnier2023}. By dividing the embedding space into a lattice, we can examine metrics 
+such as the number of distinct sites visited by a lineage, as well as the waiting time $\tau_{n}$,
+which is the time taken to reach a new, distinct site. This will only approximate the true dynamics
+of the underlying system given the inevitable distortion of dimensionality reduction and training
+error, but it could provide more insight than the MODES metrics in isolation.
 
 \section*{Chapter 3: The Linguistic Prediction Game and the Complexity of DFSMs}
 
 This chapter will finish work begun in \citet{moran2019evolving} and continued in a paper 
-currently under review for publication in the 2023 Conference on Artificial Life titled 
+accepted for publication in the 2023 Conference on Artificial Life titled 
 ``MODES Analysis of Prediction Games.'' 
 
 The \textit{linguistic prediction game} is a simple two-player coevolutionary domain. 
-Each player simultaneously emits a bit. If the game is \textit{cooperative}, then players share 
+For an infinite sequence of timesteps, each player simultaneously emits a bit. If the game is \textit{cooperative}, then players share 
 the same goal: either to match (or mismatch) the bit provided by the other. 
 In a \textit{competitive} interaction, however, only one player is rewarded for matching 
 (or mismatching) bits. Neither player is aware of the nature of their relationship upon starting
@@ -318,7 +373,15 @@ Evolution begins with identical populations consisting of a single \textit{start
 links to itself. There is an equal probability that one of 
 four mutations will occur: (1) Add state, (2) remove state, (3) flip state label, (4) reassign link.
 
-The ecosystems to be studied include the following:
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[width=3.5in]{ecosystems.png}
+        \caption{Figure taken from \cite{moran2019evolving}}
+        \label{ecosystems}
+    \end{center}
+\end{figure}
+
+The primary ecosystems to be studied include the following:
 \begin{enumerate}
     \item In the \textit{Control} ecosystem, populations evolve without the presence of selective pressure.
         The results are used to interpret the open-ended behavior of the other ecosystems.
@@ -330,6 +393,9 @@ The ecosystems to be studied include the following:
         to mismatch. 
     \item In the \textit{Three-Species Mixed} (3-Mixed) variety, one ``host'' species is in a 
         cooperative relationship with one population and a competitive relationship with a ``parasitic'' other. 
+    \item In the \textit{Three-Species Competitive} (3-Comp) variety, all three species are in competition.
+    \item In the \textit{Four-Species Mixed} (4-Mixed) two cooperating pairs of species are linked by 
+        a single competitive relationship.
 \end{enumerate}
 
 It was argued that ecosystems possessing only cooperative or competitive interactions tend to 
@@ -348,20 +414,38 @@ choke growth in larger configurations, leading to \textit{degenerate ecosystems}
 justification was left for future work, as the volume and apparent intricacy of the machines 
 and their interactions made manual inspection and analysis intractable over evolutionary timescales. 
 
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[width=3.5in]{3complex.png}
+        \caption{Figure taken from the upcoming publication ``MODES Analysis of Prediction Games''
+        The complexity growth of the \textit{adaptive knockout} group (3-Mixed-KO, pink line), is well below that 
+        of the Hopcroft group (3-Mixed, green line). This suggests that the observed growth is 
+        largely nonadaptive, but the mechanisms behind this behavior are not yet understood and will 
+        be a subject of investigation.}
+        \label{ecosystems}
+    \end{center}
+\end{figure}
+
 \subsection*{Goals}
 This chapter will employ MODES Toolbox, the Q-DESSA method, and the DISCO selection method to
 answer the following open scientific questions:
 \begin{enumerate}
-    \item Is the complexity growth observed in mixed ecosystems adaptive or nonadaptive?
+    \item Is the complexity growth observed in mixed ecosystems adaptive or nonadaptive upon 
+        application of the MODES metrics? Preliminary evidence suggests that a large portion of 
+        the growth is nonadaptive.
     \item Can competitive ecosytems be statistically shown to demonstrate convention-chasing 
         or cycling behavior?
     \item Preliminary experiments suggest that the original work by \citet{moran2019evolving}
-        failed to adequately characterize the behavior of various ecosystems. Can the 
+        failed to adequately characterize the behavior of various ecosystems given different
+        ``competitive'' and ``cooperative'' configurations. Can the 
         underlying dynamics be better characterized and understood?
 \end{enumerate}
 
 \section*{Chapter 4: The Collision Game and the Growth of GNARL Networks}
 \subsection*{The Collision Game}
+See the \href{https://docs.google.com/presentation/d/1tklPPoT9hPfJkl9Fy-eHtzVZWNgh4hqUpuVcSHMLBWs/edit?usp=sharing}{presentation slides}
+for the 2022 ALIFE conference which include a number of dynamic visualizations.
+
 The \textit{collision game} is a parameterized finite-horizon two-player game introduced in 
 \citet{willkens2022} that takes place on a real-valued one-dimensional number line. On 
 timestep zero, each agent is assigned a position on the line such that they are some distance 
@@ -425,7 +509,7 @@ so that an output of 1.0 always corresponds with moving towards the other agent 
 \begin{figure}[H]
     \begin{center}
         %\includegraphics[width=2.1in]{gnarl.png}
-        \includegraphics[width=4.5in]{gnarl.png}
+        \includegraphics[width=4in]{gnarl.png}
         \caption{Complex GNARL Networks at one timestep of an interaction in the collision game
         \citep{willkens2022}. The state of each node and its weighted outputs is represented by 
         color, with red being values close to -1.0 and blue being values close to 1.0.}
@@ -434,7 +518,7 @@ so that an output of 1.0 always corresponds with moving towards the other agent 
 \end{figure}
 
 \subsection*{Goals}
-In \citet{willkens2022}, it was found that rates of complexity growth followed completely different 
+In \citet{willkens2022}, it was found that rates of complexity growth followed different 
 patterns than those predicted by \citet{moran2019evolving}. Moreover, for all the ecosystem
 configurations considered, fitness-proportionate selection failed to produced unbounded
 complexity growth, while the DISCO selection method succeded in some. This chapter will investigate the
@@ -466,7 +550,7 @@ The second, the \textit{harmonic prediction game}, springs from the observation 
 ``distance'' function in such prediction games is ultimately arbitrary, and that multidimensional
 outputs and inputs may be interpereted in creative ways. If a domain provides sufficient 
 adaptive pressure and coevolutionary tension, we could expect to observe various forms
-of open-ended complexity across a wide range of representations and media.
+of open-ended complexity across a wider range of representations.
 
 \begin{figure}[H]
     \begin{center}
@@ -479,20 +563,16 @@ of open-ended complexity across a wide range of representations and media.
 \end{figure}
 
 
-The harmonic prediction game expands the scalar observation and action spaces of the continuous 
-prediction game to vectors. Each value in the vector corresponds to the strength of each harmonic
-within the overtone series of a synthesized tone. The first value in the vector then corresponds 
-to the frequency of the fundamental, the second to the strength of the second overtone, 
-the third to the strength of the third overtone, and so on. As an alternative ``distance''
-metric, we may instead use a \textit{dissonance model} such as that of \citet{sethares2005}
-as presented in \citet{cook2017} and shown in Figure \ref{cook}.
-
-The interval created by the harmony of the two tones 
+The harmonic prediction game interprets each scalar observation as the frequency of a 
+synthesized tone. As an alternative ``distance'' metric, we may use a \textit{dissonance model}
+such as that of \citet{sethares2005}
+as presented in \citet{cook2017} and shown in Figure \ref{cook}. The interval created by the harmony of the two tones 
 may be then measured using the dissonance model; a ``cooperative''
 interaction is one in which both are rewarded for producing harmony, 
 while a ``competitive'' interaction corresponds
 to when one agent is rewarded for producing harmony, while the other is 
-rewarded for producing dissonance.
+rewarded for producing dissonance. The resulting score is not expected to reflect human aesthetic
+prefences, but we predict the emergence of patterns that are neither trivial nor random.
 
 \begin{figure}[H]
     \begin{center}
@@ -508,16 +588,24 @@ rewarded for producing dissonance.
 
 \subsection*{Genetic Programming}
 As a third substrate, we will use constructs from the \textit{genetic programming}
-paradigm to represent our artificial organisms. We use the Artificial Ant automata as presented 
+paradigm to represent our artificial organisms. We use the Artificial Ant automata 
+along with the Symbolic Regression framework as presented 
 in \citet{koza2005} as a basis. The difference is that in addition to protected arithmetic operations,
 we also include operations for writing values to an output tape and reading values produced by
 the other agent from its own respective output tape. These tapes will begin with a single entry
-of real value and grow in length over the course of the episode. They may be read in a circular
+of real value and grow in length over the course of the episode.
+
+Different representations are currently under investigation. The tapes may be read in a circular
 fashion, where each read operation moves the read head forward one position, and reaching the
-end returns the tape to the beginning; see Figure \ref{fig:gp2} for details. 
+end returns the tape to the beginning; see Figure \ref{fig:gp2} for one simple example. Alternatively, we 
+could employ a noncircular tape with terminals for moving the read head backwards and forwards. 
 Additional computational power could be provided by equipping each organism with a stack, 
 along with operations for pushing and popping values resulting from intermediate calculations.
 
+The tradition depth-based GP mutation operator can be highly destructive and is stochastic in the 
+number of functions added to the tree. Special mutation operations have been defined for our case that are more similar to those
+employed in the previous two works, only changing the number of functions by at most one while 
+preserving as much of the tree structure as possible.
 \begin{figure}[H]
     \centering
     \begin{forest}
@@ -564,10 +652,13 @@ along with operations for pushing and popping values resulting from intermediate
 \subsection*{Goals}
 The goals of this chapter are to answer the following questions:
 \begin{enumerate}
+    \item Is the GP representation capable of producing open-ended complexity growth?
     \item How do the continuous and harmonic prediction games compare to other games in terms of 
-        open-ended complexity when perfomed using analogous ecosystems and the GP representation?
-    \item Will the results be of ``auditory interest'' in human terms?
-    \item How will the interactions compare with human music in terms of statistical complexity?
+        complexity when perfomed using analogous ecosystems?
+    \item How will the resulting interactions be interpreted in terms of human aesthetics and
+        statistical complexity?
+    \item Can we develop a more unified theoretical framework for interpreting the behavior of these systems
+        given variations in domain and representation?
 \end{enumerate}
 
 \section*{Chapter 6: Conclusion and Future Work}
@@ -586,12 +677,17 @@ Future work may include:
         or continuous prediction games.
     \item Testing the effects of varying other hyperparameters, such as the population size.   
         Larger populations may be required to produce open-ended complexity in certain ecosystems.
+    \item Analyzing the complexity of the interaction timeseries using a technique such as 
+        \textit{epsilon machine reconstruction} to observe whether there is a correlation 
+        between genotypic complexity and the statistical complexity of phenotypic interaction 
+        \citep{crutchfield2012between,bartlett2022}.
 \end{enumerate}
 
-With a better understanding of how selection methods impact complexity growth and its adaptive
-nature or nonadaptive nature, we may develop a more principled approach
+A better understanding of the impact of variables such as domain or selection method on complexity growth, 
+as well as the adaptive nature of such growth, would allow a more principled approach
 to the design of more powerful coevolutionary systems. It is the hope of the author that this
-dissertation will contribute to the ultimate effort of developing truly open-ended artificial
+dissertation will grant a better understanding of the phenomena of evolutionary complexity growth on a more 
+fundamental level and contribute to the ultimate effort of developing truly open-ended artificial
 systems.
 
 \bibliographystyle{apalike}

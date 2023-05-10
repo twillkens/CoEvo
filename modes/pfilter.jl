@@ -69,3 +69,37 @@ function pfilter(
     GC.gc()
     EcoStats(eco, trial, t, fdict)
 end
+
+function get_pfiltered_genos(
+    eco::String, 
+    trial::Int,
+)
+    ecopath = joinpath(ENV["COEVO_DATA_DIR"], eco)
+    jld2file = jldopen(joinpath(ecopath, "$trial.jld2"), "r")
+    spids = keys(jld2file["arxiv/1/species"])
+    pftags = Dict(
+        spid => deserialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "tags", "$spid-$trial.jls"))
+        for spid in spids
+    )   
+    archiver = FSMIndivArchiver()
+    println(pftags)
+    indivs = reduce(vcat, 
+        reduce(vcat, [
+            reduce(vcat,[archiver(
+                ftag.spid, 
+                ftag.iid, 
+                jld2file["arxiv/$(ftag.gen)/species/$(ftag.spid)/children/$(ftag.iid)"]
+            )
+            for ftag in genvec])
+            for genvec in pftags[spid]
+        ])
+        for spid in spids
+    )
+
+    close(jld2file)
+    indivs
+end
+
+function get_indivs(ecos::Vector{String}, trials::UnitRange{Int})
+    indivs = reduce(vcat, [get_pfiltered_genos(eco, trial) for eco in ecos, trial in trials])
+end
