@@ -121,6 +121,7 @@ function threeplots(metric::String, tag::String = "ko")
     X3, low3, hi3 = getline(eco = "mismatchmix", tag = "$tag", geno = "min", metric = metric,)
     X4, low4, hi4 = getline(eco = "3comp", tag = "$tag", geno = "modes", metric = metric)
     X5, low5, hi5 = getline(eco = "mismatchmix", tag = "$tag", geno = "modes", metric = metric)
+
     p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
     p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "3-Comp")
     p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "3-Mixed")
