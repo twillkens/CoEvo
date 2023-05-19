@@ -86,7 +86,7 @@ function domodes(
     end
     df = DataFrame(statdict)
     addstats!(df, domains)
-    serialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "modes-$dtag.jls"), d)
+    serialize(joinpath(ENV["COEVO_DATA_DIR"], eco, "modes-$dtag.jls"), df)
     df
 end
 
