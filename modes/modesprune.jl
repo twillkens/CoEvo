@@ -93,7 +93,7 @@ function ModesPruneRecord(
             agegeno = checkgeno
         end
     end
-    age = PruneBundle(indiv.ikey, agegeno, genphenodict, domains)
+    age = PruneBundle(indiv.ikey, minimize(agegeno), genphenodict, domains)
     d = Dict(
         "full" => PruneGeno(full, hopcroft.outputs),
         "hopcroft" => PruneGeno(hopcroft, hopcroft.outputs),

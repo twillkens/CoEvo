@@ -8,10 +8,6 @@ using Serialization
 Plots.default(fontfamily = ("Times Roman"))# titlefont = ("Times Roman"), legendfont = ("Times Roman"))
 gr()
 
-function label(a::Vector{String})
-    filter!(x -> x != "", a)
-    lstrip(join(a, '-'), '-')
-end
 
 function fitplot(eco::String="coop", sp::String="symbiote", tag::String = "age-40")
     X1, low1, hi1 = getline(eco = eco, tag = tag, geno = "min", metric = "fitness",   sp = sp)
@@ -155,6 +151,66 @@ function threeplots(metric::String, tag::String = "ko")
     )
 end
 
+function twoplotsnew(metric::String, tag::String = "new-40")
+    X1, low1, hi1 = getlinenew(eco = "ctrl", tag = tag, plevel = "hopcroft", metric = metric,)
+    X2, low2, hi2 = getlinenew(eco = "comp", tag = tag, plevel = "hopcroft", metric = metric,)
+    X3, low3, hi3 = getlinenew(eco = "coop", tag = tag, plevel = "hopcroft", metric = metric,)
+    X4, low4, hi4 = getlinenew(eco = "comp", tag = tag, plevel = "age", metric = metric)
+    X5, low5, hi5 = getlinenew(eco = "coop", tag = tag, plevel = "age", metric = metric)
+    p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
+    p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "Comp")
+    p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "Coop")
+    p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "Comp-KO")
+    p = plot(p, 1:1000, X5, ribbon = (low5, hi5), fillalpha = 0.25, color = :violet, label = "Coop-KO")
+    tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
+    ydict = Dict(
+        "complexity" => "Complexity",
+        "novelty" => "Novelty",
+        "ecology" => "Ecology",
+        "levdist" => "Levenshtein Distance",
+        "change" => "Change",
+        "fitness" => "Fitness",
+        "eplen" => "Episode Length",
+    )
+    ylimdict = Dict(
+        "complexity" => (0, 100),
+        "novelty" => (0, 6),
+        "ecology" => (0, 6),
+        "levdist" => (0, 25),
+        "change" => (0, 6),
+        "fitness" => (0, 25),
+        "eplen" => (0, 25),
+    )
+    FSIZE = 23
+    plot(
+        p,
+        ylim = ylimdict[metric],
+        xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
+        xlabel = "Generations",
+        ylabel = ydict[metric],
+        title = "Two Species: $(ydict[metric])",
+        size = (1025, 650), 
+        dpi = 300,
+        left_margin = 5mm,
+        right_margin = 2mm,
+        top_margin = 2mm,
+        bottom_margin = 7mm,
+        #left_margin = 8mm,
+        #right_margin = 5mm,
+        #top_margin = 5mm,
+        #bottom_margin = 10mm,
+        ylabelfontsize = FSIZE,
+        xlabelfontsize = FSIZE,
+        tickfontsize = FSIZE - 4,
+        legendfontsize=FSIZE - 8,
+        #top_margin=0mm, 
+        #bottom_margin=0mm, 
+        #left_margin=0mm, 
+        #right_margin=0mm, 
+        titlefontsize=FSIZE+1,
+    )
+end
+
 function twoplots(metric::String, tag::String = "age-40")
     X1, low1, hi1 = getline(eco = "ctrl", tag = tag, geno = "min", metric = metric,)
     X2, low2, hi2 = getline(eco = "comp", tag = tag, geno = "min", metric = metric,)
@@ -247,6 +303,36 @@ function levdist(tag::String = "age-40")
     )
 end
 
+function label(a::Vector{String})
+    filter!(x -> x != "", a)
+    lstrip(join(a, '-'), '-')
+end
+
+function getlinenew(;
+    eco::String = "comp", 
+    tag::String = "new-40", 
+    plevel::String = "hopcroft",
+    metric::String = "complexity", 
+    sp::String = "eco",
+    trial::Int = -1,
+    dir::String = "modesdata",
+    mid::String = "mean",
+    upper::String = "hiconf",
+    lower::String = "lowconf",
+)
+    df = deserialize("$dir/$eco-$tag.jls")
+    if trial == - 1
+        X = df[!, label([sp, plevel, metric, mid])]
+        lower = df[!, label([sp, plevel, metric, lower])]
+        upper = df[!, label([sp, plevel, metric, upper])]
+
+        rlow = [x - l for (x, l) in zip(X, lower)]
+        rhi = [u - x for (u, x) in zip(upper, X)] 
+        return X, rlow, rhi
+    else
+        df[!, label([sp, geno, metric, trial])]
+    end
+end
 
 
 function getline(;
