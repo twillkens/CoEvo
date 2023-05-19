@@ -1,5 +1,30 @@
 export pfilter
 
+#function pfilter(
+#    jld2file::JLD2.JLDFile,
+#    spid::String,
+#    pftags::Vector{Vector{FilterTag}},
+#    t::Int,
+#    domains::Dict{Tuple{String, String}, <:Domain},
+#    prunecfg::PruneCfg,
+#)
+#    allfindivs = Vector{Vector{FilterIndiv}}()
+#    for (gen, ftags) in enumerate(pftags)
+#        gen = gen == 1 ? 1 : (gen - 1) * t
+#        genphenodict = get_genphenodict(jld2file, gen, spid, domains)
+#        prunes = prunecfg(jld2file, ftags, genphenodict, domains)
+#        fight!(spid, prunes, genphenodict, domains)
+#        push!(allfindivs, [FilterIndiv(prune, genphenodict, domains) for prune in prunes])
+#        if gen % 1_000 == 0
+#            println("filtering $spid at gen $gen")
+#            GC.gc()
+#        end
+#    end
+#    GC.gc()
+#    #FilterResults(spid, t, nothing, SpeciesStats(spid, allfindivs))
+#    FilterResults(spid, t, allfindivs, SpeciesStats(spid, allfindivs))
+#end
+
 function pfilter(
     jld2file::JLD2.JLDFile,
     spid::String,
@@ -8,13 +33,12 @@ function pfilter(
     domains::Dict{Tuple{String, String}, <:Domain},
     prunecfg::PruneCfg,
 )
-    allfindivs = Vector{Vector{FilterIndiv}}()
+    all_records = Vector{Vector{ModesPruneRecord}}()
     for (gen, ftags) in enumerate(pftags)
         gen = gen == 1 ? 1 : (gen - 1) * t
-        prunes = prunecfg(jld2file, ftags)
         genphenodict = get_genphenodict(jld2file, gen, spid, domains)
-        fight!(spid, prunes, genphenodict, domains)
-        push!(allfindivs, [FilterIndiv(prune, genphenodict, domains) for prune in prunes])
+        records = prunecfg(jld2file, ftags, genphenodict, domains)
+        push!(all_records, records)
         if gen % 1_000 == 0
             println("filtering $spid at gen $gen")
             GC.gc()
@@ -22,8 +46,9 @@ function pfilter(
     end
     GC.gc()
     #FilterResults(spid, t, nothing, SpeciesStats(spid, allfindivs))
-    FilterResults(spid, t, allfindivs, SpeciesStats(spid, allfindivs))
+    all_records
 end
+
 
 # filter to get the tags of the persistent individuals
 function init_pftags(jld2file::JLD2.JLDFile, spid::String)
@@ -67,8 +92,26 @@ function pfilter(
     )
     close(jld2file)
     GC.gc()
-    EcoStats(eco, trial, t, fdict)
+    get_trialstats(trial, fdict)
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function get_pfiltered_genos(
     eco::String, 

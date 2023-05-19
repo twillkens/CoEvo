@@ -40,7 +40,6 @@ function FSMMinPheno(pheno::FSMSetPheno)
     FSMMinPheno(pheno.ikey, (pheno.start, pheno.start in pheno.ones), newlinks)
 end
 
-
 # Indiv
 
 struct FSMIndiv{G <: FSMGeno} <: Individual
@@ -140,7 +139,6 @@ end
 function(cfg::FSMIndivConfig)(::AbstractRNG, sc::SpawnCounter, npop::Int, indiv::FSMIndiv)
     cfg(sc, npop, indiv.geno)
 end
-
 
 # PhenoConfig
 
@@ -315,3 +313,5 @@ function build_aliasdict(
     build_aliasdict(geno, geno.links[(s, true)], adict, cnt)
     build_aliasdict(geno, geno.links[(s, false)], adict, cnt)
 end
+
+Base.length(geno::FSMGeno) = length(geno.ones) + length(geno.zeros)

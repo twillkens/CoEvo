@@ -86,6 +86,14 @@ struct VectorGeno{T <: Real} <: Genotype
     genes::Vector{T}
 end
 
+function VectorGeno(spid::Symbol, iid::UInt32, genes::Vector{T}) where {T <: Real}
+    VectorGeno(IndivKey(spid, iid), genes)
+end
+
+function VectorGeno(spid::Symbol, iid::Int, genes::Vector{T}) where {T <: Real}
+    VectorGeno(spid, UInt32(iid), genes)
+end
+
 function genotype(indiv::VectorIndiv{<:ScalarGene})
     genes = [g.val for g in indiv.genes]
     VectorGeno(indiv.ikey, genes)
@@ -132,6 +140,9 @@ function(cfg::VectorIndivConfig)(::AbstractRNG, sc::SpawnCounter, n_indiv::Int, 
     Dict(indiv.ikey => indiv for indiv in indivs)
 end
 
+Base.length(indiv::VectorGeno) = length(indiv.genes)
+Base.:(==)(indiv1::VectorGeno, indiv2::VectorGeno) = indiv1.genes == indiv2.genes
+Base.hash(indiv::VectorGeno, h::UInt) = hash(indiv.genes, h)
 
 
 # function(r::NPointCrossoverRecombiner)(variator::Variator, gen::UInt16,

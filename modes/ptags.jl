@@ -78,7 +78,7 @@ end
 
 function dotags!(
     eco::String, 
-    trials::UnitRange{Int} = 1:20,
+    trials::UnitRange{Int} = 1:40,
     t::Int = 50,
     until::Int = 50_000
 )
@@ -87,4 +87,15 @@ function dotags!(
         for trial in trials
     ]
     [fetch(future) for future in futures]
+end
+
+function sdotags!(
+    eco::String, 
+    trials::UnitRange{Int} = 1:40,
+    t::Int = 50,
+    until::Int = 50_000
+)
+    for trial in trials
+        ptags!(eco, trial, t, until)
+    end
 end

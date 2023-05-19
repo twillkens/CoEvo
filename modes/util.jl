@@ -1,5 +1,12 @@
-export get_genphenodict, fill_statdict!
+export get_genphenodict, fill_statdict!, FilterTag
 
+struct FilterTag
+    gen::Int
+    spid::String
+    iid::String
+    prevtag::Int
+    currtag::Int
+end
 
 function fill_statdict!(
     d::Dict{String, Vector{Float64}}, metric::String, alls::Vector{StatFeatures}
@@ -13,6 +20,7 @@ function fill_statdict!(
     d["$metric-upper-conf"] = [s.upper_confidence for s in alls]
     d["$metric-lower-conf"] = [s.lower_confidence for s in alls]
 end
+
 
 # get phenotypes of all other species at a given generation, excluding my species
 function get_genphenodict(
