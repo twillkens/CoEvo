@@ -66,7 +66,7 @@ function domodes(
     domains::Dict{Tuple{String, String}, <:Domain},
     prunecfg::PruneCfg,
     dtag::String,
-    parallel::Bool = false,
+    parallel::Bool = true,
 )
     if parallel
         futures = [
@@ -92,8 +92,8 @@ end
 
 
 function modes_ctrl(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(),
-    dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(),
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("ctrl1", "ctrl2") => LingPredGame(Control())
@@ -102,8 +102,8 @@ function modes_ctrl(;
 end
 
 function modes_3ctrl(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(),
-    dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(),
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("ctrl1", "ctrl2") => LingPredGame(Control()),
@@ -113,8 +113,8 @@ function modes_3ctrl(;
 end
 
 function modes_coop(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), 
-    dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("host", "symbiote") => LingPredGame(MatchCoop())
@@ -123,8 +123,8 @@ function modes_coop(;
 end
 
 function modes_comp(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), 
-    dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("host", "parasite") => LingPredGame(MatchComp())
@@ -133,8 +133,8 @@ function modes_comp(;
 end
 
 function modes_3comp(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), 
-    dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("A", "B") => LingPredGame(MatchComp()),
@@ -144,8 +144,8 @@ function modes_3comp(;
 end
 
 function modes_matchmix(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), 
-    dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("host", "symbiote") => LingPredGame(MatchCoop()),
@@ -155,7 +155,8 @@ function modes_matchmix(;
 end
 
 function modes_mismatchmix(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("host", "symbiote") => LingPredGame(MismatchCoop()),
@@ -166,7 +167,8 @@ end
 
 
 function modes_4MatchMix(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("A", "B") => LingPredGame(MatchComp()),
@@ -177,7 +179,8 @@ function modes_4MatchMix(;
 end
 
 function modes_4MatchMismatchMix(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("A", "B") => LingPredGame(MatchComp()),
@@ -188,7 +191,8 @@ function modes_4MatchMismatchMix(;
 end
 
 function modes_4MismatchMatchMix(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("A", "B") => LingPredGame(MatchComp()),
@@ -199,7 +203,8 @@ function modes_4MismatchMatchMix(;
 end
 
 function modes_4MismatchMix(;
-    trials::UnitRange{Int} = 1:20, t::Int = 50, prunecfg::PruneCfg = KOPruneCfg(), dtag::String = "",
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    dtag::String = "modes-40",
 )
     domains = Dict(
         ("A", "B") => LingPredGame(MatchComp()),
