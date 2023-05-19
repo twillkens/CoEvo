@@ -1,5 +1,4 @@
 using Distributed
-using HypothesisTests
 @everywhere using Pkg
 @everywhere Pkg.activate(".")
 @everywhere using CoEvo
@@ -11,6 +10,7 @@ using HypothesisTests
 @everywhere using DataStructures
 @everywhere using StringDistances
 @everywhere using Serialization
+@everywhere using HypothesisTests
 @everywhere include("abstract.jl")
 @everywhere include("util.jl")
 @everywhere include("modesprune.jl")
