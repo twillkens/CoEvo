@@ -1,4 +1,4 @@
-export AgePrune, AgePruneCfg
+export AgePrune, AgePruneCfg, ModesPruneRecord, ModesPruneRecordCfg
 
 struct PruneGeno{G <: FSMGeno}
     geno::G
