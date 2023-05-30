@@ -40,11 +40,11 @@ function fitplot(eco::String="coop", sp::String="symbiote", tag::String = "age-4
     )
 end
 
-function spplot(eco::String, metric::String, sp1::String, sp2::String, tag::String = "ko-20")
-    X1, low1, hi1 = getline(eco = eco, tag = tag, geno = "min", metric = metric, sp = sp1)
-    X2, low2, hi2 = getline(eco = eco, tag = tag, geno = "modes", metric = metric, sp = sp1)
-    X3, low3, hi3 = getline(eco = eco, tag = tag, geno = "min", metric = metric, sp = sp2)
-    X4, low4, hi4 = getline(eco = eco, tag = tag, geno = "modes", metric = metric, sp = sp2)
+function spplot(eco::String, metric::String, sp1::String, sp2::String, tag::String = "new-40")
+    X1, low1, hi1 = getlinenew(eco = eco, tag = tag, plevel = "hopcroft", metric = metric, sp = sp1)
+    X2, low2, hi2 = getlinenew(eco = eco, tag = tag, plevel = "age", metric = metric, sp = sp1)
+    X3, low3, hi3 = getlinenew(eco = eco, tag = tag, plevel = "hopcroft", metric = metric, sp = sp2)
+    X4, low4, hi4 = getlinenew(eco = eco, tag = tag, plevel = "age", metric = metric, sp = sp2)
     p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue)
     p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red)
     p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green)
@@ -58,14 +58,16 @@ function spplot(eco::String, metric::String, sp1::String, sp2::String, tag::Stri
         "change" => "Change",
         "fitness" => "Fitness",
         "eplen" => "Episode Length",
+        "coverage" => "Coverage",
     )
     ylimdict = Dict(
         "complexity" => (0, 100),
-        "novelty" => (0, 5),
+        "novelty" => (0, 8),
         "ecology" => (0, 5),
         "levdist" => (0, 25),
-        "change" => (0, 5),
+        "change" => (0, 8),
         "fitness" => (0, 1),
+        "coverage" => (0, 1),
         "eplen" => (0, 25),
     )
     plot(
@@ -94,18 +96,26 @@ function spplot(eco::String, metric::String, sp1::String, sp2::String, tag::Stri
 end
 
 
-function threeplots(metric::String, tag::String = "ko")
-    X1, low1, hi1 = getline(eco = "3ctrl", tag = "$tag", geno = "min", metric = metric,)
-    X2, low2, hi2 = getline(eco = "3comp", tag = "$tag", geno = "min", metric = metric,)
-    X3, low3, hi3 = getline(eco = "mismatchmix", tag = "$tag", geno = "min", metric = metric,)
-    X4, low4, hi4 = getline(eco = "3comp", tag = "$tag", geno = "modes", metric = metric)
-    X5, low5, hi5 = getline(eco = "mismatchmix", tag = "$tag", geno = "modes", metric = metric)
+function threeplots(metric::String, tag::String = "new-40")
+    X1, low1, hi1 = getlinenew(eco = "3ctrl", tag = "$tag", plevel = "hopcroft", metric = metric,)
+    X2, low2, hi2 = getlinenew(eco = "3comp", tag = "$tag", plevel = "hopcroft", metric = metric,)
+    X3, low3, hi3 = getlinenew(eco = "mismatchmix", tag = "$tag", plevel = "hopcroft", metric = metric,)
+    X4, low4, hi4 = getlinenew(eco = "3comp", tag = "$tag", plevel = "age", metric = metric)
+    X5, low5, hi5 = getlinenew(eco = "mismatchmix", tag = "$tag", plevel = "age", metric = metric)
+    if metric ∉ ["fitness"]
+        p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "3-Control")
+    else
+        p = plot()
+    end
 
-    p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
     p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "3-Comp")
     p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "3-Mixed")
     p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "3-Comp-KO")
     p = plot(p, 1:1000, X5, ribbon = (low5, hi5), fillalpha = 0.25, color = :violet, label = "3-Mixed-KO")
+    if metric == "coverage"
+        X6, low6, hi6 = getlinenew(eco = "mismatchmix", tag = "$tag", plevel = "hopcroft", metric = metric, sp = "symbiote")
+        p = plot(p, 1:1000, X6, ribbon = (low6, hi6), fillalpha = 0.25, color = :black, label = "3-Mixed-Symbiote")
+    end
     tickdict = Dict(0 => "0", 500 => "25,000", 1000 => "50,000")
     ydict = Dict(
         "complexity" => "Complexity",
@@ -115,18 +125,20 @@ function threeplots(metric::String, tag::String = "ko")
         "change" => "Change",
         "fitness" => "Fitness",
         "eplen" => "Episode Length",
+        "coverage" => "Coverage",
     )
     ylimdict = Dict(
         "complexity" => (0, 150),
-        "novelty" => (0, 10),
-        "ecology" => (0, 10),
+        "novelty" => (0, 8),
+        "ecology" => (0, 4),
         "levdist" => (0, 25),
-        "change" => (0, 10),
-        "fitness" => (0, 25),
-        "eplen" => (0, 25),
+        "change" => (0, 8),
+        "fitness" => (0, 1),
+        "eplen" => (0, 30),
+        "coverage" => (0, 1)
     )
     FSIZE = 23
-    plot(
+    p = plot(
         p,
         ylim = ylimdict[metric],
         xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
@@ -149,6 +161,8 @@ function threeplots(metric::String, tag::String = "ko")
         #right_margin=0mm, 
         titlefontsize=FSIZE+1,
     )
+    savefig(p, "doc/modes/img/3$metric.png")
+    p
 end
 
 function twoplotsnew(metric::String, tag::String = "new-40")
@@ -157,7 +171,13 @@ function twoplotsnew(metric::String, tag::String = "new-40")
     X3, low3, hi3 = getlinenew(eco = "coop", tag = tag, plevel = "hopcroft", metric = metric,)
     X4, low4, hi4 = getlinenew(eco = "comp", tag = tag, plevel = "age", metric = metric)
     X5, low5, hi5 = getlinenew(eco = "coop", tag = tag, plevel = "age", metric = metric)
-    p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
+    if metric ∉ ["fitness"]
+        p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
+    else
+        p = plot()
+    end
+
+    #p = plot(1:1000,    X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :blue, label = "Control")
     p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :red, label = "Comp")
     p = plot(p, 1:1000, X3, ribbon = (low3, hi3), fillalpha = 0.25, color = :green, label = "Coop")
     p = plot(p, 1:1000, X4, ribbon = (low4, hi4), fillalpha = 0.25, color = :orange, label = "Comp-KO")
@@ -171,18 +191,20 @@ function twoplotsnew(metric::String, tag::String = "new-40")
         "change" => "Change",
         "fitness" => "Fitness",
         "eplen" => "Episode Length",
+        "coverage" => "Coverage",
     )
     ylimdict = Dict(
         "complexity" => (0, 100),
-        "novelty" => (0, 6),
-        "ecology" => (0, 6),
+        "novelty" => (0, 8),
+        "ecology" => (0, 4),
         "levdist" => (0, 25),
-        "change" => (0, 6),
-        "fitness" => (0, 25),
-        "eplen" => (0, 25),
+        "change" => (0, 8),
+        "fitness" => (0, 1),
+        "eplen" => (0, 30),
+        "coverage" => (0, 1)
     )
     FSIZE = 23
-    plot(
+    p = plot(
         p,
         ylim = ylimdict[metric],
         xformatter = (x) -> x in keys(tickdict) ? tickdict[x] : "",
@@ -209,6 +231,8 @@ function twoplotsnew(metric::String, tag::String = "new-40")
         #right_margin=0mm, 
         titlefontsize=FSIZE+1,
     )
+    savefig(p, "doc/modes/img/2$metric.png")
+    p
 end
 
 function twoplots(metric::String, tag::String = "age-40")

@@ -52,6 +52,7 @@ function getecologies(
     end
     ecologies
 end
+
 function get_spstats_dict(
     trial::Int, 
     spid::String,

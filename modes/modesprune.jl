@@ -78,7 +78,7 @@ function ModesPruneRecord(
 )
     full = PruneBundle(indiv.ikey, indiv.geno, genphenodict, domains)
     hopcroft = PruneBundle(indiv.ikey, indiv.mingeno, genphenodict, domains)
-    visitgeno = hopcroft.geno
+    visitgeno = indiv.geno
     toremove = setdiff(union(visitgeno.ones, visitgeno.zeros), hopcroft.visited)
     for state in sort(collect(toremove), rev=true) 
         visitgeno = rmstate(StableRNG(42), visitgeno, state)
