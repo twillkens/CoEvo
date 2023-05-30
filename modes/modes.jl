@@ -92,7 +92,7 @@ end
 
 
 function modes_ctrl(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(),
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(),
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -102,7 +102,7 @@ function modes_ctrl(;
 end
 
 function modes_3ctrl(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(),
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(),
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -113,7 +113,7 @@ function modes_3ctrl(;
 end
 
 function modes_coop(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -123,7 +123,7 @@ function modes_coop(;
 end
 
 function modes_comp(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -133,7 +133,7 @@ function modes_comp(;
 end
 
 function modes_3comp(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -144,7 +144,7 @@ function modes_3comp(;
 end
 
 function modes_matchmix(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -155,7 +155,7 @@ function modes_matchmix(;
 end
 
 function modes_mismatchmix(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -167,7 +167,7 @@ end
 
 
 function modes_4MatchMix(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -179,7 +179,7 @@ function modes_4MatchMix(;
 end
 
 function modes_4MatchMismatchMix(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -191,7 +191,7 @@ function modes_4MatchMismatchMix(;
 end
 
 function modes_4MismatchMatchMix(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
@@ -203,7 +203,7 @@ function modes_4MismatchMatchMix(;
 end
 
 function modes_4MismatchMix(;
-    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesRecordPruneCfg(), 
+    trials::UnitRange{Int} = 1:40, t::Int = 50, prunecfg::PruneCfg = ModesPruneRecordCfg(), 
     dtag::String = "modes-40",
 )
     domains = Dict(
