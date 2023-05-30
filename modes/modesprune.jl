@@ -76,20 +76,28 @@ function ModesPruneRecord(
     genphenodict::Dict{String, <:Vector{<:FSMPheno}}, 
     domains::Dict{Tuple{String, String}, <:Domain}
 )
+    # full genotype without pruning
     full = PruneBundle(indiv.ikey, indiv.geno, genphenodict, domains)
     hopcroft = PruneBundle(indiv.ikey, indiv.mingeno, genphenodict, domains)
-    visitgeno = indiv.geno
+    visitgeno = hopcroft.geno
     toremove = setdiff(union(visitgeno.ones, visitgeno.zeros), hopcroft.visited)
     for state in sort(collect(toremove), rev=true) 
         visitgeno = rmstate(StableRNG(42), visitgeno, state)
     end
     visit = PruneBundle(indiv.ikey, visitgeno, genphenodict, domains)
-    agegeno = visit.geno
+
+    ## age pruning
+    agegeno = full.geno
+    # remove states not visited by full
+    toremove = setdiff(union(agegeno.ones, agegeno.zeros), full.visited)
+    for state in sort(collect(toremove), rev=true) 
+        agegeno = rmstate(StableRNG(42), agegeno, state)
+    end
     tocheck = setdiff(union(agegeno.ones, agegeno.zeros), Set([agegeno.start]))
     for state in sort(collect(tocheck), rev=true) 
         checkgeno = rmstate(StableRNG(42), agegeno, state)
         checkbundle = PruneBundle(indiv.ikey, checkgeno, genphenodict, domains)
-        if checkbundle.score >= visit.score
+        if checkbundle.score >= full.score
             agegeno = checkgeno
         end
     end
