@@ -161,7 +161,7 @@ function threeplots(metric::String, tag::String = "new-40")
         #right_margin=0mm, 
         titlefontsize=FSIZE+1,
     )
-    savefig(p, "doc/modes/img/3$metric.png")
+    savefig(p, "doc/modes/img/3$metric-$tag.png")
     p
 end
 
@@ -231,7 +231,7 @@ function twoplotsnew(metric::String, tag::String = "new-40")
         #right_margin=0mm, 
         titlefontsize=FSIZE+1,
     )
-    savefig(p, "doc/modes/img/2$metric.png")
+    savefig(p, "doc/modes/img/2$metric-$tag.png")
     p
 end
 
@@ -301,8 +301,6 @@ function levdist(tag::String = "age-40")
     X2, low2, hi2 = getline(eco = "mismatchmix", sp="symbiote", tag = tag, geno = "", metric = "levdist")
     p = plot(1:1000, X1, ribbon = (low1, hi1), fillalpha = 0.25, color = :red, label = "Coop: Cooperator")
     p = plot(p, 1:1000, X2, ribbon = (low2, hi2), fillalpha = 0.25, color = :blue, label = "3-Mixed: Cooperator",
-    
-    
         title = "Levenshtein Distance",
         size = (1025, 650), 
         dpi = 300,

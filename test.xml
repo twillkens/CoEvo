@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<graphml xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns &#10;                                                        http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd" xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <key attr.name="type" id="d0" attr.type="string" for="node"/>
+  <key attr.name="label" id="d1" attr.type="string" for="edge"/>
+  <graph edgedefault="undirected" id="G">
+    <node id="1">
+      <data key="d0">0_start</data>
+    </node>
+    <node id="3p">
+      <data key="d0">prime</data>
+    </node>
+    <node id="2">
+      <data key="d0">0</data>
+    </node>
+    <node id="2p">
+      <data key="d0">prime</data>
+    </node>
+    <node id="1p">
+      <data key="d0">prime</data>
+    </node>
+    <node id="3">
+      <data key="d0">1</data>
+    </node>
+    <edge source="1" target="1">
+      <data key="d1">1</data>
+    </edge>
+    <edge source="3p" target="3">
+      <data key="d1">p</data>
+    </edge>
+    <edge source="2p" target="2">
+      <data key="d1">p</data>
+    </edge>
+    <edge source="1p" target="1">
+      <data key="d1">p</data>
+    </edge>
+    <edge source="3" target="2p">
+      <data key="d1">1</data>
+    </edge>
+    <edge source="3" target="3">
+      <data key="d1">0</data>
+    </edge>
+    <edge source="2" target="3p">
+      <data key="d1">01</data>
+    </edge>
+    <edge source="1" target="2p">
+      <data key="d1">0</data>
+    </edge>
+  </graph>
+</graphml>
