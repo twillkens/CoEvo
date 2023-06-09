@@ -6,6 +6,7 @@ using Distributed
 @everywhere using ProgressBars
 @everywhere using CoEvo
 @everywhere using StableRNGs
+@everywhere using FileIO
 
 @everywhere struct FSMPrimeGeno <: Genotype
     start::String
@@ -235,5 +236,31 @@ function parallel_ctrl_evo_to_size(sizes::UnitRange{Int} = 1:250, bin_size::Int 
             remotecall_fetch(parallel_task, wp, n, id)
         end
     end
+end
 
+
+
+
+function rename_files(directory)
+    # Get the list of files in the directory
+    files = readdir(directory)
+    
+    # Extract the size and trial integers from the file names
+    file_numbers = [(parse(Int, match(r"(\d+)-", file).match[1:end-1]), parse(Int, match(r"-(\d+)", file).match[2:end])) for file in files]
+    
+    # Zip the file names and numbers together and sort first by size and then by trial
+    sorted_files = sort(collect(zip(files, file_numbers)), by = x -> x[2])
+    
+    # Iterate over each sorted file
+    for (i, file) in enumerate(sorted_files)
+        # Generate new file name
+        new_file_name = string(i) * ".graphml"
+        
+        # Full path for old and new file
+        old_file = joinpath(directory, file[1])
+        new_file = joinpath(directory, new_file_name)
+        
+        # Rename the file
+        mv(old_file, new_file)
+    end
 end
