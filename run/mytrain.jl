@@ -3,14 +3,14 @@
 Base.@kwdef mutable struct MyArgs
     η = 0.001             # learning rate
     batchsize = 256      # batch size (number of graphs in each batch)
-    epochs = 10         # number of epochs
+    epochs = 30         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
     usecuda = true      # if true use cuda (if available)
     nin = 5
     ein = 4
-    d1 = 64        # dimension of hidden features
-    d2 = 32        # dimension of hidden features
-    dout = 16        # dimension of hidden features
+    d1 = 128        # dimension of hidden features
+    d2 = 128        # dimension of hidden features
+    dout = 64        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
     numtrain = (0.5, 0.1)
     heads = 4
@@ -85,19 +85,35 @@ function (model::GNN)(g::GNNGraph)
     model(g, g.ndata.x, g.edata.e)
 end
 
-function my_eval_loss_accuracy(model, data_loader, device)
+function my_eval_loss_accuracy(model, data_loader, device, args)
     loss = 0.0
     ntot = 0
     for ((g1, g2), y) in ProgressBar(data_loader)
         g1, g2, y = (g1, g2, y) |> device
         emb1 = model(g1) |> vec
         emb2 = model(g2) |> vec
-        ŷ = norm(emb1 - emb2)
-        loss += Flux.mse(ŷ, y)
+	emb1 = reshape(emb1, args.dout, length(y))
+	emb2 = reshape(emb2, args.dout, length(y))
+	ŷ = pairwise_l2_norm(emb1, emb2)
+        #ŷ = norm(emb1 - emb2)
+        #l = Flux.mse(ŷ, y)
+	#l = sum(Flux.mse(ŷ[i], y[i]) for i in 1:length(y))
+	l = mean((ŷ .- y).^2)
+	loss += l
+	# println("g1: ", g1.num_nodes, "g2: ", g2.num_nodes, "losses: ", l, "targets: ", y)
         ntot += length(y)
     end
     return (loss = round(loss / ntot, digits = 4))
 end
+
+function pairwise_l2_norm(A::AbstractArray, B::AbstractArray)
+    if size(A) != size(B)
+        error("The matrices are not the same size.")
+    end
+
+    return sqrt.(sum((A .- B).^2, dims=1))
+end
+
 
 function mytrainloop!(
     args::MyArgs, train_loader::DataLoader, test_loader::DataLoader, model::Union{GNNChain, GNN},
@@ -105,10 +121,10 @@ function mytrainloop!(
 )
     function report(epoch, trainloss = nothing, testloss = nothing)
         if trainloss === nothing
-            trainloss = my_eval_loss_accuracy(model, train_loader, device)
+            trainloss = my_eval_loss_accuracy(model, train_loader, device, args)
         end
         if testloss === nothing
-            testloss = my_eval_loss_accuracy(model, test_loader, device)
+            testloss = my_eval_loss_accuracy(model, test_loader, device, args)
         end
         println("Epoch: $epoch   Train: $(trainloss)   Test: $(testloss)")
     end
@@ -122,8 +138,13 @@ function mytrainloop!(
             gs = Flux.gradient(ps) do
                 emb1 = model(g1) |> vec
                 emb2 = model(g2) |> vec
-                ŷ = norm(emb1 - emb2)
-                training_loss = Flux.mse(ŷ, y)
+		emb1 = reshape(emb1, args.dout, length(y))
+		emb2 = reshape(emb2, args.dout, length(y))
+		ŷ = pairwise_l2_norm(emb1, emb2)
+		#ŷ = norm(emb1 - emb2)
+                #training_loss = Flux.mse(ŷ, y)
+		#training_loss = sum(Flux.mse(ŷ[i], y[i]) for i in 1:length(y))
+		training_loss = mean((ŷ .- y).^2)
             end
             loss += training_loss
             ntot += length(y)
