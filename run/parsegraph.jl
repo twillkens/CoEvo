@@ -133,7 +133,7 @@ function normalize_data(vec::Vector{<:Real})
 end
 
 
-function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
+function load_graphs_and_make_pairs(graphdir::String, csv_file::String, ignore_singleton_pairs::Bool = true)
     # Load all graphs in order into a vector of GNNGraphs
     files = glob("*.graphml", graphdir)
     sorted_files = sort(files, by = file -> parse(Int, splitext(basename(file))[1]))
@@ -153,6 +153,9 @@ function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
         dist = Float32(row[:dist])
         g1 = graphs[left_index]
         g2 = graphs[right_index]
+        if ignore_singleton_pairs &&  g1.num_nodes == 2 && g2.num_nodes == 2
+            continue
+        end
         scaledist = Float32(dist / ((g1.num_nodes + g2.num_nodes) / 2))
         # Julia array indices start at 1, so adjust if your file names start at 0
         dists = Dict("raw" => dist, "scale" => scaledist, "norm" => normdist)

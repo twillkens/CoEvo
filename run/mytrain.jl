@@ -74,7 +74,7 @@ function (model::GNN)(g::GNNGraph, x, e)     # step 4
     #x = model.do1(x)
 
     x = model.dense2(x)
-    x = leakyrelu.(x)
+    # x = leakyrelu.(x)
     #x = model.bn4(x)
     #x = model.do2(x)
     #println("7")
