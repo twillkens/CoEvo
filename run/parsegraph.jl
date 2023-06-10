@@ -131,7 +131,7 @@ function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
     files = glob("*.graphml", graphdir)
     sorted_files = sort(files, by = file -> parse(Int, splitext(basename(file))[1]))
     
-    graphs = [gnn_from_graphml(file) for file in sorted_files]
+    graphs = [gnn_from_graphml(file) for file in ProgressBar(sorted_files)]
     
     # Load CSV data
     csv_data = CSV.read(csv_file, DataFrame)

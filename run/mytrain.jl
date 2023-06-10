@@ -44,19 +44,19 @@ function GNN(args::MyArgs)
 end
 
 function (model::GNN)(g::GNNGraph, x, e)     # step 4
-    println("1")
+    #println("1")
     x = model.conv1(g, x, e)
-    println("2")
+    #println("2")
     x = leakyrelu.(x)
-    println("3")
+    #println("3")
     x = model.conv2(g, x, e)
-    println("4")
+    #println("4")
     x = leakyrelu.(x)
-    println("5")
+    #println("5")
     x = model.pool(g, x)
-    println("6")
+    #println("6")
     x = model.dense(x)
-    println("7")
+    #println("7")
     return x 
 end
 
