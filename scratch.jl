@@ -194,7 +194,7 @@ end
 @everywhere function ctrl_evo_to_size(n::Int)
     m = LingPredMutator()
     sc = SpawnCounter()
-    rng = StableRNG(42)
+    rng = StableRNG(rand(UInt32))
     cfg = FSMIndivConfig(:fsm, Int, false)
     fsm = cfg(rng, sc) 
     while length(union(fsm.geno.ones, fsm.geno.zeros)) != n
@@ -237,8 +237,6 @@ function parallel_ctrl_evo_to_size(sizes::UnitRange{Int} = 1:250, bin_size::Int 
         end
     end
 end
-
-
 
 
 function rename_files(directory)

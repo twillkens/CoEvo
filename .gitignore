@@ -314,3 +314,4 @@ TSWLatexianTemp*
 rand_fsms
 Manifest.toml
 Manifest
+*.graphml
