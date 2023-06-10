@@ -8,11 +8,12 @@ Base.@kwdef mutable struct MyArgs
     usecuda = true      # if true use cuda (if available)
     nin = 5
     ein = 4
-    d1 = 256        # dimension of hidden features
-    d2 = 128        # dimension of hidden features
-    dout = 64        # dimension of hidden features
+    d1 = 128        # dimension of hidden features
+    d2 = 64        # dimension of hidden features
+    dout = 32        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
     numtrain = (0.5, 0.05)
+    heads = 4
 end
 
 struct GNN                                # step 1
@@ -26,33 +27,33 @@ end
 
 Flux.@functor GNN    
 
-function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 256, d2::Int = 128, dout::Int = 128)
+function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 128, d2::Int = 64, dout::Int = 32, heads::Int = 4)
+    #nin = nin * heads
+    #ein = ein * heads
+    #d1 = d1 * heads
+    #d2 = d2 * heads
     GNN(
-        GATv2Conv((nin, ein) => d1, add_self_loops = false),
+        GATv2Conv((nin, ein) => d1 * heads, add_self_loops = false, heads = heads),
         #GATv2Conv(nin => d1, add_self_loops = false),
         BatchNorm(d1),
         # GATv2Conv(d1 => d2, add_self_loops = false),
-        GATv2Conv((d1, ein) => d2, add_self_loops = false),
+        GATv2Conv((d1 * heads * 2, ein) => d2, add_self_loops = false, heads = heads),
         Dropout(0.5),
-        Dense(d2, dout),
+        Dense(d2 * heads, dout),
         GlobalPool(mean),
     )
 end
 
 function GNN(args::MyArgs)
-    GNN(args.nin, args.ein, args.d1, args.d2, args.dout)
+    GNN(args.nin, args.ein, args.d1, args.d2, args.dout, args.heads)
 end
 
 function (model::GNN)(g::GNNGraph, x, e)     # step 4
     x = model.conv1(g, x, e)
-    # x = model.conv1(g, x)
-    #x = leakyrelu.(model.bn(x))
     x = leakyrelu.(x)
     x = model.conv2(g, x, e)
     x = leakyrelu.(x)
-    # x = model.conv2(g, x)
     x = model.pool(g, x)
-    x = model.dropout(x)
     x = model.dense(x)
     return x 
 end
@@ -89,7 +90,7 @@ function mytrainloop!(
     end
     report(0)
     for epoch in 1:(args.epochs)
-        for ((g1, g2), y) in train_loader
+        for ((g1, g2), y) in ProgressBar(train_loader)
             g1, g2, y = (g1, g2, y) |> device
             gs = Flux.gradient(ps) do
                 emb1 = model(g1) |> vec

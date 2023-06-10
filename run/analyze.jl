@@ -14,6 +14,7 @@ using Zygote
 import CUDA
 using JLD2
 using Serialization
+using ProgressBars
 
 # include("spec.jl")
 # include("fsmgraph.jl")
