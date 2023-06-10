@@ -12,23 +12,23 @@ Base.@kwdef mutable struct MyArgs
     d2 = 32        # dimension of hidden features
     dout = 16        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
-    numtrain = (0.5, 0.05)
+    numtrain = (0.5, 0.1)
     heads = 4
-    use_normdist = false
+    dist = "norm"
 end
 
 struct GNN                                # step 1
     conv1
-    bn1
+    #bn1
     conv2
-    bn2
+    #bn2
     pool
     dense1
-    bn3
-    do1
+    #bn3
+    #do1
     dense2
-    bn4
-    do2
+    #bn4
+    #do2
 end
 
 Flux.@functor GNN    
@@ -36,16 +36,16 @@ Flux.@functor GNN
 function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 128, d2::Int = 64, dout::Int = 32, heads::Int = 4)
     GNN(
         GATv2Conv((nin, ein) => d1, add_self_loops = false, heads = heads),
-        BatchNorm(d1 * heads),
+        #BatchNorm(d1 * heads),
         GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
-        BatchNorm(d2 * heads),
+        #BatchNorm(d2 * heads),
         GlobalPool(mean),
         Dense(d2 * heads, dout),
-        BatchNorm(dout),
-        Dropout(0.5),
+        #BatchNorm(dout),
+        #Dropout(0.5),
         Dense(dout, dout),
-        BatchNorm(dout),
-        Dropout(0.5),
+        #BatchNorm(dout),
+        #Dropout(0.5),
     )
 end
 
@@ -57,23 +57,26 @@ function (model::GNN)(g::GNNGraph, x, e)     # step 4
     #println("1")
     x = model.conv1(g, x, e)
     #println("2")
-    x = model.bn1(x)
+    #x = model.bn1(x)
     x = leakyrelu.(x)
     #println("3")
     x = model.conv2(g, x, e)
-    x = model.bn2(x)
-    #println("4")
     x = leakyrelu.(x)
+    #x = model.bn2(x)
+    #println("4")
+    #x = leakyrelu.(x)
     #println("5")
     x = model.pool(g, x)
     #println("6")
     x = model.dense1(x)
-    x = model.bn3(x)
-    x = model.do1(x)
+    x = leakyrelu.(x)
+    #x = model.bn3(x)
+    #x = model.do1(x)
 
     x = model.dense2(x)
-    x = model.bn4(x)
-    x = model.do2(x)
+    x = leakyrelu.(x)
+    #x = model.bn4(x)
+    #x = model.do2(x)
     #println("7")
     return x 
 end
@@ -109,7 +112,7 @@ function mytrainloop!(
         end
         println("Epoch: $epoch   Train: $(trainloss)   Test: $(testloss)")
     end
-    report(0)
+    #report(0)
     local training_loss
     for epoch in 1:(args.epochs)
         loss = 0.0
@@ -149,11 +152,7 @@ function mytrain(dataset::Vector{GEDTrainPair}, model::Union{GNNChain, GNN, Noth
 
     # LOAD DATA
     graphs = [(pair.g1, pair.g2) for pair in dataset]
-    if args.use_normdist
-        dists = [pair.normdist for pair in dataset]
-    else
-        dists = [pair.dist for pair in dataset]
-    end
+    dists = [pair.dists[args.dist] for pair in dataset]
     dataset = collect(zip(graphs, dists))
     train_data, test_data = splitobs(dataset, at = args.numtrain, shuffle = true)
 

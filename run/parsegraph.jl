@@ -122,9 +122,16 @@ using CSV, DataFrames
 struct GEDTrainPair
     g1::GNNGraph
     g2::GNNGraph
-    dist::Float64
-    normdist::Float32
+    dists::Dict{String, Float32}
 end
+
+function normalize_data(vec::Vector{<:Real})
+    vec = [Float32(x) for x in vec]
+    mean_val = mean(vec)
+    std_val = std(vec)
+    return (vec .- mean_val) ./ std_val
+end
+
 
 function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
     # Load all graphs in order into a vector of GNNGraphs
@@ -138,17 +145,18 @@ function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
     
     # Create GEDTrainPairs
     pairs = GEDTrainPair[]  # Initialize an empty array for GEDTrainPairs
+    normdists = normalize_data([row[:dist] for row in eachrow(csv_data)])
     
-    for row in ProgressBar(eachrow(csv_data))
+    for (row, normdist) in ProgressBar(zip(eachrow(csv_data), normdists))
         left_index = row[:left]
         right_index = row[:right]
-        dist = row[:dist]
-        
+        dist = Float32(row[:dist])
         g1 = graphs[left_index]
         g2 = graphs[right_index]
-        normdist = Float32(dist / ((g1.num_nodes + g2.num_nodes) / 2))
+        scaledist = Float32(dist / ((g1.num_nodes + g2.num_nodes) / 2))
         # Julia array indices start at 1, so adjust if your file names start at 0
-        pair = GEDTrainPair(graphs[left_index], graphs[right_index], dist, normdist)
+        dists = Dict("raw" => dist, "scale" => scaledist, "norm" => normdist)
+        pair = GEDTrainPair(graphs[left_index], graphs[right_index], dists)
         push!(pairs, pair)
     end
     
