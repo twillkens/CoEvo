@@ -190,7 +190,6 @@ end
 end
 
 
-
 @everywhere function ctrl_evo_to_size(n::Int)
     m = LingPredMutator()
     sc = SpawnCounter()

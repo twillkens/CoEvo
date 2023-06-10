@@ -1,17 +1,8 @@
 using LightXML, GraphNeuralNetworks, Flux
-include("scratch.jl")
 
 using Flux: onehotbatch
 using LightXML
 
-# function map_to_integers(data, categories)
-#     return map(d -> findfirst(==(d), categories), data)
-# end
-# 
-# function onehot_encoder(data, categories)
-#     integer_data = map_to_integers(data, categories)
-#     return hcat(map(d -> onehot(d, 1:length(categories)), integer_data)...)
-# end
 
 function onehot_encoder(data, categories)
     return onehotbatch(data, categories)
@@ -63,26 +54,6 @@ struct TempGraph
     ndata::Matrix{Float64}
     edata::Matrix{Float64}
 end
-
-# function TempGraph(
-#   node_dicts::Vector{Dict{String, String}}, 
-#   edge_dicts::Vector{Dict{String, String}}
-# )::TempGraph
-# 
-#     # Collect unique node ids
-#     node_ids = unique([node["id"] for node in node_dicts])
-# 
-#     # Create a mapping from original ids to integer ids
-#     id_mapping = Dict(node_ids[i] => i for i in eachindex(node_ids))
-# 
-#     # Apply mapping to sources and targets in edge_dicts
-#     TempGraph(
-#         [id_mapping[edge["source"]] for edge in edge_dicts],
-#         [id_mapping[edge["target"]] for edge in edge_dicts],
-#         onehot_encoder([node["label"] for node in node_dicts], ["0", "1", "1_start", "0_start", "P"]),
-#         onehot_encoder([edge["label"] for edge in edge_dicts], ["0", "1", "01", "P"])
-#     )
-# end
 
 function TempGraph(
   node_dicts::Vector{Dict{String, String}}, 
@@ -143,4 +114,39 @@ function get_gnns_from_directory(; dir::String = "data/fsms/", r::UnitRange{Int}
     
     # Create GNNGraph for each file and return as a vector
     return [gnn_from_graphml(file) for file in files_in_range]
+end
+
+
+using CSV, DataFrames
+
+struct GEDTrainPair
+    g1::GNNGraph
+    g2::GNNGraph
+    dist::Float64
+end
+
+function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
+    # Load all graphs in order into a vector of GNNGraphs
+    files = glob("*.graphml", graphdir)
+    sorted_files = sort(files, by = file -> parse(Int, splitext(basename(file))[1]))
+    
+    graphs = [gnn_from_graphml(file) for file in sorted_files]
+    
+    # Load CSV data
+    csv_data = CSV.read(csv_file, DataFrame)
+    
+    # Create GEDTrainPairs
+    pairs = GEDTrainPair[]  # Initialize an empty array for GEDTrainPairs
+    
+    for row in eachrow(csv_data)
+        left_index = row[:left]
+        right_index = row[:right]
+        dist = row[:dist]
+        
+        # Julia array indices start at 1, so adjust if your file names start at 0
+        pair = GEDTrainPair(graphs[left_index], graphs[right_index], dist)
+        push!(pairs, pair)
+    end
+    
+    return pairs
 end
