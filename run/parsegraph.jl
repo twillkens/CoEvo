@@ -139,7 +139,7 @@ function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
     # Create GEDTrainPairs
     pairs = GEDTrainPair[]  # Initialize an empty array for GEDTrainPairs
     
-    for row in eachrow(csv_data)
+    for row in ProgressBar(eachrow(csv_data))
         left_index = row[:left]
         right_index = row[:right]
         dist = row[:dist]

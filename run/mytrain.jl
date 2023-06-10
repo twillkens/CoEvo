@@ -3,17 +3,18 @@
 Base.@kwdef mutable struct MyArgs
     η = 0.001             # learning rate
     batchsize = 256      # batch size (number of graphs in each batch)
-    epochs = 100         # number of epochs
+    epochs = 10         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
     usecuda = true      # if true use cuda (if available)
     nin = 5
     ein = 4
-    d1 = 128        # dimension of hidden features
-    d2 = 64        # dimension of hidden features
-    dout = 32        # dimension of hidden features
+    d1 = 64        # dimension of hidden features
+    d2 = 32        # dimension of hidden features
+    dout = 16        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
     numtrain = (0.5, 0.05)
     heads = 4
+    use_normdist = false
 end
 
 struct GNN                                # step 1
@@ -28,16 +29,10 @@ end
 Flux.@functor GNN    
 
 function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 128, d2::Int = 64, dout::Int = 32, heads::Int = 4)
-    #nin = nin * heads
-    #ein = ein * heads
-    #d1 = d1 * heads
-    #d2 = d2 * heads
     GNN(
-        GATv2Conv((nin, ein) => d1 * heads, add_self_loops = false, heads = heads),
-        #GATv2Conv(nin => d1, add_self_loops = false),
+        GATv2Conv((nin, ein) => d1, add_self_loops = false, heads = heads),
         BatchNorm(d1),
-        # GATv2Conv(d1 => d2, add_self_loops = false),
-        GATv2Conv((d1 * heads * 2, ein) => d2, add_self_loops = false, heads = heads),
+        GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
         Dropout(0.5),
         Dense(d2 * heads, dout),
         GlobalPool(mean),
@@ -49,12 +44,19 @@ function GNN(args::MyArgs)
 end
 
 function (model::GNN)(g::GNNGraph, x, e)     # step 4
+    println("1")
     x = model.conv1(g, x, e)
+    println("2")
     x = leakyrelu.(x)
+    println("3")
     x = model.conv2(g, x, e)
+    println("4")
     x = leakyrelu.(x)
+    println("5")
     x = model.pool(g, x)
+    println("6")
     x = model.dense(x)
+    println("7")
     return x 
 end
 
@@ -125,7 +127,11 @@ function mytrain(dataset::Vector{GEDTrainPair}, model::Union{GNNChain, GNN, Noth
 
     # LOAD DATA
     graphs = [(pair.g1, pair.g2) for pair in dataset]
-    dists = [pair.normdist for pair in dataset]
+    if args.use_normdist
+        dists = [pair.normdist for pair in dataset]
+    else
+        dists = [pair.dist for pair in dataset]
+    end
     dataset = collect(zip(graphs, dists))
     train_data, test_data = splitobs(dataset, at = args.numtrain, shuffle = true)
 
