@@ -2,15 +2,17 @@
 # arguments for the `train` function 
 Base.@kwdef mutable struct MyArgs
     η = 0.001             # learning rate
-    batchsize = 32      # batch size (number of graphs in each batch)
-    epochs = 50         # number of epochs
+    batchsize = 256      # batch size (number of graphs in each batch)
+    epochs = 100         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
     usecuda = true      # if true use cuda (if available)
-    nhidden1 = 256        # dimension of hidden features
-    nhidden2 = 128        # dimension of hidden features
-    nout = 32        # dimension of hidden features
+    nin = 5
+    ein = 4
+    d1 = 256        # dimension of hidden features
+    d2 = 128        # dimension of hidden features
+    dout = 64        # dimension of hidden features
     infotime = 10      # report every `infotime` epochs
-    numtrain = 100
+    numtrain = (0.5, 0.05)
 end
 
 struct GNN                                # step 1
@@ -24,7 +26,7 @@ end
 
 Flux.@functor GNN    
 
-function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 256, d2::Int = 128, dout::Int = 64)
+function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 256, d2::Int = 128, dout::Int = 128)
     GNN(
         GATv2Conv((nin, ein) => d1, add_self_loops = false),
         #GATv2Conv(nin => d1, add_self_loops = false),
@@ -37,11 +39,17 @@ function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 256, d2::Int = 128, dout::Int
     )
 end
 
+function GNN(args::MyArgs)
+    GNN(args.nin, args.ein, args.d1, args.d2, args.dout)
+end
+
 function (model::GNN)(g::GNNGraph, x, e)     # step 4
     x = model.conv1(g, x, e)
     # x = model.conv1(g, x)
-    x = leakyrelu.(model.bn(x))
+    #x = leakyrelu.(model.bn(x))
+    x = leakyrelu.(x)
     x = model.conv2(g, x, e)
+    x = leakyrelu.(x)
     # x = model.conv2(g, x)
     x = model.pool(g, x)
     x = model.dropout(x)
@@ -59,12 +67,12 @@ function my_eval_loss_accuracy(model, data_loader, device)
     for ((g1, g2), y) in data_loader
         g1, g2, y = (g1, g2, y) |> device
         n = length(y)
-        #emb1 = model(g1) |> vec
-        #emb2 = model(g2) |> vec
-        emb1 = reshape(model(g1), :)  # replace vec with reshape
-        emb2 = reshape(model(g2), :)  # replace vec with reshape
+        emb1 = model(g1) |> vec
+        emb2 = model(g2) |> vec
+        #emb1 = reshape(model(g1), :)  # replace vec with reshape
+        #emb2 = reshape(model(g2), :)  # replace vec with reshape
         ŷ = norm(emb1 - emb2)
-        loss += Flux.mse(ŷ, y) * n
+        loss += Flux.mse(ŷ, y)
         ntot += n
     end
     return (loss = round(loss / ntot, digits = 4))
@@ -84,10 +92,10 @@ function mytrainloop!(
         for ((g1, g2), y) in train_loader
             g1, g2, y = (g1, g2, y) |> device
             gs = Flux.gradient(ps) do
-                #emb1 = model(g1) |> vec
-                #emb2 = model(g2) |> vec
-                emb1 = reshape(model(g1), :)  # replace vec with reshape
-                emb2 = reshape(model(g2), :)  # replace vec with reshape
+                emb1 = model(g1) |> vec
+                emb2 = model(g2) |> vec
+                #emb1 = reshape(model(g1), :)  # replace vec with reshape
+                #emb2 = reshape(model(g2), :)  # replace vec with reshape
                 ŷ = norm(emb1 - emb2)
                 Flux.mse(ŷ, y)
             end
@@ -98,7 +106,7 @@ function mytrainloop!(
     model
 end
 
-function mytrain(dataset, model::Union{GNNChain, GNN} = GNN(); kws...)
+function mytrain(dataset::Vector{GEDTrainPair}, model::Union{GNNChain, GNN, Nothing} = nothing; kws...)
     args = MyArgs(; kws...)
     args.seed > 0 && Random.seed!(args.seed)
 
@@ -110,11 +118,13 @@ function mytrain(dataset, model::Union{GNNChain, GNN} = GNN(); kws...)
         device = cpu
         @info "Training on CPU"
     end
-    model = model |> device
+    if model === nothing
+        model = GNN(args) |> device
+    end
 
     # LOAD DATA
     graphs = [(pair.g1, pair.g2) for pair in dataset]
-    dists = [pair.dist for pair in dataset]
+    dists = [pair.normdist for pair in dataset]
     dataset = collect(zip(graphs, dists))
     train_data, test_data = splitobs(dataset, at = args.numtrain, shuffle = true)
 

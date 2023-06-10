@@ -123,6 +123,7 @@ struct GEDTrainPair
     g1::GNNGraph
     g2::GNNGraph
     dist::Float64
+    normdist::Float32
 end
 
 function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
@@ -143,8 +144,11 @@ function load_graphs_and_make_pairs(graphdir::String, csv_file::String)
         right_index = row[:right]
         dist = row[:dist]
         
+        g1 = graphs[left_index]
+        g2 = graphs[right_index]
+        normdist = Float32(dist / ((g1.num_nodes + g2.num_nodes) / 2))
         # Julia array indices start at 1, so adjust if your file names start at 0
-        pair = GEDTrainPair(graphs[left_index], graphs[right_index], dist)
+        pair = GEDTrainPair(graphs[left_index], graphs[right_index], dist, normdist)
         push!(pairs, pair)
     end
     
