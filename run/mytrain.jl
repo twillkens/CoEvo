@@ -19,11 +19,16 @@ end
 
 struct GNN                                # step 1
     conv1
-    bn
+    bn1
     conv2
-    dropout
-    dense
+    bn2
     pool
+    dense1
+    bn3
+    do1
+    dense2
+    bn4
+    do2
 end
 
 Flux.@functor GNN    
@@ -31,11 +36,16 @@ Flux.@functor GNN
 function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 128, d2::Int = 64, dout::Int = 32, heads::Int = 4)
     GNN(
         GATv2Conv((nin, ein) => d1, add_self_loops = false, heads = heads),
-        BatchNorm(d1),
+        BatchNorm(d1 * heads),
         GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
-        Dropout(0.5),
-        Dense(d2 * heads, dout),
+        BatchNorm(d2 * heads),
         GlobalPool(mean),
+        Dense(d2 * heads, dout),
+        BatchNorm(dout),
+        Dropout(0.5),
+        Dense(dout, dout),
+        BatchNorm(dout),
+        Dropout(0.5),
     )
 end
 
@@ -47,15 +57,23 @@ function (model::GNN)(g::GNNGraph, x, e)     # step 4
     #println("1")
     x = model.conv1(g, x, e)
     #println("2")
+    x = model.bn1(x)
     x = leakyrelu.(x)
     #println("3")
     x = model.conv2(g, x, e)
+    x = model.bn2(x)
     #println("4")
     x = leakyrelu.(x)
     #println("5")
     x = model.pool(g, x)
     #println("6")
-    x = model.dense(x)
+    x = model.dense1(x)
+    x = model.bn3(x)
+    x = model.do1(x)
+
+    x = model.dense2(x)
+    x = model.bn4(x)
+    x = model.do2(x)
     #println("7")
     return x 
 end
@@ -67,16 +85,13 @@ end
 function my_eval_loss_accuracy(model, data_loader, device)
     loss = 0.0
     ntot = 0
-    for ((g1, g2), y) in data_loader
+    for ((g1, g2), y) in ProgressBar(data_loader)
         g1, g2, y = (g1, g2, y) |> device
-        n = length(y)
         emb1 = model(g1) |> vec
         emb2 = model(g2) |> vec
-        #emb1 = reshape(model(g1), :)  # replace vec with reshape
-        #emb2 = reshape(model(g2), :)  # replace vec with reshape
         ŷ = norm(emb1 - emb2)
         loss += Flux.mse(ŷ, y)
-        ntot += n
+        ntot += length(y)
     end
     return (loss = round(loss / ntot, digits = 4))
 end
@@ -85,26 +100,33 @@ function mytrainloop!(
     args::MyArgs, train_loader::DataLoader, test_loader::DataLoader, model::Union{GNNChain, GNN},
     opt::ADAM, device::Function, ps::Zygote.Params
 )
-    function report(epoch)
-        train = my_eval_loss_accuracy(model, train_loader, device)
-        test = my_eval_loss_accuracy(model, test_loader, device)
-        println("Epoch: $epoch   Train: $(train)   Test: $(test)")
+    function report(epoch, trainloss = nothing, testloss = nothing)
+        if trainloss === nothing
+            trainloss = my_eval_loss_accuracy(model, train_loader, device)
+        end
+        if testloss === nothing
+            testloss = my_eval_loss_accuracy(model, test_loader, device)
+        end
+        println("Epoch: $epoch   Train: $(trainloss)   Test: $(testloss)")
     end
     report(0)
+    local training_loss
     for epoch in 1:(args.epochs)
+        loss = 0.0
+        ntot = 0
         for ((g1, g2), y) in ProgressBar(train_loader)
             g1, g2, y = (g1, g2, y) |> device
             gs = Flux.gradient(ps) do
                 emb1 = model(g1) |> vec
                 emb2 = model(g2) |> vec
-                #emb1 = reshape(model(g1), :)  # replace vec with reshape
-                #emb2 = reshape(model(g2), :)  # replace vec with reshape
                 ŷ = norm(emb1 - emb2)
-                Flux.mse(ŷ, y)
+                training_loss = Flux.mse(ŷ, y)
             end
+            loss += training_loss
+            ntot += length(y)
             Flux.Optimise.update!(opt, ps, gs)
         end
-        epoch % args.infotime == 0 && report(epoch)
+        epoch % args.infotime == 0 && report(epoch, round(loss / ntot, digits = 4))
     end
     model
 end
