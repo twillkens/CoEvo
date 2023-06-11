@@ -316,3 +316,5 @@ Manifest.toml
 Manifest
 *.graphml
 dummy.csv
+
+doc/scratch

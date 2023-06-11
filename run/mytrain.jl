@@ -8,7 +8,7 @@ Base.@kwdef mutable struct MyArgs
     usecuda = true      # if true use cuda (if available)
     nin = 5
     ein = 4
-    d1 = 128        # dimension of hidden features
+    d1 = 256        # dimension of hidden features
     d2 = 128        # dimension of hidden features
     dout = 64        # dimension of hidden features
     infotime = 1      # report every `infotime` epochs
@@ -26,7 +26,7 @@ struct GNN                                # step 1
     bn3
     pool
     dense1
-    bn3
+    bn4
     dense2
 end
 
@@ -41,7 +41,7 @@ function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 128, d2::Int = 64, dout::Int 
         GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
         BatchNorm(d2 * heads),
         GlobalPool(mean),
-        Dense(d2 * heads, dout),
+        Dense(d2 * heads * 3, dout),
         BatchNorm(dout),
         Dense(dout, dout),
     )
@@ -53,17 +53,20 @@ end
 
 function (model::GNN)(g::GNNGraph, x, e)     # step 4
     x = model.conv1(g, x, e)
-    x = model.bn1(x)
+    #x = model.bn1(x)
     x = leakyrelu.(x)
+    k1 = x
     x = model.conv2(g, x, e)
-    x = model.bn2(x)
+    #x = model.bn2(x)
     x = leakyrelu.(x)
+    k2 = x
     x = model.conv3(g, x, e)
-    x = model.bn3(x)
+    #x = model.bn3(x)
     x = leakyrelu.(x)
-    x = model.pool(g, x)
+    k3 = x
+    x = model.pool(g, [k1 ; k2 ; k3])
     x = model.dense1(x)
-    x = model.bn3(x)
+    #x = model.bn4(x)
     x = leakyrelu.(x)
     x = model.dense2(x)
     # x = model.bn4(x)
@@ -176,3 +179,41 @@ function mytrain(dataset::Vector{GEDTrainPair}, model::Union{GNNChain, GNN, Noth
 end
 
 
+
+#function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 128, d2::Int = 64, dout::Int = 32, heads::Int = 4)
+#    GNN(
+#        GATv2Conv((nin, ein) => d1, add_self_loops = false, heads = heads),
+#        BatchNorm(d1 * heads),
+#        GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
+#        BatchNorm(d2 * heads),
+#        GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
+#        BatchNorm(d2 * heads),
+#        GlobalPool(sum),
+#        Dense(d2 * heads, dout),
+#        BatchNorm(dout),
+#        Dense(dout, dout),
+#    )
+#end
+#
+#function GNN(args::MyArgs)
+#    GNN(args.nin, args.ein, args.d1, args.d2, args.dout, args.heads)
+#end
+#
+#function (model::GNN)(g::GNNGraph, x, e)     # step 4
+#    x = model.conv1(g, x, e)
+#    x = model.bn1(x)
+#    x = leakyrelu.(x)
+#    x = model.conv2(g, x, e)
+#    x = model.bn2(x)
+#    x = leakyrelu.(x)
+#    x = model.conv3(g, x, e)
+#    x = model.bn3(x)
+#    x = leakyrelu.(x)
+#    x = model.pool(g, x)
+#    x = model.dense1(x)
+#    x = model.bn4(x)
+#    x = leakyrelu.(x)
+#    x = model.dense2(x)
+#    # x = model.bn4(x)
+#    return x 
+#end
