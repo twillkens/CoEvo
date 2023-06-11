@@ -16,42 +16,52 @@ using Distributed
     links::Dict{Tuple{String, String}, String}
 end
 
+
 @everywhere function make_prime_graph(geno::FSMGeno)::FSMPrimeGeno
     # Initialize the empty prime graph
-    primes = Set{String}([string(node)*"p" for node in union(geno.ones, geno.zeros)])
+    nodes = union(geno.ones, geno.zeros)
+    primes = Set{String}([string(node)*"P" for node in nodes])
     ones = Set{String}([string(node) for node in geno.ones])
     zeros = Set{String}([string(node) for node in geno.zeros])
     links = Dict{Tuple{String, String}, String}()
     start = string(geno.start)
 
     # Add the "primelink" edge between the prime and non-prime nodes
-    for node in union(geno.ones, geno.zeros)
-        prime_node = string(node)*"p"
-        nonprime_node = string(node)
-        links[(prime_node, "P")] = nonprime_node
+    for node in nodes
+        links[(string(node), "P")] = string(node)*"P"
     end
+
+    # Initialize a dict to store links for later processing
+    link_temp_dict = Dict{String, Dict{String, String}}()
 
     # Iterate over the original edges
     for ((source, val), target) in geno.links
-        # Map the source to the target's prime
-        source_str = string(source)
-        prime_target = source == target ? string(target) : string(target)*"p" # check for self loop
+        source_str, target_str = string(source), string(target)*"P"
+        val_str = val ? "1" : "0"
+        
+        # Check for self-links
+        if source == target
+            delete!(links, (source_str, "P"))
+            val_str *= "P"
+        end
+        
+        # Add links to link_temp_dict for later processing
+        link_temp_dict[source_str] = get(link_temp_dict, source_str, Dict{String, String}())
+        link_temp_dict[source_str][val_str] = target_str
+    end
 
-        # Check if the source already points to the target node
-        if haskey(links, (source_str, "1")) && links[(source_str, "1")] == prime_target
-            # Remove the "1" label and add the "01" label
-            delete!(links, (source_str, "1"))
-            links[(source_str, "01")] = prime_target
-        elseif haskey(links, (source_str, "0")) && links[(source_str, "0")] == prime_target
-            # Remove the "0" label and add the "01" label
-            delete!(links, (source_str, "0"))
-            links[(source_str, "01")] = prime_target
-        else
-            # Add the corresponding edge to the prime graph
-            if val
-                links[(source_str, "1")] = prime_target
+    # Process links: if both 0 and 1 (or 0P and 1P) links exist for a source, create 01 (or 01P) link; otherwise keep the original label
+    for (source, link_vals_dict) in link_temp_dict
+        for (val_str, target) in link_vals_dict
+            if source == target
+                continue
+            end
+            if haskey(link_vals_dict, "0") && haskey(link_vals_dict, "1")
+                links[(source, "01")] = target
+            elseif haskey(link_vals_dict, "0P") && haskey(link_vals_dict, "1P")
+                links[(source, "01P")] = target
             else
-                links[(source_str, "0")] = prime_target
+                links[(source, val_str)] = target
             end
         end
     end
@@ -131,6 +141,8 @@ end
     return xdoc
 end
 
+    
+
 @everywhere function generate_random_fsmgeno(n::Int)
     # Generate random node labels
     nodes = ["$i" for i in 1:n]
@@ -158,6 +170,13 @@ end
         end
     end
     FSMGeno(start, ones, zeros, links)
+end
+
+
+function make_random_fsm_xmldoc(n::Int)
+    geno = generate_random_fsmgeno(n)
+    xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(geno))
+    return xdoc
 end
 
 @everywhere function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 250)
@@ -237,6 +256,36 @@ function parallel_ctrl_evo_to_size(sizes::UnitRange{Int} = 1:250, bin_size::Int 
     end
 end
 
+@everywhere function ctrl_evo_to_end(n_gen::Int, rng::AbstractRNG = StableRNG(rand(UInt32)))
+    m = LingPredMutator()
+    sc = SpawnCounter()
+    cfg = FSMIndivConfig(:fsm, Int, false)
+    fsms = FSMGeno{Int}[]
+    fsm = cfg(rng, sc)
+    for _ in 1:n_gen
+        fsm = m(rng, sc, fsm)
+        push!(fsms, fsm.geno)
+    end
+    fsms
+end
+
+@everywhere function save_fsms(fsms::Vector{<:FSMGeno}, savedir::String = "data/fsms")
+    for (id, fsm) in enumerate(fsms)
+        hop = minimize(fsm)
+        xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(hop))
+        savepath = joinpath(savedir, "$(id).graphml")
+        save_file(xdoc, savepath)
+    end
+end
+
+function run_ctrl_evo_to_end(n_gen::Int = 100, savedir::String = "data/fsms", rng::AbstractRNG = StableRNG(rand(UInt32)))
+    if isdir(savedir)
+        rm(savedir, recursive=true)
+    end
+    mkdir(savedir)
+    fsms = ctrl_evo_to_end(n_gen, rng)
+    save_fsms(fsms)
+end
 
 function rename_files(directory)
     # Get the list of files in the directory

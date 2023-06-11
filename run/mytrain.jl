@@ -22,13 +22,12 @@ struct GNN                                # step 1
     bn1
     conv2
     bn2
+    conv3
+    bn3
     pool
     dense1
     bn3
-    do1
     dense2
-    bn4
-    do2
 end
 
 Flux.@functor GNN    
@@ -39,13 +38,12 @@ function GNN(nin::Int = 5, ein::Int = 4, d1::Int = 128, d2::Int = 64, dout::Int 
         BatchNorm(d1 * heads),
         GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
         BatchNorm(d2 * heads),
+        GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
+        BatchNorm(d2 * heads),
         GlobalPool(mean),
         Dense(d2 * heads, dout),
         BatchNorm(dout),
-        Dropout(0.5),
         Dense(dout, dout),
-        BatchNorm(dout),
-        Dropout(0.5),
     )
 end
 
@@ -59,6 +57,9 @@ function (model::GNN)(g::GNNGraph, x, e)     # step 4
     x = leakyrelu.(x)
     x = model.conv2(g, x, e)
     x = model.bn2(x)
+    x = leakyrelu.(x)
+    x = model.conv3(g, x, e)
+    x = model.bn3(x)
     x = leakyrelu.(x)
     x = model.pool(g, x)
     x = model.dense1(x)
