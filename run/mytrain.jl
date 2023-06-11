@@ -11,7 +11,7 @@ Base.@kwdef mutable struct MyArgs
     d1 = 128        # dimension of hidden features
     d2 = 128        # dimension of hidden features
     dout = 64        # dimension of hidden features
-    infotime = 10      # report every `infotime` epochs
+    infotime = 1      # report every `infotime` epochs
     numtrain = (0.5, 0.1)
     heads = 4
     dist = "norm"
@@ -58,14 +58,14 @@ function (model::GNN)(g::GNNGraph, x, e)     # step 4
     x = model.bn1(x)
     x = leakyrelu.(x)
     x = model.conv2(g, x, e)
-    x = leakyrelu.(x)
     x = model.bn2(x)
+    x = leakyrelu.(x)
     x = model.pool(g, x)
     x = model.dense1(x)
     x = model.bn3(x)
     x = leakyrelu.(x)
     x = model.dense2(x)
-    x = model.bn4(x)
+    # x = model.bn4(x)
     return x 
 end
 
@@ -116,7 +116,7 @@ function mytrainloop!(
         end
         println("Epoch: $epoch   Train: $(trainloss)   Test: $(testloss)")
     end
-    #report(0)
+    report(0)
     local training_loss
     for epoch in 1:(args.epochs)
         loss = 0.0
