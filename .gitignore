@@ -318,3 +318,4 @@ Manifest
 dummy.csv
 
 doc/scratch
+__pycache__

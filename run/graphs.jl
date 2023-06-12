@@ -179,32 +179,39 @@ function make_random_fsm_xmldoc(n::Int)
     return xdoc
 end
 
-@everywhere function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 250)
-    x = 1
+# @everywhere function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400)
+#     x = 1
+#     if isdir("rand_fsms")
+#         rm("rand_fsms", recursive=true)
+#     end
+#     mkdir("rand_fsms")
+#     for n in tqdm(1:top_n)
+#         for _ in 1:per_n
+#             big = generate_random_fsmgeno(n)
+#             hop = minimize(big)
+#             xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(hop))
+#             save_file(xdoc, "rand_fsms/$(x).graphml")
+#             x += 1
+#         end
+#     end
+# end
+
+function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400)
     if isdir("rand_fsms")
         rm("rand_fsms", recursive=true)
     end
     mkdir("rand_fsms")
-    mkdir("rand_fsms/hop")
-    genoset = Set{FSMGeno}()
-    for n in tqdm(1:top_n)
+
+    @distributed (+) for n in 1:top_n
+        x = (n-1)*per_n + 1
         for _ in 1:per_n
             big = generate_random_fsmgeno(n)
             hop = minimize(big)
-            if n < 20
-                if hop in genoset
-                    continue
-                else
-                    push!(genoset, hop)
-                end
-            end
-            # xdoc = fsmprimegeno_to_xmldoc(big)
-            # save_file(xdoc, "rand_fsms/big/$(x).graphml")
             xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(hop))
-            save_file(xdoc, "rand_fsms/hop/$(x).graphml")
+            save_file(xdoc, "rand_fsms/$(x).graphml")
             x += 1
         end
-        GC.gc()
+        return 0
     end
 end
 
