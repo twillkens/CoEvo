@@ -216,7 +216,13 @@ end
 
 
 @everywhere function ctrl_evo_to_size(n::Int)
-    m = LingPredMutator()
+    probs::Dict{Function, Float64} = Dict(
+        addstate => 0.25,
+        rmstate => 0.25,
+        changelink => 0.25,
+        changelabel => 0.25
+    )
+    m = LingPredMutator(probs = probs)
     sc = SpawnCounter()
     rng = StableRNG(rand(UInt32))
     cfg = FSMIndivConfig(:fsm, Int, false)

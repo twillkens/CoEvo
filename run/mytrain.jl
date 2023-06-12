@@ -1,4 +1,5 @@
 
+
 # arguments for the `train` function 
 Base.@kwdef mutable struct MyArgs
     η = 0.001             # learning rate
@@ -128,10 +129,6 @@ function mytrainloop!(
     end
     #report(0)
     local training_loss
-    local embed1
-    local embed2
-    local y_hat
-    local y_bald
     for epoch in 1:(args.epochs)
         loss = 0.0
         ntot = 0
@@ -144,18 +141,9 @@ function mytrainloop!(
                 emb2 = reshape(emb2, args.dout, length(y))
                 y = reshape(y, 1, :)
                 ŷ = pairwise_l2_norm(emb1, emb2)
-                #embed1 = emb1
-                #embed2 = emb2
-                #y_hat = ŷ
-                #y_bald = y
                 training_loss = Flux.mse(ŷ, y) 
             end
             loss += training_loss 
-            #println("loss: ", training_loss)
-            #println("y_bald: ", y_bald)
-            #println("y_hat: ", y_hat)
-            #println("embed1: ", embed1)
-            #println("embed2: ", embed2)
             ntot += length(y)
             Flux.Optimise.update!(opt, ps, gs)
         end
