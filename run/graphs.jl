@@ -196,7 +196,7 @@ end
 #     end
 # end
 
-function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400)
+function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400, dohop::Bool = true)
     if isdir("rand_fsms")
         rm("rand_fsms", recursive=true)
     end
@@ -206,7 +206,11 @@ function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400)
         x = (n-1)*per_n + 1
         for _ in 1:per_n
             big = generate_random_fsmgeno(n)
-            hop = minimize(big)
+            if dohop
+                hop = minimize(big)
+            else
+                hop = big
+            end
             xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(hop))
             save_file(xdoc, "rand_fsms/$(x).graphml")
             x += 1
