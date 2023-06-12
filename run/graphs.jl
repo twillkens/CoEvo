@@ -211,8 +211,8 @@ function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400)
             save_file(xdoc, "rand_fsms/$(x).graphml")
             x += 1
         end
-        return 0
     end
+    return 0
 end
 
 
