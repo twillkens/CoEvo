@@ -86,7 +86,7 @@ function my_eval_loss_accuracy(model, data_loader, device, args)
     ntot = 0
     ys = []
     ŷs = []
-    for ((g1, g2), y) in ProgressBar(data_loader)
+    for ((g1, g2), y) in ProgressBarz.ProgressBar(data_loader)
         g1, g2, y = (g1, g2, y) |> device
         emb1 = model(g1) |> vec
         emb2 = model(g2) |> vec
@@ -130,7 +130,7 @@ function mytrainloop!(
     for epoch in 1:(args.epochs)
         loss = 0.0
         ntot = 0
-        for ((g1, g2), y) in ProgressBar(train_loader)
+        for ((g1, g2), y) in ProgressBarz.ProgressBar(train_loader)
             g1, g2, y = (g1, g2, y) |> device
             gs = Flux.gradient(ps) do
                 emb1 = model(g1) |> vec
