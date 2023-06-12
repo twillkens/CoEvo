@@ -80,7 +80,7 @@ function TempGraph(
         sources_new,
         targets_new,
         onehot_encoder([node["label"] for node in node_dicts], ["0", "1", "1_start", "0_start", "P"]),
-        onehot_encoder(edata_new, ["0", "1", "01", "P"])
+        onehot_encoder(edata_new, ["0", "1", "01", "P", "0P", "1P", "01P"])
     )
 end
 
