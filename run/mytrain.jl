@@ -1,6 +1,4 @@
 
-
-# arguments for the `train` function 
 Base.@kwdef mutable struct MyArgs
     η = 0.001             # learning rate
     batchsize = 256      # batch size (number of graphs in each batch)

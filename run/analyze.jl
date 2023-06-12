@@ -14,7 +14,9 @@ using Zygote
 import CUDA
 using JLD2
 using Serialization
-using ProgressBars
+include("pb.jl")
+#using ProgressBars
+
 #using StatsBase
 
 # include("spec.jl")
