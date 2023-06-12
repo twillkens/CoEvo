@@ -202,7 +202,7 @@ function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400)
     end
     mkdir("rand_fsms")
 
-    @distributed (+) for n in 1:top_n
+    @distributed for n in 1:top_n
         x = (n-1)*per_n + 1
         for _ in 1:per_n
             big = generate_random_fsmgeno(n)
@@ -212,7 +212,6 @@ function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400)
             x += 1
         end
     end
-    return 0
 end
 
 
