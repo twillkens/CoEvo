@@ -34,11 +34,14 @@ Flux.@functor GNN
 
 function GNN(nin::Int, ein::Int, d1::Int, d2::Int, d3::Int, dout::Int, heads::Int)
     GNN(
-        GATv2Conv((nin, ein) => d1, add_self_loops = false, heads = heads),
+        #GATv2Conv((nin, ein) => d1, add_self_loops = false, heads = heads),
+        GATv2Conv(nin => d1, add_self_loops = false, heads = heads),
         BatchNorm(d1 * heads),
-        GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
+        #GATv2Conv((d1 * heads, ein) => d2, add_self_loops = false, heads = heads),
+        GATv2Conv(d1 * heads => d2, add_self_loops = false, heads = heads),
         BatchNorm(d2 * heads),
-        GATv2Conv((d2 * heads, ein) => d3, add_self_loops = false, heads = heads),
+        #GATv2Conv((d2 * heads, ein) => d3, add_self_loops = false, heads = heads),
+        GATv2Conv(d2 * heads => d3, add_self_loops = false, heads = heads),
         BatchNorm(d3 * heads),
         GlobalPool(mean),
         Dense(d1 * heads + d2 * heads + d3 * heads,  dout),
@@ -52,15 +55,18 @@ function GNN(args::MyArgs)
 end
 
 function (model::GNN)(g::GNNGraph, x, e)     # step 4
-    x = model.conv1(g, x, e)
+    #x = model.conv1(g, x, e)
+    x = model.conv1(g, x)
     x = model.bn1(x)
     x = leakyrelu.(x)
     k1 = x
-    x = model.conv2(g, x, e)
+    #x = model.conv2(g, x, e)
+    x = model.conv2(g, x)
     x = model.bn2(x)
     x = leakyrelu.(x)
     k2 = x
-    x = model.conv3(g, x, e)
+    #x = model.conv3(g, x, e)
+    x = model.conv3(g, x)
     x = model.bn3(x)
     x = leakyrelu.(x)
     k3 = x

@@ -156,7 +156,7 @@ function load_graphs_in_range(directory, range)
 end
 
 
-function load_graphs_and_make_pairs(graphdir::String, csv_file::String, ignore_singleton_pairs::Bool = true)
+function load_graphs_and_make_pairs(graphdir::String, csv_file::String, ignore_singleton_pairs::Bool = false)
     # Load all graphs in order into a vector of GNNGraphs
     graphs = load_graphs(graphdir)
     
