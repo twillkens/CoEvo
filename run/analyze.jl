@@ -26,5 +26,6 @@ include("pb.jl")
 include("graphs.jl")
 include("parsegraph.jl")
 include("mytrain.jl")
+include("prep_pacmap.jl")
 
 

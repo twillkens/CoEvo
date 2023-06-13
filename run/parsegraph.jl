@@ -132,13 +132,33 @@ function normalize_data(vec::Vector{<:Real})
     return (vec .- mean_val) ./ std_val
 end
 
-
-function load_graphs_and_make_pairs(graphdir::String, csv_file::String, ignore_singleton_pairs::Bool = true)
+function load_graphs(graphdir::String)
     # Load all graphs in order into a vector of GNNGraphs
     files = glob("*.graphml", graphdir)
     sorted_files = sort(files, by = file -> parse(Int, splitext(basename(file))[1]))
-    
-    graphs = [gnn_from_graphml(file) for file in ProgressBar(sorted_files)]
+    return [gnn_from_graphml(file) for file in ProgressBar(sorted_files)]
+end
+
+function load_graphs_in_range(directory, range)
+    files = readdir(directory)
+    # Filter only .graphml files and sort them based on their integer names
+    files = sort([file for file in files if occursin(".graphml", file)], by = file -> parse(Int, split(file, ".")[1]))
+
+    loaded_files = []
+    for i in ProgressBar(1:range:length(files))
+        filename = joinpath(directory, files[i])
+        if isfile(filename)
+            graph = gnn_from_graphml(file)
+            push!(loaded_files, graph)
+        end
+    end
+    return loaded_files
+end
+
+
+function load_graphs_and_make_pairs(graphdir::String, csv_file::String, ignore_singleton_pairs::Bool = true)
+    # Load all graphs in order into a vector of GNNGraphs
+    graphs = load_graphs(graphdir)
     
     # Load CSV data
     csv_data = CSV.read(csv_file, DataFrame)

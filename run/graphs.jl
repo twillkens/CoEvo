@@ -195,6 +195,22 @@ end
 #         end
 #     end
 # end
+function save_genos_as_graphml(genos::Vector{<:FSMGeno}, savedir::String = "rand_fsms", dohop::Bool = false)
+    if isdir(savedir)
+        rm(savedir, recursive=true)
+    end
+    mkdir(savedir)
+    for (id, geno) in enumerate(genos)
+        if dohop
+            hop = minimize(geno)
+        else
+            hop = geno
+        end
+        xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(hop))
+        savepath = joinpath(savedir, "$(id).graphml")
+        save_file(xdoc, savepath)
+    end
+end
 
 function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400, dohop::Bool = true)
     if isdir("rand_fsms")
@@ -219,6 +235,53 @@ function generate_random_fsmprimegenos(top_n::Int = 250, per_n::Int = 400, dohop
 end
 
 
+# GROW
+
+
+@everywhere function ctrl_evo_grow(n_gen::Int, n_states::Int)
+    probs1::Dict{Function, Float64} = Dict(
+        addstate => 1.0,
+        rmstate => 0.0,
+        changelink => 0.0,
+        changelabel => 0.0
+    )
+    probs2::Dict{Function, Float64} = Dict(
+        addstate => 0.0,
+        rmstate => 0.0,
+        changelink => 0.0,
+        changelabel => 1.0 
+    )
+    sc = SpawnCounter()
+    rng = StableRNG(rand(UInt32))
+    cfg = FSMIndivConfig(:fsm, Int, false)
+    fsm = cfg(rng, sc) 
+    genos = [fsm.geno]
+    for gen in 2:n_gen
+        if gen % (n_gen // n_states) == 0
+            m = LingPredMutator(probs = probs1)
+        else
+            m = LingPredMutator(probs = probs2)
+        end
+        fsm = m(rng, sc, fsm)
+        push!(genos, fsm.geno)
+    end
+    genos
+end
+
+
+### SIZE
+@everywhere function ctrl_evo_to_size(sizes::UnitRange{Int}, bin_size::Int)
+    for n in ProgressBar(sizes)
+        for _ in 1:bin_size
+            big = ctrl_evo_to_size(n)
+            #hop = minimize(big)
+            xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(big))
+            save_file(xdoc, "data/fsms/$(n).graphml")
+        end
+    end
+end
+
+
 @everywhere function ctrl_evo_to_size(n::Int)
     probs::Dict{Function, Float64} = Dict(
         addstate => 0.25,
@@ -237,27 +300,16 @@ end
     fsm.geno
 end
 
-@everywhere function ctrl_evo_to_size(sizes::UnitRange{Int}, bin_size::Int)
-    for n in ProgressBar(sizes)
-        for _ in 1:bin_size
-            big = ctrl_evo_to_size(n)
-            hop = minimize(big)
-            xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(hop))
-            save_file(xdoc, "data/fsms/$(n).graphml")
-        end
-    end
-end
-
 
 @everywhere function parallel_task(n::Int, id::Int)
     big = ctrl_evo_to_size(n)
-    hop = big
-    hop = minimize(big)
-    xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(hop))
+    #hop = big
+    #hop = minimize(big)
+    xdoc = fsmprimegeno_to_xmldoc(make_prime_graph(big))
     save_file(xdoc, "data/fsms/$(n)-$(id).graphml")
 end
 
-function parallel_ctrl_evo_to_size(sizes::UnitRange{Int} = 1:250, bin_size::Int = 250)
+function parallel_ctrl_evo_to_size(sizes::UnitRange{Int} = 1:200, bin_size::Int = 200)
     if isdir("data/fsms")
         rm("data/fsms", recursive=true)
     end
@@ -271,6 +323,9 @@ function parallel_ctrl_evo_to_size(sizes::UnitRange{Int} = 1:250, bin_size::Int 
         end
     end
 end
+
+
+# end
 
 @everywhere function ctrl_evo_to_end(n_gen::Int, rng::AbstractRNG = StableRNG(rand(UInt32)))
     m = LingPredMutator()
