@@ -1,5 +1,15 @@
 
 
+function get_embeddings(model::GNN, graphdir::String)
+    graphs = load_graphs(graphdir)
+    sorted_keys = sort(collect(keys(graphs)), by = key -> parse(Int, split(key, "/")[2][1:end-8]))
+    graphs = [graphs[key] for key in sorted_keys]
+    embeddings = Vector{Vector{Float32}}()
+    for graph in ProgressBar(graphs)
+        push!(embeddings, model(graph |> gpu) |> vec)
+    end
+    return embeddings
+end
 
 function get_embeddings(model::GNN, graphs)
     embeddings = Vector{Vector{Float32}}()
@@ -9,10 +19,11 @@ function get_embeddings(model::GNN, graphs)
     return embeddings
 end
 
-function doit(fsms, fname = "addressa.csv", model = deserialize("model_large_uniform.jls"))
-    embs = get_embeddings(model, fsms)
+function doit(graphdir::String, model::String = "model.jls")
+    model = deserialize(model)
+    embs = get_embeddings(model, graphdir)
     df = DataFrame(Array(transpose(hcat(embs...))), :auto)
-    CSV.write(fname, df)
+    CSV.write("$(graphdir).csv", df)
 end
 
 
@@ -25,7 +36,7 @@ function compare(x, dset, model)
            println("actual: $actual")
            println("s1: $s1")
            println("s2: $s2")
-       end
+end
 
 function dorun(n, dset; numtrain = (0.1, 0.01), model = nothing, η = 0.001, d1=256, d2=128, d3=64, dout=256)
            if model === nothing

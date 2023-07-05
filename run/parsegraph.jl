@@ -185,3 +185,40 @@ function load_graphs_and_make_pairs(graphdir::String, csv_file::String, ignore_s
     
     return pairs
 end
+
+function load_graphs(graphdir::String)
+    # Load all graphs in order into a vector of GNNGraphs
+    loaddir = joinpath(ENV["DATA_DIR"], graphdir)
+    files = glob("*.graphml", loaddir)
+    graphs = Dict("$graphdir/$(basename(fname))" => gnn_from_graphml(joinpath(loaddir, fname)) for fname in ProgressBar(files))
+    graphs
+end
+
+function load_graphs_and_make_pairs(graphdirs::Vector{String}, csv_dir::String)
+    # Load all graphs in order into a vector of GNNGraphs
+    graphs = merge([load_graphs(graphdir) for graphdir in graphdirs]...)
+    
+    # Load CSV data
+    csv_data = CSV.read(joinpath(ENV["DATA_DIR"], csv_dir, "ged.csv"), DataFrame)
+    
+    # Create GEDTrainPairs
+    pairs = GEDTrainPair[]  # Initialize an empty array for GEDTrainPairs
+    normdists = normalize_data([row[:dist] for row in eachrow(csv_data)])
+    
+    for (row, normdist) in ProgressBar(zip(eachrow(csv_data), normdists))
+        left_index = row[:left]
+        println(left_index)
+        right_index = row[:right]
+        println(right_index)
+        dist = Float32(row[:dist])
+        g1 = graphs[left_index]
+        g2 = graphs[right_index]
+        scaledist = Float32(dist / ((g1.num_nodes + g2.num_nodes) / 2))
+        # Julia array indices start at 1, so adjust if your file names start at 0
+        dists = Dict("raw" => dist, "scale" => scaledist, "norm" => normdist)
+        pair = GEDTrainPair(graphs[left_index], graphs[right_index], dists)
+        push!(pairs, pair)
+    end
+    
+    return pairs
+end

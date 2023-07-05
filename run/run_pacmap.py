@@ -22,13 +22,13 @@ import pandas as pd
 #ax.scatter(X_transformed[:, 0], X_transformed[:, 1],) #cmap="Spectral", c=y, s=0.6)
 #plt.show()
 
-def do_pacmap(filenames, savefile, init="pca", apply_pca=True):
+def do_pacmap(filenames, savefile, init="pca", apply_pca=True, MN_ratio=0.5, FP_ratio=2.0, verbose=True):
     # Read and concatenate data from all files
     frames = [pd.read_csv(filename) for filename in filenames]
     X = pd.concat(frames).values
 
     # Initialize the pacmap instance
-    embedding = pacmap.PaCMAP(n_components=2, n_neighbors=None, MN_ratio=0.5, FP_ratio=2.0, verbose=True, apply_pca=apply_pca) 
+    embedding = pacmap.PaCMAP(n_components=2, n_neighbors=None, MN_ratio=MN_ratio, FP_ratio=FP_ratio, verbose=verbose, apply_pca=apply_pca) 
 
     # Transform the data
     X_transformed = embedding.fit_transform(X, init=init)
@@ -40,8 +40,8 @@ def do_pacmap(filenames, savefile, init="pca", apply_pca=True):
 
 def do_plot(X):
 # Define the cutoffs
-    first_cutoff = min(2000, len(X))
-    second_cutoff = min(4000, len(X))
+    first_cutoff = min(1000, len(X))
+    second_cutoff = min(2000, len(X))
 
     # Split the original data into three groups
     X_blue = X[:first_cutoff]
@@ -53,8 +53,8 @@ def do_plot(X):
     # Transform each group separately
 
     # Generate alpha values for fading effect
-    alpha_blue = np.linspace(1, 0, len(X_blue))
-    alpha_red = np.linspace(1, 0, len(X_red))
+    alpha_blue = np.linspace(0, 1, len(X_blue))
+    alpha_red = np.linspace(0, 1, len(X_red))
 
     # Visualize the embedding
     fig, ax = plt.subplots(1, 1, figsize=(8, 8))
@@ -66,7 +66,7 @@ def do_plot(X):
     for i in range(len(X_red)):
         ax.scatter(X_red[i, 0], X_red[i, 1], color='red', s=5, alpha=alpha_red[i])
 
-    ax.scatter(X_grey[:, 0], X_grey[:, 1], color='grey', s=5, alpha=0.05)
+    ax.scatter(X_grey[:, 0], X_grey[:, 1], color='grey', s=5, alpha=0.1)
 
     # Add grid, title, and labels
     ax.grid(True)
