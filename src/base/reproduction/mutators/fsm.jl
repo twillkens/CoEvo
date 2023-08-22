@@ -18,11 +18,7 @@ function(m::LingPredMutator)(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv,)
     for fn in fns
         geno = fn(rng, sc, geno)
     end
-    if m.do_hopcroft
-        FSMIndiv(fsm.ikey, geno, minimize(geno), fsm.pids)
-    else
-        FSMIndiv(fsm.ikey, geno, geno, fsm.pids)
-    end
+    FSMIndiv(fsm.ikey, geno, geno, fsm.pids)
 end
 
 function randfsmstate(

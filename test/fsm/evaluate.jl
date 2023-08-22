@@ -37,12 +37,12 @@ function lingpredspawner(spid::Symbol; npop::Int = 50, dtype::Type = Int, spargs
         spid = spid,
         npop = npop,
         icfg = FSMIndivConfig(spid = spid, dtype = dtype),
-        phenocfg = FSMPhenoCfg(usemin = true, usesets = true),
+        phenocfg = FSMPhenoCfg(usesets = true),
         replacer = GenerationalReplacer(npop = npop, n_elite = 5),
         selector =  RouletteSelector(μ = npop),
         recombiner = CloneRecombiner(),
         mutators = [LingPredMutator()],
-        archiver = FSMIndivArchiver(; log_popids = true, savegeno = true, savemingeno = true),
+        archiver = FSMIndivArchiver(),
         spargs = spargs
     )
     spid => s

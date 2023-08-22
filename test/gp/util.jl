@@ -62,10 +62,10 @@ mutable struct GPTree
 end
 
 struct GPIndiv <: Individual
+    ikey::IndivKey
     geno::GPGeno
+    pids::Set{UInt32}
 end
-
-
 
 function Base.Expr(geno::GPGeno)
     Expr(geno.root)
@@ -76,6 +76,14 @@ struct GPPheno <: Phenotype
     expr::Expr
 end
 
+function iflt(first_arg, second_arg, then_arg, else_arg)
+    if eval(Expr(first_arg)) < eval(Expr(second_arg))
+        return eval(Expr(then_arg))
+    else
+        return eval(Expr(else_arg))
+    end
+end
+
 Base.@kwdef struct GPMutator <: Mutator
     nchanges::Int = 1
     probs::Dict{Function, Float64} = Dict(
@@ -84,8 +92,8 @@ Base.@kwdef struct GPMutator <: Mutator
         swapnode => 0.1,
     )
     mut_factor::Float64 = 0.1
-    terminals::Dict{Terminal, Int} = Dict([(:read, 1), (0, 1)])
-    functions::Dict{FuncAlias, Int} = Dict([(psin, 1), (+, 2)])
+    terminals::Dict{Terminal, Int} = Dict([(:read, 1), (0, 1), (:readleft, 1), (:readright, 1)])
+    functions::Dict{FuncAlias, Int} = Dict([(psin, 1), (+, 2), (-, 2), (*, 2), (iflt, 4)])
 end
 
 function addfunc(
@@ -276,9 +284,51 @@ end
 
 abstract type TerminalFunctor end
 
-mutable struct TapeReaderTerminalFunctor{T <: Real} <: TerminalFunctor
+
+mutable struct GPTape{T <: Real}
     head::Int
     tape::Vector{T}
+end
+
+struct ReadTerminal{T <: Real} <: TerminalFunctor
+    gptape::GPTape
+end
+
+function ReadTerminal(tape::Vector{<:Real})
+    ReadTerminal(GPTape(length(tape), tape))
+end
+
+function(t::ReadTerminal)()
+   t.gptape.tape[t.gptape.head]
+end
+
+
+struct ReadLeftTerminal{T <: Real} <: TerminalFunctor
+    gptape::GPTape
+end
+
+function ReadLeftTerminal(tape::Vector{<:Real})
+    ReadLeftTerminal(GPTape(length(tape), tape))
+end
+
+function(t::ReadLeftTerminal)()
+   val = t.gptape.tape[t.gptape.head]
+   t.gptape.head = t.gptape.head == 1 ? 1 : t.gptape.head - 1
+   val
+end
+
+struct ReadRightTerminal{T <: Real} <: TerminalFunctor
+    gptape::GPTape
+end
+
+function ReadRightTerminal(tape::Vector{<:Real})
+    ReadRightTerminal(GPTape(length(tape), tape))
+end
+
+function(t::ReadRightTerminal)()
+   val = t.gptape.tape[t.gptape.head]
+   t.gptape.head = t.gptape.head == Base.length(t.gptape.tape) ? Base.length(t.gptape.tape) : t.gptape.head + 1
+   val
 end
 
 mutable struct ConstantTerminalFunctor{T <: Real} <: TerminalFunctor
@@ -289,11 +339,16 @@ function(terminal::ConstantTerminalFunctor)()
     terminal.val
 end
 
+mutable struct TapeReaderTerminalFunctor{T <: Real} <: TerminalFunctor
+    head::Int
+    tape::Vector{T}
+end
+
 function TapeReaderTerminalFunctor(tape::Vector{<:Real})
     TapeReaderTerminalFunctor(1, tape)
 end
 
-function (r::TapeReaderTerminalFunctor)()
+function(r::TapeReaderTerminalFunctor)()
     val = r.tape[r.head]
     r.head = r.head == 1 ? Base.length(r.tape) : r.head - 1
     val
@@ -338,4 +393,70 @@ function simulate(n::Int, expr1::Expr, expr2::Expr, outfunc::Function = x -> x)
         push!(tape2, v2)
     end
     tape1, tape2
+end
+
+
+function simulate_full(n::Int, expr1::Expr, expr2::Expr, outfunc::Function = x -> x)
+    init_expr1 = copy(expr1)
+    init_expr2 = copy(expr2)
+    symcompile!(
+        init_expr1, 
+        Dict(
+            :read => ConstantTerminalFunctor(0.0), 
+            :readleft => ConstantTerminalFunctor(0.0), 
+            :readright => ConstantTerminalFunctor(0.0)
+        )
+    )
+    symcompile!(
+        init_expr2, 
+        Dict(
+            :read => ConstantTerminalFunctor(0.0), 
+            :readleft => ConstantTerminalFunctor(0.0), 
+            :readright => ConstantTerminalFunctor(0.0)
+        )
+    )
+    tape1 = [eval(init_expr1)]
+    tape2 = [eval(init_expr2)]
+    expr1 = copy(expr1)
+    expr2 = copy(expr2)
+    symcompile!(
+        expr1, 
+        Dict(
+            :read => ReadTerminal(tape2), 
+            :readleft => ReadLeftTerminal(tape2), 
+            :readright => ReadRightTerminal(tape2)
+        )
+    )
+    symcompile!(
+        expr2, 
+        Dict(
+            :read => ReadTerminal(tape1), 
+            :readleft => ReadLeftTerminal(tape1), 
+            :readright => ReadRightTerminal(tape1)
+        )
+    )
+    for i in 1:n - 1
+        tr1.head = i 
+        tr2.head = i
+        v1 = eval(expr1)
+        v2 = eval(expr2)
+        v1 = outfunc(v1)
+        v2 = outfunc(v2)
+        push!(tape1, v1)
+        push!(tape2, v2)
+    end
+    tape1, tape2
+end
+
+abstract type  ContinuousPredGame 
+end
+
+function stir(
+    oid::Symbol, domain::LingPredGame{Control}, obscfg::ObsConfig,
+    pheno1::FSMPheno, pheno2::FSMPheno
+)
+    loopstart, states1, states2, traj1, traj2 = simulate(domain, pheno1, pheno2)
+    score = 1
+    obs = obscfg(loopstart, pheno1, pheno2, states1, states2, traj1, traj2)
+    Outcome(oid, pheno1 => score, pheno2 => score, obs)
 end

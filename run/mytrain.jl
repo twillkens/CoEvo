@@ -2,17 +2,17 @@
 Base.@kwdef mutable struct MyArgs
     η = 0.001             # learning rate
     batchsize = 256      # batch size (number of graphs in each batch)
-    epochs = 30         # number of epochs
+    epochs = 5         # number of epochs
     seed = 42             # set seed > 0 for reproducibility
     usecuda = true      # if true use cuda (if available)
     nin = 5
     ein = 7
-    d1 = 256        # dimension of hidden features
+    d1 = 128        # dimension of hidden features
     d2 = 128        # dimension of hidden features
     d3 = 64        # dimension of hidden features
-    dout = 256        # dimension of hidden features
+    dout = 128        # dimension of hidden features
     infotime = 1      # report every `infotime` epochs
-    numtrain = (0.5, 0.1)
+    numtrain = (0.9, 0.1)
     heads = 4
     dist = "raw"
 end
@@ -64,10 +64,6 @@ function (model::GNN)(g::GNNGraph, x, e)     # step 4
     x = model.bn3(x)
     x = leakyrelu.(x)
     k3 = x
-    #p1 = model.pool(g, k1)
-    #p2 = model.pool(g, k2)
-    #p3 = model.pool(g, k3)
-    #x = [p1 ; p2 ; p3]
     x = [k1 ; k2 ; k3]
     x = model.pool(g, x)
     x = model.dense1(x)

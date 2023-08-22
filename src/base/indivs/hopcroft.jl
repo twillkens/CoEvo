@@ -164,7 +164,7 @@ end
 
 function minimize(fsm::FSMIndiv)
     mingeno = minimize(fsm.geno)
-    FSMIndiv(fsm.ikey, fsm.geno, mingeno, fsm.pids)
+    FSMIndiv(fsm.ikey, mingeno, fsm.pids)
 end
 
 

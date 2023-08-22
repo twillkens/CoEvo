@@ -90,11 +90,6 @@ function archive!(
 )
     push!(c.spchache, gen => allsp)
     if gen % c.arxiv_interval == 0
-        #lockpath = joinpath(dirname(c.jld2path), "lock-$(myid() % 2)")
-        #lockpath = joinpath(dirname(c.jld2path), "lock")
-        #lock = mkpidlock(lockpath)
-        #sleep(1)
-        #println("archiving: $(c.trial), gen : $gen")
         jld2file = jldopen(c.jld2path, "a")
         for (gen, allsp) in c.spchache
             agroup = make_group!(jld2file["arxiv"], string(gen))
@@ -110,11 +105,15 @@ function archive!(
         end
         close(jld2file)
         println("done archiving: $(c.trial), gen : $gen")
-        #sleep(1)
-        #close(lock)
         empty!(c.spchache)
         GC.gc()
     end
+end
+
+mutable struct TagDict
+    prev::Dict{IndivKey, Int}
+    curr::Dict{IndivKey, Int}
+    next::Dict{IndivKey, Int}
 end
 
 function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
@@ -141,6 +140,7 @@ function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
         nextsp
     end
 end
+
 
 function(c::CoevConfig)()
     Dict(spawner.spid => spawner(c.evostate) for spawner in values(c.spawners))

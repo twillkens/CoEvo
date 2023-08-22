@@ -132,7 +132,7 @@ function normalize_data(vec::Vector{<:Real})
     return (vec .- mean_val) ./ std_val
 end
 
-function load_graphs(graphdir::String)
+function load_graphs_vec(graphdir::String)
     # Load all graphs in order into a vector of GNNGraphs
     files = glob("*.graphml", graphdir)
     sorted_files = sort(files, by = file -> parse(Int, splitext(basename(file))[1]))
@@ -190,7 +190,8 @@ function load_graphs(graphdir::String)
     # Load all graphs in order into a vector of GNNGraphs
     loaddir = joinpath(ENV["DATA_DIR"], graphdir)
     files = glob("*.graphml", loaddir)
-    graphs = Dict("$graphdir/$(basename(fname))" => gnn_from_graphml(joinpath(loaddir, fname)) for fname in ProgressBar(files))
+    sorted_files = sort(files, by = file -> parse(Int, splitext(basename(file))[1]))
+    graphs = Dict("$graphdir/$(basename(fname))" => gnn_from_graphml(joinpath(loaddir, fname)) for fname in ProgressBar(sorted_files))
     graphs
 end
 
