@@ -70,13 +70,14 @@ function unfreeze(jldpath::String, getpop::Bool = true, gen::Int = -1)
     spawners = jld2file["spawners"]
     loggers = jld2file["loggers"]
     arxiv_interval = jld2file["arxiv_interval"]
+    log_interval = jld2file["log_interval"]
     gen, evostate, allsp = unfreeze(jld2file, spawners, getpop, gen)
     close(jld2file)
     (
         gen, 
         CoevConfig(
             eco, trial, evostate, jobcfg, orders, spawners, loggers, 
-            jldpath, arxiv_interval, Dict{Int, Dict{Symbol, Species}}()
+            jldpath, arxiv_interval, Dict{Int, Dict{Symbol, Species}}(), log_interval
         ),
         allsp
     )

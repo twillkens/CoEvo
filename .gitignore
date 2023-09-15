@@ -8,6 +8,13 @@ archives/
 Manifest.toml
 Manifest.*
 img/
+paperdata
+modesdata
+data
+.venv/
+
+python/gedlibpy/build
+
 
 
 ## Core latex/pdflatex auxiliary files:

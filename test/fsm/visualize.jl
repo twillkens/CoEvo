@@ -9,72 +9,80 @@ function get_sequential_pairs(v::Vector, other_outs::Vector{Bool})
     return collect(zip(v[1:end-1], v[2:end], other_outs))
 end
 
-function plot_geno(geno::FSMGeno, currstate::Real, seen::Vector{<:Real}, other_outs::Vector{Bool})
+# function plot_geno(geno::FSMGeno, currstate::Real, seen::Vector{<:Real}, other_outs::Vector{Bool})
+#     # First, we create a list of all unique states in the genotype
+#     
+#     unique_states = sort(collect(union(geno.ones, geno.zeros)))
+#     edges_seen = get_sequential_pairs(seen, other_outs)
+#     # Then, we create a mapping from each state to a unique integer (since adjacency matrix uses integer indices)
+#     state_indices = Dict(state => idx for (idx, state) in enumerate(unique_states))
+#     
+#     # Now, we create an adjacency matrix for our graph with zeros
+#     g = [[] for _ in 1:length(unique_states)]
+#     edgecolor = Dict()
+#     lightgreen = colormap("Greens", 100)[20]
+#     lightred = colormap("Reds", 100)[20]
+# 
+#     # We set values in the matrix to 1 for each link in the genotype
+#     for ((from_state, input), to_state) in geno.links
+#         from_idx = state_indices[from_state]
+#         to_idx = state_indices[to_state]
+#         push!(g[from_idx], to_idx)
+#         #if geno.links[(from_state, true)] == geno.links[(from_state, false)]
+#         #    edgecolor[from_idx, to_idx] = colorant"purple"
+#         #else
+#             if (from_state, to_state, input) ∈ edges_seen 
+#                 edgecolor[(from_idx, to_idx, Int(input) + 1)] = input ? colorant"green" : colorant"red"
+#             else
+#                 edgecolor[(from_idx, to_idx, Int(input) + 1)] = input ? lightgreen : lightred
+#             end
+#         #end
+#     end
+# 
+#     # Now, we create a color map for the nodes in the graph
+#     nodecolor = fill(colorant"#CCCCCC", length(unique_states))  # Default gray color
+#     nodeshape = fill(:circle, length(unique_states))  # Default gray color
+#     nodeshape[state_indices[geno.start]] = :rect
+# 
+#     # We color the ones-states in red
+#     for one_state in geno.ones
+#         nodecolor[state_indices[one_state]] = one_state ∈ seen ? colorant"green" : lightgreen
+#     end
+# 
+#     # We color the zero-states in purple (or any other desired color)
+#     for zero_state in geno.zeros
+#         nodecolor[state_indices[zero_state]] = zero_state ∈ seen ? colorant"red" : lightred
+#     end
+#     if currstate != 0
+#         nodecolor[state_indices[currstate]] = colorant"orange"
+#     end
+#     # Finally, we plot the graph using GraphRecipes
+#     println(g)
+#     println(edgecolor)
+#     graphplot(
+#         g,
+#         names=1:length(unique_states),
+#         curves=true,
+#         color=:black,
+#         nodecolor=nodecolor,
+#         edgecolor=edgecolor,
+#         method=:shell,
+#         nodeshape=nodeshape,
+#         self_edge_size=0.25,
+#     )
+# end
+
+function plot_geno(
+    geno::FSMGeno, 
+    currstate::Real,
+    seen::Vector{<:Real}; 
+    do_labels::Bool = false, 
+    self_edge_size::Float64 = 0.15, 
+    fontsize::Int = 12, 
+    title::String="", 
+    kwargs...
+)
     # First, we create a list of all unique states in the genotype
-    
-    unique_states = sort(collect(union(geno.ones, geno.zeros)))
-    edges_seen = get_sequential_pairs(seen, other_outs)
-    # Then, we create a mapping from each state to a unique integer (since adjacency matrix uses integer indices)
-    state_indices = Dict(state => idx for (idx, state) in enumerate(unique_states))
-    
-    # Now, we create an adjacency matrix for our graph with zeros
-    g = [[] for _ in 1:length(unique_states)]
-    edgecolor = Dict()
-    lightgreen = colormap("Greens", 100)[20]
-    lightred = colormap("Reds", 100)[20]
-
-    # We set values in the matrix to 1 for each link in the genotype
-    for ((from_state, input), to_state) in geno.links
-        from_idx = state_indices[from_state]
-        to_idx = state_indices[to_state]
-        push!(g[from_idx], to_idx)
-        #if geno.links[(from_state, true)] == geno.links[(from_state, false)]
-        #    edgecolor[from_idx, to_idx] = colorant"purple"
-        #else
-            if (from_state, to_state, input) ∈ edges_seen 
-                edgecolor[(from_idx, to_idx, Int(input) + 1)] = input ? colorant"green" : colorant"red"
-            else
-                edgecolor[(from_idx, to_idx, Int(input) + 1)] = input ? lightgreen : lightred
-            end
-        #end
-    end
-
-    # Now, we create a color map for the nodes in the graph
-    nodecolor = fill(colorant"#CCCCCC", length(unique_states))  # Default gray color
-    nodeshape = fill(:circle, length(unique_states))  # Default gray color
-    nodeshape[state_indices[geno.start]] = :rect
-
-    # We color the ones-states in red
-    for one_state in geno.ones
-        nodecolor[state_indices[one_state]] = one_state ∈ seen ? colorant"green" : lightgreen
-    end
-
-    # We color the zero-states in purple (or any other desired color)
-    for zero_state in geno.zeros
-        nodecolor[state_indices[zero_state]] = zero_state ∈ seen ? colorant"red" : lightred
-    end
-    if currstate != 0
-        nodecolor[state_indices[currstate]] = colorant"orange"
-    end
-    # Finally, we plot the graph using GraphRecipes
-    println(g)
-    println(edgecolor)
-    graphplot(
-        g,
-        names=1:length(unique_states),
-        curves=true,
-        color=:black,
-        nodecolor=nodecolor,
-        edgecolor=edgecolor,
-        method=:shell,
-        nodeshape=nodeshape,
-        self_edge_size=0.25,
-    )
-end
-
-function plot_geno(geno::FSMGeno, currstate::Real, seen::Vector{<:Real}; do_labels::Bool = false, self_edge_size::Float64= 0.15, fontsize::Int = 12, title::String="", kwargs...)
-    # First, we create a list of all unique states in the genotype
-    
     unique_states = sort(collect(union(geno.ones, geno.zeros)))
     edges_seen = get_sequential_pairs(seen)
     # Then, we create a mapping from each state to a unique integer (since adjacency matrix uses integer indices)
@@ -173,7 +181,6 @@ end
 
 
 
-using Plots
 
 function plot_pairs(geno1::FSMGeno, vector1::Vector{<:Pair{<:Real, Bool}}, geno2::FSMGeno, vector2::Vector{<:Pair{<:Real, Bool}}, until::Int; pair_size::Int = 15, kwargs...)
     # Initiate plot with specific settings

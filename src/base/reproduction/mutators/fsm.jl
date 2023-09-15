@@ -18,7 +18,7 @@ function(m::LingPredMutator)(rng::AbstractRNG, sc::SpawnCounter, fsm::FSMIndiv,)
     for fn in fns
         geno = fn(rng, sc, geno)
     end
-    FSMIndiv(fsm.ikey, geno, geno, fsm.pids)
+    FSMIndiv(fsm.ikey, geno, Set(fsm.ikey.iid))
 end
 
 function randfsmstate(

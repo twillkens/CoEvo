@@ -69,7 +69,7 @@ def do_pacmap(filenames, savefile, init="pca", apply_pca=True, MN_ratio=0.5, FP_
 # 
 #     plt.show()
 
-def do_plot(X, cutoffs, xlim=[-15.0, 10.0], ylim=[-15.0, 5.0], fname = "addressa.png", dpi=400):
+def do_plot(X, cutoffs, xlim=[-15.0, 10.0], ylim=[-15.0, 5.0], fname = "addressa.png", dpi=400, plot_line = False):
     # Generate a list of data segments and corresponding alphas based on the cutoffs
     data_segments = [X[cutoffs[i-1] if i > 0 else 0:cutoffs[i]] for i in range(len(cutoffs))]
     alphas = [np.linspace(0, 1, len(segment)) for segment in data_segments]
@@ -82,7 +82,8 @@ def do_plot(X, cutoffs, xlim=[-15.0, 10.0], ylim=[-15.0, 5.0], fname = "addressa
         color = next(ax._get_lines.prop_cycler)['color']
         for j in range(len(data)-1):  # subtract 1 so we don't go out of bounds
             ax.scatter(data[j, 0], data[j, 1], color=color, s=5, alpha=alpha[j])
-            ax.plot(data[j:j+2, 0], data[j:j+2, 1], color=color, linewidth=1, alpha=alpha[j])
+            if plot_line:
+                ax.plot(data[j:j+2, 0], data[j:j+2, 1], color=color, linewidth=1, alpha=alpha[j])
     
         ax.plot([], [], color=color, label=f'Grow-{i+1}')
         

@@ -10,12 +10,8 @@ end
 Base.@kwdef struct CloneRecombiner <: Recombiner
 end
 
-function(r::CloneRecombiner)(::AbstractRNG, sc::SpawnCounter, parents::Vector{<:Veteran})
-    r(sc, parents, [parent.tag for parent in parents])
-end
-
-function(r::CloneRecombiner)(::AbstractRNG, sc::SpawnCounter, parents::Vector{<:Veteran}, tags::Vector{Int})
-    [clone(iid, p, tag) for (iid, p, tag) in zip(iids!(sc, length(parents)), parents, tags)]
+function(r::CloneRecombiner)(::AbstractRNG, sc::SpawnCounter, parents::Vector{<:Veteran},)
+    [clone(iid, p) for (iid, p,) in zip(iids!(sc, length(parents)), parents,)]
 end
 
 struct NPointCrossoverRecombiner <: Recombiner

@@ -245,15 +245,18 @@ function(cnt::AliasCounter)()
     cnt.i
 end
 
-function Base.hash(x::FSMGeno, h::UInt)
-    hash(aliasgeno(x), h)
-end
-
-function Base.:(==)(x::FSMGeno{T}, y::FSMGeno{T}) where T
-    if length(x.ones) != length(y.ones) || length(x.zeros) != length(y.zeros)
-        return false
+function build_aliasdict(
+    geno::FSMGeno{T},
+    s::T = geno.start,
+    adict::Dict{T, Int} = Dict{T, Int}(), 
+    cnt::AliasCounter = AliasCounter()
+) where T
+    if s in keys(adict)
+        return adict, cnt
     end
-    aliasgeno(x) == aliasgeno(y)
+    adict[s] = cnt()
+    build_aliasdict(geno, geno.links[(s, true)], adict, cnt)
+    build_aliasdict(geno, geno.links[(s, false)], adict, cnt)
 end
 
 function aliasgeno(geno::FSMGeno)
@@ -269,16 +272,13 @@ function aliasgeno(geno::FSMGeno)
     adict[geno.start], aliasones, aliaszeros, aliaslinks
 end
 
-function build_aliasdict(
-    geno::FSMGeno{T},
-    s::T = geno.start,
-    adict::Dict{T, Int} = Dict{T, Int}(), 
-    cnt::AliasCounter = AliasCounter()
-) where T
-    if s in keys(adict)
-        return adict, cnt
+function Base.hash(x::FSMGeno, h::UInt)
+    hash(aliasgeno(x), h)
+end
+
+function Base.:(==)(x::FSMGeno{T}, y::FSMGeno{T}) where T
+    if length(x.ones) != length(y.ones) || length(x.zeros) != length(y.zeros)
+        return false
     end
-    adict[s] = cnt()
-    build_aliasdict(geno, geno.links[(s, true)], adict, cnt)
-    build_aliasdict(geno, geno.links[(s, false)], adict, cnt)
+    aliasgeno(x) == aliasgeno(y)
 end

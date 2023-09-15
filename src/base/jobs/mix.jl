@@ -2,11 +2,12 @@ export Mix
 export stir, getmixes
 
 struct Mix{D <: Domain, O <: ObsConfig, P <: Phenotype}
-    oid::Symbol
-    domain::D
-    obscfg::O
-    phenos::Vector{P}
+    oid::Symbol # ID of the order that generated this mix
+    domain::D # Interactive domain
+    obscfg::O # Configuration used to create the Observation result upon evaluation
+    phenos::Vector{P} # Vector of individual phenotypes
 end
+
 
 function(r::Recipe)(order::Order, phenodict::Dict{Symbol, Dict{UInt32, P}}) where P
     phenos = [phenodict[ikey.spid][ikey.iid] for ikey in r.ikeys]

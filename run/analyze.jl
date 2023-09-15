@@ -23,9 +23,12 @@ include("pb.jl")
 # include("fsmgraph.jl")
 # include("fetchpairs.jl")
 # include("fsm.jl")
+include("../modes/modes.jl")
 include("graphs.jl")
 include("parsegraph.jl")
+include("lineage.jl")
 include("mytrain.jl")
 include("prep_pacmap.jl")
+include("plot_pacmap.jl")
 
 

@@ -2,7 +2,12 @@
 
 function get_embeddings(model::GNN, graphdir::String)
     graphs = load_graphs(graphdir)
-    sorted_keys = sort(collect(keys(graphs)), by = key -> parse(Int, split(key, "/")[2][1:end-8]))
+    #sorted_keys = sort(collect(keys(graphs)), by = key -> parse(Int, split(key, "/")[2][1:end-8]))
+    sorted_keys = sort(collect(keys(graphs)), lt = (key1, key2) -> begin
+        n1 = parse(Int, split(split(key1, "/")[end], ".")[1])
+        n2 = parse(Int, split(split(key2, "/")[end], ".")[1])
+        return n1 < n2
+    end)
     graphs = [graphs[key] for key in sorted_keys]
     embeddings = Vector{Vector{Float32}}()
     for graph in ProgressBar(graphs)
@@ -19,11 +24,11 @@ function get_embeddings(model::GNN, graphs)
     return embeddings
 end
 
-function doit(graphdir::String, model::String = "model.jls")
+function doit(graphdir::String, outpath::String = "$(graphdir).csv", model::String = "model.jls")
     model = deserialize(model)
     embs = get_embeddings(model, graphdir)
     df = DataFrame(Array(transpose(hcat(embs...))), :auto)
-    CSV.write("$(graphdir).csv", df)
+    CSV.write(outpath, df)
 end
 
 
