@@ -2,243 +2,194 @@ using Test
 using Random
 using StableRNGs
 using CoEvo
-using Primes
+using CoEvo.Base.Common
+using CoEvo.Base.Reproduction
+using CoEvo.Base.Indivs.GP: GPGeno, ExprNode, Terminal, GPMutator, GPIndivCfg, GPIndiv, GPIndivArchiver
+using CoEvo.Base.Indivs.GP: get_node, get_child_index, get_ancestors, get_descendents
+using CoEvo.Base.Indivs.GP: addfunc, rmfunc, swapnode, inject_noise
+using CoEvo.Base.Indivs.GP: pdiv, iflt, psin
+using CoEvo.Base.Indivs.GP: pdiv, iflt, psin
 
-include("util.jl")
-
-
-@testset "GP" begin
-@testset "ExprNode" begin
-    e = Expr(:call, +, 1, 2)
-    n = ExprNode(e)
-    @test n.val == (+)
-    @test n.children[1].val == 1
-    @test n.children[2].val == 2
-    @test Expr(n) == e
+function dummygeno()
+    # Just a sample GPGeno object to use for tests.
+    root = ExprNode(1, nothing, +, [2, 3])
+    node2 = ExprNode(2, 1, 2.0)
+    node3 = ExprNode(3, 1, 3.0)
+    geno = GPGeno(1, Dict(1 => root), Dict(2 => node2, 3 => node3))
+    return geno
 end
 
-@testset "AddFunc1" begin
-    n1 = ExprNode(+)
-    n2 = ExprNode(1, n1)
-    n3 = ExprNode(2, n1)
-    n1.children = [n2, n3]
-    nodes = Set([n1, n2, n3])
-    funcs = Set([n1])
-    terms = Set([n2, n3])
-    geno = GPGeno(n1, nodes, funcs, terms)
-
-    target = n1
-    newfunc = ExprNode(-)
-    newchildren = [n1, ExprNode(3)]
-
-    mutgeno = addfunc(geno, target, newfunc, newchildren)
-
-    t1 = ExprNode(-)
-    t2 = ExprNode(+, t1)
-    t3 = ExprNode(1, t2)
-    t4 = ExprNode(2, t2)
-    t5 = ExprNode(3, t1)    
-    t1.children = [t2, t5]
-    t2.children = [t3, t4]
-    nodes = Set([t1, t2, t3, t4, t5])
-    funcs = Set([t1, t2])
-    terms = Set([t3, t4, t5])
-    testgeno = GPGeno(t1, nodes, funcs, terms)
-
-    @test Expr(mutgeno) == Expr(testgeno)
-    
+function big_geno()
+    funcs = Dict(
+        1 => ExprNode(1, nothing, +, [2, 3]),
+        2 => ExprNode(2, 1, -, [5, 6]),
+        3 => ExprNode(3, 1, *, [7, 8]),
+        4 => ExprNode(4, nothing, pdiv, [9, 10]),
+    )
+    terms = Dict(
+        5 => ExprNode(5, 2, 5.0),
+        6 => ExprNode(6, 2, 6.0),
+        7 => ExprNode(7, 3, 7.0),
+        8 => ExprNode(8, 3, 8.0),
+        9 => ExprNode(9, 4, 9.0),
+        10 => ExprNode(10, 4, 10.0),
+    )
+    geno = GPGeno(1, funcs, terms)
+    return geno
 end
 
-@testset "AddFunc2" begin
-    n1 = ExprNode(+)
-    n2 = ExprNode(-, n1)
-    n3 = ExprNode(*, n1)
-    n1.children = [n2, n3]
-    n4 = ExprNode(1, n2)
-    n5 = ExprNode(2, n2)
-    n2.children = [n4, n5]
-    n6 = ExprNode(3, n3)
-    n7 = ExprNode(4, n3)
-    n3.children = [n6, n7]
-    nodes = Set([n1, n2, n3, n4, n5, n6, n7])
-    funcs = Set([n1, n2, n3])
-    terms = Set([n4, n5, n6, n7])
-    geno = GPGeno(n1, nodes, funcs, terms)
+@testset "Utility Functions" begin
+    geno = dummygeno()
 
-    rng = StableRNG(42)
-    m = GPMutator()
+    @testset "get_child_index" begin
+        root = get_node(geno, geno.root_gid)
+        @test get_child_index(root, get_node(geno, 2)) == 1
+        @test get_child_index(root, get_node(geno, 3)) == 2
+    end
 
-    for _ in 1:10
-        testgeno = addfunc(rng, m, geno)
-        @test length(testgeno.funcs) == 4
-        println("AddFunc2: ", Expr(testgeno.root))
+    @testset "get_ancestors and get_descendents" begin
+        @test length(get_ancestors(geno, get_node(geno, 2))) == 1
+        @test length(get_descendents(geno, get_node(geno, geno.root_gid))) == 2
     end
 end
 
-@testset "RMFunc1" begin
-    n1 = ExprNode(+)
-    n2 = ExprNode(-, n1)
-    n3 = ExprNode(*, n1)
-    n1.children = [n2, n3]
-    n4 = ExprNode(0, n2)
-    n5 = ExprNode(1, n2)
-    n2.children = [n4, n5]
-    n6 = ExprNode(2, n3)
-    n7 = ExprNode(3, n3)
-    n3.children = [n6, n7]
-    nodes = Set([n1, n2, n3, n4, n5, n6, n7])
-    funcs = Set([n1, n2, n3])
-    terms = Set([n4, n5, n6, n7])
-    geno = GPGeno(n1, nodes, funcs, terms)
+@testset "Deterministic Mutation Functions" begin
+    geno = dummygeno()
 
-    testgeno = rmfunc(geno, n1, n2, [Pair(n3, n4)])
+    @testset "addfunc" begin
+        new_geno = addfunc(geno, 4, +, [5, 6], Terminal[2.5, :x])
+        @test length(new_geno.funcs) == 2
+        @test get_node(new_geno, 4).val == +
+        @test get_node(new_geno, 5).val == 2.5
+        @test get_node(new_geno, 6).val == :x
+    end
 
-    t1 = ExprNode(-)
-    t2 = ExprNode(*, t1)
-    t3 = ExprNode(2, t2)
-    t4 = ExprNode(3, t2)
-    t5 = ExprNode(1, t1)
-    t1.children = [t2, t5]
-    t2.children = [t3, t4]
-    @test Expr(testgeno.root) == Expr(t1)
+    @testset "rmfunc" begin
+        new_geno = rmfunc(geno, 1, 2)
+        @test length(new_geno.funcs) == 0
+        @test length(new_geno.terms) == 1
+        @test !haskey(new_geno.funcs, 1)
+        @test new_geno.root_gid == 2
+    end
+
+    @testset "swapnode" begin
+        new_geno = swapnode(geno, 2, 3)
+        root_node = get_node(new_geno, 1)
+        @test root_node.child_gids == [3, 2]
+
+        # Swapping the same node shouldn't change anything
+        new_geno2 = swapnode(geno, 2, 2)
+        root_node2 = get_node(new_geno2, 1)
+        @test root_node2.child_gids == [2, 3]
+    end
+
+    @testset "inject_noise" begin
+        noise_dict = Dict(2 => 0.5)
+        new_geno = inject_noise(geno, noise_dict)
+        @test get_node(new_geno, 2).val ≈ 2.5
+
+        # Ensure error is raised for non-float node
+        noise_dict_error = Dict(1 => 0.5)
+        @test_throws ErrorException inject_noise(geno, noise_dict_error)
+    end
+
+    @testset "conversion to Expr" begin
+        expr = Expr(geno)
+        @test expr == Expr(:call, +, 2, 3)
+        @test eval(expr) == 5.0
+    end
+
 end
 
-@testset "RMFunc2" begin
-    n1 = ExprNode(+)
-    n2 = ExprNode(-, n1)
-    n3 = ExprNode(*, n1)
-    n1.children = [n2, n3]
-    n4 = ExprNode(0, n2)
-    n5 = ExprNode(1, n2)
-    n2.children = [n4, n5]
-    n6 = ExprNode(2, n3)
-    n7 = ExprNode(3, n3)
-    n3.children = [n6, n7]
-    nodes = Set([n1, n2, n3, n4, n5, n6, n7])
-    funcs = Set([n1, n2, n3])
-    terms = Set([n4, n5, n6, n7])
-    geno = GPGeno(n1, nodes, funcs, terms)
+@testset "Deterministic Mutation Functions Big" begin
+    geno = big_geno()
 
+    @testset "addfunc" begin
+        newnode_gid = 11
+        newnode_val = pdiv
+        newnode_child_gids = [12, 13]
+        newnode_child_vals = [12.0, 13.0]
+
+        new_geno = addfunc(geno, newnode_gid, newnode_val, newnode_child_gids, newnode_child_vals)
+
+        # Assert that new function node is added
+        @test new_geno.funcs[newnode_gid].val == newnode_val
+        # Assert new terminals are added
+        @test new_geno.terms[12].val == 12.0
+        @test new_geno.terms[13].val == 13.0
+        # Test that parent is set to nothing
+        @test new_geno.funcs[newnode_gid].parent_gid === nothing
+        @test length(new_geno.funcs) == 5
+        @test length(new_geno.terms) == 8
+    end
+end
+
+
+@testset "Random Mutation Functions" begin
     rng = StableRNG(1234)
-    m = GPMutator()
+    sc = SpawnCounter(2, 4)  # Some dummy spawn counter
+    mutator = GPMutator()
 
-    for _ in 1:10
-        testgeno = rmfunc(rng, m, geno)
-        @test length(testgeno.funcs) == 2
-        println("RMFunc2: ", Expr(testgeno.root))
+    @testset "addfunc" begin
+        new_geno = addfunc(rng, sc, mutator, dummygeno())
+        @test length(new_geno.funcs) == 2
+        newfunc_val = get_node(new_geno, 4).val
+        if newfunc_val in [+, -, *]
+            @test length(new_geno.terms) == 4
+        elseif newfunc_val == iflt
+            @test length(new_geno.terms) == 6
+        elseif newfunc_val == psin
+            @test length(new_geno.terms) == 3
+        end
+    end
+
+    @testset "rmfunc" begin
+        new_geno = rmfunc(rng, mutator, dummygeno())
+        @test length(new_geno.funcs) == 0
+        @test length(new_geno.terms) == 1
+    end
+
+    @testset "swapnode" begin
+        geno = dummygeno()
+        new_geno = swapnode(geno, 2, 3)
+        node2 = get_node(new_geno, 2)
+        node3 = get_node(new_geno, 3)
+        @test node2.parent_gid == get_node(geno, 2).parent_gid
+        @test node3.parent_gid == get_node(geno, 3).parent_gid
+        @test get_node(new_geno, 1).child_gids == [3, 2]
     end
 end
 
-@testset "SwapNode1" begin
-    n1 = ExprNode(+)
-    n2 = ExprNode(-, n1)
-    n3 = ExprNode(*, n1)
-    n1.children = [n2, n3]
-    n4 = ExprNode(0, n2)
-    n5 = ExprNode(1, n2)
-    n2.children = [n4, n5]
-    n6 = ExprNode(2, n3)
-    n7 = ExprNode(3, n3)
-    n3.children = [n6, n7]
-    nodes = Set([n1, n2, n3, n4, n5, n6, n7])
-    funcs = Set([n1, n2, n3])
-    terms = Set([n4, n5, n6, n7])
-    geno = GPGeno(n1, nodes, funcs, terms)
-
-
-    mutgeno = swapnode(geno, n2, n3)
-
-    t1 = ExprNode(+)
-    t2 = ExprNode(*, t1)
-    t3 = ExprNode(-, t1)
-    t4 = ExprNode(0, t3)
-    t5 = ExprNode(1, t3)
-    t6 = ExprNode(2, t2)
-    t7 = ExprNode(3, t2)
-    t1.children = [t2, t3]
-    t2.children = [t6, t7]
-    t3.children = [t4, t5]
-    nodes = Set([t1, t2, t3, t4, t5, t6, t7])
-    funcs = Set([t1, t2, t3])
-    terms = Set([t4, t5, t6, t7])
-    testgeno = GPGeno(t1, nodes, funcs, terms)
-
-    @test Expr(mutgeno) == Expr(testgeno)
-end
-
-@testset "SwapNode2" begin
-    n1 = ExprNode(*)
-    n2 = ExprNode(-, n1)
-    n3 = ExprNode(+, n1)
-    n1.children = [n2, n3]
-    n4 = ExprNode(1, n2)
-    n5 = ExprNode(2, n2)
-    n2.children = [n4, n5]
-    n6 = ExprNode(3, n3)
-    n7 = ExprNode(4, n3)
-    n3.children = [n6, n7]
-    nodes = Set([n1, n2, n3, n4, n5, n6, n7])
-    funcs = Set([n1, n2, n3])
-    terms = Set([n4, n5, n6, n7])
-    geno = GPGeno(n1, nodes, funcs, terms)
-
-    rng = StableRNG(42)
-    m = GPMutator()
-
-    for n in 1:10
-        mutgeno = swapnode(rng, m, geno)
-        @test length(mutgeno.funcs) == 3
-        println("SwapNode2: ", Expr(mutgeno.root))
-    end
-
-    rng = StableRNG(42)
-    m = GPMutator()
-    println("--------------")
-    for n in 1:10
-        mutgeno = swapnode(rng, m, geno)
-        @test length(mutgeno.funcs) == 3
-        println("SwapNode2: ", Expr(mutgeno.root))
+@testset "Simulate" begin
+    @testset "basic" begin
+        rng = StableRNG(1234)
+        geno = dummygeno()
+        expr = Expr(geno)
+        @test eval(expr) == 5.0
     end
 end
 
-@testset "Simulate1" begin
-    n1 = ExprNode(+)
-    n2 = ExprNode(1, n1)
-    n3 = ExprNode(1, n1)
-    n1.children = [n2, n3]
-    expr1 = Expr(n1)
-    expr2 = deepcopy(expr1)
-    tape1, tape2 = simulate(3, expr1, expr2)
-    @test tape1 == tape2
-    @test tape1 == [2, 2, 2]
-end
+@testset "Spawner" begin
+    function testspawner(
+        spid::Symbol;
+        npop = 10,
+    )
+        spid => Spawner(
+            spid = spid,
+            npop = npop,
+            icfg = GPIndivCfg(
+                spid = spid,
+            ),
+            phenocfg = DefaultPhenoCfg(),
+            replacer = IdentityReplacer(),
+            selector = IdentitySelector(),
+            recombiner = IdentityRecombiner(),
+            mutators = Mutator[],
+            archiver = GPIndivArchiver()
+        )
+    end
 
-@testset "Simulate with read" begin
-    n1 = ExprNode(+)
-    n2 = ExprNode(:read, n1)
-    n3 = ExprNode(1, n1)
-    n1.children = [n2, n3]
-    expr1 = Expr(n1)
-    expr2 = copy(expr1)
-    tape1, tape2 = simulate(3, expr1, expr2)
-    @test tape1 == tape2
-    @test tape1 == [1, 2, 3]
-end
+    spawner = testspawner(:test)
 
-@testset "Simulate with read asymmetric" begin
-    n1 = ExprNode(+)
-    n2 = ExprNode(:read, n1)
-    n3 = ExprNode(1, n1)
-    n1.children = [n2, n3]
-    expr1 = Expr(n1)
-    n1 = ExprNode(+)
-    n2 = ExprNode(:read, n1)
-    n3 = ExprNode(:read, n1)
-    n1.children = [n2, n3]
-    expr2 = Expr(n1)
-    tape1, tape2 = simulate(100, expr1, expr2, radianshift)
-    println(tape1)
-    println(tape2)
-end
 
 end

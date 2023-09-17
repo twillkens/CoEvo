@@ -16,10 +16,6 @@ function(cfg::LingPredObsConfig)(
     )
 end
 
-function(cfg::NullObsConfig)(args...; kwargs...)
-    NullObs()
-end
-
 struct LingPredObs{T} <: Observation
     loopstart::Int
     outs::Dict{IndivKey, Vector{Bool}}

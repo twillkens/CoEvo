@@ -4,15 +4,11 @@ abstract type Key end
 
 struct IndivKey
     spid::Symbol
-    iid::UInt32
-end
-
-function IndivKey(spid::Symbol, iid::Int)
-    IndivKey(spid, UInt32(iid))
+    iid::Int
 end
 
 function IndivKey(spid::String, iid::String)
-    IndivKey(Symbol(spid), parse(UInt32, iid))
+    IndivKey(Symbol(spid), parse(Int, iid))
 end
 
 struct TestKey

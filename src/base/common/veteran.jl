@@ -1,6 +1,4 @@
-export Veteran, VetSpecies
-export dummyvets, clone
-export iid, spid
+export Veteran, clone
 
 struct Veteran{I <: Individual, R <: Real} <: Individual
     ikey::IndivKey

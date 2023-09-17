@@ -1,9 +1,3 @@
-export Gene, Individual, IndivConfig, Genotype, Phenotype, PhenoConfig
-export Domain, Order, JobConfig, Result #, Outcome
-export Observation, ObsConfig
-export Replacer, Selector, Recombiner, Mutator
-export Logger, Coevolution
-export Job, Archiver
 
 # individual
 abstract type Gene end
