@@ -11,7 +11,6 @@ using DataStructures
 using HypothesisTests
 using StringDistances
 using Pidfile
-
 #include("abstract/abstract.jl")
 include("base/base.jl")
 include("domains/domains.jl")

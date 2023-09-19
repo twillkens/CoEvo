@@ -7,6 +7,7 @@ using CoEvo.Base.Coev
 using CoEvo.Base.Common
 using CoEvo.Base.Reproduction
 using CoEvo.Base.Indivs.GP
+using CoEvo.Base.Indivs.GP: GPPheno, GPPhenoCfg
 using CoEvo.Base.Indivs.GP: GPGeno, ExprNode, Terminal, GPMutator, FuncAlias
 using CoEvo.Base.Indivs.GP: GPGenoCfg, GPGenoArchiver
 using CoEvo.Base.Indivs.GP: get_node, get_child_index, get_ancestors, get_descendents
@@ -17,51 +18,6 @@ using CoEvo.Domains.SymRegression
 using CoEvo.Domains.SymRegression: stir
 using CoEvo.Base.Jobs
 using CoEvo.Domains.ContinuousPredictionGame
-
-
-function make_challenge()
-    GPGeno(
-        root_gid = 1,
-        funcs = Dict(
-            1 => ExprNode(1, nothing, iflt, [5, 2]),
-            2 => ExprNode(2, 1, +, [6, 7]),
-            3 => ExprNode(3, 1, psin, [4]),
-            4 => ExprNode(4, 3, *, [8, 9]),
-        ),
-        terms = Dict(
-            5 => ExprNode(5, 1, π),
-            6 => ExprNode(6, 1, π),
-            7 => ExprNode(7, 2, :read),
-            8 => ExprNode(8, 1, :read),
-            9 => ExprNode(9, 4, :read),
-            10 => ExprNode(10, 4, π),
-        ),
-    )
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -89,9 +45,13 @@ end
 
 @testset "ContinuousPredictionGame" begin
     @testset "spin" begin
+        ikey1 = IndivKey(:a, 1)
+        ikey2 = IndivKey(:b, 1)
         geno1 = spingeno1()
         geno2 = spingeno2()
-        cfg = TapeReaderGPPhenoCfg()
+        p1 = GPPheno(ikey1, geno1)
+        p2 = GPPheno(ikey2, geno2)
+        cfg = GPPhenoCfg()
         pheno1 = cfg(IndivKey(:a, 1), geno1)
         pheno2 = cfg(IndivKey(:b, 1), geno2)
         domain = ContinuousPredictionGameDomain()
@@ -104,36 +64,9 @@ function contpred3mix()
     eco = :continuous_prediction_game
     trial = 1
     seed = 420
-    npop = 25
-    tsize = 3
-    episode_len = 16
-    gametype = "coop_match"
+    npop = 50
+    episode_len = 64
     njobs = 8
-
-    function make_spawner(spid::Symbol)
-        Spawner(
-            spid = spid,
-            npop = npop,
-            genocfg = GPGenoCfg(),
-            phenocfg = TapeReaderGPPhenoCfg(),
-            replacer = GenerationalReplacer(n_elite = 0, reverse = true),
-            selector = RouletteSelector(μ = npop),
-            recombiner = CloneRecombiner(),
-            mutators = [mutator],
-        )
-    end
-    
-    domain = ContinuousPredictionGameDomain(
-        episode_len = episode_len,
-        type = gametype,
-    )
-    order = AllvsAllPlusOrder(
-        oid = :continuous_prediction_game, 
-        spids = [:host, :para], 
-        domain = domain,
-        obscfg = NullObsConfig(),
-    )
-
     terms = Dict{Terminal, Int}(:read => 1, 0.0 => 1)
     funcs = Dict{FuncAlias, Int}([
         (+, 2), 
@@ -145,6 +78,41 @@ function contpred3mix()
     ])
     mutator = GPMutator(terminals = terms, functions = funcs)
 
+    function make_spawner(spid::Symbol)
+        Spawner(
+            spid = spid,
+            npop = npop,
+            genocfg = GPGenoCfg(),
+            phenocfg = GPPhenoCfg(),
+            replacer = GenerationalReplacer(n_elite = 0, reverse = true),
+            selector = RouletteSelector(μ = npop),
+            recombiner = CloneRecombiner(),
+            mutators = [mutator],
+        )
+    end
+    
+    orders = [
+        AllvsAllPlusOrder(
+            oid = :host_para, 
+            spids = [:host, :para], 
+            domain = ContinuousPredictionGameDomain(
+                episode_len = episode_len,
+                type = "comp",
+            ),
+            obscfg = NullObsConfig(),
+        ),
+        AllvsAllPlusOrder(
+            oid = :host_mut, 
+            spids = [:host, :mut], 
+            domain = ContinuousPredictionGameDomain(
+                episode_len = episode_len,
+                type = "coop_diff",
+            ),
+            obscfg = NullObsConfig(),
+        ),
+    ]
+
+
     host_spawner = make_spawner(:host)
     para_spawner = make_spawner(:para)
     mut_spawner = make_spawner(:mut)
@@ -152,23 +120,24 @@ function contpred3mix()
         eco = eco,
         trial = trial,
         seed = seed,
-        orders = [order],
-        spawners = [host_spawner, para_spawner],
+        orders = orders,
+        spawners = [host_spawner, para_spawner, mut_spawner],
         jobcfg = ParallelPhenoJobConfig(njobs = njobs),
         arxiv_interval = 0,
         log_interval = 1,
     )
-
+    species = coev_cfg()
+    evolve!(1, 100, coev_cfg, species)
 end
 
 @testset "ContinuousPredictionGame" begin
     eco = :continuous_prediction_game
     trial = 1
     seed = 420
-    npop = 25
+    npop = 100
     tsize = 3
-    episode_len = 16
-    gametype = "coop_match"
+    episode_len = 64
+    gametype = "comp"
     njobs = 8
     
     domain = ContinuousPredictionGameDomain(
@@ -197,7 +166,7 @@ end
         spid = :host,
         npop = npop,
         genocfg = GPGenoCfg(),
-        phenocfg = TapeReaderGPPhenoCfg(),
+        phenocfg = GPPhenoCfg(),
         replacer = GenerationalReplacer(n_elite = 0, reverse = true),
         selector = RouletteSelector(μ = npop),
         #selector = TournamentSelector(
@@ -211,7 +180,7 @@ end
         spid = :para,
         npop = npop,
         genocfg = GPGenoCfg(),
-        phenocfg = TapeReaderGPPhenoCfg(),
+        phenocfg = GPPhenoCfg(),
         replacer = GenerationalReplacer(n_elite = 0, reverse = true),
         selector = RouletteSelector(μ = npop),
         #selector = TournamentSelector(
@@ -235,7 +204,7 @@ end
     )
 
     species = coev_cfg()
-    #evolve!(1, 1000, coev_cfg, species)
+    evolve!(1, 100, coev_cfg, species)
 end
 
 
