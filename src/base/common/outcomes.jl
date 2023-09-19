@@ -7,6 +7,14 @@ struct Outcome{R <: Real, O <: Observation}
     obs::O
 end
 
+function Base.show(io::IO, o::Outcome)
+    print(io, "Outcome($(o.oid)")
+    for (ikey, pair) in o.rdict
+        print(io, "\n\t$ikey => $(pair.first) => $(pair.second)")
+    end
+    print(io, "\n$(o.obs)")
+end
+
 function Outcome(oid::Symbol, rdict::Dict{IndivKey, Pair{TestKey, <:Real}})
     Outcome(oid, rdict, NullObs())
 end

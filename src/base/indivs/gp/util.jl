@@ -6,7 +6,7 @@ const FuncAlias = Union{Symbol, Function}
 # Collection of protected function for GP
 
 """Protected division"""
-pdiv(x, y, undef=10e6) = ifelse(y == 0, x + undef, /(x,y))
+pdiv(x, y, undef=10e6) = ifelse(y == 0, undef, /(x,y))
 """Analytic quotient"""
 aq(x, y)               = x / sqrt(1 + y * y)
 """Protected exponential"""
@@ -34,10 +34,14 @@ end
 cond(x,y,a,b)          = ifelse(x > y, a, b)
 
 function iflt(first_arg, second_arg, then_arg, else_arg)
-    if eval(Expr(first_arg)) < eval(Expr(second_arg))
-        return eval(Expr(then_arg))
+    first_arg = isa(first_arg, Expr) ? eval(first_arg) : first_arg
+    second_arg = isa(second_arg, Expr) ? eval(second_arg) : second_arg
+    if first_arg < second_arg
+        then_arg = isa(then_arg, Expr) ? eval(then_arg) : then_arg
+        return then_arg
     else
-        return eval(Expr(else_arg))
+        else_arg = isa(else_arg, Expr) ? eval(else_arg) : else_arg
+        return else_arg
     end
 end
 

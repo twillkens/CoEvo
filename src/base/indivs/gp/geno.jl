@@ -16,6 +16,13 @@ function ExprNode(
     ExprNode(gid, parent, val, ExprNode[])
 end
 
+function Base.:(==)(a::ExprNode, b::ExprNode)
+    return a.gid == b.gid &&
+           a.parent_gid == b.parent_gid &&
+           a.val == b.val &&
+           a.child_gids == b.child_gids
+end
+
 function Base.show(io::IO, enode::ExprNode)
     if length(enode.child_gids) == 0
         children = ""
@@ -23,14 +30,20 @@ function Base.show(io::IO, enode::ExprNode)
         children = join([child_gid for child_gid in enode.child_gids], ", ")
         children = "($children)"
     end
-    print(io, "$(enode.gid) => $(enode.val)$children")
+    print(io, "$(enode.parent_gid) <= $(enode.gid) => $(enode.val)$children")
 end
 
 # Basic genotype for GP individuals
-mutable struct GPGeno <: Genotype
-    root_gid::Int
-    funcs::Dict{Int, ExprNode}
-    terms::Dict{Int, ExprNode}
+Base.@kwdef mutable struct GPGeno <: Genotype
+    root_gid::Int = 1
+    funcs::Dict{Int, ExprNode} = Dict{Int, ExprNode}()
+    terms::Dict{Int, ExprNode} = Dict{Int, ExprNode}()
+end
+
+function Base.:(==)(a::GPGeno, b::GPGeno)
+    return a.root_gid == b.root_gid &&
+           a.funcs == b.funcs &&
+           a.terms == b.terms
 end
 
 function Base.show(io::IO, geno::GPGeno)
@@ -57,13 +70,16 @@ end
 # Get selected nodes from the genotype as a vector
 function get_nodes(geno::GPGeno, gids::Vector{Int})
     all_nodes = merge(geno.funcs, geno.terms)
-    [all_nodes[gid] for gid in gids]
+    [haskey(all_nodes, gid) ? all_nodes[gid] : nothing for gid in gids]
 end
 
 # Get specific node from the genotype
-function get_node(geno::GPGeno, gid::Int)
+function get_node(geno::GPGeno, gid::Union{Int, Nothing})
+    if gid === nothing
+        return nothing
+    end
     all_nodes = merge(geno.funcs, geno.terms)
-    all_nodes[gid]
+    haskey(all_nodes, gid) ? all_nodes[gid] : nothing
 end
 
 function get_root(geno::GPGeno)
@@ -108,26 +124,27 @@ function get_descendents(geno::GPGeno, root::ExprNode)
     nodes
 end
 
-struct GPIndiv <: Individual
-    ikey::IndivKey
-    geno::GPGeno
-    pids::Set{Int}
+function get_descendents(geno::GPGeno, root_gid::Int)
+    get_descendents(geno, get_node(geno, root_gid))
 end
 
-Base.@kwdef struct GPIndivCfg <: IndivConfig
-    spid::Symbol
+function get_ancestors(geno::GPGeno, root_gid::Int)
+    get_ancestors(geno, get_node(geno, root_gid))
 end
 
-function GPIndiv(spid::Symbol, sc::SpawnCounter)
-    iid = iid!(sc)
+
+Base.@kwdef struct GPGenoCfg <: GenoConfig 
+    startval::Union{Symbol, Function, Real} = 0.0
+end
+
+function(geno_cfg::GPGenoCfg)(sc::SpawnCounter)
     root_gid = gid!(sc)
-    geno = GPGeno(
-        root_gid,
-        Dict{Int, ExprNode}(),
-        Dict(root_gid => ExprNode(root_gid, nothing, 0.0)),
+    GPGeno(
+        root_gid = root_gid,
+        terms = Dict(root_gid => ExprNode(root_gid, nothing, geno_cfg.startval)),
     )
-    GPIndiv(IndivKey(spid, iid), geno, Set{Int}())
 end
-function(icfg::GPIndivCfg)(::AbstractRNG, sc::SpawnCounter, npop::Int)
-    [GPIndiv(icfg.spid, sc) for _ in 1:npop]
+
+function(geno_cfg::GPGenoCfg)(::AbstractRNG, sc::SpawnCounter, n_pop::Int)
+    [geno_cfg(sc) for _ in 1:n_pop]
 end

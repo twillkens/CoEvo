@@ -20,26 +20,13 @@ end
 Base.@kwdef struct SumPhenoConfig <: PhenoConfig
 end
 
-function(::SumPhenoConfig)(geno::VectorGeno)
+function(::SumPhenoConfig)(ikey::IndivKey, geno::VectorGeno)
     val = sum(geno.genes)
     ScalarPheno(geno.ikey, val)
 end
 
-function(::SumPhenoConfig)(indiv::VectorIndiv)
-    val = sum(gene.val for gene in indiv.genes)
-    ScalarPheno(indiv.ikey, val)
-end
 
 
-struct VectorPheno{T <: Real} <: Phenotype
-    ikey::IndivKey
-    vec::Vector{T}
-end
-
-function VectorPheno(spkey::Symbol, iid::Real, vec::Vector{<:Real})
-    ikey = IndivKey(spkey, UInt32(iid))
-    VectorPheno(ikey, vec)
-end
 
 Base.@kwdef struct SubvecPhenoConfig <: PhenoConfig
     subvec_width::Int

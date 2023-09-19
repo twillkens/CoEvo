@@ -3,15 +3,15 @@ export CloneRecombiner
 
 Base.@kwdef struct IdentityRecombiner <: Recombiner end
 
-function(r::IdentityRecombiner)(::AbstractRNG, ::SpawnCounter, parents::Vector{<:Veteran})
+function(r::IdentityRecombiner)(::AbstractRNG, ::SpawnCounter, parents::Vector{<:Individual})
     parents
 end
 
 Base.@kwdef struct CloneRecombiner <: Recombiner
 end
 
-function(r::CloneRecombiner)(::AbstractRNG, sc::SpawnCounter, parents::Vector{<:Veteran},)
-    [clone(iid, p) for (iid, p,) in zip(iids!(sc, length(parents)), parents,)]
+function(r::CloneRecombiner)(::AbstractRNG, sc::SpawnCounter, parents::Vector{<:Individual},)
+    [BasicIndiv(IndivKey(parent.spid, iid!(sc)), parent.geno, parent.iid) for parent in parents]
 end
 
 struct NPointCrossoverRecombiner <: Recombiner

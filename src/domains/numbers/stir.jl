@@ -19,11 +19,11 @@ end
 
 function stir(
     oid::Symbol, ::NGGradient, ::NGObsConfig,
-    A::ScalarPheno, B::ScalarPheno
+    A::Pheno{<:Real}, B::Pheno{<:Real}
 )
     Outcome(oid,
-        A => A.val > B.val,
-        B => B.val > A.val)
+        A => A.pheno > B.pheno,
+        B => B.pheno > A.pheno)
 end
 
 function stir(

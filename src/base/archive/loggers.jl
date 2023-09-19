@@ -48,22 +48,3 @@ end
 function StatFeatures(vec::Vector{StatFeatures}, field::Symbol)
     StatFeatures([getfield(sf, field) for sf in vec])
 end
-
-function make_group!(parent_group::JLD2.Group, key::String)
-    key ∉ keys(parent_group) ? JLD2.Group(parent_group, key) : parent_group[key]
-end
-
-function make_group!(parent_group::JLD2.Group, key::Union{Symbol, UInt32, Int})
-    make_group!(parent_group, string(key))
-end
-
-function(a::Archiver)(
-    ::Int, allspgroup::JLD2.Group, spid::Symbol, sp::Species, writegenos::Bool = true
-)
-    spgroup = make_group!(allspgroup, string(spid))
-    spgroup["popids"] = a.log_popids ? [ikey.iid for ikey in keys(sp.pop)] : UInt32[]
-    cngroup = make_group!(spgroup, "children")
-    for indiv in values(sp.children)
-        a(cngroup, indiv, writegenos)
-    end
-end

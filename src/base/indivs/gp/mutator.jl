@@ -5,9 +5,10 @@ Base.@kwdef struct GPMutator <: Mutator
     nchanges::Int = 1
     # Uniform probability of each type of structural change
     probs::Dict{Function, Float64} = Dict(
-        addfunc => 1 / 3,
-        rmfunc => 1 / 3,
-        swapnode => 1 / 3,
+        addfunc => 1 / 4,
+        rmfunc => 1 / 4,
+        swapnode => 1 / 4,
+        splicefunc => 1 / 4
     )
     terminals::Dict{Terminal, Int} = Dict(
         :read => 1, 
@@ -21,6 +22,21 @@ Base.@kwdef struct GPMutator <: Mutator
         (iflt, 4),
     ])
     noise_std::Float64 = 0.1
+end
+
+function(m::GPMutator)(rng::AbstractRNG, sc::SpawnCounter, geno::GPGeno,) 
+    fns = sample(rng, collect(keys(m.probs)), Weights(collect(values(m.probs))), m.nchanges)
+    for fn in fns
+        geno = fn(rng, sc, m, geno)
+    end
+    if geno.root_gid ∉ keys(all_nodes(geno))
+        throw(ErrorException("Root node not in genotype"))
+    end
+    geno = inject_noise(rng, sc, m, geno)
+    if geno.root_gid ∉ keys(all_nodes(geno))
+        throw(ErrorException("Root node not in genotype after noise"))
+    end
+    geno
 end
 # Make a copy of the genotype and create the new function node and its terminals
 # before adding to the genotype func and term dicts.
@@ -54,7 +70,7 @@ function addfunc(rng::AbstractRNG, sc::SpawnCounter, m::GPMutator, geno::GPGeno)
     newnode_gid = gid!(sc) # Increment spawn counter to find unique gene id
     newnode_val, ndim = rand(rng, m.functions) # Choose a random function and number of args
     new_child_gids = [gid!(sc) for _ in 1:ndim] # Generate unique gene ids for the children
-    new_child_vals = [rand(rng, keys(m.terminals)) for _ in 1:ndim] # Choose random terminals
+    new_child_vals = Terminal[rand(rng, keys(m.terminals)) for _ in 1:ndim] # Choose random terminals
     # The new node is added to the genotype without a parent
     addfunc(geno, newnode_gid, newnode_val, new_child_gids, new_child_vals)
 end
@@ -122,7 +138,7 @@ end
 
 # Randomly select a function node and one of its children and remove the function node
 # If the genotype has no function nodes, then return a copy of the genotype
-function rmfunc(rng::AbstractRNG, ::GPMutator, geno::GPGeno)
+function rmfunc(rng::AbstractRNG, ::SpawnCounter, ::GPMutator, geno::GPGeno)
     if length(geno.funcs) == 0
         return deepcopy(geno)
     end
@@ -176,10 +192,10 @@ function swapnode(
     end
 
     # if a node is a nonroot terminal with no parent, then delete it from the set of terminals
-    if node_gid1 in keys(geno.terms) && node1.parent_gid === nothing && node1 !== geno.root_gid
+    if node_gid1 in keys(geno.terms) && node1.parent_gid === nothing && node_gid1 !== geno.root_gid
         delete!(geno.terms, node_gid1)
     end
-    if node_gid2 in keys(geno.terms) && node2.parent_gid === nothing && node2 !== geno.root_gid
+    if node_gid2 in keys(geno.terms) && node2.parent_gid === nothing && node_gid2 !== geno.root_gid
         delete!(geno.terms, node_gid2)
     end
     geno
@@ -188,9 +204,9 @@ end
 # Selects two nodes at random and swaps them
 # The criteria is that two nodes cannot be swapped if they belong to the same lineage
 # (i.e. one is an ancestor of the other)
-function swapnode(rng::AbstractRNG, ::GPMutator, geno::GPGeno)
+function swapnode(rng::AbstractRNG, ::SpawnCounter, ::GPMutator, geno::GPGeno)
     # select a function node at random
-    node1 = rand(rng, geno.funcs).second
+    node1 = rand(rng, all_nodes(geno)).second
     lineage_nodes = [get_ancestors(geno, node1); node1; get_descendents(geno, node1)]
     lineage_gids = Set(n.gid for n in lineage_nodes)
     all_node_gids = Set(n.gid for n in values(all_nodes(geno)))
@@ -201,6 +217,96 @@ function swapnode(rng::AbstractRNG, ::GPMutator, geno::GPGeno)
     node_gid2 = rand(rng, swappable)
     swapnode(geno, node1.gid, node_gid2)
 end
+
+function replace_child!(parent_node::ExprNode, old_child_node::ExprNode, new_child_node::ExprNode)
+    child_idx = get_child_index(parent_node, old_child_node)
+    parent_node.child_gids[child_idx] = new_child_node.gid
+end
+
+function replace_child!(parent_gid::Int, old_child_gid::Int, new_child_gid::Int)
+    parent_node = get_node(geno, parent_gid)
+    old_child_node = get_node(geno, old_child_gid)
+    new_child_node = get_node(geno, new_child_gid)
+    replace_child(parent_node, old_child_node, new_child_node)
+end
+
+function splicefunc(
+    geno::GPGeno, 
+    splicer_top_gid::Int, 
+    splicer_tail_gid::Int,
+    splicee_gid::Int,
+)
+    geno = deepcopy(geno)
+
+    splicer_top = get_node(geno, splicer_top_gid)
+    splicer_parent = get_node(geno, splicer_top.parent_gid)
+    splicer_tail = get_node(geno, splicer_tail_gid)
+    splicer_bottom = get_node(geno, splicer_tail.parent_gid)
+    splicee = get_node(geno, splicee_gid)
+    splicee_parent = get_node(geno, splicee.parent_gid)
+
+    # The splicer top replaces the splicee as the child of the splicee's parent
+    if splicee_parent !== nothing
+        splicer_top.parent_gid = splicee_parent.gid
+        replace_child!(splicee_parent, splicee, splicer_top)
+    else
+        splicer_top.parent_gid = nothing
+        geno.root_gid = splicer_top.gid
+    end
+
+    # The splicee then is attached to the splicer bottom, replacing the splicer tail
+    splicee.parent_gid = splicer_bottom.gid
+    replace_child!(splicer_bottom, splicer_tail, splicee)
+
+    # The splicer tail then becomes the child of the splicer parent
+    splicer_tail.parent_gid = splicer_parent === nothing ? nothing : splicer_parent.gid
+    if splicer_parent !== nothing
+        replace_child!(splicer_parent, splicer_top, splicer_tail)
+    end
+
+    if splicee_gid == geno.root_gid
+        geno.root_gid = get_ancestors(geno, splicee)[end].gid
+    end
+    if splicer_top_gid == geno.root_gid
+        ancestors = get_ancestors(geno, splicer_top)
+        geno.root_gid = length(ancestors) > 0 ? ancestors[end].gid : splicer_top_gid
+    end
+    if splicer_tail_gid in keys(geno.terms) && 
+            splicer_tail.parent_gid === nothing && 
+            splicer_tail_gid !== geno.root_gid
+        delete!(geno.terms, splicer_tail_gid)
+    end
+    geno
+end
+
+function splicefunc(rng::AbstractRNG, ::SpawnCounter, ::GPMutator, geno::GPGeno)
+    # select a function node at random for splicer_top_gid
+    if length(geno.funcs) == 0
+        return deepcopy(geno)
+    end
+    splicer_top = rand(rng, collect(values(geno.funcs)))
+
+    
+    # Get all descendents of splicer_top_gid for potential splicer_tail_gid
+    descendents = get_descendents(geno, splicer_top.gid)
+    splicer_tail = rand(rng, descendents)
+
+    # Identify all nodes not in the lineage of splicer_top and splicer_tail for splicee_gid
+    lineage_nodes = [get_ancestors(geno, splicer_top.gid); splicer_top; descendents]
+    lineage_gids = Set(n.gid for n in lineage_nodes)
+    all_node_gids = Set(n.gid for n in values(all_nodes(geno)))
+    spliceable = setdiff(all_node_gids, lineage_gids)
+    
+    # If there are no spliceable nodes, return original genotype
+    if isempty(spliceable)
+        return deepcopy(geno)
+    end
+
+    splicee_gid = rand(rng, spliceable)
+    
+    return splicefunc(geno, splicer_top.gid, splicer_tail.gid, splicee_gid)
+end
+
 
 # Mutate the genotype by adding random noise to real-valued terminals
 function inject_noise(geno::GPGeno, noisedict::Dict{Int, Float64})
@@ -218,7 +324,7 @@ end
 
 # Generate a dictionary of random noise values for each real-valued terminal in the genotype
 # and inject the noise into a copy of the genotype. Uses the GPMutator noise_std field.
-function inject_noise(rng::AbstractRNG, m::GPMutator, geno::GPGeno)
+function inject_noise(rng::AbstractRNG, ::SpawnCounter, m::GPMutator, geno::GPGeno)
     noisedict = Dict{Int, Float64}()
     injectable_gids = [gid for (gid, node) in geno.terms if isa(node.val, Float64)]
     noisevec = randn(rng, length(injectable_gids)) * m.noise_std

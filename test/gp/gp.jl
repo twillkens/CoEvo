@@ -1,14 +1,243 @@
 using Test
 using Random
 using StableRNGs
-using CoEvo
+using Distributed
+@everywhere using CoEvo
+using CoEvo.Base.Coev
 using CoEvo.Base.Common
 using CoEvo.Base.Reproduction
-using CoEvo.Base.Indivs.GP: GPGeno, ExprNode, Terminal, GPMutator, GPIndivCfg, GPIndiv, GPIndivArchiver
+using CoEvo.Base.Indivs.GP
+using CoEvo.Base.Indivs.GP: GPGeno, ExprNode, Terminal, GPMutator, FuncAlias
+using CoEvo.Base.Indivs.GP: GPGenoCfg, GPGenoArchiver
 using CoEvo.Base.Indivs.GP: get_node, get_child_index, get_ancestors, get_descendents
-using CoEvo.Base.Indivs.GP: addfunc, rmfunc, swapnode, inject_noise
+using CoEvo.Base.Indivs.GP: addfunc, rmfunc, swapnode, inject_noise, splicefunc
 using CoEvo.Base.Indivs.GP: pdiv, iflt, psin
-using CoEvo.Base.Indivs.GP: pdiv, iflt, psin
+
+using CoEvo.Domains.SymRegression
+using CoEvo.Domains.SymRegression: stir
+using CoEvo.Base.Jobs
+using CoEvo.Domains.ContinuousPredictionGame
+
+
+function make_challenge()
+    GPGeno(
+        root_gid = 1,
+        funcs = Dict(
+            1 => ExprNode(1, nothing, iflt, [5, 2]),
+            2 => ExprNode(2, 1, +, [6, 7]),
+            3 => ExprNode(3, 1, psin, [4]),
+            4 => ExprNode(4, 3, *, [8, 9]),
+        ),
+        terms = Dict(
+            5 => ExprNode(5, 1, π),
+            6 => ExprNode(6, 1, π),
+            7 => ExprNode(7, 2, :read),
+            8 => ExprNode(8, 1, :read),
+            9 => ExprNode(9, 4, :read),
+            10 => ExprNode(10, 4, π),
+        ),
+    )
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function spingeno1()
+    GPGeno(
+        root_gid = 1,
+        terms = Dict(
+            1 => ExprNode(1, nothing, :read),
+        ),
+    )
+end
+
+function spingeno2()
+    GPGeno(
+        root_gid = 1,
+        funcs = Dict(
+            1 => ExprNode(1, nothing, +, [2, 3]),
+        ),
+        terms = Dict(
+            2 => ExprNode(2, 1, :read),
+            3 => ExprNode(3, 1, π / 2),
+        ),
+    )
+end
+
+@testset "ContinuousPredictionGame" begin
+    @testset "spin" begin
+        geno1 = spingeno1()
+        geno2 = spingeno2()
+        cfg = TapeReaderGPPhenoCfg()
+        pheno1 = cfg(IndivKey(:a, 1), geno1)
+        pheno2 = cfg(IndivKey(:b, 1), geno2)
+        domain = ContinuousPredictionGameDomain()
+        obscfg = NullObsConfig()
+        outcome = stir(:test, domain, obscfg, pheno1, pheno2)
+    end
+end
+
+function contpred3mix()
+    eco = :continuous_prediction_game
+    trial = 1
+    seed = 420
+    npop = 25
+    tsize = 3
+    episode_len = 16
+    gametype = "coop_match"
+    njobs = 8
+
+    function make_spawner(spid::Symbol)
+        Spawner(
+            spid = spid,
+            npop = npop,
+            genocfg = GPGenoCfg(),
+            phenocfg = TapeReaderGPPhenoCfg(),
+            replacer = GenerationalReplacer(n_elite = 0, reverse = true),
+            selector = RouletteSelector(μ = npop),
+            recombiner = CloneRecombiner(),
+            mutators = [mutator],
+        )
+    end
+    
+    domain = ContinuousPredictionGameDomain(
+        episode_len = episode_len,
+        type = gametype,
+    )
+    order = AllvsAllPlusOrder(
+        oid = :continuous_prediction_game, 
+        spids = [:host, :para], 
+        domain = domain,
+        obscfg = NullObsConfig(),
+    )
+
+    terms = Dict{Terminal, Int}(:read => 1, 0.0 => 1)
+    funcs = Dict{FuncAlias, Int}([
+        (+, 2), 
+        (-, 2), 
+        (*, 2), 
+        (pdiv, 2), 
+        (psin, 1),
+        (iflt, 4),
+    ])
+    mutator = GPMutator(terminals = terms, functions = funcs)
+
+    host_spawner = make_spawner(:host)
+    para_spawner = make_spawner(:para)
+    mut_spawner = make_spawner(:mut)
+    coev_cfg = CoevConfig(
+        eco = eco,
+        trial = trial,
+        seed = seed,
+        orders = [order],
+        spawners = [host_spawner, para_spawner],
+        jobcfg = ParallelPhenoJobConfig(njobs = njobs),
+        arxiv_interval = 0,
+        log_interval = 1,
+    )
+
+end
+
+@testset "ContinuousPredictionGame" begin
+    eco = :continuous_prediction_game
+    trial = 1
+    seed = 420
+    npop = 25
+    tsize = 3
+    episode_len = 16
+    gametype = "coop_match"
+    njobs = 8
+    
+    domain = ContinuousPredictionGameDomain(
+        episode_len = episode_len,
+        type = gametype,
+    )
+    order = AllvsAllPlusOrder(
+        oid = :continuous_prediction_game, 
+        spids = [:host, :para], 
+        domain = domain,
+        obscfg = NullObsConfig(),
+    )
+
+    terms = Dict{Terminal, Int}(:read => 1, 0.0 => 1)
+    funcs = Dict{FuncAlias, Int}([
+        (+, 2), 
+        (-, 2), 
+        (*, 2), 
+        (pdiv, 2), 
+        (psin, 1),
+        (iflt, 4),
+    ])
+    mutator = GPMutator(terminals = terms, functions = funcs)
+
+    host_spawner = Spawner(
+        spid = :host,
+        npop = npop,
+        genocfg = GPGenoCfg(),
+        phenocfg = TapeReaderGPPhenoCfg(),
+        replacer = GenerationalReplacer(n_elite = 0, reverse = true),
+        selector = RouletteSelector(μ = npop),
+        #selector = TournamentSelector(
+        #    μ = npop,
+        #    tsize = 3,
+        #),
+        recombiner = CloneRecombiner(),
+        mutators = [mutator],
+    )
+    para_spawner = Spawner(
+        spid = :para,
+        npop = npop,
+        genocfg = GPGenoCfg(),
+        phenocfg = TapeReaderGPPhenoCfg(),
+        replacer = GenerationalReplacer(n_elite = 0, reverse = true),
+        selector = RouletteSelector(μ = npop),
+        #selector = TournamentSelector(
+        #    μ = npop,
+        #    tsize = 3,
+        #),
+        recombiner = CloneRecombiner(),
+        mutators = [mutator],
+    )
+
+
+    coev_cfg = CoevConfig(
+        eco = eco,
+        trial = trial,
+        seed = seed,
+        orders = [order],
+        spawners = [host_spawner, para_spawner],
+        jobcfg = ParallelPhenoJobConfig(njobs = njobs),
+        arxiv_interval = 0,
+        log_interval = 1,
+    )
+
+    species = coev_cfg()
+    #evolve!(1, 1000, coev_cfg, species)
+end
+
 
 function dummygeno()
     # Just a sample GPGeno object to use for tests.
@@ -144,7 +373,7 @@ end
     end
 
     @testset "rmfunc" begin
-        new_geno = rmfunc(rng, mutator, dummygeno())
+        new_geno = rmfunc(rng, sc, mutator, dummygeno())
         @test length(new_geno.funcs) == 0
         @test length(new_geno.terms) == 1
     end
@@ -169,27 +398,244 @@ end
     end
 end
 
-@testset "Spawner" begin
-    function testspawner(
-        spid::Symbol;
-        npop = 10,
+# @testset "Spawner" begin
+#     function gp_spawner(
+#         spid::Symbol;
+#         npop = 10,
+#     )
+#         Spawner(
+#             spid = spid,
+#             npop = npop,
+#             genocfg = GPGenoCfg(),
+#             phenocfg = DefaultPhenoCfg(),
+#             replacer = IdentityReplacer(),
+#             selector = IdentitySelector(),
+#             recombiner = IdentityRecombiner(),
+#             mutators = Mutator[],
+#             archiver = GPGenoArchiver()
+#         )
+#     end
+#     function sym_spawner(
+#         spid::Symbol;
+#         npop = 20,
+#     )
+#         Spawner(
+#             spid = spid,
+#             npop = npop,
+#             genocfg = SymbolicRegressionTestGenoCfg(
+#                 point_range = -10:10,
+#                 func = x -> x^2
+#             ),
+#             phenocfg = DefaultPhenoCfg(),
+#             replacer = IdentityReplacer(),
+#             selector = IdentitySelector(),
+#             recombiner = IdentityRecombiner(),
+#             mutators = Mutator[],
+#             archiver = SymbolicRegressionTestGenoArchiver()
+#         )
+#     end
+#     rng = StableRNG(1234)
+#     sc = SpawnCounter(1, 1)
+# 
+#     spawner = gp_spawner(:test)
+#     gp_species = spawner(rng, sc)
+#     spawner = sym_spawner(:test)
+#     sym_species = spawner(rng, sc)
+# end
+
+@testset "Symbolic Regression" begin
+    domain = SymbolicRegressionDomain(
+        func = x -> x^2 + x + 1,
+        symbols = [:x],
     )
-        spid => Spawner(
-            spid = spid,
-            npop = npop,
-            icfg = GPIndivCfg(
-                spid = spid,
-            ),
-            phenocfg = DefaultPhenoCfg(),
-            replacer = IdentityReplacer(),
-            selector = IdentitySelector(),
-            recombiner = IdentityRecombiner(),
-            mutators = Mutator[],
-            archiver = GPIndivArchiver()
+    order = AllvsAllPlusOrder(
+        oid = :symbolic_regression, 
+        spids = [:gp, :sym], 
+        domain = domain,
+        obscfg = NullObsConfig(),
+    )
+
+    terms = Dict{Terminal, Int}(:x => 1, 0.0 => 1)
+    funcs = Dict{FuncAlias, Int}([
+        (+, 2), 
+        (-, 2), 
+        (*, 2), 
+        (pdiv, 2), 
+        (psin, 1),
+    ])
+    mutator = GPMutator(terminals = terms, functions = funcs)
+
+    gp_spawner = Spawner(
+        spid = :gp,
+        npop = 200,
+        genocfg = GPGenoCfg(),
+        replacer = GenerationalReplacer(n_elite = 10),
+        selector = TournamentSelector(
+            μ = 200,
+            tsize = 3,
+        ),
+        recombiner = CloneRecombiner(),
+        mutators = [mutator],
+    )
+
+    genocfg = SymbolicRegressionGenoCfg(-10:10,)
+    sym_spawner = Spawner(
+        spid = :sym,
+        npop = 100,
+        genocfg = genocfg,
+    )
+
+
+    coev_cfg = CoevConfig(
+        eco = :symbolic_regression,
+        trial = 1,
+        seed = 420,
+        orders = [order],
+        spawners = [gp_spawner, sym_spawner],
+        arxiv_interval = 0,
+        log_interval = 1,
+    )
+
+    species = coev_cfg()
+    evolve!(1, 10, coev_cfg, species)
+end
+
+@testset "Splice" begin
+    function splice_geno()
+        root_gid = 1
+        funcs = Dict(
+            1 => ExprNode(1, nothing, psin, [2]),
+            2 => ExprNode(2, 1, +, [3, 4]),
+            5 => ExprNode(5, nothing, psin, [6]),
+            6 => ExprNode(6, 5, -, [7, 10]),
+            7 => ExprNode(7, 6, *, [8, 9]),
         )
+        terms = Dict(
+            3 => ExprNode(3, 2, 1.0),
+            4 => ExprNode(4, 2, 2.0),
+            8 => ExprNode(8, 7, 3.0),
+            9 => ExprNode(9, 7, 4.0),
+            10 => ExprNode(10, 6, 5.0),
+        )
+
+        geno = GPGeno(root_gid, funcs, terms)
+        return geno
     end
 
-    spawner = testspawner(:test)
+    @testset "splice1" begin
+        geno = splice_geno()
+        new_geno = splicefunc(geno, 6, 7, 2)
+        expected = GPGeno(
+            1,
+            Dict(
+                1 => ExprNode(1, nothing, psin, [6]),
+                2 => ExprNode(2, 6, +, [3, 4]),
+                5 => ExprNode(5, nothing, psin, [7]),
+                6 => ExprNode(6, 1, -, [2, 10]),
+                7 => ExprNode(7, 5, *, [8, 9]),
+            ),
+            Dict(
+                3 => ExprNode(3, 2, 1.0),
+                4 => ExprNode(4, 2, 2.0),
+                8 => ExprNode(8, 7, 3.0),
+                9 => ExprNode(9, 7, 4.0),
+                10 => ExprNode(10, 6, 5.0),
+            )
+        )
+        @test expected == new_geno
+    end
 
+    @testset "splice2" begin
+        geno = splice_geno()
+        new_geno = splicefunc(geno, 6, 10, 2)
+        expected = GPGeno(
+            root_gid = 1,
+            funcs = Dict(
+                1 => ExprNode(1, nothing, psin, [6]),
+                2 => ExprNode(2, 6, +, [3, 4]),
+                5 => ExprNode(5, nothing, psin, [10]),
+                6 => ExprNode(6, 1, -, [7, 2]),
+                7 => ExprNode(7, 6, *, [8, 9]),
+            ),
+            terms = Dict(
+                3 => ExprNode(3, 2, 1.0),
+                4 => ExprNode(4, 2, 2.0),
+                8 => ExprNode(8, 7, 3.0),
+                9 => ExprNode(9, 7, 4.0),
+                10 => ExprNode(10, 5, 5.0),
+            )
+        )
+        @test expected == new_geno
+    end
 
+    @testset "splice3" begin
+        geno = splice_geno()
+        new_geno = splicefunc(geno, 6, 9, 2)
+        expected = GPGeno(
+            root_gid = 1,
+            funcs = Dict(
+                1 => ExprNode(1, nothing, psin, [6]),
+                2 => ExprNode(2, 7, +, [3, 4]),
+                5 => ExprNode(5, nothing, psin, [9]),
+                6 => ExprNode(6, 1, -, [7, 10]),
+                7 => ExprNode(7, 6, *, [8, 2]),
+            ),
+            terms = Dict(
+                3 => ExprNode(3, 2, 1.0),
+                4 => ExprNode(4, 2, 2.0),
+                8 => ExprNode(8, 7, 3.0),
+                9 => ExprNode(9, 5, 4.0),
+                10 => ExprNode(10, 6, 5.0),
+            )
+        )
+
+        @test expected == new_geno
+    end
+
+    @testset "splice4" begin
+        geno = splice_geno()
+        new_geno = splicefunc(geno, 6, 10, 1)
+        expected = GPGeno(
+            root_gid = 6,
+            funcs = Dict(
+                1 => ExprNode(1, 6, psin, [2]),
+                2 => ExprNode(2, 1, +, [3, 4]),
+                5 => ExprNode(5, nothing, psin, [10]),
+                6 => ExprNode(6, nothing, -, [7, 1]),
+                7 => ExprNode(7, 6, *, [8, 9]),
+            ),
+            terms = Dict(
+                3 => ExprNode(3, 2, 1.0),
+                4 => ExprNode(4, 2, 2.0),
+                8 => ExprNode(8, 7, 3.0),
+                9 => ExprNode(9, 7, 4.0),
+                10 => ExprNode(10, 5, 5.0),
+            )
+        )
+
+        @test expected == new_geno
+    end
+
+    @testset "splice5" begin
+        geno = splice_geno()
+        new_geno = splicefunc(geno, 1, 4, 8)
+        expected = GPGeno(
+            root_gid = 5,
+            funcs = Dict(
+                1 => ExprNode(1, 7, psin, [2]),
+                2 => ExprNode(2, 1, +, [3, 8]),
+                5 => ExprNode(5, nothing, psin, [6]),
+                6 => ExprNode(6, 5, -, [7, 10]),
+                7 => ExprNode(7, 6, *, [1, 9]),
+            ),
+            terms = Dict(
+                3 => ExprNode(3, 2, 1.0),
+                8 => ExprNode(8, 2, 3.0),
+                9 => ExprNode(9, 7, 4.0),
+                10 => ExprNode(10, 6, 5.0),
+            )
+        )
+
+        @test expected == new_geno
+    end
 end

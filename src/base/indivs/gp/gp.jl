@@ -1,5 +1,6 @@
 module GP
 using Random
+using StatsBase
 using ..Common
 using JLD2
 include("util.jl")

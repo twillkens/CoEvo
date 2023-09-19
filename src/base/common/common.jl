@@ -1,7 +1,7 @@
 # Contains the common functions and types used by the other modules.
 # Includes abstract types and functions, keys, observations, counters, genes, species, recipes, and outcomes.
 module Common
-export Gene, Individual, IndivConfig, Genotype, Phenotype, PhenoConfig
+export Gene, Individual, IndivConfig, Genotype, GenoConfig, Phenotype, PhenoConfig
 export Domain, Order, JobConfig, Result #, Outcome
 export Observation, ObsConfig
 export Replacer, Selector, Recombiner, Mutator
@@ -12,6 +12,7 @@ export Random
 export StableRNGs
 
 using Random
+using JLD2
 
 include("abstract.jl")
 include("keys.jl")
@@ -24,5 +25,6 @@ include("recipe.jl")
 include("outcomes.jl")
 include("veteran.jl")
 include("pheno.jl")
+include("archiver.jl")
 
 end

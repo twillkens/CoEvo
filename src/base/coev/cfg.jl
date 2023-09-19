@@ -2,6 +2,13 @@ export CoevConfig
 export makevets
 export interact, archive!
 
+using ..Common
+using ..Reproduction
+using ..Jobs
+using Random
+using JLD2
+using StableRNGs
+
 struct CoevConfig{J <: JobConfig, O <: Order, S <: Spawner, L <: Logger}
     eco::Symbol
     trial::Int
@@ -12,7 +19,7 @@ struct CoevConfig{J <: JobConfig, O <: Order, S <: Spawner, L <: Logger}
     loggers::Vector{L}
     jld2path::String
     arxiv_interval::Int
-    spchache::Dict{Int, Dict{Symbol, Species}}
+    species_cache::Dict{Int, Dict{Symbol, Species}}
     log_interval::Int
 end
 
@@ -20,15 +27,16 @@ function CoevConfig(;
     eco::Symbol,
     trial::Int,
     seed::Union{UInt64, Int},
-    jobcfg::JobConfig, 
-    orders::Dict{Symbol, <:Order},
-    spawners::Dict{Symbol, <:Spawner},
+    jobcfg::JobConfig = SerialPhenoJobConfig(),
+    orders::Vector{<:Order},
+    spawners::Vector{<:Spawner},
     loggers::Vector{<:Logger} = Vector{Logger}(), 
     arxiv_interval::Int = 1,
     log_interval::Int = 100,
+    data_dir::String = ENV["DATA_DIR"],
 )
     if arxiv_interval > 0
-        ecodir = mkpath(joinpath(ENV["COEVO_DATA_DIR"], string(eco)))
+        ecodir = mkpath(joinpath(data_dir, string(eco)))
         jld2path = joinpath(ecodir, "$(trial).jld2")
         jld2file = jldopen(jld2path, "w")
         jld2file["eco"] = eco
@@ -45,6 +53,8 @@ function CoevConfig(;
     else
         jld2path = ""
     end
+    orders = Dict(order.oid => order for order in orders)
+    spawners = Dict(spawner.spid => spawner for spawner in values(spawners))
     rng = StableRNG(seed)
     evostate = EvoState(rng, collect(keys(spawners)))
     CoevConfig(
@@ -71,7 +81,7 @@ function makevets(
     indivs::Dict{IndivKey, I}, resdict::Dict{IndivKey, Vector{Pair{TestKey, R}}}
 ) where {I <: Individual, R <: Real}
     checkd = ikey -> ikey in keys(resdict) ? Dict(resdict[ikey]) : Dict{TestKey, R}()
-    Veteran[Veteran(indiv.ikey, indiv, checkd(indiv.ikey)) for indiv in values(indivs)]
+    VeteranIndiv[VeteranIndiv(indiv.ikey, indiv.geno, indiv.pid, checkd(indiv.ikey)) for indiv in values(indivs)]
 end
 
 function makevets(allsp::Dict{Symbol, <:Species}, outcomes::Vector{<:Outcome})
@@ -105,10 +115,7 @@ function archive!(
             agroup = make_group!(jld2file["arxiv"], string(gen))
             agroup["evostate"] = deepcopy(c.evostate)
             allspgroup = make_group!(agroup, "species")
-            [
-                spawner.archiver(gen, allspgroup, spid, allsp[spid], true) 
-                for (spid, spawner) in c.spawners
-            ]
+            [spawner.archiver(allspgroup, allsp[spid]) for (spid, spawner) in c.spawners]
         end
         close(jld2file)
         println("done archiving: $(c.trial), gen : $gen")
@@ -136,7 +143,6 @@ function(c::CoevConfig)(gen::Int, allsp::Dict{Symbol, <:Species})
         )
         stime = time() - t
         println("trial: $(c.trial) gen: $gen, archive: $atime, interact: $itime, spawn: $stime")
-        update_tags!(gen, c, nextsp)
         nextsp
     else
         # Otherwise we perform the operations silently

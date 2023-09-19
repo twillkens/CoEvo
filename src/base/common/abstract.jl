@@ -4,6 +4,7 @@ abstract type Gene end
 abstract type Individual end
 abstract type IndivConfig end
 abstract type Genotype end
+abstract type GenoConfig end
 abstract type Phenotype end
 abstract type PhenoConfig end
 

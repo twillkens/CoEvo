@@ -9,16 +9,16 @@ struct Mix{D <: Domain, O <: ObsConfig, P <: Phenotype}
 end
 
 
-function(r::Recipe)(order::Order, phenodict::Dict{Symbol, Dict{UInt32, P}}) where P
+function(r::Recipe)(order::Order, phenodict::Dict)
     phenos = [phenodict[ikey.spid][ikey.iid] for ikey in r.ikeys]
     Mix(r.oid, order.domain, order.obscfg, phenos)
 end
 
 function getmixes(
     odict::Dict{Symbol, <:Order},
-    phenodict::Dict{Symbol, Dict{UInt32, P}},
+    phenodict::Dict,
     recipes::Vector{<:Recipe}
-)  where P
+)
     [r(odict[r.oid], phenodict) for r in recipes]
 end
 

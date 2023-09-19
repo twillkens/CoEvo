@@ -1,175 +1,62 @@
-export VectorIndiv, VectorGeno
-export make_genotype
-export ScalarGene
-export VectorIndivConfig, VectorIndivArchiver
-export genotype, clone, getgids, getvals
+module VectorSubstrate
 
+export VectorGeno, VectorGenoCfg, RandVectorGenoCfg, VectorGenoArchiver
 
-struct VectorIndiv{G <: ScalarGene} <: Individual
-    ikey::IndivKey
-    genes::Vector{G}
-    pids::Set{UInt32}
+using Random
+using ..Common
+using JLD2
+
+# The VectorGeno type is a simple genotype that stores a vector of values,
+# where each value is associated with a gene id.
+struct VectorGeno{T <: Real} <: Genotype
+    gids::Vector{Int}
+    vals::Vector{T}
 end
 
-Base.@kwdef struct VectorIndivConfig <: IndivConfig
-    spid::Symbol
+# Comparison and hashing functions for VectorGeno
+Base.length(indiv::VectorGeno) = length(indiv.vals)
+Base.:(==)(indiv1::VectorGeno, indiv2::VectorGeno) = indiv1.vals == indiv2.vals
+Base.hash(indiv::VectorGeno, h::UInt) = hash(indiv.vals, h)
+
+# Used for defining a constant vector genotype
+Base.@kwdef struct VectorGenoCfg{T <: Real} <: GenoConfig
+    vector::Vector{T}
+end
+
+function(cfg::VectorGenoCfg)(::AbstractRNG, sc::SpawnCounter)
+    gids = gids!(sc, length(cfg.vector))
+    VectorGeno(gids, cfg.vector)
+end
+
+# Used for defining a random vector genotype
+Base.@kwdef struct RandVectorGenoCfg <: GenoConfig
     dtype::Type{<:Real}
     width::Int
 end
 
-Base.@kwdef struct VectorIndivArchiver <: Archiver
-    interval::Int = 1
-    log_popids::Bool = true
+function(cfg::RandVectorGenoCfg)(rng::AbstractRNG, sc::SpawnCounter)
+    gids = gids!(sc, cfg.width)
+    vals = rand(rng, cfg.dtype, cfg.width)
+    VectorGeno(gids, vals)
 end
 
-function(a::VectorIndivArchiver)(
-    children_group::JLD2.Group, child::VectorIndiv, ::Bool
-)
-    cgroup = make_group!(children_group, child.iid)
-    cgroup["gids"] = [gene.gid for gene in child.genes]
-    cgroup["vals"] = [gene.val for gene in child.genes]
-    cgroup["pids"] = collect(child.pids)
+# Archiver for VectorGeno
+Base.@kwdef struct VectorGenoArchiver <: Archiver end
+
+# Store the gids and vals of a VectorGeno
+function(a::VectorGenoArchiver)(geno_group::JLD2.Group, geno::VectorGeno,)
+    geno_group["gids"] = geno.gids
+    geno_group["vals"] = geno.vals
 end
 
-function(cfg::VectorIndivArchiver)(spid::String, iid::String, igroup::JLD2.Group)
-    genes = [ScalarGene(gid, val) for (gid, val) in zip(igroup["gids"], igroup["vals"])]
-    pids = Set{UInt32}(igroup["pids"])
-    VectorIndiv(IndivKey(spid, iid), genes, pids)
+# Load function for VectorGeno from archive
+function(cfg::VectorGenoArchiver)(geno_group::JLD2.Group)
+    VectorGeno(geno_group["gids"], geno_group["vals"])
 end
 
-function Base.getproperty(indiv::VectorIndiv, prop::Symbol)
-    if prop == :spid
-        indiv.ikey.spid
-    elseif prop == :iid
-        indiv.ikey.iid
-    elseif prop == :gids
-        getgids(indiv)
-    elseif prop == :vals
-        getvals(indiv)
-    else
-        getfield(indiv, prop)
-    end
+# Used for defining a phenotype that is a vector of values from a genotype
+function(cfg::DefaultPhenoCfg)(ikey::IndivKey, geno::VectorGeno)
+    Pheno(ikey, geno.vals)
 end
 
-function Base.getproperty(indiv::Individual, prop::Symbol)
-    if prop == :spid
-        indiv.ikey.spid
-    elseif prop == :iid
-        indiv.ikey.iid
-    else
-        getfield(indiv, prop)
-    end
 end
-
-function getgids(genes::Vector{<:ScalarGene})
-    [g.gid for g in genes]
-end
-
-function getgids(indiv::VectorIndiv)
-    getgids(indiv.genes)
-end
-
-function getvals(indiv::VectorIndiv)
-    [g.val for g in indiv.genes]
-end
-
-function VectorIndiv(spid::Symbol, iid::UInt32, genes::Vector{<:ScalarGene},)
-    VectorIndiv(IndivKey(spid, iid), genes, Set{UInt32}())
-end
-
-function clone(iid::UInt32, parent::VectorIndiv)
-    VectorIndiv(IndivKey(parent.spid, iid), parent.genes, Set([parent.iid]))
-end
-
-struct VectorGeno{T <: Real} <: Genotype
-    ikey::IndivKey
-    genes::Vector{T}
-end
-
-function VectorGeno(spid::Symbol, iid::UInt32, genes::Vector{T}) where {T <: Real}
-    VectorGeno(IndivKey(spid, iid), genes)
-end
-
-function VectorGeno(spid::Symbol, iid::Int, genes::Vector{T}) where {T <: Real}
-    VectorGeno(spid, UInt32(iid), genes)
-end
-
-function genotype(indiv::VectorIndiv{<:ScalarGene})
-    genes = [g.val for g in indiv.genes]
-    VectorGeno(indiv.ikey, genes)
-end
-
-function VectorIndiv(spid::Symbol, iid::UInt32, gids::Vector{UInt32}, vals::Vector{<:Real})
-    genes = [ScalarGene(gid, val) for (gid, val) in zip(gids, vals)]
-    VectorIndiv(spid, iid, genes)
-end
-
-function VectorIndiv(spid::Symbol, iid::Int, gids::Vector{UInt32}, vals::Vector{<:Real})
-    VectorIndiv(spid, UInt32(iid), gids, vals)
-end
-
-function(cfg::VectorIndivConfig)(rng::AbstractRNG, sc::SpawnCounter)
-    VectorIndiv(
-        cfg.spid,
-        iid!(sc),
-        gids!(sc, cfg.width),
-        rand(rng, cfg.dtype, cfg.width))
-end
-
-function(cfg::IndivConfig)(rng::AbstractRNG, sc::SpawnCounter, n_indiv::Int)
-    indivs = [cfg(rng, sc) for _ in 1:n_indiv]
-    Dict(indiv.ikey => indiv for indiv in indivs)
-end
-
-function(cfg::VectorIndivConfig)(
-    ::AbstractRNG, sc::SpawnCounter, n_indiv::Int, vec::Vector{<:Real}
-)
-    indivs = [
-        VectorIndiv(spid, iid!(sc), gids!(sc, cfg.width), vec)
-        for _ in 1:n_indiv
-    ]
-    Dict(indiv.ikey => indiv for indiv in indivs)
-end
-
-function(cfg::VectorIndivConfig)(::AbstractRNG, sc::SpawnCounter, n_indiv::Int, val::Real)
-    indivs = [
-        VectorIndiv(
-            cfg.spid, iid!(sc), gids!(sc, cfg.width), fill(val, cfg.width)
-        ) for _ in 1:n_indiv
-    ]
-    Dict(indiv.ikey => indiv for indiv in indivs)
-end
-
-Base.length(indiv::VectorGeno) = length(indiv.genes)
-Base.:(==)(indiv1::VectorGeno, indiv2::VectorGeno) = indiv1.genes == indiv2.genes
-Base.hash(indiv::VectorGeno, h::UInt) = hash(indiv.genes, h)
-
-
-# function(r::NPointCrossoverRecombiner)(variator::Variator, gen::UInt16,
-#         childkeys::Vector{String}, parents::Dict{String, I}) where {I <: Individual}
-#     children = VectorIndiv[]
-#     for i in 1:2:length(childkeys)
-#         mother, father = sample(v.rng, collect(values(parents)), 2)
-#         n_cuts = min(v.width - 1, r.n_points)
-#         cutpts = sort(sample(v.rng, 1:v.width, n_cuts))
-#         normal = true
-#         sisgenes = VectorGene[]
-#         brogenes = VectorGene[]
-#         for (i, (mgene, fgene)) in enumerate(zip(mother.genes, father.genes))
-#             if i ∈ cutpts
-#                 push!(brogenes, fgene)
-#                 push!(sisgenes, mgene)
-#                 normal = false
-#             else
-#                 push!(brogenes, mgene)
-#                 push!(sisgenes, fgene)
-#                 normal = !normal
-#             end
-#         end
-#         pset = Set([mother.key, father.key])
-#         bro = VectorIndiv(childkeys[i], gen, brogenes, pset, Set{Outcome}())
-#         sis = VectorIndiv(childkeys[i + 1], gen, sisgenes, pset, Set{Outcome}())
-#         append!(children, [bro, sis])
-#     end
-#     children
-# end
