@@ -15,7 +15,7 @@ using DataStructures: OrderedDict
 using ..CoEvo: Species, Individual, EvaluationConfiguration
 using ..CoEvo: SpeciesConfiguration, PhenotypeConfiguration, GenotypeConfiguration
 using ..CoEvo: Replacer, Selector, Recombiner, Mutator, Replacer
-using ..CoEvo.Utilities: Counter
+using ..CoEvo.Utilities: Counter, next!
 using ..CoEvo.Substrates: VectorGenoCfg
 using .Individuals: Indiv
 using .PhenotypeConfigurations: DefaultPhenoCfg
@@ -43,12 +43,26 @@ struct BasicSpecies{P <: PhenotypeConfiguration, I <: Individual} <: Species
     children::OrderedDict{Int, I}
 end
 
-function BasicSpecies(id::String, pop::Vector{<:Individual}, children::Vector{<:Individual})
+function BasicSpecies(
+    id::String, pheno_cfg::PhenotypeConfiguration, 
+    pop::Vector{<:Individual}, children::Vector{<:Individual}
+)
     BasicSpecies(
         id,
+        pheno_cfg,
         OrderedDict(indiv.id => indiv for indiv in pop),
         OrderedDict(indiv.id => indiv for indiv in children)
     )
+end
+
+function BasicSpecies(id::String, pop::OrderedDict{Int, I}) where {I <: Individual}
+    return BasicSpecies(id, DefaultPhenoCfg(), pop, OrderedDict{Int, I}())
+end
+
+function BasicSpecies(
+    id::String, pheno_cfg::PhenotypeConfiguration, pop::OrderedDict{Int, I}
+) where {I <: Individual}
+    return BasicSpecies(id, pheno_cfg, pop, OrderedDict{Int, I}())
 end
 
 """
@@ -86,7 +100,7 @@ end
     RC <: Recombiner, 
     M <: Mutator
 } <: SpeciesConfiguration
-    id::String = "species"
+    id::String = "default"
     n_pop::Int = 10 
     geno_cfg::G = VectorGenoCfg()
     pheno_cfg::P = DefaultPhenoCfg()
@@ -103,9 +117,6 @@ end
 
 """
 
-function BasicSpecies(id::String, pop::OrderedDict{Int, I}) where {I <: Individual}
-    return BasicSpecies(id, pop, Dict{Int, I}())
-end
 
 
 """
@@ -117,8 +128,8 @@ function(cfg::SpeciesCfg)(
     indiv_id_counter::Counter = Counter(),
     gene_id_counter::Counter = Counter()
 )::Species
-    indiv_ids = next!(indiv_id_counter, s.n_pop)
-    genos = cfg.geno_cfg(rng, gene_id_counter, s.n_pop) 
+    indiv_ids = next!(indiv_id_counter, cfg.n_pop)
+    genos = cfg.geno_cfg(rng, gene_id_counter, cfg.n_pop) 
     pop = OrderedDict(
         indiv_id => Indiv(indiv_id, geno) 
         for (indiv_id, geno) in zip(indiv_ids, genos)

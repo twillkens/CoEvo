@@ -18,7 +18,7 @@ include("ecosystems/ecosystems.jl")
 using .Substrates.VectorSubstrate: VectorGenoCfg, RandVectorGenoCfg
 using .GA: SpeciesCfg
 using .Interactions: JobCfg, DomainCfg
-using .Ecosystems: EcoCfg
 using .Interactions.Domains.NumbersGame: NumbersGame
+using .Ecosystems: EcoCfg
 
 end

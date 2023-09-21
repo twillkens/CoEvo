@@ -19,9 +19,6 @@ struct VectorGeno{T <: Real} <: Genotype
     vals::Vector{T}
 end
 
-function(cfg::GenotypeConfiguration)(rng::AbstractRNG, counter::Counter)
-    VectorGeno(cfg(rng, counter))
-end
 
 # Comparison and hashing functions for VectorGeno
 
