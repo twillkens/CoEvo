@@ -20,30 +20,6 @@ function perform(jobs::Vector{<:Job})
     vcat(outcomes...)
 end
 
-function divvy(recipes::Vector{<:Recipe}, njobs::Int)
-    n = length(recipes)
-    # Base size for each job
-    base_size = div(n, njobs)
-    
-    # Number of jobs that will take an extra item
-    extras = n % njobs
-
-    partitions = Vector{Vector{<:Recipe}}()
-    start_idx = 1
-
-    for i in 1:njobs
-        end_idx = start_idx + base_size - 1
-        if extras > 0
-            end_idx += 1
-            extras -= 1
-        end
-
-        push!(partitions, recipes[start_idx:end_idx])
-
-        start_idx = end_idx + 1
-    end
-    partitions
-end
 
 struct SerialPhenoJobConfig <: JobConfig end
 

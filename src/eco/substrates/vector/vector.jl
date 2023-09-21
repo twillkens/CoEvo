@@ -9,7 +9,6 @@ using JLD2
 # The VectorGeno type is a simple genotype that stores a vector of values,
 # where each value is associated with a gene id.
 struct VectorGeno{T <: Real} <: Genotype
-    gids::Vector{Int}
     vals::Vector{T}
 end
 
@@ -23,9 +22,8 @@ Base.@kwdef struct VectorGenoCfg{T <: Real} <: GenoConfig
     vector::Vector{T}
 end
 
-function(cfg::VectorGenoCfg)(::AbstractRNG, sc::SpawnCounter)
-    gids = gids!(sc, length(cfg.vector))
-    VectorGeno(gids, cfg.vector)
+function(cfg::VectorGenoCfg)(::AbstractRNG, ::Counter)
+    VectorGeno(cfg.vector)
 end
 
 # Used for defining a random vector genotype
@@ -55,8 +53,8 @@ function(cfg::VectorGenoArchiver)(geno_group::JLD2.Group)
 end
 
 # Used for defining a phenotype that is a vector of values from a genotype
-function(cfg::DefaultPhenoCfg)(ikey::IndivKey, geno::VectorGeno)
-    Pheno(ikey, geno.vals)
+function(cfg::DefaultPhenoCfg)(geno::VectorGeno)
+    geno.vals
 end
 
 end

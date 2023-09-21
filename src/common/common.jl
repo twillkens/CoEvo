@@ -17,14 +17,10 @@ using JLD2
 include("abstract.jl")
 include("keys.jl")
 include("observation.jl")
-include("counter.jl")
-include("evostate.jl")
-include("gene.jl")
 include("species.jl")
 include("recipe.jl")
 include("outcomes.jl")
 include("veteran.jl")
 include("pheno.jl")
-include("archiver.jl")
 
 end

@@ -2,10 +2,12 @@ export Veteran, clone, BasicIndiv, VeteranIndiv
 export fitness, testscores
 export meanfitness
 
-Base.@kwdef mutable struct Veteran{I <: Individual, R <: Real} <: Individual
-    ikey::IndivKey
-    indiv::I
-    rdict::Dict{TestKey, R}
+struct FitnessRecord <: Record
+    fitness::Float64
+end
+
+mutable struct DiscoRecord <: Record
+    fitness::Float64
     rank::Int = 0
     crowding::Float64 = 0.0
     dom_count::Int = 0
@@ -13,36 +15,22 @@ Base.@kwdef mutable struct Veteran{I <: Individual, R <: Real} <: Individual
     derived_tests::Vector{Float64} = Float64[]
 end
 
-function clone(iid::UInt32, parent::Veteran)
-    clone(iid, parent.indiv)
-end
-
-struct BasicIndiv{G <: Genotype} <: Individual
+mutable struct Veteran{G <: Genotype, R <: Record} <: Individual
     ikey::IndivKey
     geno::G
     pid::Int
+    tests::Dict{TestKey, Float64}
+    record::R
 end
 
-struct VeteranIndiv{G <: Genotype, R <: Real} <: Individual
-    ikey::IndivKey
-    geno::G
-    pid::Int
-    rdict::Dict{TestKey, R}
+struct IndivKey <: Key
+    species_id::String
+    indiv_id::Int
 end
 
-function Base.getproperty(indiv::Individual, prop::Symbol)
-    if prop == :spid
-        indiv.ikey.spid
-    elseif prop == :iid
-        indiv.ikey.iid
-    else
-        getfield(indiv, prop)
-    end
-end
+IndivKey(species_id::String, indiv_id::String) =   IndivKey(species_id, parse(Int, indiv_id))
 
 function fitness(vet::Individual)
-    #println("---------$(vet.ikey.spid)-----------")
-    #println(round.(values(vet.rdict); digits=2))
     length(vet.rdict) == 0 ? 0.0 : sum(values(vet.rdict))
 end
 

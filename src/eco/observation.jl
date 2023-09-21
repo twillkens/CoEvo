@@ -1,5 +1,5 @@
-export NullObs, NullObsCfg
-
+abstract type Observation end
+abstract type ObservationConfiguration end
 # A NullObs is an observation that does nothing. It is used when no observation
 # of phenotypic interaction is needed.
 struct NullObs <: Observation end
