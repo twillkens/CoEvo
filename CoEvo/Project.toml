@@ -1,0 +1,4 @@
+name = "CoEvo"
+uuid = "c83ebd05-e7c8-4fef-9643-393b74ce9007"
+authors = ["twillkens <twillkens@brandeis.edu>"]
+version = "0.1.0"

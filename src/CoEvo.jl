@@ -1,18 +1,18 @@
 module CoEvo
 
-using Distributed
+using DataStructures
 using Random
 using StableRNGs
-using StatsBase
-using Combinatorics
-using Distributions
-using JLD2
-using DataStructures
-using HypothesisTests
-using StringDistances
-using Pidfile
-#include("abstract/abstract.jl")
-include("base/base.jl")
-include("domains/domains.jl")
 
-end 
+include("abstract/abstract.jl")
+include("utilities/utilities.jl")
+include("substrates/substrates.jl")
+include("interactions/interactions.jl")
+include("species/species.jl")
+include("ecosystems/ecosystems.jl")
+
+using .Substrates.VectorSubstrate: VectorGenoCfg, RandVectorGenoCfg
+export VectorGenoCfg, RandVectorGenoCfg
+
+
+end
