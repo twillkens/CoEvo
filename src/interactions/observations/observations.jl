@@ -4,15 +4,34 @@ export NullObsCfg
 
 using ...CoEvo: Observation, ObservationConfiguration
 
-# A NullObs is an observation that does nothing. It is used when no observation
-# of phenotypic interaction is needed.
+"""
+    NullObs <: Observation
+
+Represents a null observation that effectively does nothing. 
+Typically used in scenarios where no phenotypic interaction observation is needed.
+"""
 struct NullObs <: Observation end
 
-# A NullObsCfg is a configuration for a NullObs. It is used when no observation
-# of phenotypic interaction is needed.
+"""
+    NullObsCfg <: ObservationConfiguration
+
+A configuration for `NullObs`. 
+It signifies that no specific configuration for phenotypic interaction observation is necessary.
+"""
 struct NullObsCfg <: ObservationConfiguration end
 
-# When called, a NullObsCfg ignores whatever arguments are passed and returns a NullObs.
+"""
+    (cfg::NullObsCfg)(args...; kwargs...) -> NullObs
+
+Creates a `NullObs` instance, effectively ignoring any arguments passed.
+
+# Arguments
+- `cfg::NullObsCfg`: Configuration specifying that a null observation should be produced.
+- `args...; kwargs...`: Arbitrary arguments and keyword arguments, which are ignored.
+
+# Returns
+- An instance of `NullObs`.
+"""
 function(cfg::NullObsCfg)(args...; kwargs...)
     NullObs()
 end

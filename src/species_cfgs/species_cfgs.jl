@@ -1,7 +1,15 @@
-module GA
+"""
+    SpeciesConfigurations
 
+This module provides tools and configurations for defining and handling species
+in a co-evolutionary ecosystem.
+"""
+module SpeciesConfigurations
+
+# Exported types and functions
 export SpeciesCfg
 
+# Dependencies
 include("individuals/individuals.jl")
 include("pheno_cfgs/pheno_cfgs.jl")
 include("evaluations/evaluations.jl")
@@ -10,6 +18,7 @@ include("selectors/selectors.jl")
 include("recombiners/recombiners.jl")
 include("mutators/mutators.jl")
 
+# External modules and libraries
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 using ..CoEvo: Species, Individual, EvaluationConfiguration
@@ -27,14 +36,15 @@ using .Mutators: Mutator
 using ..CoEvo.Interactions: InteractionResult 
 
 """
-    Species{I <: Individual}(id::String, pop::Dict{Int, I}, children::Dict{Int, I})
+    BasicSpecies{P <: PhenotypeConfiguration, I <: Individual}
 
-A collection of individuals comprising a population and their children.
+A collection of individuals that represents a species population and its children.
 
 # Fields
-- `id::String`: Unique identifier for the species
-- `pop::Dict{Int, I}`: The population of individuals, where the key is the individual's id
-- `children::Dict{Int, I}`: The children of the population, where the key is the individual's id
+- `id::String`: A unique identifier for the species.
+- `pheno_cfg::P`: Configuration for the phenotype.
+- `pop::OrderedDict{Int, I}`: The current population of individuals.
+- `children::OrderedDict{Int, I}`: The children of the population.
 """
 struct BasicSpecies{P <: PhenotypeConfiguration, I <: Individual} <: Species
     id::String
@@ -43,6 +53,7 @@ struct BasicSpecies{P <: PhenotypeConfiguration, I <: Individual} <: Species
     children::OrderedDict{Int, I}
 end
 
+# Constructors
 function BasicSpecies(
     id::String, pheno_cfg::PhenotypeConfiguration, 
     pop::Vector{<:Individual}, children::Vector{<:Individual}
@@ -66,30 +77,20 @@ function BasicSpecies(
 end
 
 """
-    SpeciesCfg(
-        id::String = "species",
-        n_indiv::Int = 10,
-        genocfg::GenotypeConfiguration = GPGenoCfg(),
-        phenocfg::PhenotypeConfiguration = DefaultPhenoCfg(),
-        replacer::Replacer = IdentityReplacer(),
-        selector::Selector = IdentitySelector(),
-        recombiner::Recombiner = IdentityRecombiner(),
-        mutators::Vector{Mutator} = Mutator[],
-    )
+    SpeciesCfg
 
-    Return a Species object comprising the initial population for a species in the ecosystem.
+Configuration for generating a new species in the ecosystem.
 
-    # Arguments
-    - `id::String`: Unique identifier for the species
-    - `n_indiv::Int`: Number of individuals to spawn
-    - `genocfg::GenotypeConfiguration`: Configuration for generating genotypes
-    - `phenocfg::PhenotypeConfiguration`: Configuration for generating phenotypes from the genotypes
-    - `replacer::Replacer`: Pick members of the previous population to keep or replace with children
-    - `selector::Selector`: Select members of the previous population to use as parents
-    - `recombiner::Recombiner`: Generate children from the selected parents
-    - `mutators::Vector{Mutator}`: Mutate each children sequentially ith the given mutators
-    - `curr_indiv_id::Int`: The current individual id to use when generating new individuals
-    - `curr_gene_id::Int`: The current gene id to use when generating new genes for an individual
+# Fields
+- `id::String`: A unique identifier for the species.
+- `n_pop::Int`: Size of the population.
+- `geno_cfg::G`: Genotype configuration.
+- `pheno_cfg::P`: Phenotype configuration.
+- `eval_cfg::E`: Evaluation configuration.
+- `replacer::RP`: Mechanism for replacing old individuals with new ones.
+- `selector::S`: Mechanism for selecting parents for reproduction.
+- `recombiner::RC`: Mechanism for recombination (e.g., crossover).
+- `mutators::Vector{M}`: A list of mutation mechanisms.
 """
 @Base.kwdef mutable struct SpeciesCfg{
     G <: GenotypeConfiguration, 
@@ -111,17 +112,14 @@ end
     mutators::Vector{M} = Mutator[]
 end
 
-
 """
-    cfg(rng::AbstractRNG) 
+Generate a new population of individuals using genotype and phenotype configurations.
 
-"""
-
-
-
-"""
-Generate a new population of individuals for the species using the genotype configuration.
-Individual and gene ids are generated using the given counters.
+# Arguments
+- `cfg::SpeciesCfg`: Configuration for the species.
+- `rng::AbstractRNG`: Random number generator.
+- `indiv_id_counter::Counter`: Counter for generating unique individual IDs.
+- `gene_id_counter::Counter`: Counter for generating unique gene IDs.
 """
 function(cfg::SpeciesCfg)(
     rng::AbstractRNG, 
@@ -137,21 +135,20 @@ function(cfg::SpeciesCfg)(
     BasicSpecies(cfg.id, cfg.pheno_cfg, pop)
 end
 
+"""
+Core reproduction phase of the evolutionary algorithm.
 
+# Arguments
+- `cfg::SpeciesCfg`: Configuration for the species.
+- `rng::AbstractRNG`: Random number generator.
+- `indiv_id_counter::Counter`: Counter for generating unique individual IDs.
+- `gene_id_counter::Counter`: Counter for generating unique gene IDs.
+- `species::Species`: Current species.
+- `results::Vector{<:InteractionResult`: Interaction results of the individuals.
 
-# This fulfills the core reproduction phase of the evolutionary algorithm
-# Given an input of a Species of veterans, the spawner will generate a new Species
-# of children. 
-# * The Replacer determines which members of the previous population 
-#   and their children survive to form the population of the next generation.
-# * The Selector determines which members of the previous population are selected
-#   to serve as parents for the next generation. Parents come as a vector of 
-#   Veterans; the presence of one parent multiple times indicates .
-# * The Recombiner may either generate a single child from crossover of some set taken from
-#   the parents; the IdentityRecombiner simply returns the parents as cloned children.
-# * For each Mutator, the children are mutated according to the mutator's parameters.
-#   The mutators are applied in the order they are given in the spawner.
-# Finally, the newly selected population along with their children are returned as a Species.
+# Returns
+- A new `BasicSpecies` containing the next generation population and their children.
+"""
 function(cfg::SpeciesCfg)(
     rng::AbstractRNG, 
     indiv_id_counter::Counter,  

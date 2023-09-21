@@ -12,11 +12,11 @@ include("abstract/abstract.jl")
 include("utilities/utilities.jl")
 include("substrates/substrates.jl")
 include("interactions/interactions.jl")
-include("ga/ga.jl")
+include("species_cfgs/species_cfgs.jl")
 include("ecosystems/ecosystems.jl")
 
 using .Substrates.VectorSubstrate: VectorGenoCfg, RandVectorGenoCfg
-using .GA: SpeciesCfg
+using .SpeciesConfigurations: SpeciesCfg
 using .Interactions: JobCfg, DomainCfg
 using .Interactions.Domains.NumbersGame: NumbersGame
 using .Ecosystems: EcoCfg

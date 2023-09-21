@@ -192,8 +192,8 @@ function evolve!(
     for gen in 1:n_gen
         println("Generation $gen")
         results = eco_cfg.job_cfg(eco)
-        eco, evaluations = eco_cfg(eco, results)
-        #eco_cfg.archivist(eco, evaluations, results)
+        eco, evaluations, observations = eco_cfg(eco, results)
+        eco_cfg.archivist(eco, evaluations, observations)
     end
     eco
 end
