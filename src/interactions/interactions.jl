@@ -1,18 +1,16 @@
 module Interactions
 
+export DomainCfg
+export JobCfg
+export InteractionResult
+
 include("matchmakers/matchmakers.jl")
 include("observations/observations.jl")
-include("domains/domains.jl")
 
 using ..CoEvo: Job, JobConfiguration, PhenotypeConfiguration
 using ..CoEvo: Ecosystem, Observation, get_pheno_dict, interact
 using .Observations: NullObs
-using .Domains: DomainConfiguration, DomainCfg
 
-struct JobCfg{D <: DomainConfiguration} <: JobConfiguration
-    n_workers::Int
-    domain_cfgs::Vector{D}
-end
 
 struct InteractionRecipe
     domain_id::Int
@@ -28,6 +26,21 @@ end
 
  InteractionResult(domain_id::Int, indiv_ids::Vector{Int}, outcome_set::Vector{Float64}) =
     InteractionResult(domain_id, indiv_ids, outcome_set, NullObs())
+
+
+include("domains/domains.jl")
+using .Domains: DomainConfiguration, DomainCfg
+
+
+struct JobCfg{D <: DomainConfiguration} <: JobConfiguration
+    domain_cfgs::Vector{D} 
+    n_workers::Int
+end
+
+function JobCfg(domain_cfgs::Vector{<: DomainConfiguration})
+    return JobCfg(domain_cfgs, 1)
+end
+
 
 function make_interaction_recipes(domain_id::Int, cfg::DomainCfg, eco::Ecosystem)
     if length(cfg.entities) != 2

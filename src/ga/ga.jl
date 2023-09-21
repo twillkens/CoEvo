@@ -1,4 +1,4 @@
-module SpeciesTypes
+module GA
 
 export SpeciesCfg
 

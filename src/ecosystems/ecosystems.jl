@@ -63,9 +63,16 @@ end
 
 # Generate a new ecosystem from the configuration.
 function(eco_cfg::EcoCfg)()
-    species = Dict(
-        species_cfg.id => species_cfg() for species_cfg in eco_cfg.species_cfgs
-    )
+    if eco_cfg.species_cfgs[1].id == ""
+        species = Dict(
+            string(i) => species_cfg() for (i, species_cfg) in enumerate(eco_cfg.species_cfgs)
+        )
+    else
+        species = Dict(
+            species_cfg.id => species_cfg() for species_cfg in eco_cfg.species_cfgs
+        )
+    end
+
     Eco(eco_cfg.id, species)
 end
 

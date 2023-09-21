@@ -34,6 +34,8 @@ Base.@kwdef struct VectorGenoCfg{T <: Real} <: GenotypeConfiguration
     default_vector::Vector{T} = [0.0]
 end
 
+(cfg::VectorGenoCfg)() = VectorGeno(cfg.default_vector)
+
 # Generate a constant vector genotype from the given vector in the configuration.
 function(cfg::VectorGenoCfg)(::AbstractRNG, ::Counter)
     VectorGeno(cfg.default_vector)

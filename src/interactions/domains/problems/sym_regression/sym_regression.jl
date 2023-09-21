@@ -31,21 +31,6 @@ function(genocfg::SymbolicRegressionGenoCfg)(
     [VectorGeno(gids!(sc, length(test)), test) for test in genocfg.tests]
 end
 
-# function stir(
-#     oid::Symbol, domain::SymbolicRegressionDomain, ::ObsConfig,
-#     subject::Pheno{Expr}, test::Pheno{Vector{Float64}}
-# )
-#     symbol_dict = Dict(
-#         symb => ConstantTerminalFunctor(test.pheno[i]) 
-#         for (i, symb) in enumerate(domain.symbols)
-#     )
-#     expr = symcompile(subject.pheno, symbol_dict)
-#     subject_y = eval(expr)
-#     test_y = domain.func(test.pheno...)
-#     score = abs(test_y - subject_y)
-#     Outcome(oid, subject => score, test => -score, NullObs())
-# end
-
 function stir(
     oid::Symbol, domain::SymbolicRegressionDomain, ::ObsConfig,
     subject::ConstantGPPheno, test::Pheno{Vector{Float64}}
