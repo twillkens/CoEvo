@@ -1,3 +1,5 @@
+module Abstract
+
 """
 Entity Types
 """
@@ -110,6 +112,11 @@ function interact(problem::Problem, domain_id::Int, obs_cfg::ObservationConfigur
     throw(ErrorException("Required method `interact` not implemented for Problem."))
 end
 
+abstract type Reporter end
+
+abstract type Report end
+
+
 """
     DomainConfiguration
 
@@ -134,6 +141,13 @@ abstract type JobConfiguration end
 """
 Genetic Algorithm and Reproduction Types
 """
+
+"""
+    Evaluator
+
+
+"""
+abstract type Evaluator end
 
 """
     Evaluation
@@ -205,3 +219,5 @@ Utility Types
 Determines whether we aim to minimize or maximize a value when assessing fitness.
 """
 abstract type Sense end
+
+end
