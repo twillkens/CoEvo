@@ -7,9 +7,9 @@ using ...CoEvo.Ecosystems.Species.Evaluations: ScalarFitnessEvaluation
 
 Base.@kwdef struct FitnessReporter <: Reporter
     n_round::Int = 2
-    log_interval::Int
-    check_pop::Bool
-    check_children::Bool
+    log_interval::Int = 1
+    check_pop::Bool = true
+    check_children::Bool = true
     log_features::Vector{Symbol} = [:mean, :std, :minimum, :maximum]
     file_report::Bool = false
 end

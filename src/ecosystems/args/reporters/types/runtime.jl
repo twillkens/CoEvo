@@ -1,3 +1,6 @@
+export RuntimeReporter, RuntimeReport
+
+using ....CoEvo.Abstract: Reporter, Report
 
 struct RuntimeReport <: Report
     gen::Int

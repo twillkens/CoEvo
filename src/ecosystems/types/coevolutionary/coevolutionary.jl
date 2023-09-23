@@ -19,13 +19,15 @@ the coevolutionary process.
 export CoevolutionaryEcosystem
 export CoevolutionaryEcosystemConfiguration
 
-using DataStructures: OrderedDict
+using Random: AbstractRNG
 using StableRNGs: StableRNG
+using DataStructures: OrderedDict
 using ...CoEvo.Abstract: Ecosystem, EcosystemConfiguration
 using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration
 using ...CoEvo.Abstract: JobConfiguration, Observation, Reporter, Archiver
-using Random: AbstractRNG
 using .Species.Utilities: Counter
+using .Reporters: RuntimeReporter, FitnessReporter
+using .Archivers: NullArchiver
 
 """
     struct Eco <: Ecosystem
@@ -39,7 +41,7 @@ of species, where each species has a population of individuals.
 """
 struct CoevolutionaryEcosystem{S <: AbstractSpecies} <: Ecosystem
     id::String
-    species::Dict{String, S}
+    species::OrderedDict{String, S}
 end
 
 """

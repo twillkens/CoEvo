@@ -1,17 +1,22 @@
+export BasicSpecies, BasicSpeciesConfiguration
+
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration, PhenotypeConfiguration
 using ...CoEvo.Abstract: GenotypeConfiguration, EvaluationConfiguration, Replacer
 using ...CoEvo.Abstract: Selector, Recombiner, Mutator, Individual, Evaluation
+using ...CoEvo.Abstract: IndividualConfiguration
 using .Utilities: Counter
 using .Genotypes: VectorGenotypeConfiguration
 using .Phenotypes: DefaultPhenotypeConfiguration
+using .Individuals: AsexualIndividualConfiguration
 println("hi")
 using .Evaluations: ScalarFitnessEvaluationConfiguration
 println("there")
 using .Replacers: IdentityReplacer
 using .Selectors: IdentitySelector
 using .Recombiners: CloneRecombiner
+using .Utilities: next!
 
 """
     BasicSpecies{P <: PhenotypeConfiguration, I <: Individual}
@@ -24,9 +29,7 @@ A collection of individuals that represents a species population and its childre
 - `pop::OrderedDict{Int, I}`: The current population of individuals.
 - `children::OrderedDict{Int, I}`: The children of the population.
 """
-struct BasicSpecies{
-    P <: PhenotypeConfiguration, I <: Individual, E <: Evaluation
-} <: AbstractSpecies
+struct BasicSpecies{P <: PhenotypeConfiguration, I <: Individual} <: AbstractSpecies
     id::String
     pheno_cfg::P
     pop::OrderedDict{Int, I}
@@ -58,6 +61,7 @@ end
 function BasicSpecies(
     id::String, pheno_cfg::PhenotypeConfiguration, pop::OrderedDict{Int, I}
 ) where {I <: Individual}
+    println(pop)
     return BasicSpecies(
         id, 
         pheno_cfg, 
@@ -86,6 +90,7 @@ Configuration for generating a new species in the ecosystem.
 @Base.kwdef struct BasicSpeciesConfiguration{
     G <: GenotypeConfiguration, 
     P <: PhenotypeConfiguration, 
+    I <: IndividualConfiguration,
     E <: EvaluationConfiguration,
     RP <: Replacer, 
     S <: Selector,
@@ -93,9 +98,10 @@ Configuration for generating a new species in the ecosystem.
     M <: Mutator
 } <: SpeciesConfiguration
     id::String = "default"
-    n_pop::Int = 10 
+    n_pop::Int = 2
     geno_cfg::G = VectorGenotypeConfiguration()
     pheno_cfg::P = DefaultPhenotypeConfiguration()
+    indiv_cfg::I = AsexualIndividualConfiguration()
     eval_cfg::E = ScalarFitnessEvaluationConfiguration()
     replacer::RP = IdentityReplacer()
     selector::S = IdentitySelector()
@@ -117,13 +123,14 @@ function(species_cfg::BasicSpeciesConfiguration)(
     indiv_id_counter::Counter = Counter(),
     gene_id_counter::Counter = Counter()
 )
-    indiv_ids = next!(indiv_id_counter, cfg.n_pop)
-    genos = cfg.geno_cfg(rng, gene_id_counter, cfg.n_pop) 
+    indiv_ids = next!(indiv_id_counter, species_cfg.n_pop)
+    genos = species_cfg.geno_cfg(rng, gene_id_counter, species_cfg.n_pop) 
+    println(genos)
     pop = OrderedDict(
-        indiv_id => Indiv(indiv_id, geno) 
+        indiv_id => species_cfg.indiv_cfg(indiv_id, geno) 
         for (indiv_id, geno) in zip(indiv_ids, genos)
     )
-    return BasicSpecies(cfg.id, cfg.pheno_cfg, pop)
+    return BasicSpecies(species_cfg.id, species_cfg.pheno_cfg, pop)
 end
 
 """
