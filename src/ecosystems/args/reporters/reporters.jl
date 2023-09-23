@@ -2,11 +2,8 @@ module Reporters
 
 export FitnessReporter
 
-include("util.jl")
+include("utilities/utilities.jl")
 include("types/fitness.jl")
 # include("types/genotype.jl")
-
-using ...CoEvo.Abstract: Reporter, Report
-
 
 end

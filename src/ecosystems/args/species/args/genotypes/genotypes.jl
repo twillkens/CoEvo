@@ -5,17 +5,17 @@ Module providing substrate configurations and utilities, primarily for genotypes
 """
 module Genotypes
 
-export VectorGeno, VectorGenoCfg, RandVectorGenoCfg
+export VectorGeno, VectorGenotypeConfiguration, RandomVectorGenotypeConfiguration
 
 using Random
-using ....CoEvo: GenotypeConfiguration
+using ....CoEvo.Abstract: GenotypeConfiguration
 using ..Utilities: Counter
 
 # Including vector-based genotype configurations
-include("types/vector/vector.jl")
+include("types/vectors/vectors.jl")
 
 # Importing defined genotype configurations from the included vector module
-using .VectorGenotype: VectorGeno, VectorGenoCfg, RandVectorGenoCfg
+using .Vectors: VectorGenotype, VectorGenotypeConfiguration, RandomVectorGenotypeConfiguration
 
 
 function(geno_cfg::GenotypeConfiguration)(rng::AbstractRNG, counter::Counter)

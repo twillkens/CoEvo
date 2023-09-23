@@ -5,7 +5,9 @@ Module providing vector-based genotype configurations and associated utilities.
 """
 module Vectors
 
-export VectorGenotypetype, VectorGenotypetypeConfiguration, RandomVectorGenotypetypeConfiguration
+export VectorGenotype
+export VectorGenotypetypeConfiguration
+export RandomVectorGenotypetypeConfiguration
 
 using Random
 using ...Utilities: Counter
@@ -67,8 +69,5 @@ function(cfg::RandomVectorGenotypeConfiguration)(rng::AbstractRNG, ::Counter)
     vals = rand(rng, cfg.dtype, cfg.width)
     VectorGenotype(vals)
 end
-
-
-
 
 end

@@ -1,17 +1,17 @@
 using ....CoEvo.Abstract: Genotype, Individual, IndividualConfiguration
 
-struct SexualIndiv{G <: Genotype} <: Individual
+struct SexualIndivdual{G <: Genotype} <: Individual
     id::Int
     geno::G
     parent_ids::Vector{Int}
 end
 
-struct SexualIndivCfg <: IndividualConfiguration end
+struct SexualIndividualConfiguration <: IndividualConfiguration end
 
-function(cfg::SexualIndivCfg)(id::Int, geno::Genotype, parent_ids::Vector{Int})
-    return SexualIndiv(id, geno, parent_ids)
+function(cfg::SexualIndividualConfiguration)(id::Int, geno::Genotype, parent_ids::Vector{Int})
+    return SexualIndividual(id, geno, parent_ids)
 end
 
-function(cfg::SexualIndivCfg)(id::Int, geno::Genotype)
-    return SexualIndiv(id, geno, [])
+function(cfg::SexualIndividualConfiguration)(id::Int, geno::Genotype)
+    return SexualIndividual(id, geno, [])
 end

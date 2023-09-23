@@ -1,15 +1,15 @@
 module Replacers
 
 export IdentityReplacer
-export TruncationReplacer
-export GenerationalReplacer
+# export TruncationReplacer
+# export GenerationalReplacer
 
-incude("types/identity.jl")
-include("types/truncation.jl")
-include("types/generational.jl")
+include("types/identity.jl")
+# include("types/truncation.jl")
+# include("types/generational.jl")
 
 using Random
-using ....CoEvo.Abstract: Replacer, Evaluation
+using ....CoEvo.Abstract: Replacer, Evaluation, Species
 
 
 function(replacer::Replacer)(

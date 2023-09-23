@@ -1,3 +1,5 @@
+using Random
+using ....CoEvo.Abstract: Replacer, Evaluation
 
 # Returns the best npop individuals from both the population and children
 Base.@kwdef struct TruncationReplacer <: Replacer

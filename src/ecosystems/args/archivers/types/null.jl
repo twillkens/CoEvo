@@ -1,3 +1,4 @@
+using ...CoEvo.Abstract: Archiver
 
 struct NullArchiver <: Archiver end
 

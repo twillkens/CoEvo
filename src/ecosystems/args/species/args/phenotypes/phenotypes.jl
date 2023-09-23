@@ -1,11 +1,10 @@
 module Phenotypes
 
-export DefaultPhenoCfg
-
+export DefaultPhenotypeConfiguration
 
 include("types/default.jl")
 
-using ...CoEvo.Abstract: PhenotypeConfiguration, Genotype
+using ....CoEvo.Abstract: PhenotypeConfiguration, Genotype
 
 
 """

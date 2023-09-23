@@ -32,6 +32,9 @@ Represents a single evolutionary instantiation of a genotype.
 """
 abstract type Individual end
 
+abstract type IndividualConfiguration end
+
+
 """
     Species
 
@@ -200,14 +203,7 @@ Analysis Types
 
 Responsible for logging, storing, and managing data produced through the coevolutionary process.
 """
-abstract type Archivist end
-
-"""
-    ArchivistConfiguration
-
-Defines the configuration for an archivist, detailing how it should handle and store data.
-"""
-abstract type ArchivistConfiguration end
+abstract type Archiver end
 
 """
 Utility Types

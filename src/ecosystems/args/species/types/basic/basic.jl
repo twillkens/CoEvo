@@ -1,3 +1,11 @@
+using Random: AbstractRNG
+using DataStructures: OrderedDict
+using ...CoEvo.Abstract: Species, SpeciesConfiguration, PhenotypeConfiguration
+using ...CoEvo.Abstract: GenotypeConfiguration, EvaluationConfiguration, Replacer
+using ...CoEvo.Abstract: Selector, Recombiner, Mutator, Individual, Evaluation
+using .Utilities: Counter
+using .Genotypes: VectorGenotypeConfiguration
+using .Phenotypes: DefaultPhenotypeConfiguration
 """
     BasicSpecies{P <: PhenotypeConfiguration, I <: Individual}
 

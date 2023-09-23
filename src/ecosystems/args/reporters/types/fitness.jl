@@ -1,4 +1,9 @@
-using ..CoEvo.Species.Evaluations: ScalarFitnessEval
+export FitnessReporter
+
+using DataStructures: OrderedDict
+using .Utilities: StatFeatures, SpeciesStatReport
+using ...CoEvo.Abstract: Reporter, Report, Individual
+using ...CoEvo.Ecosystems.SpeciesTypes.Evaluations: ScalarFitnessEvaluation
 
 Base.@kwdef struct FitnessReporter <: Reporter
     n_round::Int = 2
@@ -28,7 +33,7 @@ end
 
 function generate_reports(
     gen::Int,
-    evals::Dict{String, OrderedDict{<:Individual, ScalarFitnessEval}},
+    evals::Dict{String, OrderedDict{<:Individual, ScalarFitnessEvaluation}},
     group::String,
     reporter::FitnessReporter
 )::Vector{SpeciesStatReport}
@@ -50,8 +55,8 @@ end
 
 function(reporter::FitnessReporter)(;
     gen::Int,
-    all_pop_evals::Dict{String, OrderedDict{<:Individual, ScalarFitnessEval}},
-    all_children_evals::Dict{String, OrderedDict{<:Individual, <:ScalarFitnessEval}},
+    all_pop_evals::Dict{String, OrderedDict{<:Individual, ScalarFitnessEvaluation}},
+    all_children_evals::Dict{String, OrderedDict{<:Individual, <:ScalarFitnessEvaluation}},
 )
 
     reports = Report[]

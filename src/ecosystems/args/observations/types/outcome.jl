@@ -1,3 +1,5 @@
+export OutcomeObservation, OutcomeObservationConfiguration
+
 using ...CoEvo.Abstract: Observation, ObservationConfiguration
 
 Base.@kwdef struct OutcomeObservationConfiguration <: ObservationConfiguration end

@@ -1,3 +1,5 @@
+using Random
+using ....CoEvo.Abstract: Replacer, Evaluation
 
 # Returns the poIndividuallation of veterans without change
 struct IdentityReplacer <: Replacer end

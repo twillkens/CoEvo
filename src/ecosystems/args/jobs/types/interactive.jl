@@ -1,4 +1,4 @@
-using ...CoEvo.Abstract: JobConfiguration, DomainConfiguration, Observation
+using ...CoEvo.Abstract: Job, JobConfiguration, DomainConfiguration, Observation, Ecosystem
 using .Domains: InteractiveDomainConfiguration
 
 """

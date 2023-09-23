@@ -1,3 +1,6 @@
+using Random
+using ....CoEvo.Abstract: Replacer, Evaluation
+
 # Replaces the population with the children, keeping the best n_elite individuals from the
 # population
 Base.@kwdef struct GenerationalReplacer <: Replacer

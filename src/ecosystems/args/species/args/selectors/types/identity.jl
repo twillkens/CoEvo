@@ -1,3 +1,5 @@
+using Random
+using ....CoEvo.Abstract: Individual, Selector
 
 # abstract type Selector end
 struct IdentitySelector <: Selector

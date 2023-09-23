@@ -1,12 +1,12 @@
 module Evaluations
 
-export ScalarFitnessEvalCfg #, DiscoEvalCfg
-
-using ....CoEvo.Abstract: Evaluation, EvaluationConfiguration
+export ScalarFitnessEvaluation, ScalarFitnessEvaluationConfiguration #, DiscoEvalCfg
 
 include("types/scalar_fitness.jl")
 include("types/disco.jl")
 
+using DataStructures
+using ....CoEvo.Abstract: Evaluation, EvaluationConfiguration
 
 function(eval_cfg::EvaluationConfiguration)(all_outcomes::Dict{<:Individual, Dict{Int, Float64}})
     return Dict(indiv => eval_cfg(indiv.id, outcomes) for (indiv, outcomes) in all_outcomes)

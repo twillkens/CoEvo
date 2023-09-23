@@ -15,15 +15,17 @@ the coevolutionary process.
 - [`evolve!`](#) : Runs the evolution of the ecosystem for a set number of generations.
 
 """
-export CoevolutionaryEcosystem, CoevolutionaryEcosystemCfg
 
-using DataStructures
-using ..CoEvo.Abstract: Ecosystem, EcosystemConfiguration
-using ..CoEvo.Abstract: Species, SpeciesConfiguration, 
-using ..CoEvo.Abstract: JobConfiguration, Archiver
-using Random: AbstractRNG
-using ..CoEvo.Utilities: Counter, next!
+export CoevolutionaryEcosystem
+export CoevolutionaryEcosystemConfiguration
+
+using DataStructures: OrderedDict
 using StableRNGs: StableRNG
+using ...CoEvo.Abstract: Ecosystem, EcosystemConfiguration
+using ...CoEvo.Abstract: Species, SpeciesConfiguration
+using ...CoEvo.Abstract: JobConfiguration, Observation, Reporter, Archiver
+using Random: AbstractRNG
+using .SpeciesTypes.Utilities: Counter
 
 """
     struct Eco <: Ecosystem
@@ -120,7 +122,7 @@ function CoevolutionaryEcosystemConfiguration(
     gene_id_counter::Counter = Counter(),
 )
     rng = rng !== nothing ? rng : seed == -1 ? StableRNG(rand(UInt32)) : StableRNG(seed)
-    CoevolutionaryEcosystemCfg(
+    CoevolutionaryEcosystemConfiguration(
         id, 
         trial, 
         rng, 
@@ -147,7 +149,7 @@ Generate a new ecosystem based on the given configuration `eco_cfg`.
 # Notes:
 - If the first species configuration's ID is "default", species are enumerated. Otherwise, species use their respective configuration IDs.
 """
-function(eco_cfg::CoevolutionaryEcosystemCfg)()
+function(eco_cfg::CoevolutionaryEcosystemConfiguration)()
 
     # Helper function to create species based on configuration
     function create_species(species_cfg)
@@ -186,7 +188,7 @@ phenotype configuration of each species in the given ecosystem `eco`.
 - This function fetches phenotypes for both the current population (`pop`) and the offspring (`children`) 
   for each species in the ecosystem.
 """
-function get_pheno_dict(eco::Eco)
+function get_pheno_dict(eco::Ecosystem)
     Dict(
         indiv_id => species.pheno_cfg(indiv_id, indiv.geno)
         for (indiv_id, indiv) in merge(species.pop, species.children)
@@ -279,7 +281,7 @@ end
 
 
 function evolve!(
-    eco_cfg::CoevolutionarEcosystemConfiguration;
+    eco_cfg::CoevolutionaryEcosystemConfiguration;
     n_gen::Int = 100,
 )
     eco = eco_cfg()

@@ -4,18 +4,17 @@ module Selectors
 export IdentitySelector, RouletteSelector, TournamentSelector
 
 include("types/identity.jl")
-include("types/roulette.jl")
-include("types/tournament.jl")
+# include("types/roulette.jl")
+# include("types/tournament.jl")
 
-using StatsBase
-using Random
+using DataStructures: OrderedDict
+using Random: AbstractRNG
 using ....CoEvo.Abstract: Individual, Selector, Evaluation
-using ..Evaluations: ScalarFitnessEval
 
 
 function(selector::Selector)(
     rng::AbstractRNG, 
-    pop::OrderedDict(Int, <:Individual), 
+    pop::OrderedDict{Int, <:Individual}, 
     pop_evals::Dict{Int, <:Evaluation},
     children_evals::Dict{Int, <:Evaluation},
 )

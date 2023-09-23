@@ -1,8 +1,12 @@
+module Utilities
+
+export StatFeatures, SpeciesStatReport, extract_features
+
 using StatsBase: nquantile, skewness, kurtosis, mode
 using HypothesisTests: OneSampleTTest, confint
+using ....CoEvo.Abstract: Reporter, Report
 
 Base.@kwdef struct StatFeatures
-    metric::String = "default"
     sum::Float64 = 0.0
     upper_confidence::Float64 = 0.0
     mean::Float64 = 0.0
@@ -17,7 +21,6 @@ Base.@kwdef struct StatFeatures
     skew::Float64 = 0.0
     kurt::Float64 = 0.0
     mod::Real = 0.0
-    n_round::Int = 2  # Default value set to 2 decimal places
 end
 
 function StatFeatures(metric::String, vec::Vector{<:Real}, n_round::Int=2)
@@ -30,7 +33,6 @@ function StatFeatures(metric::String, vec::Vector{<:Real}, n_round::Int=2)
 
     # Use the round function on each feature to round to the specified number of digits
     return StatFeatures(
-        metric=metric,
         sum=round(sum(vec), digits=n_round),
         lower_confidence=round(loconf, digits=n_round),
         mean=round(mean(vec), digits=n_round),
@@ -45,12 +47,8 @@ function StatFeatures(metric::String, vec::Vector{<:Real}, n_round::Int=2)
         skew=round(skewness(vec), digits=n_round),
         kurt=round(kurtosis(vec), digits=n_round),
         mod=round(mode(vec), digits=n_round),
-        n_round=n_round
     )
 end
-
-
-
 
 function StatFeatures(tup::Tuple{Vararg{<:Real}})
     StatFeatures(collect(tup))
@@ -79,4 +77,6 @@ struct SpeciesStatReport <: Report
     group_id::String
     metric::String
     stat_features::StatFeatures
+end
+
 end

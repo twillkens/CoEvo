@@ -2,7 +2,7 @@ using Test
 
 include("../src/CoEvo.jl")
 using .CoEvo
-using .CoEvo.NumbersGame: NumbersGameProblem, Sum, Gradient, Focusing, Relativism
+using .CoEvo.NumbersGame: NumbersGameProblem, Sum
 
 species_cfgs = [SpeciesCfg(), SpeciesCfg()]
 problem = NumbersGameProblem(:Sum)
