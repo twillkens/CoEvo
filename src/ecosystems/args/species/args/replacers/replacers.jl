@@ -9,12 +9,12 @@ include("types/identity.jl")
 # include("types/generational.jl")
 
 using Random
-using ....CoEvo.Abstract: Replacer, Evaluation, Species
+using ....CoEvo.Abstract: Replacer, Evaluation, AbstractSpecies
 
 
 function(replacer::Replacer)(
     rng::AbstractRNG, 
-    species::Species,
+    species::AbstractSpecies,
     pop_evals::Dict{Int, <:Evaluation},
     children_evals::Dict{Int, <:Evaluation},
 )

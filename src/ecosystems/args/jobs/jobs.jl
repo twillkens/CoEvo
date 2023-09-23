@@ -1,9 +1,9 @@
 module Jobs
 
-export InteractiveJob, InteractiveJobConfiguration
+export InteractionJob, InteractionJobConfiguration
 
 include("args/domains/domains.jl")
 
-include("types/interactive.jl")
+include("types/interaction.jl")
 
 end

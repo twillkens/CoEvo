@@ -1,4 +1,4 @@
-using .....CoEvo.Abstract: MatchMaker, Species
+using .....CoEvo.Abstract: MatchMaker, AbstractSpecies
 """
     AllvsAllMatchMaker <: MatchMaker
 
@@ -30,7 +30,7 @@ Matchmaking function to create pairs of individuals between two species based on
 # Errors
 - Throws an error if an invalid type is set in `AllvsAllMatchMaker`.
 """
-function(matchmaker::AllvsAllMatchMaker)(sp1::Species, sp2::Species)
+function(matchmaker::AllvsAllMatchMaker)(sp1::AbstractSpecies, sp2::AbstractSpecies)
     if matchmaker.type == :comma
         ids1 = length(s1.children) == 0 ? collect(keys(sp1.pop)) : collect(keys(sp1.children))
         ids2 = length(s2.children) == 0 ? collect(keys(sp2.pop)) : collect(keys(sp2.children))

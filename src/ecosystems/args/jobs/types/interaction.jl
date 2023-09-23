@@ -15,23 +15,6 @@ struct InteractionRecipe
     indiv_ids::Vector{Int}
 end
 
-"""
-    InteractionResult{O <: Observation}
-
-Captures the result of an interaction.
-
-# Fields
-- `domain_id::Int`: Identifier for the interaction domain.
-- `indiv_ids::Vector{Int}`: Identifiers of individuals participating in the interaction.
-- `outcome_set::Vector{Float64}`: Set of outcomes from the interaction.
-- `observation::O`: Observation captured during the interaction.
-"""
-struct InteractionResult{O <: Observation}
-    domain_id::Int
-    indiv_ids::Vector{Int}
-    outcome_set::Vector{Float64}
-    observation::O
-end
 
 """
     InteractionJob{D <: DomainConfiguration, T} <: Job
@@ -43,7 +26,7 @@ Defines a job that orchestrates a set of interactions.
 - `pheno_dict::Dict{Int, T}`: Dictionary mapping individual IDs to their phenotypes.
 - `recipes::Vector{InteractionRecipe}`: Interaction recipes to be executed in this job.
 """
-struct InteractiveDomainJob{D <: InteractiveDomainConfiguration, T} <: Job
+struct InteractionJob{D <: InteractiveDomainConfiguration, T} <: Job
     domain_cfgs::Vector{D}
     pheno_dict::Dict{Int, T}
     recipes::Vector{InteractionRecipe}
@@ -62,7 +45,7 @@ returns a list of their results.
 # Returns
 - A `Vector` of `InteractionResult` instances, each detailing the outcome of an interaction.
 """
-function perform(job::InteractiveDomainJob)
+function perform(job::InteractionJob)
     observations = Observation[]
     for recipe in job.recipes
         domain = job.domains[recipe.domain_id]
@@ -104,7 +87,7 @@ function make_interaction_recipes(
     return interaction_recipes
 end
 
-struct InteractiveDomainJobConfiguration{
+struct InteractionJobConfiguration{
     D <: InteractiveDomainConfiguration
 } <: JobConfiguration
     domain_cfgs::Vector{D} 
@@ -112,10 +95,10 @@ struct InteractiveDomainJobConfiguration{
 end
 
 # Constructor for JobCfg with a default number of workers.
-function InteractiveDomainJobConfiguration(
+function InteractionJobConfiguration(
     domain_cfgs::Vector{<:InteractiveDomainConfiguration}
 )
-    return InteractiveDomainJobConfiguration(domain_cfgs, 1)
+    return InteractionJobConfiguration(domain_cfgs, 1)
 end
 
 """
@@ -131,7 +114,7 @@ Results from all interactions are aggregated and returned.
 # Returns
 - A `Vector` of `InteractionResult` detailing outcomes of all interactions executed.
 """
-function(job_cfg::InteractiveDomainJobConfiguration)(eco::Ecosystem)
+function(job_cfg::InteractionJobConfiguration)(eco::Ecosystem)
     recipes = vcat(
         [
             make_interaction_recipes(domain_id, domain_cfg, eco) 

@@ -22,10 +22,10 @@ export CoevolutionaryEcosystemConfiguration
 using DataStructures: OrderedDict
 using StableRNGs: StableRNG
 using ...CoEvo.Abstract: Ecosystem, EcosystemConfiguration
-using ...CoEvo.Abstract: Species, SpeciesConfiguration
+using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration
 using ...CoEvo.Abstract: JobConfiguration, Observation, Reporter, Archiver
 using Random: AbstractRNG
-using .SpeciesTypes.Utilities: Counter
+using .Species.Utilities: Counter
 
 """
     struct Eco <: Ecosystem
@@ -37,9 +37,9 @@ of species, where each species has a population of individuals.
 - `id`: A unique identifier for the ecosystem.
 - `species`: A dictionary mapping species IDs to their respective species data.
 """
-struct CoevolutionaryEcosystem <: Ecosystem
+struct CoevolutionaryEcosystem{S <: AbstractSpecies} <: Ecosystem
     id::String
-    species::Dict{String, Species}
+    species::Dict{String, S}
 end
 
 """

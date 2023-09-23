@@ -3,7 +3,7 @@ export FitnessReporter
 using DataStructures: OrderedDict
 using .Utilities: StatFeatures, SpeciesStatReport
 using ...CoEvo.Abstract: Reporter, Report, Individual
-using ...CoEvo.Ecosystems.SpeciesTypes.Evaluations: ScalarFitnessEvaluation
+using ...CoEvo.Ecosystems.Species.Evaluations: ScalarFitnessEvaluation
 
 Base.@kwdef struct FitnessReporter <: Reporter
     n_round::Int = 2

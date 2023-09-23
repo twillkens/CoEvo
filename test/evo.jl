@@ -1,8 +1,7 @@
 using Test
 
 include("../src/CoEvo.jl")
-using .CoEvo
-using .CoEvo.NumbersGame: NumbersGameProblem, Sum
+using .CoEvo: NumbersGameProblem, Sum, SpeciesCfg, DomainCfg, JobCfg, EcoCfg
 
 species_cfgs = [SpeciesCfg(), SpeciesCfg()]
 problem = NumbersGameProblem(:Sum)

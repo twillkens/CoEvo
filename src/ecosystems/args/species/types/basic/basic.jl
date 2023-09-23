@@ -1,11 +1,18 @@
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using ...CoEvo.Abstract: Species, SpeciesConfiguration, PhenotypeConfiguration
+using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration, PhenotypeConfiguration
 using ...CoEvo.Abstract: GenotypeConfiguration, EvaluationConfiguration, Replacer
 using ...CoEvo.Abstract: Selector, Recombiner, Mutator, Individual, Evaluation
 using .Utilities: Counter
 using .Genotypes: VectorGenotypeConfiguration
 using .Phenotypes: DefaultPhenotypeConfiguration
+println("hi")
+using .Evaluations: ScalarFitnessEvaluationConfiguration
+println("there")
+using .Replacers: IdentityReplacer
+using .Selectors: IdentitySelector
+using .Recombiners: CloneRecombiner
+
 """
     BasicSpecies{P <: PhenotypeConfiguration, I <: Individual}
 
@@ -17,7 +24,9 @@ A collection of individuals that represents a species population and its childre
 - `pop::OrderedDict{Int, I}`: The current population of individuals.
 - `children::OrderedDict{Int, I}`: The children of the population.
 """
-struct BasicSpecies{P <: PhenotypeConfiguration, I <: Individual, E <: Evaluation} <: Species
+struct BasicSpecies{
+    P <: PhenotypeConfiguration, I <: Individual, E <: Evaluation
+} <: AbstractSpecies
     id::String
     pheno_cfg::P
     pop::OrderedDict{Int, I}
@@ -40,7 +49,7 @@ end
 function BasicSpecies(id::String, pop::OrderedDict{Int, I}) where {I <: Individual}
     return BasicSpecies(
         id, 
-        DefaultPhenoCfg(), 
+        DefaultPhenotypeConfiguration(), 
         pop, 
         OrderedDict{Int, I}(), 
     )
@@ -86,9 +95,9 @@ Configuration for generating a new species in the ecosystem.
     id::String = "default"
     n_pop::Int = 10 
     geno_cfg::G = VectorGenotypeConfiguration()
-    pheno_cfg::P = IdentityPhenotypeConfiguration()
+    pheno_cfg::P = DefaultPhenotypeConfiguration()
     eval_cfg::E = ScalarFitnessEvaluationConfiguration()
-    replacer::RP = IdentityReplacerCfg()
+    replacer::RP = IdentityReplacer()
     selector::S = IdentitySelector()
     recombiner::RC = CloneRecombiner()
     mutators::Vector{M} = Mutator[]

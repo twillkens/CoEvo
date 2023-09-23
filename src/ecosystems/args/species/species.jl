@@ -4,9 +4,9 @@
 This module provides tools and configurations for defining and handling species
 in a co-evolutionary ecosystem.
 """
-module SpeciesTypes
+module Species
 
-export BasicSpeciesConfiguration, SpeciesCfg
+export BasicSpeciesConfiguration
 
 # Exported types and functions
 
@@ -22,8 +22,5 @@ include("args/recombiners/recombiners.jl")
 include("args/mutators/mutators.jl")
 
 include("types/basic/basic.jl")
-
-const SpeciesCfg = BasicSpeciesConfiguration
-
 
 end

@@ -35,12 +35,7 @@ abstract type Individual end
 abstract type IndividualConfiguration end
 
 
-"""
-    Species
-
-A collection or group of individuals.
-"""
-abstract type Species end
+abstract type AbstractSpecies end
 
 """
     SpeciesConfiguration
