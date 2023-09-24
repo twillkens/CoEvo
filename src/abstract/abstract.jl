@@ -110,9 +110,11 @@ function interact(problem::Problem, domain_id::Int, obs_cfg::ObservationConfigur
     throw(ErrorException("Required method `interact` not implemented for Problem."))
 end
 
+abstract type Report end
+
 abstract type Reporter end
 
-abstract type Report end
+abstract type StatisticalFeatureSetReporter <: Reporter end
 
 
 """
@@ -154,6 +156,7 @@ Stores the evaluation or assessment information for an individual.
 """
 abstract type Evaluation end
 
+abstract type FitnessEvaluation <: Evaluation end
 """
     EvaluationConfiguration
 

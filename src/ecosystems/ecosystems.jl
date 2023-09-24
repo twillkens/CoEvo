@@ -2,11 +2,11 @@ module Ecosystems
 
 export CoevolutionaryEcosystemConfiguration
 
-include("args/observations/observations.jl")
-include("args/species/species.jl")
-include("args/jobs/jobs.jl")
-include("args/reporters/reporters.jl")
-include("args/archivers/archivers.jl")
+include("deps/observations/observations.jl")
+include("deps/species/species.jl")
+include("deps/jobs/jobs.jl")
+include("deps/reporters/reporters.jl")
+include("deps/archivers/archivers.jl")
 
 include("types/coevolutionary/coevolutionary.jl")
 

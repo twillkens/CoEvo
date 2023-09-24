@@ -15,6 +15,7 @@ export InteractiveDomainConfiguration, DomainCfg
 export AllvsAllMatchMaker, NumbersGameProblem
 
 include("abstract/abstract.jl")
+include("utilities/utilities.jl")
 include("ecosystems/ecosystems.jl")
 
 using .Ecosystems: CoevolutionaryEcosystemConfiguration, evolve!
