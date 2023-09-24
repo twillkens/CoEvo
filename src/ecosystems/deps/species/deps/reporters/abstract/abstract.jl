@@ -26,10 +26,10 @@ abstract type IndividualReporter <: SpeciesStatisticalFeatureSetReporter end
 function(reporter::IndividualReporter)(
     gen::Int,
     species_id::String,
-    generational_type::String,
+    cohort::String,
     indiv_evals::OrderedDict{<:Individual, <:Evaluation}
 )
-    report = reporter(gen, species_id, generational_type, collect(keys(indiv_evals)))
+    report = reporter(gen, species_id, cohort, collect(keys(indiv_evals)))
     return report
 end
 

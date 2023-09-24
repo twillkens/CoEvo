@@ -24,7 +24,8 @@ Base.@kwdef struct StatisticalFeatureSet
 end
 
 function StatisticalFeatureSet(vec::Vector{<:Real}, n_round::Int=2)
-    if isempty(vec)
+    println(vec)
+    if isempty(vec) || length(vec) == 1
         return StatisticalFeatureSet()
     end
 

@@ -37,4 +37,4 @@ CoEvo.Ecosystems.CoevolutionaryEcosystemConfiguration(
 eco_cfg = EcoCfg(species_cfgs, job_cfg)
 eco = eco_cfg()
 observations = eco_cfg.job_cfg(eco)
-evolve!(eco_cfg, n_gen=10)
+evolve!(eco_cfg, n_gen=1000)

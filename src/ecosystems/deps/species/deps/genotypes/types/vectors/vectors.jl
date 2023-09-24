@@ -13,7 +13,7 @@ using Random: rand, AbstractRNG
 using JLD2: Group
 using ...Utilities: Counter
 using .....CoEvo.Abstract: Genotype, GenotypeConfiguration, PhenotypeConfiguration
-using .....CoEvo.Abstract: Archiver
+using .....CoEvo.Abstract: Archiver, Mutator
 
 """
     VectorGenotype{T <: Real} <: Genotype
@@ -80,6 +80,16 @@ end
 # Function to store a `VectorGeno` into an archive (using JLD2).
 function save_genotype!(::Archiver, geno_group::Group, geno::VectorGenotype)
     geno_group["vals"] = geno.vals
+end
+
+function(mutator::Mutator)(
+    rng::AbstractRNG, ::Counter, geno::VectorGenotype{R}
+) where {R <: Real}
+    noise = 0.1 .* rand(rng, R, length(geno.vals))
+    vals = geno.vals + noise
+    geno = VectorGenotype(vals)
+    println(geno)
+    return geno
 end
 
 end

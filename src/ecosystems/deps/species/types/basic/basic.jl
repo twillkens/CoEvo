@@ -14,7 +14,8 @@ using .Evaluations: ScalarFitnessEvaluationConfiguration
 using .Replacers: IdentityReplacer
 using .Selectors: IdentitySelector
 using .Recombiners: CloneRecombiner
-using .Reporters: SizeGenotypeReporter, FitnessEvaluationReporter
+using .Mutators: DefaultMutator
+using .Reporters: SizeGenotypeReporter, FitnessEvaluationReporter, SumGenotypeReporter
 
 using .Utilities: next!
 
@@ -106,8 +107,8 @@ Configuration for generating a new species in the ecosystem.
     replacer::RP = IdentityReplacer()
     selector::S = IdentitySelector()
     recombiner::RC = CloneRecombiner()
-    mutators::Vector{M} = Mutator[]
-    reporters::Vector{R} = [FitnessEvaluationReporter()]
+    mutators::Vector{M} = [DefaultMutator()]
+    reporters::Vector{R} = [FitnessEvaluationReporter(), SumGenotypeReporter()]
 end
 
 """
