@@ -1,7 +1,7 @@
 module Individuals
 
 export AsexualIndividual, AsexualIndividualConfiguration
-export SexualIndivdual, SexualIndividualConfiguration
+export SexualIndividual, SexualIndividualConfiguration
 
 
 include("types/asexual.jl")

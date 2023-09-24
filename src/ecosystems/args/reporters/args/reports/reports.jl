@@ -1,7 +1,7 @@
 module Reports
 
 export RuntimeReport
-export SpeciesStatisticalFeatureReport, IndividualStatisticalFeatureSetReport
+export SpeciesStatisticalFeatureSetReport, IndividualStatisticalFeatureSetReport
 export extract_stat_features
 
 include("types/runtime.jl")

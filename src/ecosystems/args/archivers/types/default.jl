@@ -7,6 +7,7 @@ using ...CoEvo.Abstract: Archiver, Report, Individual, Evaluation
 using ...CoEvo.Ecosystems.Species.Evaluations: ScalarFitnessEvaluation
 using ...CoEvo.Ecosystems.Species.Individuals: AsexualIndividual, SexualIndividual
 using ...CoEvo.Ecosystems.Species.Genotypes: VectorGenotype
+using ...CoEvo.Ecosystems.Reporters.Reports: SpeciesStatisticalFeatureSetReport
 
 Base.@kwdef struct DefaultArchiver <: Archiver 
     save_pop::Bool = false
@@ -28,10 +29,11 @@ function(archiver::DefaultArchiver)(
         save_individuals!(archiver, gen, jld2_file, all_children_evals, "children")
     end
     [process_report(archiver, report) for report in reports]
+    close(jld2_file)
 end
 
 # Function to store a `VectorGeno` into an archive (using JLD2).
-function save_genotype!(::DefaultArchiver, geno_group::JLD2.Group, geno::VectorGenotype)
+function save_genotype!(::DefaultArchiver, geno_group::Group, geno::VectorGenotype)
     geno_group["vals"] = geno.vals
 end
 
@@ -73,7 +75,7 @@ function save_individuals!(
 end
 
 # Then, for the custom show method:
-function Base.show(io::IO, ::DefaultArchiver, report::SpeciesStatReport)
+function Base.show(io::IO, ::DefaultArchiver, report::SpeciesStatisticalFeatureSetReport)
     println(io, "-----------------------------------------------------------")
     println(io, "Report for Generation: $(report.gen)")
     println(io, "Species ID: $(report.species_id)")
@@ -83,5 +85,11 @@ function Base.show(io::IO, ::DefaultArchiver, report::SpeciesStatReport)
     for feature in reporter.print_features
         val = getfield(report.stat_features, feature)
         println(io, "    $feature: $val")
+    end
+end
+
+function process_report(archiver::DefaultArchiver, report::SpeciesStatisticalFeatureSetReport)
+    if report.to_print
+        Base.show(archiver, report)
     end
 end

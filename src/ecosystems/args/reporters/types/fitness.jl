@@ -1,8 +1,9 @@
 export FitnessReporter
 
 using DataStructures: OrderedDict
-using .Reports: SpeciesStatisticalFeatureReport
-using ...CoEvo.Abstract: Reporter, Report, Individual
+using .Reports: SpeciesStatisticalFeatureSetReport
+using ...CoEvo.Abstract: Reporter, Report, Individual, SpeciesConfiguration, Observation
+using ...CoEvo.Abstract: DomainConfiguration, Evaluation
 using ...CoEvo.Ecosystems.Species.Evaluations: ScalarFitnessEvaluation
 
 Base.@kwdef struct FitnessReporter <: Reporter
@@ -17,33 +18,36 @@ end
 
 function generate_reports(
     gen::Int,
-    evals::Dict{String, OrderedDict{<:Individual, ScalarFitnessEvaluation}},
-    group::String,
+    evals::Dict{String, OrderedDict{<:Individual, <:Evaluation}},
+    generational_type::String,
     reporter::FitnessReporter
-)::Vector{SpeciesStatReport}
+)::Vector{SpeciesStatisticalFeatureSetReport}
     reports = []
     for (species_id, evaluations) in evals
+        if length(evaluations) == 0 || !isa(first(values(evaluations)), ScalarFitnessEvaluation)
+            continue
+        end
         fitnesses = map(e -> e.second.fitness, values(evaluations))
         stat_features = StatisticalFeatureSet(fitnesses, reporter.n_round)
-        report = SpeciesStatisticalFeatureReport(
-            gen, species_id, group, "Fitness", stat_features
+        to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
+        to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
+        report = SpeciesStatisticalFeatureSetReport(
+            to_print, to_save, species_id, generational_type, "Fitness", stat_features,
+            reporter.print_features, reporter.save_features
         )
         push!(reports, report)
 
-        if gen % reporter.log_interval == 0
-            Base.show(report)
-        end
     end
     return reports
 end
 
-function(reporter::FitnessReporter)(gen::Int;
-    all_pop_evals::Dict{String, OrderedDict{<:Individual, ScalarFitnessEvaluation}},
-    all_children_evals::Dict{String, OrderedDict{<:Individual, <:ScalarFitnessEvaluation}},
-    kwargs...
+function(reporter::FitnessReporter)(gen::Int,
+    all_pop_evals::OrderedDict{SpeciesConfiguration, OrderedDict{<:Individual, <:Evaluation}},
+    all_children_evals::OrderedDict{SpeciesConfiguration, OrderedDict{<:Individual, <:Evaluation}},
+    dom_cfg_obs::OrderedDict{<:DomainConfiguration, <:Observation}
 )
 
-    reports = SpeciesStatisticalFeatureReport[]
+    reports = SpeciesStatisticalFeatureSetReport[]
 
     if reporter.check_pop
         append!(reports, generate_reports(gen, all_pop_evals, "pop", reporter))

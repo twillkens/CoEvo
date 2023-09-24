@@ -151,9 +151,9 @@ function(species_cfg::BasicSpeciesConfiguration)(
     rng::AbstractRNG, 
     indiv_id_counter::Counter,  
     gene_id_counter::Counter,  
-    pop_evals::OrderedDict{<:Individual, <:Evaluation},
-    children_evals::OrderedDict{<:Individual, <:Evaluation},
-)
+    pop_evals::OrderedDict{I, <:Evaluation},
+    children_evals::OrderedDict{I, <:Evaluation},
+) where {I <: Individual}
     # new_pop_evals::OrderedDict{<:Individual, <:Evaluation}
     new_pop_evals = species_cfg.replacer(rng, pop_evals, children_evals)
     # parents::OrderedDict{<:Individual, <:Evaluation}
@@ -163,8 +163,12 @@ function(species_cfg::BasicSpeciesConfiguration)(
     for mutator in species_cfg.mutators
         new_children = mutator(rng, gene_id_counter, new_children)
     end
-    new_pop = OrderedDict(indiv.id => indiv for indiv in keys(new_pop_evals))
-    new_children = OrderedDict(indiv.id => indiv for indiv in children)
+    new_pop = OrderedDict{Int, I}(indiv.id => indiv for indiv in keys(new_pop_evals))
+    new_children = OrderedDict{Int, I}(indiv.id => indiv for indiv in new_children)
+    println("*********************")
+    println(new_pop)
+    println("*********************")
+    println(new_children)
     new_species = BasicSpecies(species_cfg.id, species_cfg.pheno_cfg, new_pop, new_children)
     return new_species
 end

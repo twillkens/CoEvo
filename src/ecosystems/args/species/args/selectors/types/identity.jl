@@ -7,5 +7,5 @@ struct IdentitySelector <: Selector
 end
 
 function(s::IdentitySelector)(::AbstractRNG, evals::OrderedDict{<:Individual, <:Evaluation})
-    [eval.id for eval in keys(evals)]
+    evals
 end

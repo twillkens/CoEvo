@@ -1,6 +1,6 @@
 using ....CoEvo.Abstract: Genotype, Individual, IndividualConfiguration
 
-struct SexualIndivdual{G <: Genotype} <: Individual
+struct SexualIndividual{G <: Genotype} <: Individual
     id::Int
     geno::G
     parent_ids::Vector{Int}

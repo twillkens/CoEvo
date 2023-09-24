@@ -2,7 +2,7 @@ module Utilities
 
 export Max, Min, Counter, next!
 
-abstract type Sense end
+using ....CoEvo.Abstract: Sense
 
 struct Max <: Sense end
 struct Min <: Sense end

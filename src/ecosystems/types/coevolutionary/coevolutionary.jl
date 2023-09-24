@@ -23,11 +23,13 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 using ...CoEvo.Abstract: Ecosystem, EcosystemConfiguration
-using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration
-using ...CoEvo.Abstract: JobConfiguration, Observation, Reporter, Archiver
+using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration, Individual
+using ...CoEvo.Abstract: JobConfiguration, Observation, Reporter, Archiver, Evaluation 
 using .Species.Utilities: Counter
-using .Reporters: RuntimeRepor, FitnessReporter
-using .Archivers: NullArchiver
+using .Species.Evaluations: ScalarFitnessEvaluation
+using .Reporters: RuntimeReporter, FitnessReporter
+using .Reporters.Reports: RuntimeReport
+using .Archivers: DefaultArchiver
 
 """
     struct Eco <: Ecosystem
@@ -74,11 +76,11 @@ struct CoevolutionaryEcosystemConfiguration{
     rng::AbstractRNG
     species_cfgs::OrderedDict{String, S}
     job_cfg::J
+    runtime_reporter::RuntimeReporter
     reporters::Vector{R}
     archiver::A
     indiv_id_counter::Counter
     gene_id_counter::Counter
-    log_runtime::Bool
 end
 
 """
@@ -119,8 +121,9 @@ function CoevolutionaryEcosystemConfiguration(
     trial::Int = 1,
     seed::Union{UInt64, Int} = -1,
     rng::Union{AbstractRNG, Nothing} = nothing,
+    runtime_reporter = RuntimeReporter(),
     reporters::Vector{<:Reporter} = [FitnessReporter()],
-    archiver::Archiver = NullArchiver(),
+    archiver::Archiver = DefaultArchiver(),
     indiv_id_counter::Counter = Counter(),
     gene_id_counter::Counter = Counter(),
 )
@@ -137,6 +140,7 @@ function CoevolutionaryEcosystemConfiguration(
         rng, 
         species_cfgs, 
         job_cfg, 
+        runtime_reporter,
         reporters,
         archiver,
         indiv_id_counter, 
@@ -179,7 +183,9 @@ end
 
 
 
-function get_outcomes(all_indivs::Dict{Int, <:Individual}, observations::Vector{<:Observation})
+function get_outcomes(
+    all_indivs::Dict{Int, Individual}, observations::Vector{<:Observation}
+) 
     # Initialize a dictionary to store interaction outcomes between individuals
     outcomes = Dict{Individual, Dict{Individual, Float64}}()
 
@@ -191,22 +197,22 @@ function get_outcomes(all_indivs::Dict{Int, <:Individual}, observations::Vector{
 
         # Use `get!` to simplify dictionary insertion. 
         # If the key doesn't exist, a new dictionary is initialized and the outcome is recorded.
-        get!(outcomes, indivd1, Dict{Individual, Float64}())[indiv2] = outcome1
-        get!(outcomes, indivd2, Dict{Individual, Float64}())[indiv1] = outcome2
+        get!(outcomes, indiv1, Dict{Individual, Float64}())[indiv2] = outcome1
+        get!(outcomes, indiv2, Dict{Individual, Float64}())[indiv1] = outcome2
     end
     outcomes
 end
 
 function get_all_indivs(eco::CoevolutionaryEcosystem)
-    all_indivs = Dict(
-        indiv_id => indiv 
+    all_indivs = Dict{Int, Individual}(
+        indiv.id => indiv 
         for species in values(eco.species) 
         for indiv in values(merge(species.pop, species.children))
     )
     return all_indivs
 end
 
-function filter_indivs(all_indivs::Dict{Int, <:Individual}, indiv_ids::Set{Int})
+function filter_indivs(all_indivs::Dict{Int, Individual}, indiv_ids::Set{Int})
     return filter((indiv_id, indiv) -> indiv_id ∈ indiv_ids, all_indivs)
 end
 
@@ -215,30 +221,45 @@ function(eco_cfg::CoevolutionaryEcosystemConfiguration)(
     gen::Int, 
     eco::Ecosystem, 
     observations::Vector{<:Observation}, 
-    eval_time::Float64,
-    reproduce_time::Float64,
+    runtime_report::RuntimeReport
 )
     # Type of all_indivs is Dict{Int, <:Individual}
     all_indivs = get_all_indivs(eco)
     # Type of outcomes is Dict{Individual, Dict{Individual, Float64}}
     outcomes = get_outcomes(all_indivs, observations)
     # Return the updated ecosystem configuration based on the interactions and observations
-    all_new_species = Pair{String, <:Species}[]
-    species_pop_evals = Pair{String, OrderedDict{<:Individual, <:Evaluation}}[]
-    species_children_evals = Pair{String, OrderedDict{<:Individual, <:Evaluation}}[]
+    all_new_species = Pair{String, AbstractSpecies}[]
+    # species_cfg_pop_evals::Pair{SpeciesConfiguration, OrderedDict{Individual, Evaluation}}[]
+    species_cfg_pop_evals = Pair{SpeciesConfiguration, OrderedDict{Individual, Evaluation}}[]
+    # species_cfg_children_evals::Pair{SpeciesConfiguration, OrderedDict{Individual, Evaluation}}[]
+    species_cfg_children_evals = Pair{SpeciesConfiguration, OrderedDict{Individual, Evaluation}}[]
 
     for (species_id, species) in eco.species
         species_cfg = eco_cfg.species_cfgs[species_id]
-        pop_outcomes = filter(
-            (indiv, outcome) -> indiv.id ∈ keys(species.pop), outcomes
-        )
-        children_outcomes = filter(
-            (indiv, outcome) -> indiv.id ∈ keys(species.children), outcomes
-        )
+        pop_outcomes = Dict(filter(
+            indiv_outcome -> indiv_outcome.first.id ∈ keys(species.pop), outcomes
+        ))
+        children_outcomes = Dict(filter(
+            indiv_outcome -> indiv_outcome.first.id ∈ keys(species.children), outcomes
+        ))
         # pop_evals::OrderedDict{<:Individual, <:Evaluation}
-        pop_evals = species_cfg.eval_cfg(pop_outcomes)
+
+
+        if isempty(pop_outcomes)
+        # Get the type of individual from the species
+            indiv_type = eltype(values(species.pop))
+            pop_evals = OrderedDict{indiv_type, ScalarFitnessEvaluation}()
+        else
+            pop_evals = species_cfg.eval_cfg(pop_outcomes)
+        end
         # children_evals::OrderedDict{<:Individual, <:Evaluation}
-        children_evals = species_cfg.eval_cfg(children_outcomes)
+        if isempty(children_outcomes)
+        # Get the type of individual from the species
+            indiv_type = eltype(values(species.children))
+            children_evals = OrderedDict{indiv_type, ScalarFitnessEvaluation}()
+        else
+            children_evals = species_cfg.eval_cfg(children_outcomes)
+        end
         # new_species::Species
         new_species = species_cfg(
             eco_cfg.rng, 
@@ -248,35 +269,33 @@ function(eco_cfg::CoevolutionaryEcosystemConfiguration)(
             children_evals
         )
         push!(all_new_species, species_id => new_species)
-        push!(species_pop_evals, species_id => pop_evals)
-        push!(species_children_evals, species_id => children_evals)
+        push!(species_cfg_pop_evals, species_cfg => pop_evals)
+        push!(species_cfg_children_evals, species_cfg => children_evals)
     end
     all_new_species = OrderedDict(all_new_species)
-    species_pop_evals = OrderedDict(species_pop_evals)
-    species_children_evals = OrderedDict(species_children_evals)
+    species_cfg_pop_evals = OrderedDict(species_cfg_pop_evals)
+    species_cfg_children_evals = OrderedDict(species_cfg_children_evals)
 
-    all_observations = []
-    for dom_id in keys(eco_cfg.job_cfg.dom_cfgs)
-        domain_observations = filter(
-            obs -> obs.dom_id == dom_id, observations
-        )
-        push!(all_observations, dom_id => domain_observations)
+    dom_cfg_observations = []
+    for (dom_id, dom_cfg) in eco_cfg.job_cfg.dom_cfgs
+        observations = filter(obs -> obs.domain_id == dom_id, observations)
+        push!(dom_cfg_observations, dom_cfg => observations)
     end
+    dom_cfg_observations = OrderedDict(dom_cfg_observations)
 
     reports = [
         reporter(
-            gen = gen,
-            eval_time = eval_time,
-            reproduce_time = reproduce_time,
-            species_pop_evals = species_pop_evals, 
-            species_children_evals = species_children_evals, 
-            domain_observations = domain_observations,
+            gen,
+            species_cfg_pop_evals,
+            species_cfg_children_evals,
+            dom_cfg_observations,
         ) 
         for reporter in eco_cfg.reporters
     ]
 
+    reports = [runtime_report ; vcat(reports...)]
 
-    eco_cfg.archiver(all_pop_evals, all_children_evals, reports)
+    eco_cfg.archiver(gen, all_pop_evals, all_children_evals, reports)
 
     return CoevolutionaryEcosystem(eco_cfg.id, all_new_species)
 end
@@ -287,16 +306,16 @@ function evolve!(
     n_gen::Int = 100,
 )
     eco = eco_cfg()
-    reproduce_time = 0.0
+    last_reproduce_time = 0.0
     for gen in 1:n_gen
         eval_time_start = time()
         observations = eco_cfg.job_cfg(eco)
         eval_time = time() - eval_time_start
-        runtime_report = RuntimeReport()
+        runtime_report = eco_cfg.runtime_reporter(gen, eval_time, last_reproduce_time)
 
-        reproduce_time_start = time()
-        eco = eco_cfg(gen, eco, observations, eval_time, reproduce_time)
-        reproduce_time = time() - reproduce_time_start
+        last_reproduce_time_start = time()
+        eco = eco_cfg(gen, eco, observations, runtime_report)
+        last_reproduce_time = time() - last_reproduce_time_start
     end
     eco
 end

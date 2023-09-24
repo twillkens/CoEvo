@@ -74,7 +74,7 @@ end
 
 abstract type StatisticalFeatureSetReport <: Report end
 
-struct SpeciesStatisticalFeatureSetReport <: StatisticaFeatureSetReport
+struct SpeciesStatisticalFeatureSetReport <: StatisticalFeatureSetReport
     to_print::Bool
     to_save::Bool
     species_id::String
