@@ -1,7 +1,8 @@
 module Archivers
 
-export NullArchiver
+export DefaultArchiver
 
-include("types/null.jl")
+include("utilities/utilities.jl")
+include("types/default.jl")
 
 end

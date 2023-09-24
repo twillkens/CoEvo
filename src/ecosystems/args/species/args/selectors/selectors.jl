@@ -14,11 +14,15 @@ using ....CoEvo.Abstract: Individual, Selector, Evaluation
 
 function(selector::Selector)(
     rng::AbstractRNG, 
-    pop::OrderedDict{Int, <:Individual}, 
-    pop_evals::Dict{Int, <:Evaluation},
-    children_evals::Dict{Int, <:Evaluation},
+    new_pop_evals::OrderedDict{<:Individual, <:Evaluation}, 
 )
-    parents = selector(rng, pop, merge(pop_evals, children_evals))
+    parent_ids = selector(rng, new_pop_evals)
+    println("pids: ", parent_ids)
+    parents = filter(
+        (indiv, _) -> indiv.id in parent_ids, 
+        new_pop_evals
+    )
+    parents = [indiv for (indiv, _) in parents]
     return parents
 end
 

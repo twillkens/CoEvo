@@ -1,9 +1,10 @@
 module Reporters
 
-export RuntimeReporter, FitnessReporter
+export SpeciesStatisticalFeatureReport, RuntimeReport
+export FitnessReporter
 
-include("utilities/utilities.jl")
-include("types/runtime.jl")
+include("args/reports/reports.jl")
+
 include("types/fitness.jl")
 # include("types/genotype.jl")
 

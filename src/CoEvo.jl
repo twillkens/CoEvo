@@ -1,5 +1,6 @@
 module CoEvo
 
+export evolve!
 export CoevolutionaryEcosystemConfiguration, EcoCfg
 export OutcomeObservationConfiguration, OutcomeObsCfg
 export BasicSpeciesConfiguration, SpeciesCfg
@@ -16,7 +17,7 @@ export AllvsAllMatchMaker, NumbersGameProblem
 include("abstract/abstract.jl")
 include("ecosystems/ecosystems.jl")
 
-using .Ecosystems: CoevolutionaryEcosystemConfiguration
+using .Ecosystems: CoevolutionaryEcosystemConfiguration, evolve!
 const EcoCfg = CoevolutionaryEcosystemConfiguration
 
 using .Ecosystems.Observations: OutcomeObservationConfiguration

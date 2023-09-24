@@ -25,6 +25,6 @@ function(replacer::TruncationReplacer)(
         return candidates
     end
     candidates = sort_evaluations(candidates, replacer.sense)
-    candidate_indices = [candidate.id for candidate in candidates[1:replacer.n_pop]]
-    return candidate_indices
+    new_pop_ids = [candidate.id for candidate in candidates[1:replacer.n_pop]]
+    return new_pop_ids
 end

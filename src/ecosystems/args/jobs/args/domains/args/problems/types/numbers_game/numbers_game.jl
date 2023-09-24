@@ -1,6 +1,6 @@
 module NumbersGame
 
-export NumbersGameProblem, Control, Sum, Gradient, Focusing, Relativism
+export NumbersGameProblem, Control, Sum, Gradient, Focusing, Relativism, interact
 
 using ......CoEvo.Abstract: Problem, ObservationConfiguration
 using .....Ecosystems.Observations: OutcomeObservation, OutcomeObservationConfiguration
@@ -96,23 +96,13 @@ end
 
 function interact(
     problem::NumbersGameProblem, 
-    domain_id::Int, 
+    dom_id::String, 
     obs_cfg::ObservationConfiguration, 
     indiv_ids::Vector{Int},
     A::Vector{<:Real}, B::Vector{<:Real}
 )
     outcome_set = get_outcome_set(problem.metric, A, B)
-    obs_cfg(problem, domain_id, indiv_ids, outcome_set; A = A, B = B )
-end
-
-function OutcomeObservationConfiguration(
-    ::NumbersGameProblem, 
-    domain_id, 
-    indiv_ids::Vector{Int}, 
-    outcome_set::Vector{Float64}; 
-    kwargs...
-)
-    return OutcomeObservation(domain_id, indiv_ids, outcome_set)
+    obs_cfg(problem, dom_id, indiv_ids, outcome_set; A = A, B = B )
 end
 
 end

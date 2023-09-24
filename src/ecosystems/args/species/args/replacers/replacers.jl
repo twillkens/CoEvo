@@ -8,22 +8,22 @@ include("types/identity.jl")
 # include("types/truncation.jl")
 # include("types/generational.jl")
 
-using Random
-using ....CoEvo.Abstract: Replacer, Evaluation, AbstractSpecies
+using Random: AbstractRNG
+using DataStructures: OrderedDict
+using ....CoEvo.Abstract: Replacer, Evaluation, AbstractSpecies, Individual
 
 
 function(replacer::Replacer)(
     rng::AbstractRNG, 
-    species::AbstractSpecies,
-    pop_evals::Dict{Int, <:Evaluation},
-    children_evals::Dict{Int, <:Evaluation},
+    pop_evals::OrderedDict{<:Individual, <:Evaluation},
+    children_evals::OrderedDict{<:Individual, <:Evaluation},
 )
     new_pop_indices = replacer(rng, collect(values(pop_evals)), collect(values(children_evals)))
-    new_pop = filter(
-        (indiv_id, _) -> indiv_id in new_pop_indices, 
-        merge(species.pop, species.children)
-    )
-    return new_pop
+    new_pop_evals = OrderedDict(filter(
+        pair -> first(pair).id ∈ new_pop_indices, 
+        merge(pop_evals, children_evals)
+    ))
+    return new_pop_evals
 end
 
 

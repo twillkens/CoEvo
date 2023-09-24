@@ -154,11 +154,17 @@ function(species_cfg::BasicSpeciesConfiguration)(
     pop_evals::OrderedDict{<:Individual, <:Evaluation},
     children_evals::OrderedDict{<:Individual, <:Evaluation},
 )
+    # new_pop_evals::OrderedDict{<:Individual, <:Evaluation}
     new_pop_evals = species_cfg.replacer(rng, pop_evals, children_evals)
+    # parents::OrderedDict{<:Individual, <:Evaluation}
     parents = species_cfg.selector(rng, new_pop_evals)
-    children = species_cfg.recombiner(rng, indiv_id_counter, parents)
+    # new_children::OrderedDict{<:Individual, <:Evaluation}
+    new_children = species_cfg.recombiner(rng, indiv_id_counter, parents)
     for mutator in species_cfg.mutators
-        children = mutator(rng, gene_id_counter, children)
+        new_children = mutator(rng, gene_id_counter, new_children)
     end
-    return BasicSpecies(cfg.id, cfg.pheno_cfg, pop, children)
+    new_pop = OrderedDict(indiv.id => indiv for indiv in keys(new_pop_evals))
+    new_children = OrderedDict(indiv.id => indiv for indiv in children)
+    new_species = BasicSpecies(species_cfg.id, species_cfg.pheno_cfg, new_pop, new_children)
+    return new_species
 end

@@ -1,11 +1,11 @@
 
 module Problems
 
-export NumbersGameProblem
+export NumbersGameProblem, interact
 
 include("types/numbers_game/numbers_game.jl")
 
-using .NumbersGame: NumbersGameProblem
+using .NumbersGame: NumbersGameProblem, interact
 
 end
 
