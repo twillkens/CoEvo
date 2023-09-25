@@ -1,11 +1,11 @@
 export SizeGenotypeReporter, SumGenotypeReporter
 
-using ....CoEvo.Abstract: Individual
-using .Abstract: IndividualReporter
+using ....CoEvo.Abstract: Individual, Genotype
+using .Abstract: GenotypeCohortMetricReporter
 using ..Genotypes: VectorGenotype
 
 
-Base.@kwdef struct SizeGenotypeReporter <: IndividualReporter
+Base.@kwdef struct SizeGenotypeReporter <: GenotypeCohortMetricReporter
     metric::String = "Genotype Size"
     print_interval::Int = 1
     save_interval::Int = 0
@@ -18,15 +18,14 @@ function(reporter::SizeGenotypeReporter)(
     gen::Int,
     species_id::String,
     generational_type::String,
-    genotypes::Vector{<:Individual}
+    genotypes::Vector{<:Genotype}
 )
-    genotypes = map(individual -> individual.geno, genotypes)
-    sizes = map(genotype -> Float64(length(genotype)), genotypes)
+    sizes = [length(geno) for geno in genotypes]
     report = reporter(gen, species_id, generational_type, sizes)
     return report
 end
 
-Base.@kwdef struct SumGenotypeReporter <: IndividualReporter
+Base.@kwdef struct SumGenotypeReporter <: GenotypeCohortMetricReporter
     metric::String = "Genotype Sum"
     print_interval::Int = 1
     save_interval::Int = 0
@@ -39,9 +38,9 @@ function(reporter::SumGenotypeReporter)(
     gen::Int,
     species_id::String,
     cohort::String,
-    indivs::Vector{<:Individual}
+    genotypes::Vector{<:VectorGenotype}
 )
-    genotype_sum = sum(indiv.geno.vals for indiv in indivs)
+    genotype_sum = [sum(geno.vals) for geno in genotypes]
     report = reporter(gen, species_id, cohort, genotype_sum)
     return report
 end

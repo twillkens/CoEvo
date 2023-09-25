@@ -7,13 +7,12 @@ module Vectors
 
 export VectorGenotype
 export VectorGenotypetypeConfiguration
-export RandomVectorGenotypetypeConfiguration
 
 using Random: rand, AbstractRNG
 using JLD2: Group
-using ...Utilities: Counter
 using .....CoEvo.Abstract: Genotype, GenotypeConfiguration, PhenotypeConfiguration
 using .....CoEvo.Abstract: Archiver, Mutator
+using .....CoEvo.Utilities.Counters: Counter
 
 """
     VectorGenotype{T <: Real} <: Genotype
@@ -42,35 +41,24 @@ A configuration for a `VectorGenotype` genotype that uses a default vector of re
 - `default_vector::Vector{T}`: Default vector values for the genotype (default is [0.0]).
 """
 Base.@kwdef struct VectorGenotypeConfiguration{T <: Real} <: GenotypeConfiguration
-    default_vector::Vector{T} = [0.0]
+    default_vector::Union{Vector{T}, Nothing} = nothing
+    width::Int = 1
+    default_value::Union{T, Nothing} = T(0)
+    make_random::Bool = false
 end
-
-(cfg::VectorGenotypeConfiguration)() = VectorGenotype(cfg.default_vector)
 
 # Function to generate a `VectorGenotype` from the `VectorGenotypeConfiguration`.
-function(cfg::VectorGenotypeConfiguration)(::AbstractRNG, ::Counter)
-    VectorGenotype(cfg.default_vector)
-end
-
-"""
-    RandVectorGenotypeConfiguration <: GenotypeConfiguration
-
-Configuration to define a random vector genotype.
-
-# Fields
-- `dtype::Type{<:Real}`: Type of the numbers in the vector.
-- `width::Int`: Width (or length) of the vector.
-"""
-Base.@kwdef struct RandomVectorGenotypeConfiguration <: GenotypeConfiguration
-    dtype::Type{<:Real}
-    width::Int
-end
-
-# Function to generate a `VectorGenotype` containing random values based on the `RandVectorGenotypeConfiguration`.
-function(cfg::RandomVectorGenotypeConfiguration)(rng::AbstractRNG, ::Counter)
-    vals = rand(rng, cfg.dtype, cfg.width)
+function(cfg::VectorGenotypeConfiguration{T})(rng::AbstractRNG, ::Counter) where {T <: Real}
+    if cfg.default_vector !== nothing
+        vals = cfg.default_vector
+    elseif cfg.make_random
+        vals = rand(rng, T, cfg.width)
+    else
+        vals = fill(cfg.default_value, cfg.width)
+    end
     VectorGenotype(vals)
 end
+
 
 # Return the vector of values from a `VectorGeno` genotype for a given phenotype configuration.
 function(pheno_cfg::PhenotypeConfiguration)(geno::VectorGenotype)
@@ -85,10 +73,9 @@ end
 function(mutator::Mutator)(
     rng::AbstractRNG, ::Counter, geno::VectorGenotype{R}
 ) where {R <: Real}
-    noise = 0.1 .* rand(rng, R, length(geno.vals))
+    noise = 0.1 .* randn(rng, R, length(geno.vals))
     vals = geno.vals + noise
     geno = VectorGenotype(vals)
-    println(geno)
     return geno
 end
 

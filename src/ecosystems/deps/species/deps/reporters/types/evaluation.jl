@@ -1,12 +1,11 @@
 export FitnessEvaluationReporter
 
 using DataStructures: OrderedDict
-using ....CoEvo.Abstract: Reporter, FitnessEvaluation
-using ....CoEvo.Abstract: DomainConfiguration, Evaluation
-using ....CoEvo.Utilities: StatisticalFeatureSet
-using .Abstract: EvaluationReporter
+using ....CoEvo.Abstract: Reporter, FitnessEvaluation, DomainConfiguration, Evaluation
+using ....CoEvo.Utilities.Statistics: StatisticalFeatureSet
+using .Abstract: EvaluationCohortMetricReporter
 
-Base.@kwdef struct FitnessEvaluationReporter <: EvaluationReporter
+Base.@kwdef struct FitnessEvaluationReporter <: EvaluationCohortMetricReporter
     metric::String = "Fitness"
     print_interval::Int = 1
     save_interval::Int = 0

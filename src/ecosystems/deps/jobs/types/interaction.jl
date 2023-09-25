@@ -1,3 +1,6 @@
+export InteractionJobConfiguration
+export InteractionRecipe, InteractionJob, perform
+
 using DataStructures: OrderedDict
 using ...CoEvo.Abstract: Job, JobConfiguration, DomainConfiguration, Observation, Ecosystem
 using .Utilities: divvy
@@ -54,7 +57,13 @@ function perform(job::InteractionJob)
     for recipe in job.recipes
         dom_cfg = job.dom_cfgs[recipe.dom_id]
         phenos = [job.pheno_dict[indiv_id] for indiv_id in recipe.indiv_ids]
-        observation = interact(dom_cfg.problem, dom_cfg.id, dom_cfg.obs_cfg, recipe.indiv_ids, phenos...)
+        observation = interact(
+            dom_cfg.problem, 
+            dom_cfg.id, 
+            dom_cfg.obs_cfg, 
+            recipe.indiv_ids, 
+            phenos...
+        )
         push!(observations, observation)
     end
     return observations
@@ -91,11 +100,11 @@ function make_interaction_recipes(
     return interaction_recipes
 end
 
-struct InteractionJobConfiguration{
+Base.@kwdef struct InteractionJobConfiguration{
     D <: InteractiveDomainConfiguration
 } <: JobConfiguration
+    n_workers::Int = 1
     dom_cfgs::OrderedDict{String, D} 
-    n_workers::Int
 end
 
 # Constructor for JobCfg with a default number of workers.

@@ -114,6 +114,14 @@ abstract type Report end
 
 abstract type Reporter end
 
+abstract type CohortMetricReporter <: Reporter end
+
+abstract type EvaluationCohortMetricReporter <: CohortMetricReporter end
+
+
+abstract type GenotypeCohortMetricReporter <: CohortMetricReporter end
+
+
 abstract type StatisticalFeatureSetReporter <: Reporter end
 
 
@@ -208,10 +216,7 @@ Utility Types
 """
 
 """
-    Sense
-
-Determines whether we aim to minimize or maximize a value when assessing fitness.
 """
-abstract type Sense end
+abstract type Criterion end
 
 end

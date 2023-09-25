@@ -1,24 +1,34 @@
-using Random
-using ....CoEvo.Abstract: Replacer, Evaluation
+
+using Random: AbstractRNG
+using DataStructures: OrderedDict
+using .....CoEvo.Abstract: Replacer, Evaluation, Criterion
+using .....CoEvo.Utilities.Criteria: Maximize
+using ..Evaluations: sort_indiv_evals
 
 # Replaces the population with the children, keeping the best n_elite individuals from the
 # population
 Base.@kwdef struct GenerationalReplacer <: Replacer
     n_elite::Int = 0
-    sense::Sense = Max()
+    sort_criterion::Criterion = Maximize()
 end
 
 function(r::GenerationalReplacer)(
-    ::AbstractRNG, species::Species, evaluations::Vector{<:Evaluation}
+    ::AbstractRNG, 
+    pop_evals::OrderedDict{<:Individual, <:Evaluation}, 
+    children_evals::OrderedDict{<:Individual, <:Evaluation}
 )
-    pop, children = species.pop, species.children
-    if length(children) == 0
-        return pop
+    # If there are no children, just return the population
+    if isempty(children_evals)
+        return pop_evals
     end
-    elites = sort(pop, by = i -> fitness(i), rev = r.reverse)[1:r.n_elite]
-    n_children = length(pop) - r.n_elite
-    children = sort(children, by = i -> fitness(i), rev = r.reverse)[1:n_children]
-    pop = [elites; children]
-    pop
 
+    # Selecting elites and required number of children
+    elites = collect(pop_evals)[1:r.n_elite]
+    n_children = length(pop_evals) - r.n_elite
+    selected_children = collect(children_evals)[1:n_children]
+
+    # Merging elites and selected children
+    new_pop_evals = OrderedDict([elites; selected_children])
+    new_pop_evals = sort_indiv_evals(r.sort_criterion, new_pop_evals)
+    return new_pop_evals
 end

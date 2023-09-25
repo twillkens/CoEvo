@@ -20,12 +20,12 @@ Base.@kwdef struct InteractiveDomainConfiguration{
     O <: ObservationConfiguration, 
     R <: Reporter
 } <: DomainConfiguration
-    id::String = "1"
-    problem::P = NumbersGameProblem(:Sum)
-    species_ids::Vector{String} = ["1", "2"]
-    matchmaker::M = AllvsAllMatchMaker(:plus)
-    obs_cfg::O = OutcomeObservationConfiguration()
-    reporters::Vector{R} = Reporter[]
+    id::String # = "1"
+    problem::P # = NumbersGameProblem(:Sum)
+    species_ids::Vector{String} # = ["1", "2"]
+    matchmaker::M # = AllvsAllMatchMaker(:plus)
+    obs_cfg::O # = OutcomeObservationConfiguration()
+    reporters::Vector{R} # = Reporter[]
 end
 
 end

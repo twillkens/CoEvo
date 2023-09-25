@@ -25,7 +25,7 @@ using DataStructures: OrderedDict
 using ...CoEvo.Abstract: Ecosystem, EcosystemConfiguration
 using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration, Individual, Report
 using ...CoEvo.Abstract: JobConfiguration, Observation, Reporter, Archiver, Evaluation 
-using .Species.Utilities: Counter
+using ...CoEvo.Utilities.Counters: Counter
 using .Species.Evaluations: ScalarFitnessEvaluation
 using .Reporters: RuntimeReport, RuntimeReporter
 using .Archivers: DefaultArchiver
@@ -68,7 +68,7 @@ Configuration object for setting up and managing ecosystems for coevolutionary r
 - `indiv_id_counter`: Counter for individual IDs.
 - `gene_id_counter`: Counter for gene IDs.
 """
-struct CoevolutionaryEcosystemConfiguration{
+Base.@kwdef struct CoevolutionaryEcosystemConfiguration{
     S <: SpeciesConfiguration, 
     J <: JobConfiguration, 
     R <: Reporter,
@@ -123,37 +123,37 @@ Construct an `EcoCfg` object to configure an ecosystem for a coevolutionary run.
 # Returns:
 - An instance of `EcoCfg`.
 """
-function CoevolutionaryEcosystemConfiguration(
-    species_cfgs::Vector{<:SpeciesConfiguration},
-    job_cfg::JobConfiguration;
-    id::String = "default",
-    trial::Int = 1,
-    seed::Union{UInt64, Int} = -1,
-    rng::Union{AbstractRNG, Nothing} = nothing,
-    archiver::Archiver = DefaultArchiver(),
-    indiv_id_counter::Counter = Counter(),
-    gene_id_counter::Counter = Counter(),
-    runtime_reporter::Reporter = RuntimeReporter(),
-)
-    rng = rng !== nothing ? rng : seed == -1 ? StableRNG(rand(UInt32)) : StableRNG(seed)
-    species_cfgs = OrderedDict(
-        "default" in map(species_cfg -> species_cfg.id, species_cfgs) ? 
-            string(i) => species_cfg : 
-            species_cfg.id => species_cfg 
-        for (i, species_cfg) in enumerate(species_cfgs)
-    )
-    CoevolutionaryEcosystemConfiguration(
-        id, 
-        trial, 
-        rng, 
-        species_cfgs, 
-        job_cfg, 
-        archiver,
-        indiv_id_counter, 
-        gene_id_counter,
-        runtime_reporter,
-    )
-end
+#function CoevolutionaryEcosystemConfiguration(
+#    species_cfgs::Vector{<:SpeciesConfiguration},
+#    job_cfg::JobConfiguration;
+#    id::String = "default",
+#    trial::Int = 1,
+#    seed::Union{UInt64, Int} = -1,
+#    rng::Union{AbstractRNG, Nothing} = nothing,
+#    archiver::Archiver = DefaultArchiver(),
+#    indiv_id_counter::Counter = Counter(),
+#    gene_id_counter::Counter = Counter(),
+#    runtime_reporter::Reporter = RuntimeReporter(),
+#)
+#    rng = rng !== nothing ? rng : seed == -1 ? StableRNG(rand(UInt32)) : StableRNG(seed)
+#    species_cfgs = OrderedDict(
+#        "default" in map(species_cfg -> species_cfg.id, species_cfgs) ? 
+#            string(i) => species_cfg : 
+#            species_cfg.id => species_cfg 
+#        for (i, species_cfg) in enumerate(species_cfgs)
+#    )
+#    CoevolutionaryEcosystemConfiguration(
+#        id, 
+#        trial, 
+#        rng, 
+#        species_cfgs, 
+#        job_cfg, 
+#        archiver,
+#        indiv_id_counter, 
+#        gene_id_counter,
+#        runtime_reporter,
+#    )
+#end
 
 """
     (eco_cfg::EcoCfg)() -> Eco
@@ -230,16 +230,28 @@ function(eco_cfg::CoevolutionaryEcosystemConfiguration)(
 
     for (species_id, species) in eco.species
         species_cfg = eco_cfg.species_cfgs[species_id]
-        pop_outcomes = Dict(indiv => outcomes[indiv.id] for indiv in values(species.pop))
-        children_outcomes = Dict(indiv => outcomes[indiv.id] for indiv in values(species.pop))
+
+        pop_outcomes = Dict(
+            indiv => outcomes[indiv.id] for indiv in values(species.pop)
+        )
         pop_evals = species_cfg.eval_cfg(pop_outcomes)
-        for reporter in species_cfg.reporters
-            push!(reports, reporter(gen, species_id, "Population", pop_evals))
+        if length(species.pop) > 0
+            for reporter in species_cfg.reporters
+                push!(reports, reporter(gen, species_id, "Population", pop_evals))
+            end
         end
+
+        children_outcomes = Dict(
+            indiv => outcomes[indiv.id] for indiv in values(species.children)
+        )
         children_evals = species_cfg.eval_cfg(children_outcomes)
-        for reporter in species_cfg.reporters
-            push!(reports, reporter(gen, species_id, "Children", children_evals))
+
+        if length(children_evals) > 0
+            for reporter in species_cfg.reporters
+                push!(reports, reporter(gen, species_id, "Children", children_evals))
+            end
         end
+
         # new_species::Species
         new_species = species_cfg(
             eco_cfg.rng, 

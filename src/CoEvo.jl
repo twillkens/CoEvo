@@ -1,22 +1,58 @@
 module CoEvo
 
 export evolve!
+
+export Reporter
+
+export Counter
+
 export CoevolutionaryEcosystemConfiguration, EcoCfg
-export OutcomeObservationConfiguration, OutcomeObsCfg
+
 export BasicSpeciesConfiguration, SpeciesCfg
+
 export VectorGenotypeConfiguration, VectorGenoCfg
+
 export DefaultPhenotypeConfiguration, DefaultPhenoCfg
+
 export AsexualIndividualConfiguration, AsexualIndivCfg
+
 export SexualIndividualConfiguration, SexualIndivCfg
+
 export ScalarFitnessEvaluationConfiguration, ScalarFitEvalCfg
-export IdentityReplacer, IdentitySelector, CloneRecombiner
+
+export IdentityReplacer, GenerationalReplacer
+
+export IdentitySelector, FitnessProportionateSelector
+
+export CloneRecombiner
+
+export DefaultMutator
+
+export SizeGenotypeReporter, SumGenotypeReporter, FitnessEvaluationReporter
+
 export InteractionJobConfiguration, JobCfg
+
 export InteractiveDomainConfiguration, DomainCfg
-export AllvsAllMatchMaker, NumbersGameProblem
+
+export AllvsAllMatchMaker
+
+export NumbersGame
+
+export OutcomeObservationConfiguration, OutcomeObsCfg
+
+export DefaultArchiver
+
+export RuntimeReporter
 
 include("abstract/abstract.jl")
+
 include("utilities/utilities.jl")
+
 include("ecosystems/ecosystems.jl")
+
+using .Abstract: Reporter
+
+using .Utilities.Counters: Counter
 
 using .Ecosystems: CoevolutionaryEcosystemConfiguration, evolve!
 const EcoCfg = CoevolutionaryEcosystemConfiguration
@@ -42,9 +78,17 @@ const SexualIndivCfg = SexualIndividualConfiguration
 using .Ecosystems.Species.Evaluations: ScalarFitnessEvaluationConfiguration
 const ScalarFitEvalCfg = ScalarFitnessEvaluationConfiguration
 
-using .Ecosystems.Species.Replacers: IdentityReplacer
-using .Ecosystems.Species.Selectors: IdentitySelector
+using .Ecosystems.Species.Replacers: IdentityReplacer, GenerationalReplacer
+
+using .Ecosystems.Species.Selectors: IdentitySelector, FitnessProportionateSelector
+
 using .Ecosystems.Species.Recombiners: CloneRecombiner
+
+using .Ecosystems.Species.Mutators: DefaultMutator
+
+using .Ecosystems.Species.Reporters: SizeGenotypeReporter
+using .Ecosystems.Species.Reporters: FitnessEvaluationReporter
+using .Ecosystems.Species.Reporters: SumGenotypeReporter
 
 using .Ecosystems.Jobs: InteractionJobConfiguration
 const JobCfg = InteractionJobConfiguration
@@ -53,15 +97,11 @@ using .Ecosystems.Jobs.Domains: InteractiveDomainConfiguration
 const DomainCfg = InteractiveDomainConfiguration
 
 using .Ecosystems.Jobs.Domains.MatchMakers: AllvsAllMatchMaker
-using .Ecosystems.Jobs.Domains.Problems: NumbersGameProblem
-using .Ecosystems.Jobs.Domains.Problems.NumbersGame: Sum, Control, Gradient, Focusing, Relativism
 
+using .Ecosystems.Jobs.Domains.Problems.NumbersGame: NumbersGame
 
+using .Ecosystems.Archivers: DefaultArchiver
 
-
-
-
-
-
+using .Ecosystems.Reporters: RuntimeReporter
 
 end

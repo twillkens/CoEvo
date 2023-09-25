@@ -4,8 +4,8 @@ export DefaultMutator
 
 using Random: AbstractRNG
 using ....CoEvo.Abstract: Mutator, Individual
+using ....CoEvo.Utilities.Counters: Counter
 using ..Individuals: AsexualIndividual
-using ..Utilities: Counter
 
 Base.@kwdef struct DefaultMutator <: Mutator end
 

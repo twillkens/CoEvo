@@ -5,34 +5,15 @@ Module providing substrate configurations and utilities, primarily for genotypes
 """
 module Genotypes
 
-export VectorGeno, VectorGenotypeConfiguration, RandomVectorGenotypeConfiguration
+export VectorGenotype, VectorGenotypeConfiguration
 
-using Random
-using ....CoEvo.Abstract: GenotypeConfiguration
-using ..Utilities: Counter
+include("abstract/abstract.jl")
+
+using .Abstract
 
 # Including vector-based genotype configurations
 include("types/vectors/vectors.jl")
 
-# Importing defined genotype configurations from the included vector module
-using .Vectors: VectorGenotype, VectorGenotypeConfiguration, RandomVectorGenotypeConfiguration
-
-
-function(geno_cfg::GenotypeConfiguration)(rng::AbstractRNG, counter::Counter)
-    throw(ErrorException("Genotype configuration not implemented."))
-end
-
-"""
-    (cfg::GenotypeConfiguration)(rng::AbstractRNG, gene_id_counter::Counter, n_pop::Int)
-
-Generate an array of genotype instances from the provided genotype configuration, `cfg`,
-using the specified random number generator, `rng`, and gene ID counter, `gene_id_counter`.
-The length of the returned array is determined by `n_pop`.
-"""
-function(geno_cfg::GenotypeConfiguration)(
-    rng::AbstractRNG, gene_id_counter::Counter, n_pop::Int
-)
-    [geno_cfg(rng, gene_id_counter) for _ in 1:n_pop]
-end
+using .Vectors: VectorGenotype, VectorGenotypeConfiguration
 
 end

@@ -1,57 +1,46 @@
 module Abstract
 
-export SpeciesStatisticalFeatureSetReporter, EvaluationReporter, IndividualReporter
-
 using DataStructures: OrderedDict
 using .....CoEvo.Abstract: Report, Individual, Evaluation, Reporter
-using .....CoEvo.Utilities: StatisticalFeatureSet
-using ..Reports: SpeciesStatisticalFeatureSetReport
+using .....CoEvo.Abstract: CohortMetricReporter
+using .....CoEvo.Abstract: EvaluationCohortMetricReporter, GenotypeCohortMetricReporter
+using .....CoEvo.Utilities.Statistics: StatisticalFeatureSet
+using ..Reports: CohortMetricReport
 
-abstract type SpeciesStatisticalFeatureSetReporter <: Reporter end
-
-abstract type EvaluationReporter <: SpeciesStatisticalFeatureSetReporter end
-
-function(reporter::EvaluationReporter)(
-    gen::Int,
-    species_id::String,
-    generational_type::String,
-    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
-)
-    report = reporter(gen, species_id, generational_type, collect(values(indiv_evals)))
-    return report
-end
-
-abstract type IndividualReporter <: SpeciesStatisticalFeatureSetReporter end
-
-function(reporter::IndividualReporter)(
+function(reporter::EvaluationCohortMetricReporter)(
     gen::Int,
     species_id::String,
     cohort::String,
     indiv_evals::OrderedDict{<:Individual, <:Evaluation}
 )
-    report = reporter(gen, species_id, cohort, collect(keys(indiv_evals)))
+    report = reporter(gen, species_id, cohort, collect(values(indiv_evals)))
     return report
 end
 
-function(reporter::SpeciesStatisticalFeatureSetReporter)(
+function(reporter::GenotypeCohortMetricReporter)(
     gen::Int,
     species_id::String,
-    generational_type::String,
+    cohort::String,
+    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
+)
+    genotypes = [indiv.geno for indiv in keys(indiv_evals)]
+    report = reporter(gen, species_id, cohort, genotypes)
+    return report
+end
+
+function(reporter::CohortMetricReporter)(
+    gen::Int,
+    species_id::String,
+    cohort::String,
     values::Vector{Float64}
 )
     stat_features = StatisticalFeatureSet(values, reporter.n_round)
-    to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
-    to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
-    report = SpeciesStatisticalFeatureSetReport(
+    report = CohortMetricReport(
+        reporter,
         gen,
-        to_print, 
-        to_save, 
         species_id, 
-        generational_type, 
-        reporter.metric, 
+        cohort, 
         stat_features,
-        reporter.print_features, 
-        reporter.save_features
     )
     return report
 end

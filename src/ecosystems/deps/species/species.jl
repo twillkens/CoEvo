@@ -10,8 +10,6 @@ export BasicSpeciesConfiguration
 
 # Exported types and functions
 
-include("utilities/utilities.jl")
-
 include("deps/genotypes/genotypes.jl")
 include("deps/phenotypes/phenotypes.jl")
 include("deps/individuals/individuals.jl")
@@ -22,6 +20,6 @@ include("deps/recombiners/recombiners.jl")
 include("deps/mutators/mutators.jl")
 include("deps/reporters/reporters.jl")
 
-include("types/basic/basic.jl")
+include("types/basic.jl")
 
 end

@@ -1,15 +1,11 @@
-module Utilities
+module Counters
 
-export Max, Min, Counter, next!
-
-using ....CoEvo.Abstract: Sense
-
-struct Max <: Sense end
-struct Min <: Sense end
+export Counter, next!
 
 mutable struct Counter
     curr::Int
 end
+
 Counter() = Counter(1)
 
 function next!(c::Counter)

@@ -6,7 +6,7 @@ using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration, PhenotypeConfigu
 using ...CoEvo.Abstract: GenotypeConfiguration, EvaluationConfiguration, Replacer
 using ...CoEvo.Abstract: Selector, Recombiner, Mutator, Individual, Evaluation
 using ...CoEvo.Abstract: IndividualConfiguration, Reporter, Report
-using .Utilities: Counter
+using ...CoEvo.Utilities.Counters: Counter, next!
 using .Genotypes: VectorGenotypeConfiguration
 using .Phenotypes: DefaultPhenotypeConfiguration
 using .Individuals: AsexualIndividualConfiguration
@@ -17,7 +17,6 @@ using .Recombiners: CloneRecombiner
 using .Mutators: DefaultMutator
 using .Reporters: SizeGenotypeReporter, FitnessEvaluationReporter, SumGenotypeReporter
 
-using .Utilities: next!
 
 """
     BasicSpecies{P <: PhenotypeConfiguration, I <: Individual}
@@ -108,7 +107,7 @@ Configuration for generating a new species in the ecosystem.
     selector::S = IdentitySelector()
     recombiner::RC = CloneRecombiner()
     mutators::Vector{M} = [DefaultMutator()]
-    reporters::Vector{R} = [FitnessEvaluationReporter(), SumGenotypeReporter()]
+    reporters::Vector{R} = [FitnessEvaluationReporter(), SumVectorGenotypeReporter()]
 end
 
 """
