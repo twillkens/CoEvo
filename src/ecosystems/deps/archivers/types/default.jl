@@ -6,7 +6,7 @@ using .Utilities: get_or_make_group!
 using ...CoEvo.Abstract: Archiver, Report, Individual, Evaluation
 using ...CoEvo.Ecosystems.Species.Evaluations: ScalarFitnessEvaluation
 using ...CoEvo.Ecosystems.Species.Individuals: AsexualIndividual, SexualIndividual
-using ...CoEvo.Ecosystems.Species.Genotypes: VectorGenotype
+using ...CoEvo.Ecosystems.Species.Substrates.Vectors: BasicVectorGenotype
 
 Base.@kwdef struct DefaultArchiver <: Archiver 
     save_pop::Bool = false

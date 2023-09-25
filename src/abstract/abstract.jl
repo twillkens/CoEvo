@@ -9,8 +9,14 @@ Entity Types
 
 Encodes genetic information.
 """
+
+abstract type Gene end
+
 abstract type Genotype end
 
+abstract type VectorGenotype <: Genotype end
+
+abstract type GeneticProgramGenotype <: Genotype end
 """
     GenotypeConfiguration
 
@@ -18,11 +24,19 @@ Describes the configuration for generating a genotype.
 """
 abstract type GenotypeConfiguration end
 
+abstract type VectorGenotypeConfiguration <: GenotypeConfiguration end
+
+abstract type GeneticProgramGenotypeConfiguration <: GenotypeConfiguration end
+
+
 """
     PhenotypeConfiguration
 
 Transforms a genotype into a structured data representation, known as a phenotype.
 """
+
+abstract type Phenotype end
+
 abstract type PhenotypeConfiguration end
 
 """

@@ -6,8 +6,6 @@ include("deps/reports.jl")
 
 include("types/cohort_metric.jl")
 
-include("methods/fitness.jl")
-include("methods/size.jl")
-include("methods/sum.jl")
+include("methods/methods.jl")
 
 end

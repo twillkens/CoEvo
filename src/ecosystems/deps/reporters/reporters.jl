@@ -2,7 +2,7 @@ module Reporters
 
 export RuntimeReport, RuntimeReporter
 
-using ...Abstract: Report, Reporter, Archiver
+using ....CoEvo.Abstract: Report, Reporter, Archiver
 
 struct RuntimeReport <: Report
     gen::Int

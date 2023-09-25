@@ -17,8 +17,6 @@ struct CohortMetricReport <: Report
     save_features::Vector{Symbol}
 end
 
-
-
 # Then, for the custom show method:
 function Base.show(io::IO, report::CohortMetricReport)
     println(io, "-----------------------------------------------------------")

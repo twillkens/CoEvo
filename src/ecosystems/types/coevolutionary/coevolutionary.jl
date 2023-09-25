@@ -1,20 +1,3 @@
-"""
-    Module Ecosystems
-
-The top level module in CoEvo. Allows the user to define key parameters before starting 
-the coevolutionary process.
-
-# Structures:
-- [`Eco`](#) : Represents the top-level object in the coevolutionary system.
-- [`EcoCfg`](#) : Configuration object for setting up and managing ecosystems.
-
-# Functions:
-- [`EcoCfg(...)`](#) : Constructor function for generating ecosystem configurations.
-- [`(eco_cfg::EcoCfg)()`](#) : A callable function to generate a new ecosystem based on its configuration.
-- [`get_pheno_dict(...)`](#) : Extracts the phenotypes from individuals in the ecosystem.
-- [`evolve!`](#) : Runs the evolution of the ecosystem for a set number of generations.
-
-"""
 
 export CoevolutionaryEcosystem, CoevolutionaryEcosystemConfiguration
 export evolve!
@@ -22,24 +5,22 @@ export evolve!
 using Random: AbstractRNG
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
-using ...CoEvo.Abstract: Ecosystem, EcosystemConfiguration
-using ...CoEvo.Abstract: AbstractSpecies, SpeciesConfiguration, Individual, Report
-using ...CoEvo.Abstract: JobConfiguration, Observation, Reporter, Archiver, Evaluation 
-using ...CoEvo.Utilities.Counters: Counter
-using .Species.Evaluations: ScalarFitnessEvaluation
+
+using ..Abstract: Ecosystem, EcosystemConfiguration
+using ..Abstract: AbstractSpecies, SpeciesConfiguration
+using ..Abstract: Individual
+using ..Abstract: JobConfiguration
+using ..Abstract: Observation
+using ..Abstract: Report, Reporter
+using ..Abstract: Archiver
+
+using ..Utilities.Counters: Counter
+
 using .Reporters: RuntimeReport, RuntimeReporter
-using .Archivers: DefaultArchiver
+using .Observations: get_outcomes
 
-"""
-    struct Eco <: Ecosystem
 
-The top-level object in the coevolutionary system. Contains a collection 
-of species, where each species has a population of individuals.
 
-# Fields:
-- `id`: A unique identifier for the ecosystem.
-- `species`: A dictionary mapping species IDs to their respective species data.
-"""
 struct CoevolutionaryEcosystem{S <: AbstractSpecies} <: Ecosystem
     id::String
     species::OrderedDict{String, S}
@@ -49,6 +30,14 @@ function Base.show(io::IO, eco::CoevolutionaryEcosystem)
     print(io, "Eco(id: ", eco.id, ", species: ", keys(eco.species), ")")
 end
 
+function get_all_indivs(eco::CoevolutionaryEcosystem)
+    all_indivs = Dict{Int, Individual}(
+        indiv.id => indiv 
+        for species in values(eco.species) 
+        for indiv in values(merge(species.pop, species.children))
+    )
+    return all_indivs
+end
 """
     struct EcoCfg{
         S <: SpeciesConfiguration, 
@@ -105,35 +94,6 @@ function(eco_cfg::CoevolutionaryEcosystemConfiguration)()
     )
 
     return CoevolutionaryEcosystem(eco_cfg.id, all_species)
-end
-
-
-
-
-function get_outcomes(observations::Vector{<:Observation})
-    # Initialize a dictionary to store interaction outcomes between individuals
-    outcomes = Dict{Int, Dict{Int, Float64}}()
-
-    for observation in observations 
-        # Extract individual IDs and their respective outcomes from the interaction result
-        indiv_id1, indiv_id2 = observation.indiv_ids
-        outcome1, outcome2 = observation.outcome_set
-
-        # Use `get!` to simplify dictionary insertion. 
-        # If the key doesn't exist, a new dictionary is initialized and the outcome is recorded.
-        get!(outcomes, indiv_id1, Dict{Int, Float64}())[indiv_id2] = outcome1
-        get!(outcomes, indiv_id2, Dict{Int, Float64}())[indiv_id1] = outcome2
-    end
-    return outcomes
-end
-
-function get_all_indivs(eco::CoevolutionaryEcosystem)
-    all_indivs = Dict{Int, Individual}(
-        indiv.id => indiv 
-        for species in values(eco.species) 
-        for indiv in values(merge(species.pop, species.children))
-    )
-    return all_indivs
 end
 
 function filter_indivs(all_indivs::Dict{Int, Individual}, indiv_ids::Set{Int})

@@ -96,7 +96,7 @@ end
     species_cfg = BasicSpeciesConfiguration(
         id = species_id,
         n_pop = n_pop,
-        geno_cfg = VectorGenotypeConfiguration{Float64}(
+        geno_cfg = BasicVectorGenotypeConfiguration{Float64}(
             default_vector = default_vector
         ),
         pheno_cfg = DefaultPhenotypeConfiguration(),
@@ -161,7 +161,7 @@ eco_cfg = CoevolutionaryEcosystemConfiguration(
         species_id1 => BasicSpeciesConfiguration(
             id = species_id1,
             n_pop = n_pop,
-            geno_cfg = VectorGenotypeConfiguration(default_vector = fill(0.0, 10)),
+            geno_cfg = BasicVectorGenotypeConfiguration(default_vector = fill(0.0, 10)),
             pheno_cfg = DefaultPhenotypeConfiguration(),
             indiv_cfg = AsexualIndividualConfiguration(),
             eval_cfg = ScalarFitnessEvaluationConfiguration(),
@@ -174,7 +174,7 @@ eco_cfg = CoevolutionaryEcosystemConfiguration(
         species_id2 => BasicSpeciesConfiguration(
             id = species_id2,
             n_pop = n_pop,
-            geno_cfg = VectorGenotypeConfiguration(default_vector = fill(0.0, 10)),
+            geno_cfg = BasicVectorGenotypeConfiguration(default_vector = fill(0.0, 10)),
             pheno_cfg = DefaultPhenotypeConfiguration(),
             indiv_cfg = AsexualIndividualConfiguration(),
             eval_cfg = ScalarFitnessEvaluationConfiguration(),

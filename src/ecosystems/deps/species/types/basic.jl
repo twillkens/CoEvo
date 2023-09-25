@@ -7,10 +7,6 @@ using ...CoEvo.Abstract: GenotypeConfiguration, EvaluationConfiguration, Replace
 using ...CoEvo.Abstract: Selector, Recombiner, Mutator, Individual, Evaluation
 using ...CoEvo.Abstract: IndividualConfiguration, Reporter, Report
 using ...CoEvo.Utilities.Counters: Counter, next!
-using .Genotypes: VectorGenotypeConfiguration
-using .Phenotypes: DefaultPhenotypeConfiguration
-using .Individuals: AsexualIndividualConfiguration
-using .Evaluations: ScalarFitnessEvaluationConfiguration
 
 
 """

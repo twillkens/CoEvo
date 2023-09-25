@@ -13,7 +13,8 @@ export evolve!,
        SumGenotypeReporter, FitnessEvaluationReporter,
        InteractionJobConfiguration, InteractiveDomainConfiguration,
        AllvsAllMatchMaker, NumbersGame, OutcomeObservationConfiguration,
-       DefaultArchiver
+       DefaultArchiver, BasicGeneticProgramGenotypeConfiguration,
+       BasicVectorGenotypeConfiguration
 
 # File includes
 include("abstract/abstract.jl")
@@ -29,15 +30,16 @@ using .Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
 using .Ecosystems: CoevolutionaryEcosystemConfiguration, evolve!
 using .Ecosystems.Observations: OutcomeObservationConfiguration
 using .Ecosystems.Species: BasicSpeciesConfiguration
-using .Ecosystems.Species.Genotypes: VectorGenotypeConfiguration
-using .Ecosystems.Species.Phenotypes: DefaultPhenotypeConfiguration
+using .Ecosystems.Species.Substrates.Defaults: DefaultPhenotypeConfiguration
+using .Ecosystems.Species.Substrates.Defaults: DefaultMutator
+using .Ecosystems.Species.Substrates.Vectors: BasicVectorGenotypeConfiguration
+using .Ecosystems.Species.Substrates.GeneticPrograms: BasicGeneticProgramGenotypeConfiguration
 using .Ecosystems.Species.Individuals: AsexualIndividualConfiguration, 
                                      SexualIndividualConfiguration
 using .Ecosystems.Species.Evaluations: ScalarFitnessEvaluationConfiguration
 using .Ecosystems.Species.Replacers: IdentityReplacer, GenerationalReplacer
 using .Ecosystems.Species.Selectors: IdentitySelector, FitnessProportionateSelector
 using .Ecosystems.Species.Recombiners: CloneRecombiner
-using .Ecosystems.Species.Mutators: DefaultMutator
 using .Ecosystems.Species.Reporters: CohortMetricReporter
 using .Ecosystems.Jobs: InteractionJobConfiguration
 using .Ecosystems.Jobs.Domains: InteractiveDomainConfiguration
