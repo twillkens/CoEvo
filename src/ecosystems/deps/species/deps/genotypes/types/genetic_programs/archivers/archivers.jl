@@ -1,3 +1,4 @@
+
 export GPGenoArchiver
 
 # Used for saving and loading GPGenos to/from JLD2 files
@@ -19,7 +20,7 @@ end
 # and save the gene's parent_gid, val, and child_gids
 # The val is saved as a string if it is a symbol or function using the 
 # symbol_table specified in the archiver; otherwise it is saved as is
-function(a::GPGenoArchiver)(genes_group::JLD2.Group, gid::Int, gene::ExprNode)
+function(a::GPGenoArchiver)(genes_group::JLD2.Group, gid::Int, gene::ExpressionNodeGene)
     symbol_table_inv = Dict(value => key for (key, value) in a.symbol_table)
     gene_group = make_group!(genes_group, gid)
     gene_group["parent_gid"] = gene.parent_gid
@@ -29,7 +30,7 @@ function(a::GPGenoArchiver)(genes_group::JLD2.Group, gid::Int, gene::ExprNode)
 end
 
 # Save an genotype to a JLD2.Group
-function(a::GPGenoArchiver)(geno_group::JLD2.Group, geno::GPGeno)
+function(a::GPGenoArchiver)(geno_group::JLD2.Group, geno::BasicGeneticProgramGenotype)
     geno_group["root_gid"] = geno.root_gid
     genes_group = make_group!(geno_group, "genes")
     [a(genes_group, gid, gene) for (gid, gene) in all_nodes(geno)]
@@ -43,7 +44,7 @@ end
 function(a::GPGenoArchiver)(geno_group::JLD2.Group)
     root_gid = geno_group["root_gid"]
     genes = [
-        ExprNode(
+        ExpressionNodeGene(
             parse(Int, gid),
             geno_group["genes/$gid/parent_gid"],
             substitute(geno_group["genes/$gid/val"], a.symtable),
@@ -52,5 +53,5 @@ function(a::GPGenoArchiver)(geno_group::JLD2.Group)
     ]
     terms = Dict(gene.gid => gene for gene in genes if length(gene.child_gids) == 0)
     funcs = Dict(gene.gid => gene for gene in genes if length(gene.child_gids) > 0)
-    GPGeno(root_gid, funcs, terms)
+    BasicGeneticProgramGenotype(root_gid, funcs, terms)
 end

@@ -3,8 +3,8 @@ export TapeReaderGPPhenoCfg, reset!, ConstantTerminalFunctor, TapeReaderTerminal
 export TerminalFunctor, get_tape_copy
 export ConstantTerminalFunctor, TapeReaderTerminalFunctor, DefaultPhenoCfg
 
-# This recursively converts an ExprNode in a GPGeno to an Expr that can be evaluated.
-function Base.Expr(geno::GPGeno, enode::ExprNode)
+# This recursively converts an ExpressionNodeGene in a BasicGeneticProgramGenotype to an Expr that can be evaluated.
+function Base.Expr(geno::BasicGeneticProgramGenotype, enode::ExpressionNodeGene)
     # If the node is a terminal, return the value
     if isa(enode.val, Symbol) || isa(enode.val, Real)
         return enode.val
@@ -16,9 +16,9 @@ function Base.Expr(geno::GPGeno, enode::ExprNode)
     end
 end
 
-# This recursively converts a GPGeno to an Expr that can be evaluated, starting from the 
+# This recursively converts a BasicGeneticProgramGenotype to an Expr that can be evaluated, starting from the 
 # root node of the execution tree.
-function Base.Expr(geno::GPGeno)
+function Base.Expr(geno::BasicGeneticProgramGenotype)
     root_node = get_root(geno)
     Expr(geno, root_node)
 end
@@ -49,7 +49,7 @@ function compile(expr::Expr, symbol_dict::Dict{Symbol, <:Real}, do_copy::Bool = 
 end
 
 
-function(pcfg::DefaultPhenoCfg)(ikey::IndivKey, geno::GPGeno)
+function(pcfg::DefaultPhenoCfg)(ikey::IndivKey, geno::BasicGeneticProgramGenotype)
     Pheno(ikey, Expr(geno))
 end
 
@@ -73,7 +73,7 @@ Base.@kwdef struct ConstantGPPhenoCfg <: PhenoConfig
     val::Float64 = 0.0
 end
 
-function(cfg::ConstantGPPhenoCfg)(ikey::IndivKey, geno::GPGeno)
+function(cfg::ConstantGPPhenoCfg)(ikey::IndivKey, geno::BasicGeneticProgramGenotype)
     e = Expr(geno)
     if isa(e, Symbol) || isa(e, Real)
         return Pheno(ikey, e)
@@ -142,7 +142,7 @@ function spin(pheno::TapeReaderGPPheno)
     eval(pheno.expr)
 end
 
-function(cfg::TapeReaderGPPhenoCfg)(ikey::IndivKey, geno::GPGeno)
+function(cfg::TapeReaderGPPhenoCfg)(ikey::IndivKey, geno::BasicGeneticProgramGenotype)
     e = Expr(geno)
     reader = TapeReaderTerminalFunctor()
     # This is the case of a singleton real-vaued terminal
