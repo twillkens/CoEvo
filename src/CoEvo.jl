@@ -1,24 +1,27 @@
 module CoEvo
 
+
 export evolve!
 
 export Reporter
 
 export Counter
 
-export CoevolutionaryEcosystemConfiguration, EcoCfg
+export RuntimeReporter, CohortMetricReporter
 
-export BasicSpeciesConfiguration, SpeciesCfg
+export GenotypeSum, GenotypeSize, EvaluationFitness
 
-export VectorGenotypeConfiguration, VectorGenoCfg
+export CoevolutionaryEcosystemConfiguration
 
-export DefaultPhenotypeConfiguration, DefaultPhenoCfg
+export BasicSpeciesConfiguration
 
-export AsexualIndividualConfiguration, AsexualIndivCfg
+export VectorGenotypeConfiguration
 
-export SexualIndividualConfiguration, SexualIndivCfg
+export DefaultPhenotypeConfiguration
 
-export ScalarFitnessEvaluationConfiguration, ScalarFitEvalCfg
+export AsexualIndividualConfiguration, SexualIndividualConfiguration
+
+export ScalarFitnessEvaluationConfiguration
 
 export IdentityReplacer, GenerationalReplacer
 
@@ -30,19 +33,17 @@ export DefaultMutator
 
 export SizeGenotypeReporter, SumGenotypeReporter, FitnessEvaluationReporter
 
-export InteractionJobConfiguration, JobCfg
+export InteractionJobConfiguration
 
-export InteractiveDomainConfiguration, DomainCfg
+export InteractiveDomainConfiguration
 
 export AllvsAllMatchMaker
 
 export NumbersGame
 
-export OutcomeObservationConfiguration, OutcomeObsCfg
+export OutcomeObservationConfiguration
 
 export DefaultArchiver
-
-export RuntimeReporter
 
 include("abstract/abstract.jl")
 
@@ -54,29 +55,23 @@ using .Abstract: Reporter
 
 using .Utilities.Counters: Counter
 
+using .Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
+
 using .Ecosystems: CoevolutionaryEcosystemConfiguration, evolve!
-const EcoCfg = CoevolutionaryEcosystemConfiguration
 
 using .Ecosystems.Observations: OutcomeObservationConfiguration
-const OutcomeObsCfg = OutcomeObservationConfiguration
 
 using .Ecosystems.Species: BasicSpeciesConfiguration
-const SpeciesCfg = BasicSpeciesConfiguration
 
 using .Ecosystems.Species.Genotypes: VectorGenotypeConfiguration
-const VectorGenoCfg = VectorGenotypeConfiguration
 
 using .Ecosystems.Species.Phenotypes: DefaultPhenotypeConfiguration
-const DefaultPhenoCfg = DefaultPhenotypeConfiguration
 
 using .Ecosystems.Species.Individuals: AsexualIndividualConfiguration
-const AsexualIndivCfg = AsexualIndividualConfiguration
 
 using .Ecosystems.Species.Individuals: SexualIndividualConfiguration
-const SexualIndivCfg = SexualIndividualConfiguration
 
 using .Ecosystems.Species.Evaluations: ScalarFitnessEvaluationConfiguration
-const ScalarFitEvalCfg = ScalarFitnessEvaluationConfiguration
 
 using .Ecosystems.Species.Replacers: IdentityReplacer, GenerationalReplacer
 
@@ -86,15 +81,11 @@ using .Ecosystems.Species.Recombiners: CloneRecombiner
 
 using .Ecosystems.Species.Mutators: DefaultMutator
 
-using .Ecosystems.Species.Reporters: SizeGenotypeReporter
-using .Ecosystems.Species.Reporters: FitnessEvaluationReporter
-using .Ecosystems.Species.Reporters: SumGenotypeReporter
+using .Ecosystems.Species.Reporters: CohortMetricReporter
 
 using .Ecosystems.Jobs: InteractionJobConfiguration
-const JobCfg = InteractionJobConfiguration
 
 using .Ecosystems.Jobs.Domains: InteractiveDomainConfiguration
-const DomainCfg = InteractiveDomainConfiguration
 
 using .Ecosystems.Jobs.Domains.MatchMakers: AllvsAllMatchMaker
 

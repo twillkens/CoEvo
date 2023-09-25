@@ -1,13 +1,13 @@
 module Reporters
 
-export FitnessEvaluationReporter, SizeGenotypeReporter
+export CohortMetricReporter
 
 include("deps/reports.jl")
 
-include("abstract/abstract.jl")
+include("types/cohort_metric.jl")
 
-include("types/evaluation.jl")
-include("types/genotype.jl")
-
+include("methods/fitness.jl")
+include("methods/size.jl")
+include("methods/sum.jl")
 
 end

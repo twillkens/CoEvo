@@ -11,11 +11,6 @@ using .Genotypes: VectorGenotypeConfiguration
 using .Phenotypes: DefaultPhenotypeConfiguration
 using .Individuals: AsexualIndividualConfiguration
 using .Evaluations: ScalarFitnessEvaluationConfiguration
-using .Replacers: IdentityReplacer
-using .Selectors: IdentitySelector
-using .Recombiners: CloneRecombiner
-using .Mutators: DefaultMutator
-using .Reporters: SizeGenotypeReporter, FitnessEvaluationReporter, SumGenotypeReporter
 
 
 """
@@ -97,17 +92,17 @@ Configuration for generating a new species in the ecosystem.
     M <: Mutator,
     R <: Reporter
 } <: SpeciesConfiguration
-    id::String = "default"
-    n_pop::Int = 2
-    geno_cfg::G = VectorGenotypeConfiguration()
-    pheno_cfg::P = DefaultPhenotypeConfiguration()
-    indiv_cfg::I = AsexualIndividualConfiguration()
-    eval_cfg::E = ScalarFitnessEvaluationConfiguration()
-    replacer::RP = IdentityReplacer()
-    selector::S = IdentitySelector()
-    recombiner::RC = CloneRecombiner()
-    mutators::Vector{M} = [DefaultMutator()]
-    reporters::Vector{R} = [FitnessEvaluationReporter(), SumVectorGenotypeReporter()]
+    id::String
+    n_pop::Int
+    geno_cfg::G
+    pheno_cfg::P
+    indiv_cfg::I
+    eval_cfg::E
+    replacer::RP
+    selector::S
+    recombiner::RC
+    mutators::Vector{M}
+    reporters::Vector{R}
 end
 
 """
@@ -151,14 +146,11 @@ function(species_cfg::BasicSpeciesConfiguration)(
     rng::AbstractRNG, 
     indiv_id_counter::Counter,  
     gene_id_counter::Counter,  
-    pop_evals::OrderedDict{I, <:Evaluation},
-    children_evals::OrderedDict{I, <:Evaluation},
-) where {I <: Individual}
-    # new_pop_evals::OrderedDict{<:Individual, <:Evaluation}
+    pop_evals::OrderedDict{<:Individual, <:Evaluation},
+    children_evals::OrderedDict{<:Individual, <:Evaluation},
+) 
     new_pop_evals = species_cfg.replacer(rng, pop_evals, children_evals)
-    # parents::OrderedDict{<:Individual, <:Evaluation}
     parents = species_cfg.selector(rng, new_pop_evals)
-    # new_children::OrderedDict{<:Individual, <:Evaluation}
     new_children = species_cfg.recombiner(rng, indiv_id_counter, parents)
     for mutator in species_cfg.mutators
         new_children = mutator(rng, gene_id_counter, new_children)

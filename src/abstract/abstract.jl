@@ -114,16 +114,13 @@ abstract type Report end
 
 abstract type Reporter end
 
-abstract type CohortMetricReporter <: Reporter end
+abstract type Metric end 
 
-abstract type EvaluationCohortMetricReporter <: CohortMetricReporter end
+abstract type GenotypeMetric <: Metric end
 
+abstract type EvaluationMetric <: Metric end
 
-abstract type GenotypeCohortMetricReporter <: CohortMetricReporter end
-
-
-abstract type StatisticalFeatureSetReporter <: Reporter end
-
+abstract type ObservationMetric <: Metric end
 
 """
     DomainConfiguration

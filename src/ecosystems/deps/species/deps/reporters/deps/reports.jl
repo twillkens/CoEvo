@@ -2,7 +2,7 @@ module Reports
 
 export CohortMetricReport
 
-using .....CoEvo.Abstract: Report, Archiver, CohortMetricReporter
+using .....CoEvo.Abstract: Report, Archiver
 using .....CoEvo.Utilities.Statistics: StatisticalFeatureSet
 
 struct CohortMetricReport <: Report
@@ -17,27 +17,6 @@ struct CohortMetricReport <: Report
     save_features::Vector{Symbol}
 end
 
-function CohortMetricReport(
-    reporter::CohortMetricReporter,
-    gen::Int,
-    species_id::String,
-    cohort::String,
-    stat_features::StatisticalFeatureSet
-)
-    to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
-    to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
-    CohortMetricReport(
-        gen,
-        to_print,
-        to_save,
-        species_id,
-        cohort,
-        reporter.metric,
-        stat_features,
-        reporter.print_features,
-        reporter.save_features
-    )
-end
 
 
 # Then, for the custom show method:
