@@ -7,7 +7,7 @@ function(reporter::CohortMetricReporter{GenotypeSum})(
     cohort::String,
     genotypes::Vector{<:VectorGenotype}
 )
-    genotype_sums = [sum(geno.vals) for geno in genotypes]
+    genotype_sums = [sum(geno.genes) for geno in genotypes]
     report = reporter(gen, species_id, cohort, genotype_sums)
     return report
 end

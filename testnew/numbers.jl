@@ -143,3 +143,68 @@ end
     @test sum_report.stat_features.minimum == 55.0
     @test sum_report.stat_features.maximum == 55.0
 end
+
+@testset "evolve!" begin
+
+n_pop = 2
+n_parents = 2
+
+species_id1 = "a"
+species_id2 = "b"
+domain_id = "NumbersGame{Sum}"
+
+eco_cfg = CoevolutionaryEcosystemConfiguration(
+    id = "test",
+    trial = 1,
+    rng = StableRNG(42),
+    species_cfgs = OrderedDict(
+        species_id1 => BasicSpeciesConfiguration(
+            id = species_id1,
+            n_pop = n_pop,
+            geno_cfg = VectorGenotypeConfiguration(default_vector = fill(0.0, 10)),
+            pheno_cfg = DefaultPhenotypeConfiguration(),
+            indiv_cfg = AsexualIndividualConfiguration(),
+            eval_cfg = ScalarFitnessEvaluationConfiguration(),
+            replacer = GenerationalReplacer(),
+            selector = FitnessProportionateSelector(n_parents = n_parents),
+            recombiner = CloneRecombiner(),
+            mutators = [DefaultMutator()],
+            reporters = [CohortMetricReporter(metric = EvaluationFitness())],
+        ),
+        species_id2 => BasicSpeciesConfiguration(
+            id = species_id2,
+            n_pop = n_pop,
+            geno_cfg = VectorGenotypeConfiguration(default_vector = fill(0.0, 10)),
+            pheno_cfg = DefaultPhenotypeConfiguration(),
+            indiv_cfg = AsexualIndividualConfiguration(),
+            eval_cfg = ScalarFitnessEvaluationConfiguration(),
+            replacer = GenerationalReplacer(),
+            selector = FitnessProportionateSelector(n_parents = n_parents),
+            recombiner = CloneRecombiner(),
+            mutators = [DefaultMutator()],
+            reporters = [CohortMetricReporter(metric = EvaluationFitness())],
+        ),
+    ),
+    job_cfg = InteractionJobConfiguration(
+        n_workers = 1,
+        dom_cfgs = OrderedDict(
+            domain_id => InteractiveDomainConfiguration(
+                id = domain_id,
+                problem = NumbersGameProblem(:Sum),
+                species_ids = [species_id1, species_id2],
+                obs_cfg = OutcomeObservationConfiguration(),
+                matchmaker = AllvsAllMatchMaker(type = :plus),
+                reporters = Reporter[]
+            ),
+        ),
+    ),
+    archiver = DefaultArchiver(),
+    indiv_id_counter = Counter(),
+    gene_id_counter = Counter(),
+    runtime_reporter = RuntimeReporter(),
+)
+
+eco = evolve!(eco_cfg, n_gen=10)
+@test length(eco.species[species_id1].pop) == n_pop
+
+end
