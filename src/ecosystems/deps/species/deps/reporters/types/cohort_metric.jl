@@ -1,11 +1,28 @@
 export CohortMetricReporter
 
+
 using DataStructures: OrderedDict
 using ....CoEvo.Abstract: Reporter, EvaluationMetric, GenotypeMetric, Individual, Evaluation
 using ....CoEvo.Abstract: Metric
 using ....CoEvo.Utilities.Statistics: StatisticalFeatureSet
 using .Reports: CohortMetricReport
 
+"""
+    CohortMetricReporter{M <: Metric} <: Reporter
+
+Structure to handle reporting of metrics specific to cohorts of individuals.
+
+# Fields
+- `metric::M`: The metric to be reported.
+- `print_interval::Int`: Interval at which reports should be printed. 0 means no printing.
+- `save_interval::Int`: Interval at which reports should be saved. 0 means no saving.
+- `n_round::Int`: Precision for rounding statistical values.
+- `print_features::Vector{Symbol}`: Statistical features to print.
+- `save_features::Vector{Symbol}`: Statistical features to save.
+
+# Usage
+This reporter can handle different types of metrics and produce reports accordingly.
+"""
 Base.@kwdef struct CohortMetricReporter{M <: Metric} <: Reporter
     metric::M
     print_interval::Int = 1
@@ -15,6 +32,25 @@ Base.@kwdef struct CohortMetricReporter{M <: Metric} <: Reporter
     save_features::Vector{Symbol} = [:mean, :std, :minimum, :maximum]
 end
 
+"""
+    function(reporter::CohortMetricReporter)(
+        gen::Int,
+        species_id::String,
+        cohort::String,
+        values::Vector{Float64}
+    )
+
+Generate a report based on provided cohort metrics for a specified generation, species, and cohort.
+
+# Arguments
+- `gen::Int`: Generation number.
+- `species_id::String`: ID of the species.
+- `cohort::String`: Name/ID of the cohort.
+- `values::Vector{Float64}`: Vector of values (either evaluations or genotypes) from which the statistical features are derived.
+
+# Returns
+- A `CohortMetricReport` instance containing the generated report details.
+"""
 function(reporter::CohortMetricReporter)(
     gen::Int,
     species_id::String,
@@ -38,6 +74,25 @@ function(reporter::CohortMetricReporter)(
     return report
 end
 
+"""
+    function(reporter::CohortMetricReporter{<:EvaluationMetric})(
+        gen::Int,
+        species_id::String,
+        cohort::String,
+        indiv_evals::OrderedDict{<:Individual, <:Evaluation}
+    )
+
+Specialized function to generate a report when the metric is of type `EvaluationMetric`.
+
+# Arguments
+- `gen::Int`: Generation number.
+- `species_id::String`: ID of the species.
+- `cohort::String`: Name/ID of the cohort.
+- `indiv_evals::OrderedDict{<:Individual, <:Evaluation}`: Ordered dictionary of individuals and their evaluations.
+
+# Returns
+- A `CohortMetricReport` instance containing the generated report details.
+"""
 function(reporter::CohortMetricReporter{<:EvaluationMetric})(
     gen::Int,
     species_id::String,
@@ -48,6 +103,25 @@ function(reporter::CohortMetricReporter{<:EvaluationMetric})(
     return report
 end
 
+"""
+    function(reporter::CohortMetricReporter{<:GenotypeMetric})(
+        gen::Int,
+        species_id::String,
+        cohort::String,
+        indiv_evals::OrderedDict{<:Individual, <:Evaluation}
+    )
+
+Specialized function to generate a report when the metric is of type `GenotypeMetric`.
+
+# Arguments
+- `gen::Int`: Generation number.
+- `species_id::String`: ID of the species.
+- `cohort::String`: Name/ID of the cohort.
+- `indiv_evals::OrderedDict{<:Individual, <:Evaluation}`: Ordered dictionary of individuals and their evaluations.
+
+# Returns
+- A `CohortMetricReport` instance containing the generated report details.
+"""
 function(reporter::CohortMetricReporter{<:GenotypeMetric})(
     gen::Int,
     species_id::String,
@@ -58,3 +132,4 @@ function(reporter::CohortMetricReporter{<:GenotypeMetric})(
     report = reporter(gen, species_id, cohort, genotypes)
     return report
 end
+

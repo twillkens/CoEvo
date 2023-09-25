@@ -1,8 +1,17 @@
-export ScalarFitnessEvaluation, ScalarFitnessEvaluationConfiguration
+"""
+    Evaluations
+
+This module provides definitions and functions to evaluate individuals based on 
+scalar fitness and sort them according to specific criteria, either maximizing or minimizing the fitness.
+"""
+module ScalarFitness
+
+export ScalarFitnessEvaluation, ScalarFitnessEvaluationConfiguration, sort_indiv_evals
 
 using DataStructures: OrderedDict
 using .....CoEvo.Abstract: Evaluation, EvaluationConfiguration, Individual, Criterion
 using .....CoEvo.Utilities.Criteria: Maximize, Minimize
+#import ..Abstract: sort_indiv_evals
 
 """
     ScalarFitnessEval
@@ -21,12 +30,29 @@ end
 """
     ScalarFitnessEvalCfg <: EvaluationConfiguration
 
-A configuration for scalar fitness evaluations. This serves as a placeholder for potential configuration parameters.
+A configuration for scalar fitness evaluations. Serves as a placeholder for future 
+configuration parameters with default behavior set to maximize the scalar fitness.
+
+# Fields
+- `sort_criterion::Criterion`: The criterion used to sort individuals (default is `Maximize`).
 """
 Base.@kwdef struct ScalarFitnessEvaluationConfiguration <: EvaluationConfiguration 
     sort_criterion::Criterion = Maximize()
 end
 
+"""
+    Create a `ScalarFitnessEvaluation` using the provided configuration.
+
+Given an individual and a dictionary of outcomes, this function computes 
+the scalar fitness as the sum of all outcome values and returns a `ScalarFitnessEvaluation`.
+
+# Arguments
+- `indiv::Individual`: The individual for which the evaluation is being created.
+- `outcomes::Dict{Int, Float64}`: Dictionary of outcomes for the individual.
+
+# Returns
+- A `ScalarFitnessEvaluation` instance with computed fitness.
+"""
 function(eval_cfg::ScalarFitnessEvaluationConfiguration)(
     indiv::Individual, outcomes::Dict{Int, Float64}
 )
@@ -34,30 +60,62 @@ function(eval_cfg::ScalarFitnessEvaluationConfiguration)(
     return ScalarFitnessEvaluation(indiv.id, fitness)
 end
 
+"""
+    Sort individuals based on `Maximize` criterion.
+
+Given an ordered dictionary of individuals and their scalar fitness evaluations, 
+sorts the individuals in descending order of fitness.
+
+# Arguments
+- `indiv_evals::OrderedDict{<:Individual, ScalarFitnessEvaluation}`: Dictionary of individuals and evaluations.
+
+# Returns
+- A sorted `OrderedDict` of individuals and evaluations.
+"""
 function sort_indiv_evals(
     ::Maximize,
     indiv_evals::OrderedDict{<:Individual, ScalarFitnessEvaluation}
 )
-    # Sorting the OrderedDict by fitness in descending order for maximization
-    # The most fit is at the front of the OrderedDict and the least fit is at the back
     sorted_indiv_evals = OrderedDict(
         sort(collect(indiv_evals), by = pair -> pair.second.fitness, rev = true)
     )
     return sorted_indiv_evals
 end
 
+"""
+    Sort individuals based on `Minimize` criterion.
+
+Given an ordered dictionary of individuals and their scalar fitness evaluations, 
+sorts the individuals in ascending order of fitness.
+
+# Arguments
+- `indiv_evals::OrderedDict{<:Individual, ScalarFitnessEvaluation}`: Dictionary of individuals and evaluations.
+
+# Returns
+- A sorted `OrderedDict` of individuals and evaluations.
+"""
 function sort_indiv_evals(
     ::Minimize,
     indiv_evals::OrderedDict{<:Individual, ScalarFitnessEvaluation}
 )
-    # Sorting the OrderedDict by fitness in ascending order for minimization
-    # The most fit is at the front of the OrderedDict and the least fit is at the back
     sorted_indiv_evals = OrderedDict(
         sort(collect(indiv_evals), by = pair -> pair.second.fitness, rev = false)
     )
     return sorted_indiv_evals
 end
 
+"""
+    Evaluate all individuals based on the provided scalar fitness configuration.
+
+Given a dictionary of individuals and their outcomes, this function creates evaluations 
+for each individual, sorts them based on the configuration's criterion, and returns an ordered dictionary.
+
+# Arguments
+- `all_indiv_outcomes::Dict{<:Individual, Dict{Int, Float64}}`: A dictionary mapping individuals to their outcomes.
+
+# Returns
+- A sorted `OrderedDict` of individuals and their evaluations.
+"""
 function(eval_cfg::ScalarFitnessEvaluationConfiguration)(
     all_indiv_outcomes::Dict{<:Individual, Dict{Int, Float64}}
 ) 
@@ -68,3 +126,4 @@ function(eval_cfg::ScalarFitnessEvaluationConfiguration)(
     return indiv_evals
 end
 
+end

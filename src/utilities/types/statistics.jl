@@ -1,3 +1,4 @@
+
 module Statistics
 
 export StatisticalFeatureSet, extract_stat_features
@@ -6,6 +7,30 @@ using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
 using HypothesisTests: OneSampleTTest, confint
 using ...CoEvo.Abstract: Reporter, Report
 
+"""
+    StatisticalFeatureSet
+
+A structured type that captures a broad range of statistical features from a given data vector.
+
+# Fields
+- `sum`: The total sum of the data elements.
+- `upper_confidence`: The upper confidence interval for the mean.
+- `mean`: The arithmetic mean of the data.
+- `lower_confidence`: The lower confidence interval for the mean.
+- `variance`: The variance of the data.
+- `std`: The standard deviation of the data.
+- `minimum`: The smallest value in the data.
+- `lower_quartile`: The 25th percentile.
+- `median`: The median or 50th percentile.
+- `upper_quartile`: The 75th percentile.
+- `maximum`: The largest value in the data.
+- `skew`: The skewness of the data.
+- `kurt`: The kurtosis of the data.
+- `mod`: The mode of the data.
+
+# Constructors
+This type can be constructed from both vector and tuple data inputs.
+"""
 Base.@kwdef struct StatisticalFeatureSet
     sum::Float64 = 0.0
     upper_confidence::Float64 = 0.0
@@ -34,39 +59,44 @@ function StatisticalFeatureSet(vec::Vector{<:Real}, n_round::Int=2)
 
     # Use the round function on each feature to round to the specified number of digits
     return StatisticalFeatureSet(
-        sum=round(sum(vec), digits=n_round),
-        lower_confidence=round(loconf, digits=n_round),
-        mean=round(mean(vec), digits=n_round),
-        upper_confidence=round(hiconf, digits=n_round),
-        variance=round(var(vec), digits=n_round),
-        std=round(std(vec), digits=n_round),
-        minimum=round(quantiles[1], digits=n_round),
-        lower_quartile=round(quantiles[2], digits=n_round),
-        median=round(quantiles[3], digits=n_round),
-        upper_quartile=round(quantiles[4], digits=n_round),
-        maximum=round(quantiles[5], digits=n_round),
-        skew=round(skewness(vec), digits=n_round),
-        kurt=round(kurtosis(vec), digits=n_round),
-        mod=round(mode(vec), digits=n_round),
+        sum = round(sum(vec), digits = n_round),
+        lower_confidence = round(loconf, digits = n_round),
+        mean = round(mean(vec), digits = n_round),
+        upper_confidence = round(hiconf, digits = n_round),
+        variance = round(var(vec), digits = n_round),
+        std = round(std(vec), digits = n_round),
+        minimum = round(quantiles[1], digits = n_round),
+        lower_quartile = round(quantiles[2], digits = n_round),
+        median = round(quantiles[3], digits = n_round),
+        upper_quartile = round(quantiles[4], digits = n_round),
+        maximum = round(quantiles[5], digits = n_round),
+        skew = round(skewness(vec), digits = n_round),
+        kurt = round(kurtosis(vec), digits = n_round),
+        mod = round(mode(vec), digits = n_round),
     )
 end
 
-function StatisticalFeatureSet(tup::Tuple{Vararg{<:Real}})
-    StatisticalFeatureSet(collect(tup))
-end
+"""
+    extract_stat_features(sf::StatisticalFeatureSet, features::Vector{Symbol})
 
-function get_metric(vec::Vector{StatisticalFeatureSet}, feature::Symbol)
-    [getfield(sf, feature) for sf in vec]
-end
+Extracts specified statistical features from a `StatisticalFeatureSet` object.
 
+# Arguments
+- `sf`: A `StatisticalFeatureSet` object.
+- `features`: A list of symbols indicating the features to extract.
 
+# Returns
+- A dictionary mapping feature names (as strings) to their values.
 
+# Throws
+- Throws an `ArgumentError` if any requested feature is not a real number in the `StatisticalFeatureSet` object.
+"""
 function extract_stat_features(
-    sf::StatisticalFeatureSet, features::Vector{Symbol}
-)::Dict{String, Float64}
+    stat_features::StatisticalFeatureSet, features::Vector{Symbol}
+)
     feature_dict = Dict{String, Float64}()
     for feature in features
-        val = getfield(sf, feature)
+        val = getfield(stat_features, feature)
         if isa(val, Real)  # Ensure the value is a real number (Float64 or another subtype)
             feature_dict[string(feature)] = Float64(val)
         else
@@ -75,4 +105,5 @@ function extract_stat_features(
     end
     return feature_dict
 end
+
 end

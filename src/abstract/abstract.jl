@@ -1,3 +1,17 @@
+"""
+    Abstract
+
+The `Abstract` module provides foundational abstract types and interfaces for modeling a coevolutionary system. 
+These types set the groundwork for further specification and concrete implementation across the ecosystem, 
+species, genotypes, phenotypes, interactions, and various other components.
+
+# Sections
+1. **Entity Types**: Includes core entity types like genotypes, phenotypes, individuals, species, and ecosystems.
+2. **Interaction Types**: Defines types related to problems, observations, and interactions between entities.
+3. **Genetic Algorithm and Reproduction Types**: Encapsulates core components of the genetic algorithm, including evaluations, replacements, selections, and mutations.
+4. **Analysis Types**: Types related to storing and analyzing the data produced throughout the coevolutionary process.
+5. **Utility Types**: Miscellaneous utility types used throughout the coevolutionary system.
+"""
 module Abstract
 
 """
@@ -5,18 +19,24 @@ Entity Types
 """
 
 """
-    Genotype
+    Gene
 
-Encodes genetic information.
+A discrete component contributing to the genetic information of a genotype.
 """
-
 abstract type Gene end
 
+"""
+    Genotype
+
+The fundamental type representing the genetic information of an entity. It serves as a blueprint 
+from which phenotypes are derived.
+"""
 abstract type Genotype end
 
 abstract type VectorGenotype <: Genotype end
 
 abstract type GeneticProgramGenotype <: Genotype end
+
 """
     GenotypeConfiguration
 

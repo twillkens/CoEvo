@@ -1,3 +1,33 @@
+"""
+    CoEvo
+
+A module that encapsulates functionality related to the coevolutionary ecosystem.
+This module provides tools and interfaces to handle evolutionary algorithms,
+interactions, species, and various other components of a coevolutionary system.
+
+# Exports
+- `evolve!`: Function to trigger the evolution of an ecosystem.
+- Reporters (`Reporter`, `RuntimeReporter`, `CohortMetricReporter`): Interfaces and implementations for reporting results and statistics.
+- Counters and Metrics (`Counter`, `GenotypeSum`, `GenotypeSize`, `EvaluationFitness`): Tools for tracking and measuring certain properties during evolution.
+- Configurations: Set of structures defining behavior and properties for various components (`CoevolutionaryEcosystemConfiguration`, `BasicSpeciesConfiguration`, `VectorGenotypeConfiguration`, etc.).
+- Utilities: Helpers and utilities to facilitate various functionalities (`DefaultPhenotypeConfiguration`, `DefaultMutator`, etc.).
+- Ecosystem Elements (`AsexualIndividualConfiguration`, `SexualIndividualConfiguration`, `ScalarFitnessEvaluationConfiguration`, etc.): Configurations and definitions to handle species, individuals, evaluations, and more.
+- Jobs (`InteractionJobConfiguration`, `InteractiveDomainConfiguration`, `AllvsAllMatchMaker`, `NumbersGame`): Define and handle interaction jobs between species.
+- Archivers (`DefaultArchiver`): For storing historical data.
+- Others: Various functionalities and configurations to provide rich coevolutionary behavior (`CloneRecombiner`, `GenerationalReplacer`, `IdentitySelector`, etc.).
+
+The module structures its content based on the different elements of a coevolutionary ecosystem and provides extensive configuration options to customize and experiment with different behaviors and properties.
+
+# Internals
+Files and directories included:
+- `abstract/abstract.jl`: Contains abstract type definitions.
+- `utilities/utilities.jl`: Provides various utility functions.
+- `ecosystems/ecosystems.jl`: Core functionalities related to ecosystems.
+... and more.
+
+# Notes
+Remember to keep the implementations updated with the module's structure and hierarchy. The configurations provided are extensive and allow rich customization; ensure you're using the right one for your needs.
+"""
 module CoEvo
 
 # Exports
