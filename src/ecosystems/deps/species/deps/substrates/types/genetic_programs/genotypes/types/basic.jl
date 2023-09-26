@@ -2,8 +2,9 @@ export BasicGeneticProgramGenotype, BasicGeneticProgramGenotypeConfiguration
 
 using Random: AbstractRNG
 
-using .....CoEvo.Abstract: GeneticProgramGenotype, GeneticProgramGenotypeConfiguration
-using .....CoEvo.Utilities.Counters: Counter, next!
+using ......CoEvo.Abstract: GeneticProgramGenotype, GeneticProgramGenotypeConfiguration
+using ......CoEvo.Utilities.Counters: Counter, next!
+using ..Genes: ExpressionNodeGene
 
 
 """

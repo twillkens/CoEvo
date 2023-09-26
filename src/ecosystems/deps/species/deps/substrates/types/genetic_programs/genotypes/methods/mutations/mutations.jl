@@ -1,11 +1,11 @@
-println("hi")
+module Mutations
+
+export add_function, remove_function, swap_node, splice_function, inject_noise
+
 include("add_function.jl")
-println("therer")
 include("remove_function.jl")
-println("therer")
 include("splice_function.jl")
-println("therer")
 include("swap_node.jl")
-println("therer")
 include("inject_noise.jl")
-println("done")
+
+end

@@ -26,7 +26,9 @@ Files and directories included:
 ... and more.
 
 # Notes
-Remember to keep the implementations updated with the module's structure and hierarchy. The configurations provided are extensive and allow rich customization; ensure you're using the right one for your needs.
+Remember to keep the implementations updated with the module's structure and hierarchy. 
+The configurations provided are extensive and allow rich customization; ensure you're using 
+the right one for your needs.
 """
 module CoEvo
 
@@ -63,7 +65,7 @@ using .Ecosystems.Species: BasicSpeciesConfiguration
 using .Ecosystems.Species.Substrates.Defaults: DefaultPhenotypeConfiguration
 using .Ecosystems.Species.Substrates.Defaults: DefaultMutator
 using .Ecosystems.Species.Substrates.Vectors: BasicVectorGenotypeConfiguration
-using .Ecosystems.Species.Substrates.GeneticPrograms: BasicGeneticProgramGenotypeConfiguration
+using .Ecosystems.Species.Substrates.GeneticPrograms.Genotypes: BasicGeneticProgramGenotypeConfiguration
 using .Ecosystems.Species.Individuals: AsexualIndividualConfiguration, 
                                      SexualIndividualConfiguration
 using .Ecosystems.Species.Evaluations: ScalarFitnessEvaluationConfiguration

@@ -1,7 +1,8 @@
-
 export add_function
 
-using .....CoEvo.Abstract: Mutator
+using ...Genes: ExpressionNodeGene
+using ..Genotypes: BasicGeneticProgramGenotype
+using ...Utilities: FuncAlias, Terminal
 
 """
     add_function(geno::BasicGeneticProgramGenotype, newnode_id::Real, 
@@ -38,5 +39,5 @@ function add_function(
     new_node = ExpressionNodeGene(newnode_id, nothing, newnode_val, newnode_child_ids)
     push!(geno.functions, new_node.id => new_node)
     [push!(geno.terminals, child.id => child) for child in new_child_nodes]
-    geno
+    return geno
 end

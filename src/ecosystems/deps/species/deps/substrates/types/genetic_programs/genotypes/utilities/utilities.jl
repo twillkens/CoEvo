@@ -1,3 +1,11 @@
+module Utilities
+
+export get_child_index, all_nodes, get_nodes, get_node, get_root, get_parent_node
+export get_child_nodes, get_ancestors, get_descendents, replace_child!, pruned_size
+
+using ...Genes: ExpressionNodeGene
+using ...Genotypes: BasicGeneticProgramGenotype
+
 """
     get_child_index(parent_node::ExpressionNodeGene, child_node::ExpressionNodeGene)
 
@@ -132,4 +140,6 @@ Compute the pruned size of the genotype `geno` by counting the descendants of th
 function pruned_size(geno::BasicGeneticProgramGenotype)::Int
     descendants = get_descendents(geno, geno.root_id)
     return length(descendants) + 1
+end
+
 end

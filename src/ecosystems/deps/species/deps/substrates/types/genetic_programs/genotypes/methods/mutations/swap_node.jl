@@ -1,5 +1,8 @@
 export swap_node
 
+using ..Genotypes: BasicGeneticProgramGenotype
+using ..Utilities: get_node, get_child_index
+
 """
     swap_node(geno::BasicGeneticProgramGenotype, node_id1::Int, node_id2::Int) -> BasicGeneticProgramGenotype
 

@@ -1,5 +1,16 @@
 export BasicGeneticProgramMutator
 
+using Random: AbstractRNG
+using StatsBase: sample, Weights
+
+using ......CoEvo.Abstract: Mutator
+using ......CoEvo.Utilities.Counters: Counter
+using ...GeneticPrograms.Utilities: FuncAlias, Terminal, protected_sine, if_less_then_else
+using ..Genotypes: BasicGeneticProgramGenotype
+using ..Genotypes.Utilities: all_nodes
+using ..Genotypes.Mutations: add_function, remove_function, swap_node, splice_function
+
+
 Base.@kwdef struct BasicGeneticProgramMutator <: Mutator
     # Number of structural changes to perform per generation
     n_mutations::Int = 1
@@ -22,6 +33,13 @@ Base.@kwdef struct BasicGeneticProgramMutator <: Mutator
         (if_less_then_else, 4),
     ])
     noise_std::Float64 = 0.1
+    string_arg_dict::Dict{String, Any} = Dict(
+        "read" => :read, 
+        "+" => +, 
+        "-" => -, 
+        "*" => *, 
+        "sin" => protected_sine, 
+        "iflt" => if_less_then_else)
 end
 
 function(mutator::BasicGeneticProgramMutator)(
@@ -39,7 +57,7 @@ function(mutator::BasicGeneticProgramMutator)(
     if geno.root_id ∉ keys(all_nodes(geno))
         throw(ErrorException("Root node not in genotype"))
     end
-    geno = inject_noise(rng, sc, m, geno)
+    geno = inject_noise(rng, gene_id_conter, mutator, geno)
     if geno.root_id ∉ keys(all_nodes(geno))
         throw(ErrorException("Root node not in genotype after noise"))
     end

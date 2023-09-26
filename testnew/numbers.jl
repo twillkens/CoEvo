@@ -1,6 +1,11 @@
 using Test
 
+"""
+    CoEvo Test Suite
 
+This test suite focuses on validating and verifying the functionality of the `CoEvo` module.
+The `CoEvo` module provides tools and structures for co-evolutionary simulations.
+"""
 @testset "CoEvo" begin
 
 using Random: AbstractRNG
@@ -8,6 +13,8 @@ using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 include("../src/CoEvo.jl")
 using .CoEvo
+
+# Problem domains and supporting utilities
 using .CoEvo.Ecosystems.Jobs.Domains.Problems.NumbersGame: NumbersGameProblem, interact
 using .CoEvo.Ecosystems.Observations: OutcomeObservationConfiguration
 using .CoEvo.Ecosystems.Species.Reporters: CohortMetricReporter
@@ -16,7 +23,12 @@ using .CoEvo.Ecosystems.Species.Substrates: DefaultPhenotypeConfiguration
 using .CoEvo.Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
 using .CoEvo.Utilities.Counters: Counter
 
+"""
+    NumbersGameProblem with Gradient
 
+Test the `NumbersGameProblem` domain using the `Gradient` strategy. This set
+confirms the outcomes when different phenotypes interact within the specified domain.
+"""
 @testset "NumbersGameProblem with Gradient" begin
     problem = NumbersGameProblem(:Gradient)
     obscfg = OutcomeObservationConfiguration()  # Update this as per the new structure, if necessary
@@ -50,6 +62,12 @@ using .CoEvo.Utilities.Counters: Counter
     @test fitnessB == 0
 end
 
+"""
+    NumbersGameProblem with Focusing
+
+Test the `NumbersGameProblem` domain using the `Focusing` strategy. Evaluates the
+responses of various phenotypic interactions.
+"""
 @testset "NumbersGameProblem with Focusing" begin
     problem = NumbersGameProblem(:Focusing)
     obscfg = OutcomeObservationConfiguration() 
@@ -70,6 +88,12 @@ end
     @test observation.outcome_set[1] == 1.0
 end
 
+"""
+    NumbersGameProblem with Relativism
+
+Test the `NumbersGameProblem` domain using the `Relativism` strategy. 
+This checks the outcomes for a set of phenotype interactions under relativistic scenarios.
+"""
 @testset "NumbersGameProblem with Relativism" begin
     problem = NumbersGameProblem(:Relativism)
     obscfg = OutcomeObservationConfiguration()
@@ -88,7 +112,12 @@ end
     @test observation.outcome_set[1] == 1.0
 end
 
+"""
+    BasicSpeciesConfiguration Test
 
+Test the configuration and initialization of species with `BasicSpeciesConfiguration`.
+This confirms the proper setup and initial state of species.
+"""
 @testset "BasicSpeciesConfiguration" begin
     gen = 1
     rng = StableRNG(42)
@@ -151,6 +180,12 @@ end
     @test sum_report.stat_features.maximum == 55.0
 end
 
+"""
+    `evolve!` Functionality Test
+
+Tests the primary evolutionary function `evolve!` within a co-evolutionary context.
+Ensures the successful progression of generations and expected state changes.
+"""
 @testset "evolve!" begin
 
 function dummy_eco_cfg(;

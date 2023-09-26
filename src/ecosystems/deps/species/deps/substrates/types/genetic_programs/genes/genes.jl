@@ -1,6 +1,8 @@
+module Genes
+
 export ExpressionNodeGene, get_child_index
 
-using .....CoEvo.Abstract: Gene
+using ......CoEvo.Abstract: Gene
 
 """
     ExpressionNodeGene
@@ -82,4 +84,6 @@ function Base.show(io::IO, enode::ExpressionNodeGene)
         children = "($children)"
     end
     print(io, "$(enode.parent_id) <= $(enode.id) => $(enode.val)$children")
+end
+
 end

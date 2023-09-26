@@ -1,5 +1,8 @@
 export remove_function
 
+using ..Genotypes: BasicGeneticProgramGenotype
+using ..Utilities: get_node, get_child_index
+
 """
     remove_function(geno::BasicGeneticProgramGenotype, target_id::Int, substitute_child_id::Int)
 
@@ -57,5 +60,5 @@ function remove_function(
             delete!(geno.terminals, child_id)
         end
     end
-    geno
+    return geno
 end

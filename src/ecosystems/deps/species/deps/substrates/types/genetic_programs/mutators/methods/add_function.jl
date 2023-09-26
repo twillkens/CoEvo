@@ -1,3 +1,13 @@
+export add_function
+
+using Random: AbstractRNG, rand
+
+using ......CoEvo.Utilities.Counters: Counter, next!
+using ..Genotypes: BasicGeneticProgramGenotype
+using ..Mutators: BasicGeneticProgramMutator
+
+import ..Genotypes.Mutations: add_function
+
 """
     add_function(rng::AbstractRNG, gene_id_counter::Counter, mutator::BasicGeneticProgramMutator, geno::BasicGeneticProgramGenotype)
 

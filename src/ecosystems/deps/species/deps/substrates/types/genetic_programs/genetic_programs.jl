@@ -18,6 +18,11 @@ include("genotypes/genotypes.jl")
 include("mutators/mutators.jl")
 include("phenotypes/phenotypes.jl")
 
+using .Genes: ExpressionNodeGene
+using .Genotypes: BasicGeneticProgramGenotype, BasicGeneticProgramGenotypeConfiguration
+using .Phenotypes: PlayerPianoPhenotype, PlayerPianoPhenotypeConfiguration
+using .Mutators: BasicGeneticProgramMutator
+
 # include("archivers/archivers.jl")
 
 # Define any other necessary internal structures and functions below...

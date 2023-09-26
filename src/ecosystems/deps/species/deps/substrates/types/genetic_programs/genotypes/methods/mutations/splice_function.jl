@@ -1,5 +1,8 @@
 export splice_function
 
+using ..Genotypes: BasicGeneticProgramGenotype
+using ..Utilities: get_node, get_ancestors, replace_child!
+
 """
     splice_function(geno::BasicGeneticProgramGenotype, segment_top_id::Int, 
                     segment_bottom_child_id::Int, target_id::Int)

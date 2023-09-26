@@ -1,5 +1,13 @@
 export remove_function
 
+using Random: AbstractRNG, rand
+
+using ......CoEvo.Utilities.Counters: Counter
+using ..Genotypes: BasicGeneticProgramGenotype
+using ..Mutators: BasicGeneticProgramMutator
+
+import ..Genotypes.Mutations: remove_function
+
 """
     remove_function(rng::AbstractRNG, ::Counter, ::BasicGeneticProgramMutator, geno::BasicGeneticProgramGenotype)
 
@@ -23,10 +31,10 @@ function remove_function(
     if length(geno.functions) == 0
         return deepcopy(geno)
     end
-    # select a function node at random
+    # Select a function node at random.
     to_remove = rand(rng, geno.functions).second
-    # choose node to substitute at random
+    # Choose node to substitute at random.
     to_substitute_id = rand(rng, to_remove.child_ids)
-    # execute removal
+    # Execute removal deterministicaly.
     remove_function(geno, to_remove.id, to_substitute_id)
 end

@@ -38,6 +38,7 @@ function get_all_indivs(eco::CoevolutionaryEcosystem)
     )
     return all_indivs
 end
+
 """
     struct EcoCfg{
         S <: SpeciesConfiguration, 
