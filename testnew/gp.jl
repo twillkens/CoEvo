@@ -5,7 +5,9 @@ using Test
 include("../src/CoEvo.jl")
 using .CoEvo
 using .CoEvo.Ecosystems.Species.Substrates.GeneticPrograms: BasicGeneticProgramGenotypeConfiguration
-u#sing .CoEvo.Ecosystems.Jobs.Domains.Problems.NumbersGame: NumbersGameProblem, interact
+
+BasicGeneticProgramGenotypeConfiguration()(StableRNG(42), Counter())
+#sing .CoEvo.Ecosystems.Jobs.Domains.Problems.NumbersGame: NumbersGameProblem, interact
 #using .CoEvo.Ecosystems.Observations: OutcomeObservationConfiguration
 #using .CoEvo.Ecosystems.Species.Reporters: CohortMetricReporter
 #using .CoEvo.Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness

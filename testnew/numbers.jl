@@ -1,14 +1,21 @@
-using StableRNGs: StableRNG
-using DataStructures: OrderedDict
 using Test
 
+
+@testset "CoEvo" begin
+
+using Random: AbstractRNG
+using StableRNGs: StableRNG
+using DataStructures: OrderedDict
 include("../src/CoEvo.jl")
 using .CoEvo
 using .CoEvo.Ecosystems.Jobs.Domains.Problems.NumbersGame: NumbersGameProblem, interact
 using .CoEvo.Ecosystems.Observations: OutcomeObservationConfiguration
 using .CoEvo.Ecosystems.Species.Reporters: CohortMetricReporter
+using .CoEvo.Ecosystems.Species.Substrates: BasicVectorGenotypeConfiguration
+using .CoEvo.Ecosystems.Species.Substrates: DefaultPhenotypeConfiguration
 using .CoEvo.Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
 using .CoEvo.Utilities.Counters: Counter
+
 
 @testset "NumbersGameProblem with Gradient" begin
     problem = NumbersGameProblem(:Gradient)
@@ -146,65 +153,72 @@ end
 
 @testset "evolve!" begin
 
-n_pop = 2
-n_parents = 2
-
-species_id1 = "a"
-species_id2 = "b"
-domain_id = "NumbersGame{Sum}"
-
-eco_cfg = CoevolutionaryEcosystemConfiguration(
-    id = "test",
-    trial = 1,
-    rng = StableRNG(42),
-    species_cfgs = OrderedDict(
-        species_id1 => BasicSpeciesConfiguration(
-            id = species_id1,
-            n_pop = n_pop,
-            geno_cfg = BasicVectorGenotypeConfiguration(default_vector = fill(0.0, 10)),
-            pheno_cfg = DefaultPhenotypeConfiguration(),
-            indiv_cfg = AsexualIndividualConfiguration(),
-            eval_cfg = ScalarFitnessEvaluationConfiguration(),
-            replacer = GenerationalReplacer(),
-            selector = FitnessProportionateSelector(n_parents = n_parents),
-            recombiner = CloneRecombiner(),
-            mutators = [DefaultMutator()],
-            reporters = [CohortMetricReporter(metric = EvaluationFitness())],
-        ),
-        species_id2 => BasicSpeciesConfiguration(
-            id = species_id2,
-            n_pop = n_pop,
-            geno_cfg = BasicVectorGenotypeConfiguration(default_vector = fill(0.0, 10)),
-            pheno_cfg = DefaultPhenotypeConfiguration(),
-            indiv_cfg = AsexualIndividualConfiguration(),
-            eval_cfg = ScalarFitnessEvaluationConfiguration(),
-            replacer = GenerationalReplacer(),
-            selector = FitnessProportionateSelector(n_parents = n_parents),
-            recombiner = CloneRecombiner(),
-            mutators = [DefaultMutator()],
-            reporters = [CohortMetricReporter(metric = EvaluationFitness())],
-        ),
-    ),
-    job_cfg = InteractionJobConfiguration(
-        n_workers = 1,
-        dom_cfgs = OrderedDict(
-            domain_id => InteractiveDomainConfiguration(
-                id = domain_id,
-                problem = NumbersGameProblem(:Sum),
-                species_ids = [species_id1, species_id2],
-                obs_cfg = OutcomeObservationConfiguration(),
-                matchmaker = AllvsAllMatchMaker(type = :plus),
-                reporters = Reporter[]
+function dummy_eco_cfg(;
+    id::String = "test",
+    trial::Int = 1,
+    rng::AbstractRNG = StableRNG(42),
+    n_pop::Int = 2,
+    n_parents::Int = 2,
+    species_id1::String = "a",
+    species_id2::String = "b",
+    domain_id::String = "NumbersGame{Sum}",
+    default_vector::Vector{Float64} = fill(0.0, 10),
+)
+    eco_cfg = CoevolutionaryEcosystemConfiguration(
+        id = id,
+        trial = trial,
+        rng = rng,
+        species_cfgs = OrderedDict(
+            species_id1 => BasicSpeciesConfiguration(
+                id = species_id1,
+                n_pop = n_pop,
+                geno_cfg = BasicVectorGenotypeConfiguration(default_vector = default_vector),
+                pheno_cfg = DefaultPhenotypeConfiguration(),
+                indiv_cfg = AsexualIndividualConfiguration(),
+                eval_cfg = ScalarFitnessEvaluationConfiguration(),
+                replacer = GenerationalReplacer(),
+                selector = FitnessProportionateSelector(n_parents = n_parents),
+                recombiner = CloneRecombiner(),
+                mutators = [DefaultMutator()],
+                reporters = [CohortMetricReporter(metric = EvaluationFitness())],
+            ),
+            species_id2 => BasicSpeciesConfiguration(
+                id = species_id2,
+                n_pop = n_pop,
+                geno_cfg = BasicVectorGenotypeConfiguration(default_vector = default_vector),
+                pheno_cfg = DefaultPhenotypeConfiguration(),
+                indiv_cfg = AsexualIndividualConfiguration(),
+                eval_cfg = ScalarFitnessEvaluationConfiguration(),
+                replacer = GenerationalReplacer(),
+                selector = FitnessProportionateSelector(n_parents = n_parents),
+                recombiner = CloneRecombiner(),
+                mutators = [DefaultMutator()],
+                reporters = [CohortMetricReporter(metric = EvaluationFitness())],
             ),
         ),
-    ),
-    archiver = DefaultArchiver(),
-    indiv_id_counter = Counter(),
-    gene_id_counter = Counter(),
-    runtime_reporter = RuntimeReporter(),
-)
+        job_cfg = InteractionJobConfiguration(
+            n_workers = 1,
+            dom_cfgs = OrderedDict(
+                domain_id => InteractiveDomainConfiguration(
+                    id = domain_id,
+                    problem = NumbersGameProblem(:Sum),
+                    species_ids = [species_id1, species_id2],
+                    obs_cfg = OutcomeObservationConfiguration(),
+                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    reporters = Reporter[]
+                ),
+            ),
+        ),
+        archiver = DefaultArchiver(),
+        indiv_id_counter = Counter(),
+        gene_id_counter = Counter(),
+        runtime_reporter = RuntimeReporter(),
+    )
 
-eco = evolve!(eco_cfg, n_gen=10)
-@test length(eco.species[species_id1].pop) == n_pop
+    eco = evolve!(eco_cfg, n_gen=10)
+    @test length(eco.species[species_id1].pop) == n_pop
+end
+
+end
 
 end

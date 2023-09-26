@@ -67,7 +67,7 @@ Base.@kwdef struct RuntimeReporter <: Reporter
     n_round::Int = 6
 end
 
-# Define how a RuntimeReporter produces a report
+# Define how a RuntimeReporter produces a report.
 function(reporter::RuntimeReporter)(gen::Int, eval_time::Float64, reproduce_time::Float64)
     to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
     to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
@@ -80,7 +80,7 @@ function(reporter::RuntimeReporter)(gen::Int, eval_time::Float64, reproduce_time
     return report 
 end
 
-# Define how an Archiver handles a RuntimeReport
+# Define how an Archiver handles a RuntimeReport.
 function(archiver::Archiver)(report::RuntimeReport)
     if report.to_print
         println("-----------------------------------------------------------")

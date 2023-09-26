@@ -1,5 +1,18 @@
+"""
+    add_function(rng::AbstractRNG, gene_id_counter::Counter, mutator::BasicGeneticProgramMutator, geno::BasicGeneticProgramGenotype)
 
-# Generate a random function node along with its terminals add it to a new copy of the genotype
+Generate a random function node along with its associated terminals, and add them to a new copy 
+of the genotype.
+
+# Arguments:
+- `rng::AbstractRNG`: Random number generator.
+- `gene_id_counter::Counter`: Counter for unique gene IDs.
+- `mutator::BasicGeneticProgramMutator`: The mutator containing function and terminal sets.
+- `geno::BasicGeneticProgramGenotype`: The genotype tree to be modified.
+
+# Returns:
+- A modified `BasicGeneticProgramGenotype` with the new function node added.
+"""
 function add_function(
     rng::AbstractRNG, 
     gene_id_counter::Counter, 

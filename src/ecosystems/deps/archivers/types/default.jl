@@ -8,27 +8,22 @@ using ...CoEvo.Ecosystems.Species.Evaluations: ScalarFitnessEvaluation
 using ...CoEvo.Ecosystems.Species.Individuals: AsexualIndividual, SexualIndividual
 using ...CoEvo.Ecosystems.Species.Substrates.Vectors: BasicVectorGenotype
 
+"""
+    DefaultArchiver
+
+A structure representing the default archiver for saving individual and population data 
+in genetic algorithms to a JLD2 file.
+
+# Fields:
+- `save_pop::Bool`: Whether or not to save the entire population. Default is `false`.
+- `save_children::Bool`: Whether or not to save the offspring. Default is `false`.
+- `jld2_path::String`: The path to the JLD2 file where data will be saved. Default is "archive.jld2".
+"""
 Base.@kwdef struct DefaultArchiver <: Archiver 
     save_pop::Bool = false
     save_children::Bool = false
     jld2_path::String = "archive.jld2"
 end
-
-# function(archiver::DefaultArchiver)(
-#     gen::Int,
-#     report::Report
-# )
-#     jld2_file = jldopen(archiver.jld2_path, "a+")
-#     # if archiver.save_pop
-#     #     save_individuals!(archiver, gen, jld2_file, all_pop_evals, "pop")
-#     # end 
-#     # if archiver.save_children
-#     #     save_individuals!(archiver, gen, jld2_file, all_children_evals, "children")
-#     # end
-#     [process_report(archiver, report) for report in reports]
-#     close(jld2_file)
-# end
-
 
 # Save an individual to a JLD2.Group
 function save_individual!(

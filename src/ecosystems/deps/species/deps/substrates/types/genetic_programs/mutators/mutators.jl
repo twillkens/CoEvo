@@ -1,4 +1,3 @@
-
 export BasicGeneticProgramMutator
 
 include("types/basic.jl")

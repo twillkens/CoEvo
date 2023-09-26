@@ -125,28 +125,3 @@ function write_to_archive() # TODO: Define
     end
 end
 
-function archive!(
-    gen::Int, c::CoevConfig, allsp::Dict{Symbol, <:Species},
-)
-    if c.arxiv_interval == 0
-        return
-    end
-    push!(c.spchache, gen => allsp)
-    if gen % c.arxiv_interval == 0
-        jld2file = jldopen(c.jld2path, "a")
-        for (gen, allsp) in c.spchache
-            agroup = get_or_make_group!(jld2file["arxiv"], string(gen))
-            agroup["evostate"] = deepcopy(c.evostate)
-            allspgroup = get_or_make_group!(agroup, "species")
-            [spawner.archiver(allspgroup, allsp[spid]) for (spid, spawner) in c.spawners]
-        end
-        close(jld2file)
-        println("done archiving: $(c.trial), gen : $gen")
-        empty!(c.spchache)
-        GC.gc()
-    end
-end
-
-function(a::JLD2Archivist)(archive_path::String)
-    a.archive(archive_path, allsp)
-end

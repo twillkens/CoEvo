@@ -3,6 +3,20 @@ export splice_function
 using Random: rand, AbstractRNG
 using .....CoEvo.Utilities.Counters: Counter
 
+"""
+    splice_function(rng::AbstractRNG, gene_id_counter::Counter, ::BasicGeneticProgramMutator, geno::BasicGeneticProgramGenotype)
+
+Randomly splice a function node's subtree into another part of the genotype tree.
+
+# Arguments:
+- `rng::AbstractRNG`: Random number generator.
+- `gene_id_counter::Counter`: Counter for unique gene IDs.
+- `::BasicGeneticProgramMutator`: Mutator operations for genetic programming.
+- `geno::BasicGeneticProgramGenotype`: Genotype to splice function into.
+
+# Returns:
+- A new `BasicGeneticProgramGenotype` with the spliced function subtree.
+"""
 function splice_function(
     rng::AbstractRNG, 
     gene_id_counter::Counter,

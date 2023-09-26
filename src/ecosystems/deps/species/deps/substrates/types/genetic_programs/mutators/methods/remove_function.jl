@@ -1,8 +1,19 @@
 export remove_function
 
+"""
+    remove_function(rng::AbstractRNG, ::Counter, ::BasicGeneticProgramMutator, geno::BasicGeneticProgramGenotype)
 
-# Randomly select a function node and one of its children and remove the function node
-# If the genotype has no function nodes, then return a copy of the genotype
+Randomly select and remove a function node from the genotype. If the genotype has no function nodes, a copy of the original genotype is returned.
+
+# Arguments:
+- `rng::AbstractRNG`: Random number generator.
+- `::Counter`: Counter for unique gene IDs.
+- `::BasicGeneticProgramMutator`: Mutator operations for genetic programming.
+- `geno::BasicGeneticProgramGenotype`: Genotype to remove function from.
+
+# Returns:
+- A new `BasicGeneticProgramGenotype` with the selected function node removed.
+"""
 function remove_function(
     rng::AbstractRNG, 
     ::Counter, 

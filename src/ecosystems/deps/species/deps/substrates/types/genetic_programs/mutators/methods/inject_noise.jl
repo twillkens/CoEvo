@@ -2,8 +2,20 @@ export inject_noise
 
 using Random: AbstractRNG, randn
 
-# Generate a dictionary of random noise values for each real-valued terminal in the genotype
-# and inject the noise into a copy of the genotype. Uses the BasicGeneticProgramMutator noise_std field.
+"""
+    inject_noise(rng::AbstractRNG, gene_id_counter::Counter, m::BasicGeneticProgramMutator, geno::BasicGeneticProgramGenotype)
+
+Inject noise into a copy of the genotype for each real-valued terminal, using the `noise_std` field from the `BasicGeneticProgramMutator`.
+
+# Arguments:
+- `rng::AbstractRNG`: Random number generator.
+- `gene_id_counter::Counter`: Counter for unique gene IDs.
+- `m::BasicGeneticProgramMutator`: Mutator containing the noise standard deviation.
+- `geno::BasicGeneticProgramGenotype`: Genotype to inject noise into.
+
+# Returns:
+- A new `BasicGeneticProgramGenotype` with noise injected into real-valued terminals.
+"""
 function inject_noise(
     rng::AbstractRNG, 
     gene_id_counter::Counter, 
