@@ -11,7 +11,7 @@ export ScalarFitnessEvaluation, ScalarFitnessEvaluationConfiguration, sort_indiv
 using DataStructures: OrderedDict
 using .....CoEvo.Abstract: Evaluation, EvaluationConfiguration, Individual, Criterion
 using .....CoEvo.Utilities.Criteria: Maximize, Minimize
-#import ..Abstract: sort_indiv_evals
+import ..Abstract: sort_indiv_evals
 
 """
     ScalarFitnessEval

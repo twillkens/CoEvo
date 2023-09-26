@@ -2,7 +2,9 @@ using Random: AbstractRNG
 using DataStructures: OrderedDict
 using .....CoEvo.Abstract: Replacer, Evaluation, Criterion
 using .....CoEvo.Utilities.Criteria: Maximize
-using .....CoEvo.Ecosystems.Species.Evaluations: ScalarFitnessEvaluation, sort_indiv_evals
+using .....CoEvo.Ecosystems.Species.Evaluations.ScalarFitness: ScalarFitnessEvaluation# , sort_indiv_evals
+#using .....CoEvo.Ecosystems.Species.Evaluations.ScalarFitness: sort_indiv_evals
+using .....CoEvo.Ecosystems.Species.Evaluations: sort_indiv_evals
 
 """
     GenerationalReplacer
