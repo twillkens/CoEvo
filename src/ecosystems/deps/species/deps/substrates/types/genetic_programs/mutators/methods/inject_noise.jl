@@ -29,7 +29,7 @@ function inject_noise(
     geno::BasicGeneticProgramGenotype
 )
     noisedict = Dict{Int, Float64}()
-    injectable_ids = [id for (id, node) in geno.terms if isa(node.val, Float64)]
+    injectable_ids = [id for (id, node) in geno.terminals if isa(node.val, Float64)]
     noisevec = randn(rng, length(injectable_ids)) * m.noise_std
     noisedict = Dict(zip(injectable_ids, noisevec))
     inject_noise(geno, noisedict)

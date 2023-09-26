@@ -1,10 +1,7 @@
 export LinearNode, linearize
 
-println("YO")
 using ..Genotypes: BasicGeneticProgramGenotype
 using ..Genotypes.Utilities: get_node
-println("YO")
-
 
 # Enum to distinguish between node types
 @enum NodeType FUNCTION TERMINAL CONDITIONAL ELSEJUMP

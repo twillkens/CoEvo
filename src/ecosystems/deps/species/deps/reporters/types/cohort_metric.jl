@@ -121,6 +121,7 @@ Specialized function to generate a report when the metric is of type `GenotypeMe
 # Returns
 - A `CohortMetricReport` instance containing the generated report details.
 """
+
 function(reporter::CohortMetricReporter{<:GenotypeMetric})(
     gen::Int,
     species_id::String,
