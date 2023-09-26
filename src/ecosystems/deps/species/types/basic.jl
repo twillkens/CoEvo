@@ -12,13 +12,13 @@ using ...CoEvo.Utilities.Counters: Counter, next!
 """
     BasicSpecies{P <: PhenotypeConfiguration, I <: Individual}
 
-A collection of individuals that represents a species population and its children.
+Represents a species population and its offspring.
 
 # Fields
-- `id::String`: A unique identifier for the species.
-- `pheno_cfg::P`: Configuration for the phenotype.
-- `pop::OrderedDict{Int, I}`: The current population of individuals.
-- `children::OrderedDict{Int, I}`: The children of the population.
+- `id::String`: Unique species identifier.
+- `pheno_cfg::P`: Phenotype configuration.
+- `pop::OrderedDict{Int, I}`: Current population.
+- `children::OrderedDict{Int, I}`: Offspring of the population.
 """
 struct BasicSpecies{P <: PhenotypeConfiguration, I <: Individual} <: AbstractSpecies
     id::String
@@ -62,20 +62,22 @@ end
 
 
 """
-    SpeciesCfg
+    BasicSpeciesConfiguration{...}
 
-Configuration for generating a new species in the ecosystem.
+Defines the parameters for species generation.
 
 # Fields
 - `id::String`: A unique identifier for the species.
 - `n_pop::Int`: Size of the population.
 - `geno_cfg::G`: Genotype configuration.
 - `pheno_cfg::P`: Phenotype configuration.
+- `indiv_cfg::I`: Individual configuration.
 - `eval_cfg::E`: Evaluation configuration.
 - `replacer::RP`: Mechanism for replacing old individuals with new ones.
 - `selector::S`: Mechanism for selecting parents for reproduction.
 - `recombiner::RC`: Mechanism for recombination (e.g., crossover).
 - `mutators::Vector{M}`: A list of mutation mechanisms.
+- `reporters::Vector{R}`: A list of reporters for gathering species metrics.
 """
 @Base.kwdef struct BasicSpeciesConfiguration{
     G <: GenotypeConfiguration, 

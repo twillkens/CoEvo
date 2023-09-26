@@ -1,6 +1,5 @@
 export CohortMetricReporter
 
-
 using DataStructures: OrderedDict
 using ....CoEvo.Abstract: Reporter, EvaluationMetric, GenotypeMetric, Individual, Evaluation
 using ....CoEvo.Abstract: Metric

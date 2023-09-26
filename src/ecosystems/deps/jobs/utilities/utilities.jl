@@ -1,7 +1,32 @@
+"""
+    Utilities
+
+The `Utilities` module provides a set of utility functions that aid in common
+computation tasks. 
+
+# Functions
+- `divvy`: Partitions a vector into approximately equal parts based on the 
+  number of specified jobs. Useful for workload distribution tasks.
+"""
 module Utilities
 
+# Exported Functions
 export divvy
 
+"""
+    divvy(items::Vector{T}, njobs::Int) where T
+
+Partition the `items` vector into approximately equal-sized chunks based on the 
+specified number of jobs (`njobs`). If the items cannot be evenly divided, 
+some partitions might contain an extra item.
+
+# Arguments
+- `items::Vector{T}`: A vector of items to be partitioned.
+- `njobs::Int`: The number of partitions or jobs required.
+
+# Returns
+- A vector of vectors, where each inner vector represents a partition of the items.
+"""
 function divvy(items::Vector{T}, njobs::Int) where T
     n = length(items)
     # Base size for each job
