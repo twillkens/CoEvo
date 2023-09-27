@@ -15,6 +15,7 @@ processes during a specific generation.
 """
 struct RuntimeReport <: EcosystemReport
     gen::Int
+    eco_id::String
     to_print::Bool
     to_save::Bool
     eval_time::Float64
@@ -43,7 +44,11 @@ end
 
 # Define how a RuntimeReporter produces a report.
 function create_report(
-    reporter::RuntimeReporter, gen::Int, eval_time::Float64, reproduce_time::Float64
+    reporter::RuntimeReporter, 
+    eco_id::String, 
+    gen::Int, 
+    eval_time::Float64, 
+    reproduce_time::Float64
 )
     to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
     to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
@@ -54,14 +59,4 @@ function create_report(
         round(eval_time, digits = reporter.n_round), 
         round(reproduce_time, digits = reporter.n_round))
     return report 
-end
-
-# Define how an Archiver handles a RuntimeReport.
-function archive_report(::Archiver, report::RuntimeReport)
-    if report.to_print
-        println("-----------------------------------------------------------")
-        println("Generation: $report.gen")
-        println("Evaluation time: $(report.eval_time)")
-        println("Reproduction time: $(report.reproduce_time)")
-    end
 end

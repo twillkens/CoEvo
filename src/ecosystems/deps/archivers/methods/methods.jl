@@ -87,3 +87,12 @@ Structure to handle reporting of metrics specific to cohorts of individuals.
 # Usage
 This reporter can handle different types of metrics and produce reports accordingly.
 """
+# Define how an Archiver handles a RuntimeReport.
+function archive_report(::Archiver, report::RuntimeReport)
+    if report.to_print
+        println("-----------------------------------------------------------")
+        println("Generation: $report.gen")
+        println("Evaluation time: $(report.eval_time)")
+        println("Reproduction time: $(report.reproduce_time)")
+    end
+end

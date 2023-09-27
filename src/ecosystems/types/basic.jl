@@ -113,9 +113,9 @@ end
 
 function process_domain_reports(gen::Int, eco_creator::BasicEcosystemCreator, observations)
     reports = Report[]
-    for (domain_id, domain_creator) in eco_creator.job_creator.domain_creators
+    for (domain_id, scheme) in eco_creator.job_creator.domain_creators
         filtered_observations = filter(obs -> obs.domain_id == domain_id, observations)
-        for reporter in domain_creator.reporters
+        for reporter in scheme.reporters
             push!(reports, reporter(gen, domain_id, filtered_observations))
         end
     end

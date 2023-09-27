@@ -19,7 +19,7 @@ export BasicJob, BasicJobCreator
 
 # Inclusion of external scripts
 include("utilities/utilities.jl")
-include("deps/domains/domains.jl")
+include("deps/interactions.jl")
 
 include("types/basic.jl")
 

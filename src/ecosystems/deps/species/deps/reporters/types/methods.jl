@@ -1,13 +1,7 @@
-println("hi")
-println("hi")
 using ...Species.Individuals.Abstract: Individual, Genotype
-println("hi")
 using ...Species.Evaluators.Abstract: Evaluation
-println("hi")
 using .Abstract: SpeciesReport, SpeciesReporter
-println("hi")
 using .Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
-println("hi")
 
 
 # Create a report for BasicSpeciesReporter when metric is GenotypeSize.

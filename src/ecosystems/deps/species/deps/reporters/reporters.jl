@@ -21,7 +21,7 @@ using .Metrics
 include("abstract/abstract.jl")
 using .Abstract
 
-include("types/basic/basic.jl")
+include("types/basic.jl")
 
 include("methods/methods.jl")
 

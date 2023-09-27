@@ -39,12 +39,12 @@ returns a list of their results.
 """
 function perform(job::BasicJob)
     domains = Dict(
-        domain_creator.id => create_domain(domain_creator) 
-        for domain_creator in job.domain_creators
+        scheme.id => create_domain(scheme) 
+        for scheme in job.domain_creators
     )
     observers = Dict(
-        domain_creator.id => domain_creator.observers
-        for domain_creator in job.domain_creators
+        scheme.id => scheme.observers
+        for scheme in job.domain_creators
     )
     results = Result[]
     for recipe in job.recipes
@@ -99,7 +99,7 @@ function BasicJobCreator(
     domain_creators::Vector{<:DomainCreator}
 )
     domain_creators = OrderedDict(
-        domain_creator.id => domain_creator for domain_creator in domain_creators
+        scheme.id => scheme for scheme in domain_creators
     )
     return BasicJobCreator(domain_creators, 1)
 end
@@ -121,8 +121,8 @@ Results from all interactions are aggregated and returned.
 function create_jobs(job_creator::BasicJobCreator, eco::Ecosystem)
     recipes = vcat(
         [
-            make_interaction_recipes(domain_creator, eco) 
-            for domain_creator in values(job_creator.domain_creators)
+            make_interaction_recipes(scheme, eco) 
+            for scheme in values(job_creator.domain_creators)
         ]...
     )
     recipe_partitions = divvy(recipes, job_creator.n_workers)
@@ -171,16 +171,16 @@ Construct interaction recipes for a given domain based on its configuration and 
 - Throws an `ArgumentError` if the number of entities in the domain configuration isn't 2.
 """
 function make_interaction_recipes(
-    domain_creator::DomainCreator, eco::Ecosystem
+    scheme::DomainCreator, eco::Ecosystem
 )
-    if length(domain_creator.species_ids) != 2
+    if length(scheme.species_ids) != 2
         throw(ErrorException("Only two-entity interactions are supported for now."))
     end
-    species1 = eco.species[domain_creator.species_ids[1]]
-    species2 = eco.species[domain_creator.species_ids[2]]
-    interaction_ids = domain_creator.matchmaker(species1, species2)
+    species1 = eco.species[scheme.species_ids[1]]
+    species2 = eco.species[scheme.species_ids[2]]
+    interaction_ids = scheme.matchmaker(species1, species2)
     interaction_recipes = [
-        InteractionRecipe(domain_creator.id, [id1, id2]) for (id1, id2) in interaction_ids
+        InteractionRecipe(scheme.id, [id1, id2]) for (id1, id2) in interaction_ids
     ]
     return interaction_recipes
 end

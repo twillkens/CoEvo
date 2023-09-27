@@ -1,3 +1,4 @@
+
 module Abstract
 
 export Domain, next!, refresh!

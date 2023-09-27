@@ -28,6 +28,7 @@ The module exports: `OutcomeObservation`, `ScalarOutcomeObserver`, and `get_outc
 """
 module Observers
 
+export Abstract
 export MaximumSumObservation, MaximumSumObserver, make_observation
 
 module Abstract
@@ -44,6 +45,7 @@ end
 
 end
 
+using ..Domains.NumbersGame: NumbersGameDomain
 using .Abstract: Observation, Observer
 
 import .Abstract: make_observation
@@ -62,5 +64,8 @@ function make_observation(observer::MaximumSumObserver)
     MaximumSumObservation("1", [1, 2], observer.sum)
 end
 
+function observe!(observer::MaximumSumObserver, domain::NumbersGameDomain)
+    observer.sum = maximum([sum(entity) for entity in domain.entities])
+end
 
 end

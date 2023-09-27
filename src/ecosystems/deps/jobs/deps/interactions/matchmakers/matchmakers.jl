@@ -1,8 +1,19 @@
 module MatchMakers
 
-using .....CoEvo.Abstract: MatchMaker, AbstractSpecies
-
 export AllvsAllMatchMaker
+
+
+module Abstract
+
+export MatchMaker
+
+abstract type MatchMaker end
+
+end
+
+using .Abstract: MatchMaker
+
+using ....Ecosystems.Species.Abstract: AbstractSpecies
 
 """
     AllvsAllMatchMaker <: MatchMaker

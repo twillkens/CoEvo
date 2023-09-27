@@ -13,6 +13,10 @@ export create_individual, create_phenotype
 using Random: AbstractRNG
 using ....Ecosystems.Utilities.Counters: Counter
 
+abstract type Individual end
+
+abstract type IndividualCreator end
+
 abstract type Genotype end
 
 abstract type GenotypeCreator end
@@ -23,9 +27,6 @@ abstract type Phenotype end
 
 abstract type PhenotypeCreator end
 
-abstract type Individual end
-
-abstract type IndividualCreator end
 
 """
     (geno_creator::GenotypeCreator)(rng::AbstractRNG, counter::Counter)

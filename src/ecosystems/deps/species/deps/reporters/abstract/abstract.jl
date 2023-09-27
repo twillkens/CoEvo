@@ -11,6 +11,8 @@ abstract type SpeciesReport{M <: Metric} <: Report end
 function create_report(
     reporter::SpeciesReporter,
     gen::Int,
+    to_print::Bool,
+    to_save::Bool
     species_id::String,
     cohort::String,
     values::Vector{Float64}

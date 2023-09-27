@@ -20,7 +20,7 @@ interactions, species, and various other components of a coevolutionary system.
 - `BasicEcosystemCreator`, `BasicSpeciesCreator`,
   `VectorGenotypeCreator`, `DefaultPhenotypeCreator`, 
   `ScalarFitnessEvaluator`, `InteractionJobCreator`, 
-  `InteractiveDomainCreator`, `OutcomeObservationCreator`, 
+  `InteractionScheme`, `OutcomeObservationCreator`, 
   `BasicGeneticProgramGenotypeCreator`, `BasicVectorGenotypeCreator`
 
 ### Utilities and Ecosystem Elements
@@ -57,7 +57,7 @@ export evolve!,
        BasicEcosystemCreator, BasicSpeciesCreator,
        VectorGenotypeCreator, DefaultPhenotypeCreator,
        ScalarFitnessEvaluator, InteractionJobCreator,
-       InteractiveDomainCreator, OutcomeObservationCreator,
+       InteractionScheme, OutcomeObservationCreator,
        BasicGeneticProgramGenotypeCreator, BasicVectorGenotypeCreator,
        # Utilities and Ecosystem Elements
        IdentityReplacer, GenerationalReplacer, IdentitySelector,
@@ -97,7 +97,7 @@ using .Selectors: IdentitySelector, FitnessProportionateSelector
 using .Species.Recombiners: CloneRecombiner
 using .Species.Reporters: CohortMetricReport, CohortMetricReporter
 using .Ecosystems.Jobs: Jobs, InteractionJobCreator
-using .Jobs.Domains: Domains, InteractiveDomainCreator
+using .Jobs.Domains: Domains, InteractionScheme
 using .Domains.MatchMakers: MatchMakers, AllvsAllMatchMaker
 using .Domains.Problems: Problems
 using .Domains.Problems.NumbersGame: NumbersGame, Control, Sum, Gradient, Focusing, Relativism
