@@ -28,10 +28,25 @@ The module exports: `OutcomeObservation`, `ScalarOutcomeObserver`, and `get_outc
 """
 module Observers
 
-export OutcomeObservation, ScalarOutcomeObserver, get_outcomes
+export MaximumSumObservation, MaximumSumObserver, make_observation
 
-include("types/outcome.jl")
+module Abstract
 
+export Observation, Observer, make_observation
+
+abstract type Observation end
+
+abstract type Observer end
+
+function make_observation(observer::Observer)
+    throw(ErrorException("Default observation retrieval for $observer not implemented."))
+end
+
+end
+
+using .Abstract: Observation, Observer
+
+import .Abstract: make_observation
 
 struct MaximumSumObserver <: Observer
     sum::Float64
@@ -47,6 +62,5 @@ function make_observation(observer::MaximumSumObserver)
     MaximumSumObservation("1", [1, 2], observer.sum)
 end
 
-include("methods/methods.jl")
 
 end

@@ -2,12 +2,14 @@ export BasicSpecies, BasicSpeciesCreator
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using ...CoEvo.Abstract: Abstract, AbstractSpecies, SpeciesCreator
-using .Abstract: PhenotypeCreator, Reproducer
-using .Abstract: GenotypeCreator, Evaluator, Replacer
-using .Abstract: Selector, Recombiner, Mutator, Individual, Evaluation
-using .Abstract: IndividualCreator, Reporter, Report
-using ...CoEvo.Utilities.Counters: Counter, next!
+
+using ..Ecosystems.Abstract: Reporter
+using ..Ecosystems.Utilities.Counters: Counter, next!
+using .Abstract: AbstractSpecies, SpeciesCreator
+using .Individuals.Abstract: IndividualCreator, Individual, GenotypeCreator
+using .Individuals.Phenotypes.Abstract: PhenotypeCreator
+using .Evaluators.Abstract: Evaluator, Evaluation
+using .Reproducers.Abstract: Reproducer
 
 
 """

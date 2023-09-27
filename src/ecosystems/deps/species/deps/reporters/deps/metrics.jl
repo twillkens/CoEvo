@@ -30,7 +30,7 @@ abstract type EvaluationMetric <: Metric end
 
 end
 
-export GenotypeSum, GenotypeSize, EvaluationFitness
+export GenotypeSum, GenotypeSize, EvaluationFitness, Abstract
 
 using .Abstract: GenotypeMetric, EvaluationMetric
 

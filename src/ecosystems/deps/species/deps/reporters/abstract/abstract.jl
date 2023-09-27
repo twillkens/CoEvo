@@ -3,9 +3,10 @@ module Abstract
 export SpeciesReport, SpeciesReporter
 
 using ....Ecosystems.Abstract: Report, Reporter
+using ..Metrics.Abstract: Metric
 
-abstract type SpeciesReporter <: Reporter end
-abstract type SpeciesReport <: Report end
+abstract type SpeciesReporter{M <: Metric} <: Reporter end
+abstract type SpeciesReport{M <: Metric} <: Report end
 
 function create_report(
     reporter::SpeciesReporter,

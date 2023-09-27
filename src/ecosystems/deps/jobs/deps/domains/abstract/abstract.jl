@@ -1,5 +1,7 @@
 module Abstract
 
+export Domain, next!, refresh!
+
 abstract type Domain end
 
 function next!(::D) where {D <: Domain}

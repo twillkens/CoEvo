@@ -1,6 +1,7 @@
 module Ecosystems
 
 export BasicEcosystemCreator
+export Abstract
 
 include("abstract/abstract.jl")
 

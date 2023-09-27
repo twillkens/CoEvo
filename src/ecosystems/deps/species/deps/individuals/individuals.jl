@@ -6,7 +6,6 @@ in a co-evolutionary system.
 """
 module Individuals
 
-
 export Genotypes, Phenotypes, Mutator, Abstract
 export BasicIndividual, BasicIndividualCreator
 
@@ -25,6 +24,5 @@ using .Mutators
 include("types/basic.jl")
 
 include("methods/methods.jl")
-
 
 end

@@ -26,7 +26,7 @@ in a particular generation of an evolutionary algorithm.
 - `print_features::Vector{Symbol}`: Features to be printed.
 - `save_features::Vector{Symbol}`: Features to be saved.
 """
-struct BasicSpeciesReport <: SpeciesReport
+struct BasicSpeciesReport{M <: Metric} <: SpeciesReport{M}
     gen::Int
     to_print::Bool
     to_save::Bool
@@ -52,7 +52,7 @@ function Base.show(io::IO, report::BasicSpeciesReport)
     end
 end
 
-Base.@kwdef struct BasicSpeciesReporter{M <: Metric} <: SpeciesReporter
+Base.@kwdef struct BasicSpeciesReporter{M <: Metric} <: SpeciesReporter{M}
     metric::M
     print_interval::Int = 1
     save_interval::Int = 0

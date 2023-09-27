@@ -1,8 +1,10 @@
+using DataStructures: OrderedDict
+
 using ...Species.Individuals.Abstract: Individual
 using ...Species.Evaluators.Abstract: Evaluation
-using ..Metrics.Abstract: EvaluationMetric, GenotypeMetric
+using .Metrics.Abstract: EvaluationMetric, GenotypeMetric
+import .Abstract: SpeciesReporter, create_report
 
-import .Abstract: create_report
 """
     function(reporter::BasicSpeciesReporter{<:EvaluationMetric})(
         gen::Int,
@@ -23,7 +25,7 @@ Specialized function to generate a report when the metric is of type `Evaluation
 - A `BasicSpeciesReport` instance containing the generated report details.
 """
 function create_report(
-    reporter::SpeciesReporter{<:EvaluationMetric}
+    reporter::SpeciesReporter{<:EvaluationMetric},
     gen::Int,
     species_id::String,
     cohort::String,
@@ -52,7 +54,6 @@ Specialized function to generate a report when the metric is of type `GenotypeMe
 # Returns
 - A `BasicSpeciesReport` instance containing the generated report details.
 """
-
 function create_report(
     reporter::SpeciesReporter{<:GenotypeMetric},
     gen::Int,
