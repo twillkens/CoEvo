@@ -1,6 +1,10 @@
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using .....CoEvo.Abstract: Individual, Selector, Evaluation
+
+using ...Individuals.Abstract: Individual
+using ...Species.Evaluators.Abstract: Evaluation
+
+import .Abstract: Selector, select
 
 """
     IdentitySelector
@@ -25,7 +29,8 @@ Apply the identity selection strategy, returning the provided population as-is.
 - `OrderedDict{<:Individual, <:Evaluation}`: The same ordered dictionary that was provided as input, 
                                             representing the unchanged population.
 """
-function(selector::IdentitySelector)(
+function select(
+    ::IdentitySelector,
     ::AbstractRNG, 
     parent_evals::OrderedDict{<:Individual, <:Evaluation}
 )

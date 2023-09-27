@@ -24,12 +24,13 @@ export BasicSpeciesCreator
 
 include("abstract/abstract.jl")
 
-using .Abstract
-
 # Dependencies
 include("deps/individuals/individuals.jl")
+
 include("deps/evaluators/evaluators.jl")
+
 include("deps/reproducers/reproducers.jl")
+
 include("deps/reporters/reporters.jl")
 
 # Types

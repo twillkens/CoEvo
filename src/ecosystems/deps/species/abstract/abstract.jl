@@ -2,6 +2,6 @@ module Abstract
 
 export AbstractSpecies
 
-abstract type AbstractSpecies <: Species end
+abstract type AbstractSpecies end
 
 end

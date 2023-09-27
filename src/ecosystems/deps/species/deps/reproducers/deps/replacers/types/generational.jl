@@ -2,10 +2,11 @@ export GenerationalReplacer
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using ....Species.Individuals.Abstract: Individual
-using ....Species.Evaluators.Abstract: Evaluator, Criterion
-using ....Species.Evaluators.Utilities: Maximize
-using ...Replacers.Abstract: Replacer, replace
+using ...Individuals.Abstract: Individual
+using ...Evaluators.Abstract: Evaluation, Criterion
+using ...Evaluators.Utilities: Maximize
+
+import .Abstract: replace
 
 """
     GenerationalReplacer

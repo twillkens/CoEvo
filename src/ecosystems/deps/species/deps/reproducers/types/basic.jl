@@ -3,11 +3,14 @@ export BasicReproducer
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using .....Ecosystems.Utilities: Counter
-using ....Species.Individuals.Abstract: Individual
-using ...Reproducers.Replacer.Abstract: Replacer
-using ...Reproducers.Selector.Abstract: Selector
-using ...Reproducers.Recombiner.Abstract: Recombiner
+using ...Ecosystems.Utilities.Counters: Counter
+using ..Species.Individuals.Abstract: Individual
+using ..Species.Evaluators.Abstract: Evaluation
+using .Replacers.Abstract: Replacer
+using .Selectors.Abstract: Selector
+using .Recombiners.Abstract: Recombiner
+
+import .Abstract: Reproducer, reproduce
 
 struct BasicReproducer{
     RP <: Replacer,

@@ -1,4 +1,8 @@
+using ...Species.Individuals.Abstract: Individual
+using ...Species.Evaluators.Abstract: Evaluation
+using ..Metrics.Abstract: EvaluationMetric, GenotypeMetric
 
+import .Abstract: create_report
 """
     function(reporter::BasicSpeciesReporter{<:EvaluationMetric})(
         gen::Int,
@@ -25,7 +29,7 @@ function create_report(
     cohort::String,
     indiv_evals::OrderedDict{<:Individual, <:Evaluation}
 )
-    report = reporter(gen, species_id, cohort, collect(values(indiv_evals)))
+    report = create_report(reporter, gen, species_id, cohort, collect(values(indiv_evals)))
     return report
 end
 
@@ -49,13 +53,14 @@ Specialized function to generate a report when the metric is of type `GenotypeMe
 - A `BasicSpeciesReport` instance containing the generated report details.
 """
 
-function(reporter::SpeciesReporter{<:GenotypeMetric})(
+function create_report(
+    reporter::SpeciesReporter{<:GenotypeMetric},
     gen::Int,
     species_id::String,
     cohort::String,
     indiv_evals::OrderedDict{<:Individual, <:Evaluation}
 )
     genotypes = [indiv.geno for indiv in keys(indiv_evals)]
-    report = reporter(gen, species_id, cohort, genotypes)
+    report = create_report(reporter, gen, species_id, cohort, genotypes)
     return report
 end

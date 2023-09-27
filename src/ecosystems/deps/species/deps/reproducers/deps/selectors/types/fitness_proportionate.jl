@@ -2,7 +2,11 @@ export FitnessProportionateSelector
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using .....CoEvo.Abstract: Individual, Evaluation, Selector
+
+using ...Individuals.Abstract: Individual
+using ...Species.Evaluators.Abstract: Evaluation
+
+import .Abstract: Selector, select
 
 """
     FitnessProportionateSelector

@@ -1,5 +1,9 @@
-using ....CoEvo.Abstract: Evaluation, Genotype
-using ....CoEvo.Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
+using ...Species.Individuals.Genotypes.Abstract: Genotype
+using ...Species.Individuals.Abstract: Individual
+using ...Species.Evaluators.Abstract: Evaluation
+using ..Abstract: SpeciesReport, SpeciesReporter
+using ..Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
+
 
 # Create a report for BasicSpeciesReporter when metric is GenotypeSize.
 # Extract the size (length) of each genotype from the given genotypes.

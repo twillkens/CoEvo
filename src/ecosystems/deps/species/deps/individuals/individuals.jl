@@ -6,16 +6,21 @@ in a co-evolutionary system.
 """
 module Individuals
 
+
+export Genotypes, Phenotypes, Mutator, Abstract
 export BasicIndividual, BasicIndividualCreator
-export create_genotypes, create_phenotypes
-export create_genotype, create_phenotype
-export create_individuals, create_individual
 
 include("abstract/abstract.jl")
-
 using .Abstract
 
-include("deps/models/models.jl")
+include("deps/genotypes/genotypes.jl")
+using .Genotypes
+
+include("deps/phenotypes/phenotypes.jl")
+using .Phenotypes
+
+include("deps/mutators/mutators.jl")
+using .Mutators
 
 include("types/basic.jl")
 

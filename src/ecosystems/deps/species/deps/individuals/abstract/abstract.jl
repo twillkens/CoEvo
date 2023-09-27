@@ -8,19 +8,24 @@ module Abstract
 
 export Genotype, GenotypeCreator, Mutator, Phenotype, PhenotypeCreator
 export Individual, IndividualCreator, create_genotype, mutate
+export create_individual, create_phenotype
+
+using Random: AbstractRNG
+using ....Ecosystems.Utilities.Counters: Counter
 
 abstract type Genotype end
+
 abstract type GenotypeCreator end
+
 abstract type Mutator end
+
 abstract type Phenotype end
+
 abstract type PhenotypeCreator end
 
 abstract type Individual end
 
 abstract type IndividualCreator end
-
-using Random: AbstractRNG
-using .....CoEvo.Utilities.Counters: Counter
 
 """
     (geno_creator::GenotypeCreator)(rng::AbstractRNG, counter::Counter)
@@ -35,6 +40,18 @@ function create_genotype(geno_creator::GenotypeCreator, ::AbstractRNG, ::Counter
     throw(ErrorException("Default genotype creation for $geno_creator not implemented."))
 end
 
+function create_phenotype(pheno_creator::PhenotypeCreator, geno::Genotype)::Phenotype
+    throw(ErrorException("Default phenotype creation for $pheno_creator and $geno not implemented."))
+end
+
+function create_individual(
+    indiv_creator::IndividualCreator, 
+    ::Int, 
+    geno::Genotype, 
+    parent_ids::Vector{Int}
+)::Individual
+    throw(ErrorException("Default individual creation for $indiv_creator, $geno, not implemented."))
+end
 """
     Generic mutation function for `Individual`.
 
@@ -45,5 +62,6 @@ function mutate(
 )::Genotype
     throw(ErrorException("Default mutation for genotype $geno not implemented."))
 end
+
 
 end

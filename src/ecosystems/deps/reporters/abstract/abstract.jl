@@ -1,8 +1,8 @@
 module Abstract
 
-export EcosystemReport, EcosystemReporter
+export EcosystemReport, EcosystemReporter, Archiver
 
-using ...Ecosystems.Abstract: Reporter
+using ...Ecosystems.Abstract: Report, Reporter, Archiver
 
 abstract type EcosystemReport <: Report end
 

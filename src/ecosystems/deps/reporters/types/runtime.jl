@@ -1,4 +1,4 @@
-using ..Abstract: EcosystemReporter, EcosystemReport
+using .Abstract: EcosystemReporter, EcosystemReport, Archiver
 
 """
     RuntimeReport
@@ -13,7 +13,7 @@ processes during a specific generation.
 - `eval_time`: The time taken (in seconds) for the evaluation process.
 - `reproduce_time`: The time taken (in seconds) for the reproduction process.
 """
-struct RuntimeReport <: Report
+struct RuntimeReport <: EcosystemReport
     gen::Int
     to_print::Bool
     to_save::Bool
@@ -35,7 +35,7 @@ to print and/or save reports at specific generation intervals.
 # Usage
 Create an instance of `RuntimeReporter` and call it with the necessary arguments to generate a report.
 """
-Base.@kwdef struct RuntimeReporter <: Reporter
+Base.@kwdef struct RuntimeReporter <: EcosystemReporter
     print_interval::Int = 1
     save_interval::Int = 0
     n_round::Int = 6

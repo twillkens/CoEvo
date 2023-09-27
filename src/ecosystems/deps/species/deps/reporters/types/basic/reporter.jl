@@ -1,10 +1,13 @@
 export BasicSpeciesReporter
 
 using DataStructures: OrderedDict
-using ....CoEvo.Abstract: Reporter, EvaluationMetric, GenotypeMetric, Individual, Evaluation
-using ....CoEvo.Abstract: Metric
-using ....CoEvo.Utilities.Statistics: StatisticalFeatureSet
-using .Reports: BasicSpeciesReport
+
+using ....Ecosystems.Utilities.Statistics: StatisticalFeatureSet
+using ...Species.Individuals.Abstract: Individual
+using .Abstract: SpeciesReport, SpeciesReporter, create_report
+using .Metrics.Abstract: Metric, EvaluationMetric, GenotypeMetric
+
+import .Abstract: create_report
 
 """
     BasicSpeciesReport <: Report
@@ -49,34 +52,7 @@ function Base.show(io::IO, report::BasicSpeciesReport)
     end
 end
 
-"""
-    (archiver::Archiver)(report::BasicSpeciesReport)
-
-Processes the given `BasicSpeciesReport` using an `Archiver`. If `to_print` is set to true 
-for the report, then the report is displayed.
-"""
-function archive_report(::Archiver, report::BasicSpeciesReport)
-    if report.to_print
-        Base.show(report)
-    end
-end
-"""
-    BasicSpeciesReporter{M <: Metric} <: Reporter
-
-Structure to handle reporting of metrics specific to cohorts of individuals.
-
-# Fields
-- `metric::M`: The metric to be reported.
-- `print_interval::Int`: Interval at which reports should be printed. 0 means no printing.
-- `save_interval::Int`: Interval at which reports should be saved. 0 means no saving.
-- `n_round::Int`: Precision for rounding statistical values.
-- `print_features::Vector{Symbol}`: Statistical features to print.
-- `save_features::Vector{Symbol}`: Statistical features to save.
-
-# Usage
-This reporter can handle different types of metrics and produce reports accordingly.
-"""
-Base.@kwdef struct BasicSpeciesReporter{M <: Metric} <: Reporter
+Base.@kwdef struct BasicSpeciesReporter{M <: Metric} <: SpeciesReporter
     metric::M
     print_interval::Int = 1
     save_interval::Int = 0

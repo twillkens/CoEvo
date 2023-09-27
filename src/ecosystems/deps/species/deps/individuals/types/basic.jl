@@ -1,9 +1,12 @@
 export BasicIndividual, BasicIndividualCreator
 
-using ..Individuals.Abstract: Genotype, Individual, IndividualCreator
-using ..Individuals.Abstract: GenotypeCreator, PhenotypeCreator, Mutator
-
+using ...Ecosystems.Abstract: Archiver
 using ...Ecosystems.Utilities.Counters: Counter
+using .Abstract: Genotype, GenotypeCreator, Phenotype, PhenotypeCreator
+using .Abstract: Individual, IndividualCreator, Mutator
+
+import .Abstract: create_individual
+
 """
     BasicIndividual{G <: Genotype}
 
@@ -29,7 +32,7 @@ Creator for constructing instances of `BasicIndividual`.
 Base.@kwdef struct BasicIndividualCreator{
     G <: GenotypeCreator, 
     P <: PhenotypeCreator, 
-    M <: Vector{Mutator}
+    M <: Mutator
 } <: IndividualCreator 
     geno_creator::G
     pheno_creator::P
@@ -46,14 +49,4 @@ function create_individual(
     ::BasicIndividualCreator, id::Int, geno::Genotype, parent_ids::Vector{Int}
 )
     return BasicIndividual(id, geno, parent_ids)
-end
-
-"""
-    (creator::BasicIndividualCreator)(id::Int, geno::Genotype)
-
-Construct a `BasicIndividual` with the specified ID `id` and genotype `geno`,
-with an empty list of parent IDs.
-"""
-function create_individual(::BasicIndividualCreator, id::Int, geno::Genotype)
-    return BasicIndividual(id, geno, Int[])
 end

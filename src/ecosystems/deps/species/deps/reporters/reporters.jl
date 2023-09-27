@@ -15,9 +15,11 @@ module Reporters
 
 export BasicSpeciesReporter
 
-include("deps/reports.jl")
+include("abstract/abstract.jl")
 
-include("types/cohort_metric.jl")
+include("deps/metrics.jl")
+
+include("types/basic/basic.jl")
 
 include("methods/methods.jl")
 

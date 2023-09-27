@@ -1,4 +1,7 @@
+using Random: AbstractRNG
 
+using ....Ecosystems.Utilities.Counters: Counter
+using .Abstract: Genotype, GenotypeCreator
 """
     (creator::GenotypeCreator)(rng::AbstractRNG, gene_id_counter::Counter, n_pop::Int)
 
@@ -15,26 +18,13 @@ function create_genotypes(
     [create_genotype(geno_creator, rng, gene_id_counter) for _ in 1:n_pop]
 end
 
-"""
-    Generic mutation function for `Individual`.
-
-Mutate the genotype of an `Individual` using a given mutation strategy.
-"""
-function mutate(
-    mutator::Mutator,rng::AbstractRNG, gene_id_counter::Counter, indiv::I
-) where {I <: Individual}
-    geno = mutate(mutator, rng, gene_id_counter, indiv.geno)
-    I(indiv.id, geno, indiv.parent_ids)
-end
 
 """
-    Batch mutation for a collection of individuals.
+    (creator::BasicIndividualCreator)(id::Int, geno::Genotype)
 
-Apply a mutation strategy to each individual in the collection `indivs` and return the 
-mutated individuals.
+Construct a `BasicIndividual` with the specified ID `id` and genotype `geno`,
+with an empty list of parent IDs.
 """
-function mutate(
-    mutator::Mutator, rng::AbstractRNG, gene_id_counter::Counter, indivs::Vector{<:Individual}
-)
-    [mutate(mutator, rng, gene_id_counter, indiv) for indiv in indivs]
+function create_individual(indiv_creator::IndividualCreator, id::Int, geno::Genotype)
+    return create_individual(indiv_creator, id, geno, Int[])
 end

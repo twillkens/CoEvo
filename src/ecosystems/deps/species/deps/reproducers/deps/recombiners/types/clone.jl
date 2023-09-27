@@ -1,7 +1,9 @@
-using ...Recombiners.Abstract: Recombiner
-using .....Ecosystems.Utilities: Counter
+using Random: AbstractRNG
 
-import ...Recombiners.Abstract: recombine
+using .....Ecosystems.Utilities.Counters: Counter
+using ...Individuals.Abstract: Individual
+
+import .Abstract: Recombiner, recombine
 
 """
     CloneRecombiner

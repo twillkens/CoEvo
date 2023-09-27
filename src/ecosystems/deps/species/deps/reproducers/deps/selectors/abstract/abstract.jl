@@ -11,8 +11,9 @@ export Selector, select
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using ...Reproducers.Abstract: Individual, Evaluation
-using ......CoEvo.Abstract: Individual, Evaluation, Selector
+
+using ....Individuals.Abstract: Individual
+using ....Species.Evaluators.Abstract: Evaluation
 
 abstract type Selector end
 
@@ -36,12 +37,13 @@ it throws an error.
 - Throws an `ErrorException` if the selector type is not implemented for the provided 
   individual and evaluation types.
 """
-function(selector::Selector)(
-    rng::AbstractRNG, 
-    new_pop_evals::OrderedDict{<:I, <:E}, 
-)::OrderedDict{<:Individual, <:Evaluation} where {I <: Individual, E <: Evaluation}
+function(
+    selector::Selector,
+    ::AbstractRNG, 
+    new_pop_evals::OrderedDict{<:Individual, <:Evaluation}
+)
     throw(ErrorException(
-        "Selector $S not implemented for individual type $I and evaluation type $E")
+        "Selector $selector not implemented for $new_pop_evals")
     )
 end
 

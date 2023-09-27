@@ -69,7 +69,7 @@ export evolve!,
 
 # File includes
 # include("abstract/abstract.jl")
-include("utilities/utilities.jl")
+#include("utilities/utilities.jl")
 include("ecosystems/ecosystems.jl")
 
 # Usings (arranged by source directory)

@@ -1,9 +1,12 @@
 
 module Abstract
 
-export Replacer, replace, Individual, Evaluation
+export Replacer, replace
 
-using ....Species.Abstract: Individual
+using Random: AbstractRNG
+using DataStructures: OrderedDict
+
+using ....Individuals.Abstract: Individual
 using ....Species.Evaluators.Abstract: Evaluation
 
 abstract type Replacer end

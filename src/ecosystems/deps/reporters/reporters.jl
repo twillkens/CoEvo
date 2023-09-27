@@ -25,8 +25,6 @@ export RuntimeReport, RuntimeReporter
 
 include("abstract/abstract.jl")
 
-using .Abstract
-
 include("types/runtime.jl")
 
 end

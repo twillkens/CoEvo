@@ -20,9 +20,19 @@ The module exports the following types: `GenotypeSum`, `GenotypeSize`, and `Eval
 
 module Metrics
 
+module Abstract
+
+export Metric, GenotypeMetric, EvaluationMetric
+
+abstract type Metric end
+abstract type GenotypeMetric <: Metric end
+abstract type EvaluationMetric <: Metric end
+
+end
+
 export GenotypeSum, GenotypeSize, EvaluationFitness
 
-using ...CoEvo.Abstract: GenotypeMetric, EvaluationMetric
+using .Abstract: GenotypeMetric, EvaluationMetric
 
 """
     GenotypeSum

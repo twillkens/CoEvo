@@ -1,7 +1,7 @@
 module Abstract
 
-export Individual, Genotype, Phenotype
+export Reproducer
 
-using ...Species.Abstract: Individual, Genotype, Phenotype
+abstract type Reproducer end
 
 end

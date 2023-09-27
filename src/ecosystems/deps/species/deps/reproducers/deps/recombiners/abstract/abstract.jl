@@ -4,6 +4,10 @@ export Recombiner, recombine
 
 abstract type Recombiner end
 
+using .....Ecosystems.Utilities.Counters: Counter
+using ....Individuals.Abstract: Individual
+using Random: AbstractRNG
+
 function recombine(
     recombiner::Recombiner,
     ::AbstractRNG, 
