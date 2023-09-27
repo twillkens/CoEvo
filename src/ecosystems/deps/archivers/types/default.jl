@@ -4,9 +4,9 @@ using DataStructures: OrderedDict
 using JLD2: File, Group, jldopen
 using .Utilities: get_or_make_group!
 using ...CoEvo.Abstract: Archiver, Report, Individual, Evaluation
-using ...CoEvo.Ecosystems.Species.Evaluations: ScalarFitnessEvaluation
-using ...CoEvo.Ecosystems.Species.Individuals: AsexualIndividual, SexualIndividual
-using ...CoEvo.Ecosystems.Species.Substrates.Vectors: BasicVectorGenotype
+using ...CoEvo.Ecosystems.Species.Individuals.Models.Evaluations.ScalarFitnessEvaluations: ScalarFitnessEvaluation
+using ...CoEvo.Ecosystems.Species.Individuals: BasicIndividual, BasicIndividual
+using ...CoEvo.Ecosystems.Species.Models.Vectors: BasicVectorGenotype
 
 """
     DefaultArchiver
@@ -27,7 +27,7 @@ end
 
 # Save an individual to a JLD2.Group
 function save_individual!(
-    archiver::DefaultArchiver, indiv_group::Group, indiv::AsexualIndividual
+    archiver::DefaultArchiver, indiv_group::Group, indiv::BasicIndividual
 )
     indiv_group["parent_id"] = indiv.parent_id
     geno_group = Group(indiv_group, "genotype")
@@ -36,7 +36,7 @@ end
 
 # Save an individual to a JLD2.Group
 function save_individual!(
-    archiver::DefaultArchiver, indiv_group::Group, indiv::SexualIndividual
+    archiver::DefaultArchiver, indiv_group::Group, indiv::BasicIndividual
 )
     indiv_group["parent_ids"] = indiv.parent_ids
     geno_group = Group(indiv_group, "geno")

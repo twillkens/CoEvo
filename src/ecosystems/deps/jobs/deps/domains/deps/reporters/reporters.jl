@@ -1,6 +1,6 @@
 
 
-module Reports
+module Reporters
 
 
 

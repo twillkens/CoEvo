@@ -6,8 +6,8 @@ various utilities and domain-specific functionalities, as well as interaction ty
 facilitate job processing in the ecosystem.
 
 # Structure
-- `InteractionJob`: Represents the core structure of an interaction job.
-- `InteractionJobConfiguration`: Provides configuration options for `InteractionJob`.
+- `BasicJob`: Represents the core structure of an interaction job.
+- `InteractionJobConfiguration`: Provides configuration options for `BasicJob`.
 - Utility functions: Found in "utilities/utilities.jl".
 - Domain-specific functionalities: Resourced from "deps/domains/domains.jl".
 - Interaction types: Defined within "types/interaction.jl".
@@ -15,11 +15,12 @@ facilitate job processing in the ecosystem.
 module Jobs
 
 # Exports
-export InteractionJob, InteractionJobConfiguration
+export BasicJob, BasicJobCreator
 
 # Inclusion of external scripts
 include("utilities/utilities.jl")
 include("deps/domains/domains.jl")
-include("types/interaction.jl")
+
+include("types/basic.jl")
 
 end

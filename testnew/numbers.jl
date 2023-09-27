@@ -6,6 +6,7 @@ using Test
 This test suite focuses on validating and verifying the functionality of the `CoEvo` module.
 The `CoEvo` module provides tools and structures for co-evolutionary simulations.
 """
+
 @testset "CoEvo" begin
 
 using Random: AbstractRNG
@@ -16,10 +17,11 @@ using .CoEvo
 
 # Problem domains and supporting utilities
 using .CoEvo.Ecosystems.Jobs.Domains.Problems.NumbersGame: NumbersGameProblem, interact
-using .CoEvo.Ecosystems.Observations: OutcomeObservationConfiguration
+using .CoEvo.Ecosystems.Observations: OutcomeObservationCreator
 using .CoEvo.Ecosystems.Species.Reporters: CohortMetricReporter
-using .CoEvo.Ecosystems.Species.Substrates: BasicVectorGenotypeConfiguration
-using .CoEvo.Ecosystems.Species.Substrates: DefaultPhenotypeConfiguration
+using .CoEvo.Ecosystems.Species.Substrates: BasicVectorGenotypeCreator
+using .CoEvo.Ecosystems.Species.Substrates: DefaultPhenotypeCreator, DefaultPhenotype
+using .CoEvo.Ecosystems.Species.Substrates.Defaults: DefaultPhenotype
 using .CoEvo.Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
 using .CoEvo.Utilities.Counters: Counter
 
@@ -29,25 +31,26 @@ using .CoEvo.Utilities.Counters: Counter
 Test the `NumbersGameProblem` domain using the `Gradient` strategy. This set
 confirms the outcomes when different phenotypes interact within the specified domain.
 """
+
 @testset "NumbersGameProblem with Gradient" begin
     problem = NumbersGameProblem(:Gradient)
-    obscfg = OutcomeObservationConfiguration()  # Update this as per the new structure, if necessary
+    obscreator = OutcomeObservationCreator()  # Update this as per the new structure, if necessary
 
-    phenoA = [4]  # Vector representation
-    phenoB = [5]
+    phenoA = DefaultPhenotype([4])  # Vector representation
+    phenoB = DefaultPhenotype([5])
     
-    observation = interact(problem, "Gradient", obscfg, [1, 2], phenoA, phenoB)  # Replace "domain_id" with the correct domain ID
+    observation = interact(problem, "Gradient", obscreator, [1, 2], phenoA, phenoB)  # Replace "domain_id" with the correct domain ID
     outcome_set = observation.outcome_set
     
     @test observation.outcome_set[1] == 0.0  # Assuming the first value is for A
     @test observation.outcome_set[2] == 1.0  # Assuming the second value is for B
 
-    Sₐ = [[1], [2], [3]]  # Vector representation for each phenotype
-    Sᵦ = [[6], [7], [8]]
+    Sₐ = [DefaultPhenotype(x) for x in [[1], [2], [3]]]  # Vector representation for each phenotype
+    Sᵦ =  [DefaultPhenotype(x) for x in [[6], [7], [8]]]
 
     fitnessA = 0
     for other in Sₐ
-        observation = interact(problem, "Gradient", obscfg, [1, 3], phenoA, other)  # Replace 3 with the correct ID for 'other'
+        observation = interact(problem, "Gradient", obscreator, [1, 3], phenoA, other)  # Replace 3 with the correct ID for 'other'
         fitnessA += observation.outcome_set[1] == 1.0 ? 1 : 0
     end
 
@@ -55,7 +58,7 @@ confirms the outcomes when different phenotypes interact within the specified do
 
     fitnessB = 0
     for other in Sᵦ
-        observation = interact(problem, "Gradient", obscfg, [2, 4], phenoB, other)  # Replace 4 with the correct ID for 'other'
+        observation = interact(problem, "Gradient", obscreator, [2, 4], phenoB, other)  # Replace 4 with the correct ID for 'other'
         fitnessB += observation.outcome_set[1] == 1.0 ? 1 : 0
     end
 
@@ -68,23 +71,24 @@ end
 Test the `NumbersGameProblem` domain using the `Focusing` strategy. Evaluates the
 responses of various phenotypic interactions.
 """
+
 @testset "NumbersGameProblem with Focusing" begin
     problem = NumbersGameProblem(:Focusing)
-    obscfg = OutcomeObservationConfiguration() 
+    obscreator = OutcomeObservationCreator() 
 
     phenoA = [4, 16]
     phenoB = [5, 14]
     
-    observation = interact(problem, "Focusing", obscfg, [1, 2], phenoA, phenoB)
+    observation = interact(problem, "Focusing", obscreator, [1, 2], phenoA, phenoB)
     @test observation.outcome_set[1] == 1.0
 
     phenoB = [5, 16]
-    observation = interact(problem, "Focusing", obscfg, [1, 2], phenoA, phenoB)
+    observation = interact(problem, "Focusing", obscreator, [1, 2], phenoA, phenoB)
     @test observation.outcome_set[1] == 0.0
 
     phenoA = [5, 16, 8]
     phenoB = [4, 16, 6]
-    observation = interact(problem, "Focusing", obscfg, [1, 2], phenoA, phenoB)
+    observation = interact(problem, "Focusing", obscreator, [1, 2], phenoA, phenoB)
     @test observation.outcome_set[1] == 1.0
 end
 
@@ -94,31 +98,33 @@ end
 Test the `NumbersGameProblem` domain using the `Relativism` strategy. 
 This checks the outcomes for a set of phenotype interactions under relativistic scenarios.
 """
+
 @testset "NumbersGameProblem with Relativism" begin
     problem = NumbersGameProblem(:Relativism)
-    obscfg = OutcomeObservationConfiguration()
+    obscreator = OutcomeObservationCreator()
 
     a = [1, 6]
     b = [4, 5]
     c = [2, 4]
 
-    observation = interact(problem, "Relativism", obscfg, [1, 2], a, b)
+    observation = interact(problem, "Relativism", obscreator, [1, 2], a, b)
     @test observation.outcome_set[1] == 1.0
 
-    observation = interact(problem, "Relativism", obscfg, [2, 3], b, c)
+    observation = interact(problem, "Relativism", obscreator, [2, 3], b, c)
     @test observation.outcome_set[1] == 1.0
 
-    observation = interact(problem, "Relativism", obscfg, [3, 1], c, a)
+    observation = interact(problem, "Relativism", obscreator, [3, 1], c, a)
     @test observation.outcome_set[1] == 1.0
 end
 
 """
-    BasicSpeciesConfiguration Test
+    BasicSpeciesCreator Test
 
-Test the configuration and initialization of species with `BasicSpeciesConfiguration`.
+Test the configuration and initialization of species with `BasicSpeciesCreator`.
 This confirms the proper setup and initial state of species.
 """
-@testset "BasicSpeciesConfiguration" begin
+
+@testset "BasicSpeciesCreator" begin
     gen = 1
     rng = StableRNG(42)
     indiv_id_counter = Counter()
@@ -129,15 +135,15 @@ This confirms the proper setup and initial state of species.
     default_vector = collect(1:10)
 
     # Define species configuration similar to spawner
-    species_cfg = BasicSpeciesConfiguration(
+    species_creator = BasicSpeciesCreator(
         id = species_id,
         n_pop = n_pop,
-        geno_cfg = BasicVectorGenotypeConfiguration{Float64}(
+        geno_creator = BasicVectorGenotypeCreator{Float64}(
             default_vector = default_vector
         ),
-        pheno_cfg = DefaultPhenotypeConfiguration(),
-        indiv_cfg = AsexualIndividualConfiguration(),
-        eval_cfg = ScalarFitnessEvaluationConfiguration(),
+        pheno_creator = DefaultPhenotypeCreator(),
+        indiv_creator = AsexualIndividualCreator(),
+        eval_creator = ScalarFitnessEvaluationCreator(),
         replacer = GenerationalReplacer(),
         selector = FitnessProportionateSelector(n_parents = 2),
         recombiner = CloneRecombiner(),
@@ -147,7 +153,7 @@ This confirms the proper setup and initial state of species.
 
     # Instantiate the species using the species configuration
     # Assuming there's a way to create initial population from species config
-    species = species_cfg(rng, indiv_id_counter, gene_id_counter) 
+    species = species_creator(rng, indiv_id_counter, gene_id_counter) 
 
     # Test the initial state of the population
     pop_ids = collect(keys(species.pop))
@@ -186,9 +192,10 @@ end
 Tests the primary evolutionary function `evolve!` within a co-evolutionary context.
 Ensures the successful progression of generations and expected state changes.
 """
+
 @testset "evolve!" begin
 
-function dummy_eco_cfg(;
+function dummy_eco_creator(;
     id::String = "test",
     trial::Int = 1,
     rng::AbstractRNG = StableRNG(42),
@@ -199,31 +206,31 @@ function dummy_eco_cfg(;
     domain_id::String = "NumbersGame{Sum}",
     default_vector::Vector{Float64} = fill(0.0, 10),
 )
-    eco_cfg = CoevolutionaryEcosystemConfiguration(
+    eco_creator = CoevolutionaryEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
-        species_cfgs = OrderedDict(
-            species_id1 => BasicSpeciesConfiguration(
+        species_creators = OrderedDict(
+            species_id1 => BasicSpeciesCreator(
                 id = species_id1,
                 n_pop = n_pop,
-                geno_cfg = BasicVectorGenotypeConfiguration(default_vector = default_vector),
-                pheno_cfg = DefaultPhenotypeConfiguration(),
-                indiv_cfg = AsexualIndividualConfiguration(),
-                eval_cfg = ScalarFitnessEvaluationConfiguration(),
+                geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
+                pheno_creator = DefaultPhenotypeCreator(),
+                indiv_creator = AsexualIndividualCreator(),
+                eval_creator = ScalarFitnessEvaluationCreator(),
                 replacer = GenerationalReplacer(),
                 selector = FitnessProportionateSelector(n_parents = n_parents),
                 recombiner = CloneRecombiner(),
                 mutators = [DefaultMutator()],
                 reporters = [CohortMetricReporter(metric = EvaluationFitness())],
             ),
-            species_id2 => BasicSpeciesConfiguration(
+            species_id2 => BasicSpeciesCreator(
                 id = species_id2,
                 n_pop = n_pop,
-                geno_cfg = BasicVectorGenotypeConfiguration(default_vector = default_vector),
-                pheno_cfg = DefaultPhenotypeConfiguration(),
-                indiv_cfg = AsexualIndividualConfiguration(),
-                eval_cfg = ScalarFitnessEvaluationConfiguration(),
+                geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
+                pheno_creator = DefaultPhenotypeCreator(),
+                indiv_creator = AsexualIndividualCreator(),
+                eval_creator = ScalarFitnessEvaluationCreator(),
                 replacer = GenerationalReplacer(),
                 selector = FitnessProportionateSelector(n_parents = n_parents),
                 recombiner = CloneRecombiner(),
@@ -231,14 +238,14 @@ function dummy_eco_cfg(;
                 reporters = [CohortMetricReporter(metric = EvaluationFitness())],
             ),
         ),
-        job_cfg = InteractionJobConfiguration(
+        job_creator = InteractionJobCreator(
             n_workers = 1,
-            dom_cfgs = OrderedDict(
-                domain_id => InteractiveDomainConfiguration(
+            dom_creators = OrderedDict(
+                domain_id => InteractiveDomainCreator(
                     id = domain_id,
                     problem = NumbersGameProblem(:Sum),
                     species_ids = [species_id1, species_id2],
-                    obs_cfg = OutcomeObservationConfiguration(),
+                    obs_creator = OutcomeObservationCreator(),
                     matchmaker = AllvsAllMatchMaker(type = :plus),
                     reporters = Reporter[]
                 ),
@@ -250,7 +257,7 @@ function dummy_eco_cfg(;
         runtime_reporter = RuntimeReporter(),
     )
 
-    eco = evolve!(eco_cfg, n_gen=10)
+    eco = evolve!(eco_creator, n_gen=10)
     @test length(eco.species[species_id1].pop) == n_pop
 end
 

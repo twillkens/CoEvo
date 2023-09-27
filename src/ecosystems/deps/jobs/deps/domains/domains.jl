@@ -18,8 +18,11 @@ module Domains
 # Exported Structures
 export InteractiveDomainConfiguration
 
+include("abstract/abstract.jl")
+
 # Dependencies
-include("deps/problems/problems.jl")
+include("deps/observers/observers.jl")
+include("deps/settings/settings.jl")
 include("deps/matchmakers/matchmakers.jl")
 include("deps/reporters/reporters.jl")
 
@@ -44,18 +47,23 @@ problem definition, matchmaker mechanism, observation configurations, and report
 - `obs_cfg::O`: Configuration related to observations within the domain. Default is `OutcomeObservationConfiguration()`.
 - `reporters::Vector{R}`: A list of reporters for logging and reporting activities within the domain. Default is `Reporter[]`.
 """
-Base.@kwdef struct InteractiveDomainConfiguration{
-    P <: Problem, 
+Base.@kwdef struct InteractiveDomainCreator{
+    S <: Setting, 
     M <: MatchMaker, 
-    O <: ObservationConfiguration, 
+    O <: Observer, 
     R <: Reporter
 } <: DomainConfiguration
     id::String
-    problem::P
+    setting::S
     species_ids::Vector{String}
     matchmaker::M
-    obs_cfg::O
+    observers::Vector{O}
     reporters::Vector{R}
+end
+
+function create_domain(domain_creator::InteractiveDomainCreator)
+    domain = create_domain(domain_creator.id, domain_creator.setting)
+    return domain
 end
 
 end

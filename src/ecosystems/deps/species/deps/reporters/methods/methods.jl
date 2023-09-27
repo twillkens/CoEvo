@@ -1,43 +1,61 @@
-using ....CoEvo.Abstract: Evaluation
-using ....CoEvo.Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
-using ....CoEvo.Ecosystems.Species.Substrates.Vectors: BasicVectorGenotype
 
-# Create a report for CohortMetricReporter when metric is GenotypeSize.
-# Extract the size (length) of each genotype from the given genotypes.
-function(reporter::CohortMetricReporter{<:GenotypeSize})(
+"""
+    function(reporter::BasicSpeciesReporter{<:EvaluationMetric})(
+        gen::Int,
+        species_id::String,
+        cohort::String,
+        indiv_evals::OrderedDict{<:Individual, <:Evaluation}
+    )
+
+Specialized function to generate a report when the metric is of type `EvaluationMetric`.
+
+# Arguments
+- `gen::Int`: Generation number.
+- `species_id::String`: ID of the species.
+- `cohort::String`: Name/ID of the cohort.
+- `indiv_evals::OrderedDict{<:Individual, <:Evaluation}`: Ordered dictionary of individuals and their evaluations.
+
+# Returns
+- A `BasicSpeciesReport` instance containing the generated report details.
+"""
+function create_report(
+    reporter::SpeciesReporter{<:EvaluationMetric}
     gen::Int,
     species_id::String,
     cohort::String,
-    genotypes::Vector{<:BasicVectorGenotype}
+    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
 )
-    sizes = Float64[length(geno) for geno in genotypes]
-    report = reporter(gen, species_id, cohort, sizes)
+    report = reporter(gen, species_id, cohort, collect(values(indiv_evals)))
     return report
 end
 
-# Create a report for CohortMetricReporter when metric is GenotypeSum.
-# Sum up the genes in each genotype from the given genotypes.
-function(reporter::CohortMetricReporter{GenotypeSum})(
+"""
+    function(reporter::BasicSpeciesReporter{<:GenotypeMetric})(
+        gen::Int,
+        species_id::String,
+        cohort::String,
+        indiv_evals::OrderedDict{<:Individual, <:Evaluation}
+    )
+
+Specialized function to generate a report when the metric is of type `GenotypeMetric`.
+
+# Arguments
+- `gen::Int`: Generation number.
+- `species_id::String`: ID of the species.
+- `cohort::String`: Name/ID of the cohort.
+- `indiv_evals::OrderedDict{<:Individual, <:Evaluation}`: Ordered dictionary of individuals and their evaluations.
+
+# Returns
+- A `BasicSpeciesReport` instance containing the generated report details.
+"""
+
+function(reporter::SpeciesReporter{<:GenotypeMetric})(
     gen::Int,
     species_id::String,
     cohort::String,
-    genotypes::Vector{<:BasicVectorGenotype}
+    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
 )
-    genotype_sums = [sum(geno.genes) for geno in genotypes]
-    report = reporter(gen, species_id, cohort, genotype_sums)
+    genotypes = [indiv.geno for indiv in keys(indiv_evals)]
+    report = reporter(gen, species_id, cohort, genotypes)
     return report
 end
-
-# Create a report for CohortMetricReporter when metric is EvaluationFitness.
-# Extract the fitness from each evaluation from the given evaluations.
-function(reporter::CohortMetricReporter{EvaluationFitness})(
-    gen::Int,
-    species_id::String,
-    cohort::String,
-    evaluations::Vector{<:Evaluation}
-)
-    fitnesses = [eval.fitness for eval in evaluations]
-    report = reporter(gen, species_id, cohort, fitnesses)
-    return report
-end
-

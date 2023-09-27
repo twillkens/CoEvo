@@ -5,19 +5,15 @@ using Test
 include("../src/CoEvo.jl")
 using .CoEvo
 using .CoEvo.Utilities.Counters: Counter
-using .CoEvo.Ecosystems.Species.Substrates: GeneticPrograms as GP
-using .GP: BasicGeneticProgramGenotypeConfiguration
-using .GP: BasicGeneticProgramGenotype
+using .CoEvo.Ecosystems.Species.Individuals.Models.GeneticPrograms: GeneticPrograms as GP
+using .GP: BasicGeneticProgramGenotype, BasicGeneticProgramGenotypeCreator
 using .GP.Genes: ExpressionNodeGene
 using .GP.Utilities: protected_division, Terminal
 using .GP.Genotypes.Utilities: get_node
-using .GP.Genotypes.Mutations: add_function
-using .GP.Genotypes.Mutations: remove_function
-using .GP.Genotypes.Mutations: splice_function
-using .GP.Genotypes.Mutations: swap_node
-using .GP.Genotypes.Mutations: inject_noise
+using .GP.Genotypes.Mutations: add_function, remove_function, splice_function, 
+using .GP.Genotypes.Mutations: swap_node, inject_noise
 
-BasicGeneticProgramGenotypeConfiguration()(StableRNG(42), Counter())
+BasicGeneticProgramGenotypeCreator()(StableRNG(42), Counter())
 """
     dummygeno() -> BasicGeneticProgramGenotype
 

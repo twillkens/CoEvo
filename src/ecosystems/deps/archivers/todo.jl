@@ -53,7 +53,7 @@ function unfreeze(
             sppairs, 
             Symbol(spid) => Species(
                 Symbol(spid),
-                spawners[Symbol(spid)].phenocfg,
+                spawners[Symbol(spid)].phenocreator,
                 pop, 
                 children
             )
@@ -66,7 +66,7 @@ function unfreeze(jldpath::String, getpop::Bool = true, gen::Int = -1)
     jld2file = jldopen(jldpath, "r")
     eco = jld2file["eco"]
     trial = jld2file["trial"]
-    jobcfg = jld2file["jobcfg"]
+    jobcreator = jld2file["jobcreator"]
     orders = jld2file["orders"]
     spawners = jld2file["spawners"]
     loggers = jld2file["loggers"]
@@ -77,7 +77,7 @@ function unfreeze(jldpath::String, getpop::Bool = true, gen::Int = -1)
     (
         gen, 
         CoevConfig(
-            eco, trial, evostate, jobcfg, orders, spawners, loggers, 
+            eco, trial, evostate, jobcreator, orders, spawners, loggers, 
             jldpath, arxiv_interval, Dict{Int, Dict{Symbol, Species}}(), log_interval
         ),
         allsp
@@ -112,7 +112,7 @@ function write_to_archive() # TODO: Define
         jld2file["eco"] = eco
         jld2file["trial"] = trial
         jld2file["seed"] = seed
-        jld2file["jobcfg"] = jobcfg
+        jld2file["jobcreator"] = jobcreator
         jld2file["orders"] = orders
         jld2file["spawners"] = deepcopy(spawners)
         jld2file["loggers"] = loggers

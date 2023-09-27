@@ -6,10 +6,10 @@ Provides tools and configurations for defining and managing species in a coevolu
 # Structure
 
 - **Exported Type**:
-    - `BasicSpeciesConfiguration`: Main configuration type for defining species behavior.
+    - `BasicSpeciesCreator`: Main configuration type for defining species behavior.
     
 - **Dependencies**:
-    - Substrates: Essential foundational components for species.
+    - Models: Essential foundational components for species.
     - Individuals: Defines the various individual entities within a species.
     - Evaluations: Mechanisms to evaluate the species individuals.
     - Replacers: Defines how species individuals are replaced over evolutionary iterations.
@@ -20,15 +20,16 @@ Provides tools and configurations for defining and managing species in a coevolu
 """
 module Species
 
-export BasicSpeciesConfiguration
+export BasicSpeciesCreator
+
+include("abstract/abstract.jl")
+
+using .Abstract
 
 # Dependencies
-include("deps/substrates/substrates.jl")
 include("deps/individuals/individuals.jl")
-include("deps/evaluations/evaluations.jl")
-include("deps/replacers/replacers.jl")
-include("deps/selectors/selectors.jl")
-include("deps/recombiners/recombiners.jl")
+include("deps/evaluators/evaluators.jl")
+include("deps/reproducers/reproducers.jl")
 include("deps/reporters/reporters.jl")
 
 # Types
