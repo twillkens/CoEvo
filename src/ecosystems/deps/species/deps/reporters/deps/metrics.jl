@@ -20,17 +20,20 @@ The module exports the following types: `GenotypeSum`, `GenotypeSize`, and `Eval
 
 module Metrics
 
+export GenotypeSum, GenotypeSize, EvaluationFitness, Abstract
+
+
 module Abstract
 
-export Metric, GenotypeMetric, EvaluationMetric
+export GenotypeMetric, EvaluationMetric
 
-abstract type Metric end
+using ......Ecosystems.Abstract: Metric
+
 abstract type GenotypeMetric <: Metric end
 abstract type EvaluationMetric <: Metric end
 
 end
 
-export GenotypeSum, GenotypeSize, EvaluationFitness, Abstract
 
 using .Abstract: GenotypeMetric, EvaluationMetric
 

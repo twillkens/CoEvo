@@ -1,11 +1,13 @@
 export NumbersGameMetric, Control, Sum, Gradient, Focusing, Relativism
 
+using ......Ecosystems.Abstract: Metric
+
 """
     NumbersGameMetric
 
 Abstract type representing metrics for the numbers game.
 """
-abstract type NumbersGameMetric end
+abstract type NumbersGameMetric <: Metric end
 
 """
     Control <: NumbersGameMetric

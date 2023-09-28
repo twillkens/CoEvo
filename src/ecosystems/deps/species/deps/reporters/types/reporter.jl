@@ -40,7 +40,7 @@ end
 
 # Custom display for BasicSpeciesReport
 function Base.show(io::IO, report::BasicSpeciesReport)
-    println(io, "-----------------------------------------------------------")
+    println(io, "----------------------SPECIES-------------------------------")
     println(io, "Generation $(report.gen)")
     println(io, "Species ID: $(report.species_id)")
     println(io, "Cohort: $(report.cohort)")

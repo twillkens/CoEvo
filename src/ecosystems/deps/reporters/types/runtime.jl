@@ -1,4 +1,4 @@
-using .Abstract: EcosystemReporter, EcosystemReport, Archiver
+using .Abstract: EcosystemReporter, EcosystemReport
 
 """
     RuntimeReport

@@ -1,8 +1,10 @@
 module Abstract
 
-export Ecosystem, Reporter, Report, Archiver
+export Ecosystem, Metric, Reporter, Report, Archiver
 
 abstract type Ecosystem end
+
+abstract type Metric end
 
 abstract type Report end
 

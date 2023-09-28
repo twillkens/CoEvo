@@ -39,33 +39,40 @@ abstract type Observation end
 
 abstract type Observer end
 
+function observe!(observer::Observer, observation::Observation)
+    throw(ErrorException("Default watching behavior for $observer not implemented."))
+end
+
 function make_observation(observer::Observer)
     throw(ErrorException("Default observation retrieval for $observer not implemented."))
 end
 
 end
 
+using .....Ecosystems.Abstract: Metric
 using ..Domains.NumbersGame: NumbersGameDomain
 using .Abstract: Observation, Observer
 
 import .Abstract: make_observation
 
-struct MaximumSumObserver <: Observer
-    sum::Float64
+mutable struct BasicObserver{M <: Metric, S <: Any} <: Observer
+    metric::M
+    state::S
 end
 
-struct MaximumSumObservation <: Observation
+struct BasicObservation{M <: Metric, D} <: Observation
+    metric::M
     domain_id::String
     indiv_ids::Vector{Int}
-    sum::Float64
-end
-
-function make_observation(observer::MaximumSumObserver)
-    MaximumSumObservation("1", [1, 2], observer.sum)
+    data::D
 end
 
 function observe!(observer::MaximumSumObserver, domain::NumbersGameDomain)
     observer.sum = maximum([sum(entity) for entity in domain.entities])
+end
+
+function make_observation(observer::MaximumSumObserver)
+    MaximumSumObservation("1", [1, 2], observer.sum)
 end
 
 end
