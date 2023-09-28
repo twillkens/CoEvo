@@ -1,12 +1,28 @@
 export BasicJob, BasicJobCreator
 
 using DataStructures: OrderedDict
-using ...CoEvo.Abstract: Job, JobConfiguration, DomainConfiguration, Observation, Ecosystem
+using ...Ecosystems: Ecosystem
+using .Abstract: Job, JobCreator, Result
 using .Utilities: divvy
-using .Domains: InteractiveDomainConfiguration
-using .Domains.Problems: interact
+using .Interactions.Domains: DomainCreator, create_domain
+using .Interactions.Domains.Abstract: Domain
+using .Interactions.Observers.Abstract: Observation, Observer
+using .Interactions: InteractionScheme
+using ..Species.Individuals.Phenotypes.Abstract: Phenotype
 
+"""
+    InteractionRecipe
 
+Defines a template for an interaction. 
+
+# Fields
+- `domain_id::Int`: Identifier for the interaction domain.
+- `indiv_ids::Vector{Int}`: Identifiers of individuals participating in the interaction.
+"""
+struct InteractionRecipe
+    domain_id::String
+    indiv_ids::Vector{Int}
+end
 
 """
     BasicJob{D <: DomainConfiguration, T} <: Job
@@ -18,8 +34,8 @@ Defines a job that orchestrates a set of interactions.
 - `pheno_dict::Dict{Int, T}`: Dictionary mapping individual IDs to their phenotypes.
 - `recipes::Vector{InteractionRecipe}`: Interaction recipes to be executed in this job.
 """
-struct BasicJob{D <: DomainCreator, P <: Phenotype} <: Job
-    domain_creators::OrderedDict{String, D}
+struct BasicJob{S <: InteractionScheme, P <: Phenotype} <: Job
+    schemes::OrderedDict{String, S}
     phenotypes::Dict{Int, P}
     recipes::Vector{InteractionRecipe}
 end
@@ -57,10 +73,10 @@ function perform(job::BasicJob)
     return results
 end
 
-struct BasicResult{OUT <: Outcome, OBS <: Observation} <: Result
+struct BasicResult{OBS <: Observation} <: Result
     domain_id::String
     indiv_ids::Vector{Int}
-    outcome_set::Vector{OUT}
+    outcome_set::Vector{Float64}
     observations::Vector{OBS}
 end
 
@@ -77,7 +93,7 @@ function interact(
     end
     indiv_ids = [pheno.id for pheno in phenotypes]
     outcome_set = get_outcomes(domain)
-    observations = [make_observation(observer) for observer in observers]
+    observations = [create_observation(observer) for observer in observers]
     result = BasicResult(
         domain.id, 
         indiv_ids,
@@ -87,21 +103,17 @@ function interact(
     return result
 end
 
-Base.@kwdef struct BasicJobCreator{
-    D <: DomainCreator
-} <: JobConfiguration
+Base.@kwdef struct BasicJobCreator{S <: InteractionScheme} <: JobCreator
     n_workers::Int = 1
-    domain_creators::OrderedDict{String, D} 
+    schemes::OrderedDict{String, S} 
 end
 
 # Constructor for JobCfg with a default number of workers.
-function BasicJobCreator(
-    domain_creators::Vector{<:DomainCreator}
-)
-    domain_creators = OrderedDict(
-        scheme.id => scheme for scheme in domain_creators
+function BasicJobCreator(schemes::Vector{<:DomainCreator})
+    schemes = OrderedDict(
+        scheme.id => scheme for scheme in schemes
     )
-    return BasicJobCreator(domain_creators, 1)
+    return BasicJobCreator(schemes, 1)
 end
 
 
@@ -122,13 +134,13 @@ function create_jobs(job_creator::BasicJobCreator, eco::Ecosystem)
     recipes = vcat(
         [
             make_interaction_recipes(scheme, eco) 
-            for scheme in values(job_creator.domain_creators)
+            for scheme in values(job_creator.schemes)
         ]...
     )
     recipe_partitions = divvy(recipes, job_creator.n_workers)
     pheno_dict = get_pheno_dict(eco)
     jobs = [
-        BasicJob(job_creator.domain_creators, pheno_dict, recipe_partition)
+        BasicJob(job_creator.schemes, pheno_dict, recipe_partition)
         for recipe_partition in recipe_partitions
     ]
     if length(jobs) == 1
@@ -140,19 +152,6 @@ function create_jobs(job_creator::BasicJobCreator, eco::Ecosystem)
     return vcat(results...)
 end
 
-"""
-    InteractionRecipe
-
-Defines a template for an interaction. 
-
-# Fields
-- `domain_id::Int`: Identifier for the interaction domain.
-- `indiv_ids::Vector{Int}`: Identifiers of individuals participating in the interaction.
-"""
-struct InteractionRecipe
-    domain_id::String
-    indiv_ids::Vector{Int}
-end
 
 """
     make_interaction_recipes(domain_id::Int, cfg::DomainCfg, eco::Ecosystem) -> Vector{InteractionRecipe}
@@ -171,7 +170,7 @@ Construct interaction recipes for a given domain based on its configuration and 
 - Throws an `ArgumentError` if the number of entities in the domain configuration isn't 2.
 """
 function make_interaction_recipes(
-    scheme::DomainCreator, eco::Ecosystem
+    scheme::InteractionScheme, eco::Ecosystem
 )
     if length(scheme.species_ids) != 2
         throw(ErrorException("Only two-entity interactions are supported for now."))

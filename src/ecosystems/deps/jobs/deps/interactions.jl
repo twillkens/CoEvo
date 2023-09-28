@@ -17,6 +17,7 @@ module Interactions
 
 # Exported Structures
 export InteractionScheme
+export DomainCreator, MatchMakers, Observers, Reporters, Domains
 
 # Dependencies
 include("interactions/domains/domains.jl")
@@ -25,16 +26,14 @@ include("interactions/observers/observers.jl")
 include("interactions/reporters/reporters.jl")
 
 # Imports
-println("a")
 using .Domains.Abstract: DomainCreator
-println("a")
 using .MatchMakers.Abstract: MatchMaker
-println("a")
 using .Observers.Abstract: Observer
-println("a")
 using .Reporters.Abstract: Reporter
-println("a")
-
+using .Observers: Observers
+using .Domains: Domains
+using .MatchMakers: MatchMakers
+using .Reporters: Reporters
 
 """
     InteractiveDomainConfiguration{P <: Problem, M <: MatchMaker, O <: ObservationConfiguration, R <: Reporter}
@@ -57,12 +56,11 @@ Base.@kwdef struct InteractionScheme{
     R <: Reporter
 } 
     id::String
-    scheme::D
+    domain_creator::D
     species_ids::Vector{String}
     matchmaker::M
     observers::Vector{O}
     reporters::Vector{R}
 end
-
 
 end

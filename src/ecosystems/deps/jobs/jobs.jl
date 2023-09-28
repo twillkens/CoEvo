@@ -15,9 +15,12 @@ facilitate job processing in the ecosystem.
 module Jobs
 
 # Exports
-export BasicJob, BasicJobCreator
+export BasicJob, BasicJobCreator, Abstract
 
 # Inclusion of external scripts
+include("abstract/abstract.jl")
+using .Abstract: Abstract
+
 include("utilities/utilities.jl")
 include("deps/interactions.jl")
 

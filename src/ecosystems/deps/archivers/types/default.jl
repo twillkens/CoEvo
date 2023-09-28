@@ -2,11 +2,14 @@ export DefaultArchiver
 
 using DataStructures: OrderedDict
 using JLD2: File, Group, jldopen
+
 using .Utilities: get_or_make_group!
-using ...CoEvo.Abstract: Archiver, Report, Individual, Evaluation
-using ...CoEvo.Ecosystems.Species.Individuals.Models.Evaluations.ScalarFitnessEvaluations: ScalarFitnessEvaluation
-using ...CoEvo.Ecosystems.Species.Individuals: BasicIndividual, BasicIndividual
-using ...CoEvo.Ecosystems.Species.Models.Vectors: BasicVectorGenotype
+
+using ..Ecosystems.Species.Individuals: Individuals
+using ..Ecosystems.Species.Evaluators.Abstract: Evaluation
+using .Individuals: BasicIndividual
+using .Individuals.Abstract: Individual
+using .Abstract: Archiver
 
 """
     DefaultArchiver

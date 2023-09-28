@@ -28,51 +28,18 @@ The module exports: `OutcomeObservation`, `ScalarOutcomeObserver`, and `get_outc
 """
 module Observers
 
-export Abstract
-export MaximumSumObservation, MaximumSumObserver, make_observation
+export Abstract, Observer, Observation
+export BasicObservation, BasicObserver
 
-module Abstract
+include("abstract/abstract.jl")
 
-export Observation, Observer, make_observation
+using .Abstract: Abstract, Observer, Observation
 
-abstract type Observation end
+include("deps/metrics.jl")
 
-abstract type Observer end
+include("types/basic.jl")
 
-function observe!(observer::Observer, observation::Observation)
-    throw(ErrorException("Default watching behavior for $observer not implemented."))
-end
+include("methods/methods.jl")
 
-function make_observation(observer::Observer)
-    throw(ErrorException("Default observation retrieval for $observer not implemented."))
-end
-
-end
-
-using .....Ecosystems.Abstract: Metric
-using ..Domains.NumbersGame: NumbersGameDomain
-using .Abstract: Observation, Observer
-
-import .Abstract: make_observation
-
-mutable struct BasicObserver{M <: Metric, S <: Any} <: Observer
-    metric::M
-    state::S
-end
-
-struct BasicObservation{M <: Metric, D} <: Observation
-    metric::M
-    domain_id::String
-    indiv_ids::Vector{Int}
-    data::D
-end
-
-function observe!(observer::MaximumSumObserver, domain::NumbersGameDomain)
-    observer.sum = maximum([sum(entity) for entity in domain.entities])
-end
-
-function make_observation(observer::MaximumSumObserver)
-    MaximumSumObservation("1", [1, 2], observer.sum)
-end
 
 end

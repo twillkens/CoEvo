@@ -1,6 +1,5 @@
 export BasicIndividual, BasicIndividualCreator
 
-using ...Ecosystems.Abstract: Archiver
 using ...Ecosystems.Utilities.Counters: Counter
 using .Abstract: Genotype, GenotypeCreator, Phenotype, PhenotypeCreator
 using .Abstract: Individual, IndividualCreator, Mutator

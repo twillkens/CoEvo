@@ -11,7 +11,7 @@ Determine the outcome set scores for participants A and B based on the specified
 """
 
 function get_outcome_set(domain::NumbersGameDomain)
-    A, B = act(domain.entities[1]), act(domain.entities[2])
+    A, B = act(domain, domain.entities[1]), act(domain, domain.entities[2])
     get_outcome_set(domain.metric, A, B)
 end
 

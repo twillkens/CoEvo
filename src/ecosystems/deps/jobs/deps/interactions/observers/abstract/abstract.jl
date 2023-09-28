@@ -1,18 +1,21 @@
 module Abstract
 
-export observe!, make_observation
+export Observation, Observer, observe!, create_observation, Metric, Domain
 
-using ....Abstract: Domain
-using ....CoEvo.Abstract: Domain, Observer
+using ......Ecosystems.Abstract: Metric
 
+using ...Domains.Abstract: Domain
+
+abstract type Observation end
+
+abstract type Observer end
 
 function observe!(domain::Domain, observer::Observer)
     error("`observe!`` not implemented for $(typeof(domain)), $(typeof(observer))")
 end
 
-function make_observation(observer::Observer)
-    error("`make_observation`` not implemented for $(typeof(observer))")
+function create_observation(observer::Observer)::Observation
+    error("`create_observation`` not implemented for $(typeof(observer))")
 end
-
 
 end

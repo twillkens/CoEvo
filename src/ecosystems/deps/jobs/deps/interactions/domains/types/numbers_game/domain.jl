@@ -1,22 +1,27 @@
-export NumbersGameDomain, NumbersGameDomainCreator
+export NumbersGameDomain, NumbersGameDomainCreator, is_active, next!, create_domain, act, refresh!
 
 using ......Ecosystems.Species.Individuals.Phenotypes.Vectors.Abstract: VectorPhenotype
 using ......Ecosystems.Species.Individuals.Phenotypes.Vectors: BasicVectorPhenotype
 using ..Abstract: Domain, DomainCreator
 
+import ..Abstract: next!, create_domain, is_active, refresh!
 
-struct NumbersGameDomain{P <: VectorPhenotype, M <: NumbersGameMetric} <: Domain
+
+mutable struct NumbersGameDomain{P <: VectorPhenotype, M <: NumbersGameMetric} <: Domain
     id::String
     entities::Vector{P}
     metric::M
 end
 
-Base.@kwdef struct NumbersGameDomainCreator{M <: NumbersGameMetric} <: DomainCreator
+Base.@kwdef struct NumbersGameDomainCreator{M <: Metric, V <: BasicVectorPhenotype} <: DomainCreator
     id::String
     metric::M
-    entities::Vector{<:VectorPhenotype} = [BasicVectorPhenotype([0.0, 0.0]) for _ in 1:2]
+    entities::Vector{V} = [BasicVectorPhenotype([0.0, 0.0]) for _ in 1:2]
 end
 
+function act(domain::NumbersGameDomain, entity::BasicVectorPhenotype)
+    entity.values
+end
 
 """
     NumbersGameDomain(metric::Symbol)
@@ -51,4 +56,8 @@ end
 
 function next!(::NumbersGameDomain)
     throw(ErrorException("Cannot call `next!` on NumbersGameDomain"))
+end
+
+function refresh!(ng::NumbersGameDomain, entities::Vector{BasicVectorPhenotype})
+    NumbersGameDomain(ng.id, entities, ng.metric)
 end

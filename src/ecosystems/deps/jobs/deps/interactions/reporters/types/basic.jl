@@ -1,7 +1,6 @@
-using .Abstract: DomainReport, DomainReporter
+using .Abstract: DomainReport, DomainReporter, Metric, Observation
 
 import .Abstract: create_report
-
 
 struct BasicDomainReport{D <: Any} <: DomainReport
     gen::Int
@@ -21,8 +20,7 @@ function Base.show(io::IO, report::BasicDomainReport{Any})
     
 end
 
-
-Base.@kwdef struct BasicDomainReporter{OBS <: Metric, REP <: Metric} <: DomainReporter{M}
+Base.@kwdef struct BasicDomainReporter{OBS <: Metric, REP <: Metric} <: DomainReporter{OBS, REP}
     observation_metric::OBS
     report_metric::REP
     print_interval::Int = 1
@@ -32,14 +30,11 @@ Base.@kwdef struct BasicDomainReporter{OBS <: Metric, REP <: Metric} <: DomainRe
     save_features::Vector{Symbol} = [:mean, :std, :minimum, :maximum]
 end
 
-
-
 function create_report(
     reporter::BasicDomainReporter{M1, M2},
     gen::Int,
     domain_id::String,
-    observations::Vector{Observation}
-) where {M1 <: Metric, M2 <: Metric}
+    observations::Vector{Observation}) where {M1 <: Metric, M2 <: Metric}
     to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
     to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
     get_observations = observation -> 

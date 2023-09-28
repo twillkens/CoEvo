@@ -1,9 +1,17 @@
-
 module Abstract
 
-export Domain, next!, refresh!
+export Domain, DomainCreator, create_domain, next!, refresh!
 
 abstract type Domain end
+
+abstract type DomainCreator end
+
+function create_domain(::String, ::DomainCreator)
+    throw(ErrorException(
+        "`create_domain` not implemented for domain $S"
+        )
+    )
+end
 
 function next!(::D) where {D <: Domain}
     throw(ErrorException(

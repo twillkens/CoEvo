@@ -72,36 +72,36 @@ export evolve!,
 #include("utilities/utilities.jl")
 include("ecosystems/ecosystems.jl")
 
-# Usings (arranged by source directory)
-using .Abstract: Reporter
-
-using .Utilities.Counters: Counter
-using .Utilities.Criteria: Maximize, Minimize, NullCriterion
-using .Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
-
-using .Ecosystems: Observations, BasicEcosystemCreator, evolve!
-using .Observations: OutcomeObservationCreator
-using .Ecosystems.Species: Species, BasicSpeciesCreator
-using .Species.Individuals: Individuals, BasicIndividualCreator
-
-using .Individuals: Models
-using .Models.Defaults: DefaultPhenotype, DefaultPhenotypeCreator, DefaultMutator
-using .Models.Vectors: BasicVectorGenotypeCreator
-using .Models.GeneticPrograms: GeneticPrograms, ExpressionNodeGene 
-using .GeneticPrograms: GraphGeneticProgramPhenotype, BasicGeneticProgramMutator
-using .Models.Evaluations: ScalarFitnessEvaluator
-
-using .Species.Reproducers: Reproducers, Replacers, Selectors, Recombiners
-using .Replacers: IdentityReplacer, GenerationalReplacer
-using .Selectors: IdentitySelector, FitnessProportionateSelector
-using .Species.Recombiners: CloneRecombiner
-using .Species.Reporters: CohortMetricReport, CohortMetricReporter
-using .Ecosystems.Jobs: Jobs, InteractionJobCreator
-using .Jobs.Domains: Domains, InteractionScheme
-using .Domains.MatchMakers: MatchMakers, AllvsAllMatchMaker
-using .Domains.Problems: Problems
-using .Domains.Problems.NumbersGame: NumbersGame, Control, Sum, Gradient, Focusing, Relativism
-using .Ecosystems.Archivers: DefaultArchiver
-using .Ecosystems.Reporters: RuntimeReport, RuntimeReporter
+# # Usings (arranged by source directory)
+# using .Abstract: Reporter
+# 
+# using .Utilities.Counters: Counter
+# using .Utilities.Criteria: Maximize, Minimize, NullCriterion
+# using .Utilities.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
+# 
+# using .Ecosystems: Observations, BasicEcosystemCreator, evolve!
+# using .Observations: OutcomeObservationCreator
+# using .Ecosystems.Species: Species, BasicSpeciesCreator
+# using .Species.Individuals: Individuals, BasicIndividualCreator
+# 
+# using .Individuals: Models
+# using .Models.Defaults: DefaultPhenotype, DefaultPhenotypeCreator, DefaultMutator
+# using .Models.Vectors: BasicVectorGenotypeCreator
+# using .Models.GeneticPrograms: GeneticPrograms, ExpressionNodeGene 
+# using .GeneticPrograms: GraphGeneticProgramPhenotype, BasicGeneticProgramMutator
+# using .Models.Evaluations: ScalarFitnessEvaluator
+# 
+# using .Species.Reproducers: Reproducers, Replacers, Selectors, Recombiners
+# using .Replacers: IdentityReplacer, GenerationalReplacer
+# using .Selectors: IdentitySelector, FitnessProportionateSelector
+# using .Species.Recombiners: CloneRecombiner
+# using .Species.Reporters: CohortMetricReport, CohortMetricReporter
+# using .Ecosystems.Jobs: Jobs, InteractionJobCreator
+# using .Jobs.Domains: Domains, InteractionScheme
+# using .Domains.MatchMakers: MatchMakers, AllvsAllMatchMaker
+# using .Domains.Problems: Problems
+# using .Domains.Problems.NumbersGame: NumbersGame, Control, Sum, Gradient, Focusing, Relativism
+# using .Ecosystems.Archivers: DefaultArchiver
+# using .Ecosystems.Reporters: RuntimeReport, RuntimeReporter
 
 end

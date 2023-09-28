@@ -16,26 +16,10 @@ its associated interaction function.
 """
 module Domains
 
-export NumbersGame, Abstract
+export Abstract, Domain, DomainCreator, create_domain, next!, refresh!
 
-module Abstract
-
-export Domain, DomainCreator, create_domain
-
-abstract type Domain end
-
-abstract type DomainCreator end
-
-function create_domain(::String, ::DomainCreator)
-    throw(ErrorException(
-        "`create_domain` not implemented for domain $S"
-        )
-    )
-end
-
-end
-
-using .Abstract
+include("abstract/abstract.jl")
+using .Abstract: Abstract, Domain, DomainCreator, create_domain, next!, refresh!
 # Exported Structures and Functions
 
 # Dependencies

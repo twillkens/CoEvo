@@ -5,18 +5,14 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 
-using ..Abstract: Ecosystem, EcosystemCreator
-using ..Abstract: AbstractSpecies, SpeciesCreator
-using ..Abstract: Individual
-using ..Abstract: JobCreator
-using ..Abstract: Observation
-using ..Abstract: Report, Reporter
-using ..Abstract: Archiver
-
-using ..Utilities.Counters: Counter
-
+using .Abstract: Ecosystem, EcosystemCreator, Report, Reporter
+using .Utilities.Counters: Counter
+using .Species.Abstract: AbstractSpecies, SpeciesCreator
+using .Species.Individuals.Abstract: Individual, IndividualCreator
+using .Jobs.Abstract: JobCreator, Result
+using .Jobs.Interactions.Observers.Abstract: Observation
 using .Reporters: RuntimeReport, RuntimeReporter
-using .Observations: get_outcomes
+using .Archivers.Abstract: Archiver
 
 struct BasicEcosystem{S <: AbstractSpecies} <: Ecosystem
     id::String
@@ -91,7 +87,7 @@ function create_ecosystem(
     eco_creator::BasicEcosystemCreator,
     eco::Ecosystem, 
     results::Vector{<:Result}, 
-    runtime_report::RuntimeReport
+    runtime_report::Report
 )
     observations = extract_observations(results)
     reports = Report[runtime_report]

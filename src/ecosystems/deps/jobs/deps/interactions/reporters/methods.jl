@@ -1,22 +1,20 @@
+struct TheTwoVectorsWithGreatestSineOfSums <: Metric end
+struct TheVectorWithAverageClosestToPi <: Metric end
 
-
-const TheTwoWithGreatestSineOfSums = Val(:TwoWithGreatestSineOfSums)
-const TheOneCloserToPi = Val(:OneCloserToPi)
-
-function calculate_sine_of_sums(
-    observations::Vector{Observation{TheOneCloserToPi, Vector{Float64}}}
+function calculate_sine_of_sumsalculate_sine_of_sums(
+    observations::Vector{Observation{TheVectorWithAverageClosestToPi, Vector{Float64}}}
 )
     sine_values = [sin(sum(obs.data)) for obs in observations]
     return sine_values
 end
 
 function create_report(
-    reporter::BasicDomainReporter{TheTwoWithGreatestSineOfSums},
+    reporter::BasicDomainReporter{TheTwoVectorsWithGreatestSineOfSums},
     gen::Int,
     to_print::Bool,
     to_save::Bool,
     domain_id::String,
-    observations::Vector{Observation{TheOneCloserToPi, Vector{Float64}}}
+    observations::Vector{Observation{TheVectorWithAverageClosestToPi, Vector{Float64}}}
 )
     
     # Calculate the sine of sums for all observations
@@ -53,10 +51,3 @@ function create_report(
 
     return report
 end
-
-reporter = BasicDomainReporter{TheTwoWithGreatestSineOfSums}("Sample Description")
-observations = [Observation{TheOneCloserToPi, Vector{Float64}}(3.14, [1.0, 2.0]),
-                Observation{TheOneCloserToPi, Vector{Float64}}(3.15, [2.0, 3.0]),
-                Observation{TheOneCloserToPi, Vector{Float64}}(3.16, [3.0, 4.0])]
-
-create_report(reporter, 1, true, true, "sample_domain", observations)
