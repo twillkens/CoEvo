@@ -1,11 +1,11 @@
-module Basic
+module BasicStatistical
 
-export BasicStatisticalFeatureSet, extract_stat_features
+export BasicStatisticalMeasureSet, extract_stat_features
 
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
 using HypothesisTests: OneSampleTTest, confint
 
-using ..Abstract: StatisticalFeatureSet
+using ..Abstract: MeasureSet
 
 """
     StatisticalFeatureSet
@@ -31,7 +31,7 @@ A structured type that captures a broad range of statistical features from a giv
 # Constructors
 This type can be constructed from both vector and tuple data inputs.
 """
-Base.@kwdef struct BasicStatisticalFeatureSet <: StatisticalFeatureSet
+Base.@kwdef struct BasicStatisticalMeasureSet <: MeasureSet
     sum::Float64 = 0.0
     upper_confidence::Float64 = 0.0
     mean::Float64 = 0.0
@@ -48,17 +48,17 @@ Base.@kwdef struct BasicStatisticalFeatureSet <: StatisticalFeatureSet
     mode::Real = 0.0
 end
 
-function BasicStatisticalFeatureSet(vec::Vector{<:Real}, n_round::Int=2)
+function BasicStatisticalMeasureSet(vec::Vector{<:Real}, n_round::Int=2)
     println(vec)
     if isempty(vec) || length(vec) == 1
-        return BasicStatisticalFeatureSet()
+        return BasicStatisticalMeasureSet()
     end
 
     quantiles = nquantile(vec, 4)
     loconf, hiconf = confint(OneSampleTTest(vec))
 
     # Use the round function on each feature to round to the specified number of digits
-    return BasicStatisticalFeatureSet(
+    return BasicStatisticalMeasureSet(
         sum = round(sum(vec), digits = n_round),
         lower_confidence = round(loconf, digits = n_round),
         mean = round(mean(vec), digits = n_round),
@@ -89,10 +89,10 @@ Extracts specified statistical features from a `StatisticalFeatureSet` object.
 - A dictionary mapping feature names (as strings) to their values.
 
 # Throws
-- Throws an `ArgumentError` if any requested feature is not a real number in the `BasicStatisticalFeatureSet` object.
+- Throws an `ArgumentError` if any requested feature is not a real number in the `BasicStatisticalMeasureSet` object.
 """
 function extract_stat_features(
-    stat_features::StatisticalFeatureSet, features::Vector{Symbol}
+    stat_features::BasicStatisticalMeasureSet, features::Vector{Symbol}
 )
     feature_dict = Dict{String, Float64}()
     for feature in features
@@ -100,7 +100,7 @@ function extract_stat_features(
         if isa(val, Real)  # Ensure the value is a real number (Float64 or another subtype)
             feature_dict[string(feature)] = Float64(val)
         else
-            throw(ArgumentError("Requested feature $feature is not a Real number in the BasicStatisticalFeatureSetet object."))
+            throw(ArgumentError("Requested feature $feature is not a Real number in the BasicStatisticalMeasureSetet object."))
         end
     end
     return feature_dict

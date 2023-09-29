@@ -4,19 +4,19 @@ export BasicDomainReport, BasicDomainReporter
 
 using ..Abstract: DomainReport, DomainReporter, Metric, Observation
 
-import ..Abstract: create_report
+import ...Interfaces: create_report
 
 struct BasicDomainReport{
-    ENV <: EnvironmentMetric, DOM <: DomainMetric, DATA <: Any, STAT <: StatisticalFeatureSet
+    O <: ObservationMetric, DOM <: DomainMetric, DATA <: Any, S <: StatisticalFeatureSet
 } <: DomainReport
     gen::Int
     to_print::Bool
     to_save::Bool
     domain_id::String
-    env_metric::ENV
+    observation_metric::O
     domain_metric::DOM
     data::DATA
-    stats::STAT
+    stats::S
 end
 
 function Base.show(io::IO, report::BasicDomainReport{Any})
@@ -30,8 +30,9 @@ end
 
 Base.@kwdef struct BasicDomainReporter{
     O <: ObservationMetric, D <: DomainMetric
-} <: DomainReporter{O, R}
-    observation_metric::O
+} <: DomainReporter{D}
+    domain_ids::Vector{String}
+    observation_metrics::Vector{O}
     domain_metric::D
     print_interval::Int = 1
     save_interval::Int = 0
@@ -41,11 +42,11 @@ Base.@kwdef struct BasicDomainReporter{
 end
 
 function create_report(
-    reporter::BasicDomainReporter{M1, M2},
+    reporter::BasicDomainReporter{O, D},
     gen::Int,
     domain_id::String,
     observations::Vector{Observation}
-) where {M1 <: Metric, M2 <: Metric}
+) where {O <: ObservationMetric, D <: DomainMetric}
     to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
     to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
     get_observations = observation -> 

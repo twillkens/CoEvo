@@ -25,16 +25,16 @@ in a particular generation of an evolutionary algorithm.
 - `print_features::Vector{Symbol}`: Features to be printed.
 - `save_features::Vector{Symbol}`: Features to be saved.
 """
-struct BasicSpeciesReport{M <: Metric} <: SpeciesReport{M}
+struct BasicSpeciesReport{MET <: Metric, MEA <: MeasurementSet} <: SpeciesReport{M}
     gen::Int
     to_print::Bool
     to_save::Bool
     species_id::String
-    cohort::String
-    metric::String
-    stat_features::StatisticalFeatureSet
-    print_features::Vector{Symbol}
-    save_features::Vector{Symbol}
+    cohort::Strine
+    metric::MET
+    measure_set::MEA
+    print_measures::Vector{Symbol}
+    save_measures::Vector{Symbol}
 end
 
 # Custom display for BasicSpeciesReport
@@ -45,9 +45,9 @@ function Base.show(io::IO, report::BasicSpeciesReport)
     println(io, "Cohort: $(report.cohort)")
     println(io, "Metric: $(report.metric)")
     
-    for feature in report.print_features
-        val = getfield(report.stat_features, feature)
-        println(io, "    $feature: $val")
+    for measurement in report.print_measures
+        value = getfield(report.measurement_set, measurement)
+        println(io, "    $measurement: $value")
     end
 end
 
@@ -56,6 +56,7 @@ Base.@kwdef struct BasicSpeciesReporter{M <: Metric} <: SpeciesReporter{M}
     print_interval::Int = 1
     save_interval::Int = 0
     n_round::Int = 2
+    to_check::Vector{Pair{String, String}} = Vector{Pair{String, String}}[]
     print_features::Vector{Symbol} = [:mean, :std, :minimum, :maximum]
     save_features::Vector{Symbol} = [:mean, :std, :minimum, :maximum]
 end
@@ -79,27 +80,36 @@ Generate a report based on provided cohort metrics for a specified generation, s
 # Returns
 - A `BasicSpeciesReport` instance containing the generated report details.
 """
-function create_report(
-    reporter::BasicSpeciesReporter,
+function create_reports(
+    reporter::BasicSpeciesReporter{<:SpeciesMetric},
     gen::Int,
-    species_id::String,
-    cohort::String,
-    values::Vector{Float64}
+    to_print::Bool,
+    to_save::Bool,
+    ::Vector{Observation},
+    species_evalutions::Dict{String, Dict{String, Dict{<:Individual, <:Evaluation}}}
 )
-    to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
-    to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
-    stat_features = StatisticalFeatureSet(values, reporter.n_round)
-    report = BasicSpeciesReport(
-        gen,
-        to_print,
-        to_save,
-        species_id, 
-        cohort, 
-        reporter.metric.name,
-        stat_features,
-        reporter.print_features,
-        reporter.save_features
-    )
-    return report
+    reports = Report[]
+    if length(reporter.to_check) > 0
+        species_evalutions = filter_species_evaluations(species_evalutions, reporter.to_check)
+    end
+    for (species_id, cohort_id_indiv_evals) in species_id_evalutions
+        for (cohort_id, indiv_evals) in cohort_id_indiv_evals
+            measure_set = measure(reporter, indiv_evals)
+            report = BasicSpeciesReport(
+                gen,
+                to_print,
+                to_save,
+                species_id,
+                cohort_id,
+                reporter.metric,
+                measure_set,
+                reporter.print_measures,
+                reporter.save_measures
+            )
+            push!(reports, report)
+        end
+    end
+
+    return reports
 end
 

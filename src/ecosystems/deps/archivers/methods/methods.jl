@@ -66,33 +66,11 @@ end
 Processes the given `BasicSpeciesReport` using an `Archiver`. If `to_print` is set to true 
 for the report, then the report is displayed.
 """
-function archive_report(::Archiver, report::BasicSpeciesReport)
+function archive_report!(archiver::Archiver, report::Report)
     if report.to_print
         Base.show(report)
     end
-end
-"""
-    BasicSpeciesReporter{M <: Metric} <: Reporter
-
-Structure to handle reporting of metrics specific to cohorts of individuals.
-
-# Fields
-- `metric::M`: The metric to be reported.
-- `print_interval::Int`: Interval at which reports should be printed. 0 means no printing.
-- `save_interval::Int`: Interval at which reports should be saved. 0 means no saving.
-- `n_round::Int`: Precision for rounding statistical values.
-- `print_features::Vector{Symbol}`: Statistical features to print.
-- `save_features::Vector{Symbol}`: Statistical features to save.
-
-# Usage
-This reporter can handle different types of metrics and produce reports accordingly.
-"""
-# Define how an Archiver handles a RuntimeReport.
-function archive_report(::Archiver, report::RuntimeReport)
-    if report.to_print
-        println("-----------------------------------------------------------")
-        println("Generation: $report.gen")
-        println("Evaluation time: $(report.eval_time)")
-        println("Reproduction time: $(report.reproduce_time)")
+    if report.to_save
+        archive_report!(archiver, report)
     end
 end

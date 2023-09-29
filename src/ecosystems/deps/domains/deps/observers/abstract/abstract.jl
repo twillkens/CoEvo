@@ -1,10 +1,10 @@
 module Abstract
 
-export Observation, Observer, ObservationMetric
+export Observation, Observer, ObservationMetric, Environment
 
 using ....Ecosystems.Metrics.Observation.Abstract: ObservationMetric
 
-using ...Domains.Abstract: Domain
+using ...Environments.Abstract: Environment
 
 abstract type Observation end
 

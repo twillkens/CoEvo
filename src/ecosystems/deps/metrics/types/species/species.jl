@@ -1,11 +1,17 @@
 module Species
 
-export Abstract, Types
+export Abstract, Genotype, andividual, Evaluation
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
 
-include("types/types.jl")
-using .Types: Types
+include("types/genotype/genotype.jl")
+using .Types: Genotype
+
+include("types/individual/individual.jl")
+using .Types: Individual
+
+include("types/evaluation/evaluation.jl")
+using .Types: Evaluation
 
 end

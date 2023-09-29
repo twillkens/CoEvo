@@ -1,3 +1,5 @@
+module Runtime
+
 using .Abstract: EcosystemReporter, EcosystemReport
 
 """
@@ -42,6 +44,13 @@ Base.@kwdef struct RuntimeReporter <: EcosystemReporter
     n_round::Int = 6
 end
 
+function Base.show(io::IO, report::RuntimeReport)
+    println(io, "-----------------------------------------------------------")
+    println(io, "Generation: $report.gen")
+    println(io, "Evaluation time: $(report.eval_time)")
+    println(io, "Reproduction time: $(report.reproduce_time)")
+end
+
 # Define how a RuntimeReporter produces a report.
 function create_report(
     reporter::RuntimeReporter, 
@@ -54,9 +63,13 @@ function create_report(
     to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
     report = RuntimeReport(
         gen, 
+        eco_id,
         to_print, 
         to_save, 
         round(eval_time, digits = reporter.n_round), 
-        round(reproduce_time, digits = reporter.n_round))
+        round(reproduce_time, digits = reporter.n_round)
+    )
     return report 
+end
+
 end

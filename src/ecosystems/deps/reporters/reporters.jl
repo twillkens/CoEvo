@@ -21,11 +21,25 @@ The module exports: `RuntimeReport` and `RuntimeReporter`.
 """
 module Reporters
 
-export RuntimeReport, RuntimeReporter
+export Abstract, Species, Domain, Ecosystem
 
 include("abstract/abstract.jl")
+using .Abstract: Abstract
 
-include("types/runtime.jl")
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
+
+include("types/species/species.jl")
+using .Species: Species
+
+include("types/domain/domain.jl")
+using .Domain: Domain
+
+include("types/ecosystem/ecosystem.jl")
+using .Ecosystem: Ecosystem
+
+include("methods/methods.jl")
+using .Methods
 
 end
 

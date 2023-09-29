@@ -1,67 +1,23 @@
-using DataStructures: OrderedDict
+module Methods
 
-using ...Species.Individuals.Abstract: Individual
-using ...Species.Evaluators.Abstract: Evaluation
-using .Metrics.Abstract: EvaluationMetric, GenotypeMetric
-import .Abstract: SpeciesReporter, create_report
+import ..Interfaces: create_reports
 
-"""
-    function(reporter::BasicSpeciesReporter{<:EvaluationMetric})(
-        gen::Int,
-        species_id::String,
-        cohort::String,
-        indiv_evals::OrderedDict{<:Individual, <:Evaluation}
-    )
-
-Specialized function to generate a report when the metric is of type `EvaluationMetric`.
-
-# Arguments
-- `gen::Int`: Generation number.
-- `species_id::String`: ID of the species.
-- `cohort::String`: Name/ID of the cohort.
-- `indiv_evals::OrderedDict{<:Individual, <:Evaluation}`: Ordered dictionary of individuals and their evaluations.
-
-# Returns
-- A `BasicSpeciesReport` instance containing the generated report details.
-"""
-function create_report(
-    reporter::SpeciesReporter{<:EvaluationMetric},
+function create_reports(
+    ::Reporter,
     gen::Int,
-    species_id::String,
-    cohort::String,
-    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
+    observations::Vector{Observation},
+    species_evaluations::Dict{String, Dict{String, Dict{<:Individual, <:Evaluation}}}
 )
-    report = create_report(reporter, gen, species_id, cohort, collect(values(indiv_evals)))
-    return report
+    to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
+    to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
+    create_reports(
+        reporter,
+        gen,
+        to_print,
+        to_save,
+        observations,
+        species_evaluations
+    )
 end
 
-"""
-    function(reporter::BasicSpeciesReporter{<:GenotypeMetric})(
-        gen::Int,
-        species_id::String,
-        cohort::String,
-        indiv_evals::OrderedDict{<:Individual, <:Evaluation}
-    )
-
-Specialized function to generate a report when the metric is of type `GenotypeMetric`.
-
-# Arguments
-- `gen::Int`: Generation number.
-- `species_id::String`: ID of the species.
-- `cohort::String`: Name/ID of the cohort.
-- `indiv_evals::OrderedDict{<:Individual, <:Evaluation}`: Ordered dictionary of individuals and their evaluations.
-
-# Returns
-- A `BasicSpeciesReport` instance containing the generated report details.
-"""
-function create_report(
-    reporter::SpeciesReporter{<:GenotypeMetric},
-    gen::Int,
-    species_id::String,
-    cohort::String,
-    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
-)
-    genotypes = [indiv.geno for indiv in keys(indiv_evals)]
-    report = create_report(reporter, gen, species_id, cohort, genotypes)
-    return report
 end

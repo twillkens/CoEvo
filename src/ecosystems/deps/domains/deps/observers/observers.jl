@@ -37,5 +37,6 @@ include("types/basic.jl")
 using .Basic: Basic
 
 include("methods/methods.jl")
+using .Methods
 
 end

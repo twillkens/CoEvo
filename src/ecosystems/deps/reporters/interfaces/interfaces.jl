@@ -4,26 +4,14 @@ export create_report
 
 using ..Abstract: SpeciesReporter
 
-function create_report(
-    reporter::SpeciesReporter,
+function create_reports(
+    reporter::Reporter,
     gen::Int,
     to_print::Bool,
     to_save::Bool,
-    species_id::String,
-    cohort::String,
-    values::Vector{Float64}
+    observations::Vector{Observation},
+    species_evaluations::Dict{String, Dict{String, Dict{Individual, Evaluation}}}
 )
-    throw(ErrorException("create_report not implemented for $reporter"))
-end
-
-function create_report(
-    reporter::DomainReporter,
-    gen::Int,
-    to_print::Bool,
-    to_save::Bool,
-    domain_id::String,
-    observations::Vector{Observation}
-)::DomainReport
     throw(ErrorException("create_report not implemented for $reporter"))
 end
 

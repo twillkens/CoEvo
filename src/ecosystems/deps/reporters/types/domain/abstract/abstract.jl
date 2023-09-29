@@ -1,17 +1,15 @@
-
 module Abstract
 
-export DomainReport, DomainReporter, DomainMetric, Report, Reporter, Metric
-export create_report
+export DomainReport, DomainReporter, DomainMetric
 
-using .....Ecosystems.Abstract: Report, Reporter, Metric
-using ...Observers.Abstract: Observation
+using ....Ecosystems.Abstract: Metric
+using ...Abstract: Report, Reporter
 
-abstract type DomianMetric <: Metric end
+abstract type DomainMetric <: Metric end
 
-abstract type DomainReport{M <: DomainMetric} <: Report end
+abstract type DomainReport{D <: DomainMetric} <: Report end
 
-abstract type DomainReporter{M <: DomainMetric} <: Reporter end
+abstract type DomainReporter{D <: DomainMetric} <: Reporter end
 
 
 end

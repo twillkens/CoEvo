@@ -2,10 +2,10 @@ module Abstract
 
 export SpeciesReport, SpeciesReporter
 
-using ..Abstract: Metric, Reporter, Report
+using ...Abstract: Metric, Reporter, Report
 
-abstract type SpeciesReport{M <: Metric} <: Report end
+abstract type SpeciesReport{M <: SpeciesMetric} <: Report end
 
-abstract type SpeciesReporter{M <: Metric} <: Reporter end
+abstract type SpeciesReporter{M <: SpeciesMetric} <: Reporter end
 
 end

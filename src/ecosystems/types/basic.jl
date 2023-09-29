@@ -7,6 +7,7 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 
+using ..Reporters.Ecosystem.Runtime: RuntimeReporter
 using ..Abstract: Ecosystem, EcosystemCreator, Report, Reporter
 using ..Utilities.Counters: Counter
 using ..Species.Abstract: AbstractSpecies, SpeciesCreator
@@ -28,7 +29,6 @@ function Base.show(io::IO, eco::BasicEcosystem)
     print(io, "Eco(id: ", eco.id, ", species: ", keys(eco.species), ")")
 end
 
-
 Base.@kwdef struct BasicEcosystemCreator{
     S <: SpeciesCreator, 
     J <: JobCreator, 
@@ -42,10 +42,11 @@ Base.@kwdef struct BasicEcosystemCreator{
     species_creators::Dict{String, S}
     job_creator::J
     performer::P
+    reporters::Vector{R}
     archiver::A
     indiv_id_counter::Counter
     gene_id_counter::Counter
-    runtime_reporter::R
+    runtime_reporter::RuntimeReporter = RuntimeReporter()
 end
 
 function show(io::IO, c::BasicEcosystemCreator)
@@ -66,9 +67,32 @@ function create_ecosystem(eco_creator::BasicEcosystemCreator)
         ) 
         for (species_id, species_creator) in eco_creator.species_creators
     )
+    eco = BasicEcosystem(eco_creator.id, all_species)
 
-    return BasicEcosystem(eco_creator.id, all_species)
+    return eco
 end
+
+
+function create_reports(
+    gen::Int, 
+    reporters::Vector{<:Reporter}, 
+    species_evaluations::Dict{String, Dict{String, Dict{<:Individual, <:Evaluation}}},
+    observations::Vector{<:Observation}
+)
+    reports = [
+        create_report(reporter, gen, observations, species_evaluations) 
+        for reporter in reporters
+    ]
+
+    return reports
+end
+
+function archive_reports!(archivers::Vector{<:Archiver}, reports::Vector{<:Report})
+    [archive_report!(archiver, report) for archiver in archivers for report in reports]
+
+    return nothing
+end
+
 
 function create_ecosystem(
     gen::Int, 
@@ -78,16 +102,16 @@ function create_ecosystem(
     reports::Vector{Report}
 )
     observations = extract_observations(results)
-    
-    append!(reports, process_domain_reports(gen, eco_creator, observations))
-    
     species_evaluations = evaluate_species(eco_creator, eco, results)
-    append!(reports, generate_species_reports(gen, eco_creator, species_evaluations))
-    
-    archive_reports!(eco_creator, reports)
+    generation_reports = create_reports(
+        gen, eco_creator.reporters, observations, species_evaluations
+    )
+    append!(reports, generation_reports)
+    archive_reports!(eco_creator.archivers, reports)
     all_new_species = construct_new_species(eco_creator, species_evaluations)
+    new_eco = BasicEcosystem(eco_creator.id, all_new_species)
     
-    return BasicEcosystem(eco_creator.id, all_new_species)
+    return new_eco
 end
 
 function extract_observations(results::Vector{<:Result})
@@ -178,6 +202,8 @@ end
 
 function archive_reports!(eco_creator::BasicEcosystemCreator, reports)
     [archive_report!(eco_creator.archiver, report) for report in reports]
+
+    return nothing
 end
 
 function construct_new_species(eco_creator::BasicEcosystemCreator, evaluations)
@@ -223,6 +249,7 @@ function evolve!(
         eco = create_ecosystem(eco_creator, gen, eco, results, reports)
         last_reproduce_time = time() - last_reproduce_time_start
     end
+
     return eco
 end
 
