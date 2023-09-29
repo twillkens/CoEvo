@@ -1,6 +1,6 @@
 module Ecosystems
 
-export Abstract, Utilities, Reporters, Species, Topologies, Jobs, Performers, Archivers
+export Abstract, Utilities, Reporters, Species, Domains, Jobs, Performers, Archivers
 export Basic
 
 include("abstract/abstract.jl")
@@ -9,14 +9,17 @@ using .Abstract: Abstract
 include("utilities/utilities.jl")
 using .Utilities: Utilities
 
+include("deps/metrics/metrics.jl")
+using .Metrics: Metrics
+
 include("deps/reporters/reporters.jl")
 using .Reporters: Reporters
 
 include("deps/species/species.jl")
 using .Species: Species
 
-inlude("deps/topologies/topologies.jl")
-using .Topologies: Topologies
+inlude("deps/domains/domains.jl")
+using .Domains: Domains
 
 include("deps/jobs/jobs.jl")
 using .Jobs: Jobs

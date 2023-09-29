@@ -21,15 +21,15 @@ Defines a job that orchestrates a set of interactions.
 - `pheno_dict::Dict{Int, T}`: Dictionary mapping individual IDs to their phenotypes.
 - `recipes::Vector{InteractionRecipe}`: Interaction recipes to be executed in this job.
 """
-struct BasicJob{T <: Topology, P <: Phenotype, M <: Match} <: Job
-    topologies::OrderedDict{String, T}
+struct BasicJob{T <: Domain, P <: Phenotype, M <: Match} <: Job
+    domains::OrderedDict{String, T}
     phenotypes::Dict{Int, P}
     matches::Vector{M}
 end
 
 
-Base.@kwdef struct BasicJobCreator{T <: Topology} <: JobCreator
-    topologies::OrderedDict{String, T} 
+Base.@kwdef struct BasicJobCreator{T <: Domain} <: JobCreator
+    domains::OrderedDict{String, T} 
     n_workers::Int = 1
 end
 
@@ -107,14 +107,14 @@ Results from all interactions are aggregated and returned.
 function create_jobs(job_creator::BasicJobCreator, eco::Ecosystem)
     matches = vcat(
         [
-            make_matches(topology.matchmaker, eco) 
-            for topology in values(job_creator.topologies)
+            make_matches(domain.matchmaker, eco) 
+            for domain in values(job_creator.domains)
         ]...
     )
     match_partitions = make_partitions(matches, job_creator.n_workers)
     pheno_dict = get_pheno_dict(eco)
     jobs = [
-        BasicJob(job_creator.topologies, pheno_dict, match_partition)
+        BasicJob(job_creator.domains, pheno_dict, match_partition)
         for match_partition in match_partitions
     ]
     return jobs

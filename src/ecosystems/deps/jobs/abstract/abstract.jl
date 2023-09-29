@@ -8,6 +8,6 @@ abstract type JobCreator end
 
 using ....Ecosystems.Abstract: Ecosystem
 using ....Ecosystems.Species.Individuals.Phenotypes.Abstract: Phenotype
-using ....Ecosystems.Topologies.Abstract: Topology
+using ....Ecosystems.Domains.Abstract: Domain
 
 end

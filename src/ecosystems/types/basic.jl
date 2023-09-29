@@ -14,7 +14,7 @@ using ..Species.Individuals.Abstract: Individual, IndividualCreator
 using ..Jobs.Abstract: JobCreator, Result
 using ..Performers.Abstract: Performer
 using ..Performers.Results.Abstract: Result
-using ..Topologies.Observers.Abstract: Observation
+using ..Domains.Observers.Abstract: Observation
 using ..Reporters: RuntimeReport, RuntimeReporter
 using ..Archivers.Abstract: Archiver
 
@@ -75,17 +75,16 @@ function create_ecosystem(
     eco_creator::BasicEcosystemCreator,
     eco::Ecosystem, 
     results::Vector{<:Result}, 
-    runtime_report::Report
+    reports::Vector{Report}
 )
     observations = extract_observations(results)
-    reports = Report[runtime_report]
     
     append!(reports, process_domain_reports(gen, eco_creator, observations))
     
     species_evaluations = evaluate_species(eco_creator, eco, results)
     append!(reports, generate_species_reports(gen, eco_creator, species_evaluations))
     
-    archive_reports(eco_creator, reports)
+    archive_reports!(eco_creator, reports)
     all_new_species = construct_new_species(eco_creator, species_evaluations)
     
     return BasicEcosystem(eco_creator.id, all_new_species)
@@ -95,11 +94,13 @@ function extract_observations(results::Vector{<:Result})
     return [observation for result in results for observation in result.observations]
 end
 
-function process_domain_reports(gen::Int, eco_creator::BasicEcosystemCreator, observations)
+function process_domain_reports(
+    gen::Int, eco_creator::BasicEcosystemCreator, observations::Vector{<:Observation}
+)
     reports = Report[]
-    for (domain_id, scheme) in eco_creator.job_creator.domain_creators
+    for (domain_id, domain) in eco_creator.job_creator.domains
         filtered_observations = filter(obs -> obs.domain_id == domain_id, observations)
-        for reporter in scheme.reporters
+        for reporter in domain.reporters
             push!(reports, reporter(gen, domain_id, filtered_observations))
         end
     end
@@ -128,10 +129,10 @@ function get_outcome_sets(results::Vector{<:Result})
 
         # Use `get!` to simplify dictionary insertion. 
         # If the key doesn't exist, a new dictionary is initialized and the outcome is recorded.
-        get!(outcomes, indiv_id1, Dict{Int, Float64}())[indiv_id2] = outcome1
-        get!(outcomes, indiv_id2, Dict{Int, Float64}())[indiv_id1] = outcome2
+        get!(outcome_sets, indiv_id1, Dict{Int, Float64}())[indiv_id2] = outcome1
+        get!(outcome_sets, indiv_id2, Dict{Int, Float64}())[indiv_id1] = outcome2
     end
-    return outcomes
+    return outcome_sets
 end
 
 function evaluate_species(
@@ -139,16 +140,18 @@ function evaluate_species(
     eco::Ecosystem, 
     results::Vector{<:Result}
 )
-    evaluations = Dict{String, Dict{String, Evaluation}}()
+    evaluations = Dict{String, Dict{String, Dict{<:Individual, <:Evaluation}}}()
     outcome_sets = get_outcome_sets(results)
     
     for (species_id, species) in eco.species
         species_creator = eco_creator.species_creators[species_id]
         evaluations[species_id] = Dict(
-            "Population" => species_creator.indiv_creator.eval_creator(
+            "Population" => create_evaluations(
+                species_creator.eval_creator,
                 Dict(indiv => outcome_sets[indiv.id] for indiv in values(species.pop))
             ),
-            "Children" => species_creator.indiv_creator.eval_creator(
+            "Children" => create_evaluations(
+                species_creator.eval_creator,
                 Dict(indiv => outcome_sets[indiv.id] for indiv in values(species.children))
             )
         )
@@ -173,8 +176,8 @@ function generate_species_reports(gen::Int, eco_creator::BasicEcosystemCreator, 
     return reports
 end
 
-function archive_reports(eco_creator::BasicEcosystemCreator, reports)
-    [eco_creator.archiver(report) for report in reports]
+function archive_reports!(eco_creator::BasicEcosystemCreator, reports)
+    [archive_report!(eco_creator.archiver, report) for report in reports]
 end
 
 function construct_new_species(eco_creator::BasicEcosystemCreator, evaluations)
@@ -192,8 +195,10 @@ function construct_new_species(eco_creator::BasicEcosystemCreator, evaluations)
         )
         push!(all_new_species, species_id => new_species)
     end
+
+    all_new_species = Dict(all_new_species)
     
-    return Dict(all_new_species)
+    return all_new_species
 end
 
 
@@ -208,15 +213,17 @@ function evolve!(
         eval_time_start = time()
         jobs = create_jobs(eco_creator.job_creator, eco)
         results = perform(eco_creator.job_creator.job_performer, jobs)
-        observations = eco_creator.job_creator(eco)
         eval_time = time() - eval_time_start
-        runtime_report = eco_creator.runtime_reporter(gen, eval_time, last_reproduce_time)
+        runtime_report = create_report(
+            eco_creator.runtime_reporter, gen, eval_time, last_reproduce_time
+        )
+        reports = Report[runtime_report]
 
         last_reproduce_time_start = time()
-        eco = create_ecosystem(gen, eco_creator, eco, observations, runtime_report)
+        eco = create_ecosystem(eco_creator, gen, eco, results, reports)
         last_reproduce_time = time() - last_reproduce_time_start
     end
-    eco
+    return eco
 end
 
 end

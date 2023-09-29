@@ -20,7 +20,7 @@ Provides tools and configurations for defining and managing species in a coevolu
 """
 module Species
 
-export Abstract, Interfaces, Individuals, Evaluators, Reproducers, Reporters, Basic
+export Abstract, Interfaces, Individuals, Evaluators, Reproducers, Basic
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -34,9 +34,6 @@ using .Evaluators: Evaluators
 
 include("deps/reproducers/reproducers.jl")
 using .Reproducers: Reproducers
-
-include("deps/reporters/reporters.jl")
-using .Reporters: Reporters
 
 include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces

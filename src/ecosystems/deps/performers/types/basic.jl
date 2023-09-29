@@ -41,12 +41,12 @@ returns a list of their results.
 """
 function perform(::BasicPerformer, job::Job)
     domains = Dict(
-        topology.id => create_domain(scheme) 
-        for topology in job.topologies
+        domain.id => create_domain(domain) 
+        for domain in job.domains
     )
     observers = Dict(
-        topology.id => topology.observers
-        for topology in job.topologies
+        domain.id => domain.observers
+        for domain in job.domains
     )
     results = Result[]
     for match in job.matches

@@ -13,19 +13,11 @@ export create_evaluation, sort_indiv_evals
 abstract type Evaluation end
 abstract type Evaluator end
 abstract type Criterion end
-Evaluation
 
 using DataStructures: OrderedDict
 using ....Species.Individuals.Abstract: Individual
 
 
-function create_evaluation(
-    eval_creator::Evaluator,
-    all_indiv_outcomes::Dict{Individual, Dict{Int, Float64}}
-)
-    throw(ErrorException(
-        "`create_evaluation` not implemented for $eval_creator and $all_indiv_outcomes."))
-end
 
 """
     sort_indiv_evals(sort_criterion::C, indiv_evals::OrderedDict{<:Individual, E})
