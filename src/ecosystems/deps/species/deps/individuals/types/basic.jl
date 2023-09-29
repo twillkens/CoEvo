@@ -1,10 +1,14 @@
+module Basic
+
 export BasicIndividual, BasicIndividualCreator
 
-using ...Ecosystems.Utilities.Counters: Counter
-using .Abstract: Genotype, GenotypeCreator, Phenotype, PhenotypeCreator
-using .Abstract: Individual, IndividualCreator, Mutator
+using ....Ecosystems.Utilities.Counters: Counter
+using ...Individuals.Genotypes.Abstract: Genotype, GenotypeCreator
+using ...Individuals.Phenotypes.Abstract: Phenotype, PhenotypeCreator
+using ...Individuals.Mutators.Abstract: Mutator
+using ..Abstract: Individual, IndividualCreator
 
-import .Abstract: create_individual
+import ..Interfaces: create_individual
 
 """
     BasicIndividual{G <: Genotype}
@@ -38,6 +42,10 @@ Base.@kwdef struct BasicIndividualCreator{
     mutators::Vector{M}
 end
 
+function BasicIndividualCreator(geno_creator::G, pheno_creator::P) where {G <: GenotypeCreator, P <: PhenotypeCreator}
+    BasicIndividualCreator(geno_creator, pheno_creator, Mutator[])
+end
+
 """
     (creator::BasicIndividualCreator)(id::Int, geno::Genotype, parent_ids::Vector{Int})
 
@@ -48,4 +56,6 @@ function create_individual(
     ::BasicIndividualCreator, id::Int, geno::Genotype, parent_ids::Vector{Int}
 )
     return BasicIndividual(id, geno, parent_ids)
+end
+
 end

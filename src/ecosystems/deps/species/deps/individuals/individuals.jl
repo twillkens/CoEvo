@@ -6,20 +6,22 @@ in a co-evolutionary system.
 """
 module Individuals
 
-export Genotypes, Phenotypes, Mutator, Abstract
-export BasicIndividual, BasicIndividualCreator
+export Genotypes, Phenotypes, Mutator, Abstract, Interfaces
 
 include("abstract/abstract.jl")
-using .Abstract
+using .Abstract: Abstract
 
 include("deps/genotypes/genotypes.jl")
-using .Genotypes
+using .Genotypes: Genotypes
 
 include("deps/phenotypes/phenotypes.jl")
-using .Phenotypes
+using .Phenotypes: Phenotypes
 
 include("deps/mutators/mutators.jl")
-using .Mutators
+using .Mutators: Mutators
+
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
 
 include("types/basic.jl")
 

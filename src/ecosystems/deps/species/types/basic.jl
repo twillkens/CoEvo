@@ -1,15 +1,18 @@
+module Basic
+
 export BasicSpecies, BasicSpeciesCreator
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ..Ecosystems.Abstract: Reporter
-using ..Ecosystems.Utilities.Counters: Counter, next!
-using .Abstract: AbstractSpecies, SpeciesCreator
-using .Individuals.Abstract: IndividualCreator, Individual, GenotypeCreator
-using .Individuals.Phenotypes.Abstract: PhenotypeCreator
-using .Evaluators.Abstract: Evaluator, Evaluation
-using .Reproducers.Abstract: Reproducer
+using ...Ecosystems.Abstract: Reporter
+using ...Ecosystems.Utilities.Counters: Counter, next!
+using ..Abstract: AbstractSpecies, SpeciesCreator
+using ..Individuals.Abstract: IndividualCreator, Individual
+using ..Individuals.Genotypes.Abstract: GenotypeCreator
+using ..Individuals.Phenotypes.Abstract: PhenotypeCreator
+using ..Evaluators.Abstract: Evaluator, Evaluation
+using ..Reproducers.Abstract: Reproducer
 
 
 """
@@ -159,4 +162,6 @@ function create_species(
     new_children = OrderedDict(indiv.id => indiv for indiv in new_children)
     new_species = BasicSpecies(species_creator.id, species_creator.pheno_creator, new_pop, new_children)
     return new_species
+end
+
 end

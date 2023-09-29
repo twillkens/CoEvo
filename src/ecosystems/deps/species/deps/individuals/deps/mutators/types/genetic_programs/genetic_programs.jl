@@ -1,9 +1,9 @@
 
 module GeneticPrograms
 
-export BasicGeneticProgramMutator
+export Basic
 
 include("types/basic.jl")
-include("methods/methods.jl")
+using .Basic: Basic
 
 end

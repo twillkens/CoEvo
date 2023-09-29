@@ -1,18 +1,13 @@
 module Abstract
 
-export Job, JobCreator, Result, perform
+export Job, JobCreator, Ecosystem
 
 abstract type Job end
 
 abstract type JobCreator end 
 
-abstract type Result end
-
-function perform(::Job)::Vector{Result}
-    throw(ErrorException(
-        "`perform` not implemented for job $J"
-        )
-    )
-end
+using ....Ecosystems.Abstract: Ecosystem
+using ....Ecosystems.Species.Individuals.Phenotypes.Abstract: Phenotype
+using ....Ecosystems.Topologies.Abstract: Topology
 
 end

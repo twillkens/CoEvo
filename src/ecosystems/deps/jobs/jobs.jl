@@ -1,29 +1,14 @@
-"""
-    Jobs
+module Creators
 
-The `Jobs` module focuses on handling and configuring interaction jobs. It incorporates
-various utilities and domain-specific functionalities, as well as interaction types to
-facilitate job processing in the ecosystem.
+export Abstract, Interfaces, Basic
 
-# Structure
-- `BasicJob`: Represents the core structure of an interaction job.
-- `InteractionJobConfiguration`: Provides configuration options for `BasicJob`.
-- Utility functions: Found in "utilities/utilities.jl".
-- Domain-specific functionalities: Resourced from "deps/domains/domains.jl".
-- Interaction types: Defined within "types/interaction.jl".
-"""
-module Jobs
-
-# Exports
-export BasicJob, BasicJobCreator, Abstract
-
-# Inclusion of external scripts
 include("abstract/abstract.jl")
 using .Abstract: Abstract
 
-include("utilities/utilities.jl")
-include("deps/interactions.jl")
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
 
 include("types/basic.jl")
+using .Basic: Basic
 
 end

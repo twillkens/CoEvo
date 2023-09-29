@@ -13,15 +13,18 @@ The module makes use of external dependencies and includes files for:
 """
 module Reporters
 
-export BasicSpeciesReporter, Abstract, Metrics
-
-include("deps/metrics.jl")
-using .Metrics
+export BasicSpeciesReport, BasicSpeciesReporter, Abstract, Metrics, Interfaces
 
 include("abstract/abstract.jl")
-using .Abstract
+using .Abstract: Abstract
 
-include("types/basic.jl")
+include("deps/metrics.jl")
+using .Metrics: Metrics
+
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
+
+include("types/basic/basic.jl")
 
 include("methods/methods.jl")
 

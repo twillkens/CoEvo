@@ -1,9 +1,11 @@
+module Default
+
 export DefaultArchiver
 
 using DataStructures: OrderedDict
 using JLD2: File, Group, jldopen
 
-using .Utilities: get_or_make_group!
+using ..Utilities: get_or_make_group!
 
 using ..Ecosystems.Species.Individuals: Individuals
 using ..Ecosystems.Species.Evaluators.Abstract: Evaluation
@@ -32,15 +34,6 @@ end
 function save_individual!(
     archiver::DefaultArchiver, indiv_group::Group, indiv::BasicIndividual
 )
-    indiv_group["parent_id"] = indiv.parent_id
-    geno_group = Group(indiv_group, "genotype")
-    save_genotype!(archiver, geno_group, indiv.geno)
-end
-
-# Save an individual to a JLD2.Group
-function save_individual!(
-    archiver::DefaultArchiver, indiv_group::Group, indiv::BasicIndividual
-)
     indiv_group["parent_ids"] = indiv.parent_ids
     geno_group = Group(indiv_group, "geno")
     save_genotype!(archiver, geno_group, indiv.geno)
@@ -63,4 +56,6 @@ function save_individuals!(
         end
     end
     close(jld2_file)
+end
+
 end

@@ -1,3 +1,5 @@
+module Basic
+
 export BasicEcosystem, BasicEcosystemCreator
 export evolve!
 
@@ -5,14 +7,17 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 
-using .Abstract: Ecosystem, EcosystemCreator, Report, Reporter
-using .Utilities.Counters: Counter
-using .Species.Abstract: AbstractSpecies, SpeciesCreator
-using .Species.Individuals.Abstract: Individual, IndividualCreator
-using .Jobs.Abstract: JobCreator, Result
-using .Jobs.Interactions.Observers.Abstract: Observation
-using .Reporters: RuntimeReport, RuntimeReporter
-using .Archivers.Abstract: Archiver
+using ..Abstract: Ecosystem, EcosystemCreator, Report, Reporter
+using ..Utilities.Counters: Counter
+using ..Species.Abstract: AbstractSpecies, SpeciesCreator
+using ..Species.Individuals.Abstract: Individual, IndividualCreator
+using ..Jobs.Abstract: JobCreator, Result
+using ..Performers.Abstract: Performer
+using ..Performers.Results.Abstract: Result
+using ..Topologies.Observers.Abstract: Observation
+using ..Reporters: RuntimeReport, RuntimeReporter
+using ..Archivers.Abstract: Archiver
+
 
 struct BasicEcosystem{S <: AbstractSpecies} <: Ecosystem
     id::String
@@ -24,28 +29,10 @@ function Base.show(io::IO, eco::BasicEcosystem)
 end
 
 
-"""
-    struct EcoCfg{
-        S <: SpeciesCreator, 
-        J <: JobCreator, 
-        A <: Archiver
-    } <: EcosystemCreator
-
-Creator object for setting up and managing ecosystems for coevolutionary runs.
-
-# Fields:
-- `id`: Identifier for the ecosystem configuration.
-- `trial`: Trial number.
-- `rng`: Random number generator.
-- `species_creators`: List of species configurations.
-- `job_creator`: Job configuration.
-- `archiver`: Specifies how the ecosystem data is archived.
-- `indiv_id_counter`: Counter for individual IDs.
-- `gene_id_counter`: Counter for gene IDs.
-"""
 Base.@kwdef struct BasicEcosystemCreator{
     S <: SpeciesCreator, 
     J <: JobCreator, 
+    P <: Performer,
     R <: Reporter,
     A <: Archiver,
 } <: EcosystemCreator
@@ -54,6 +41,7 @@ Base.@kwdef struct BasicEcosystemCreator{
     rng::AbstractRNG
     species_creators::Dict{String, S}
     job_creator::J
+    performer::P
     archiver::A
     indiv_id_counter::Counter
     gene_id_counter::Counter
@@ -129,9 +117,9 @@ observations.
 # Returns
 - A dictionary where the primary keys are individual IDs. The value associated with each individual ID is another dictionary. In this inner dictionary, the keys are IDs of interacting partners, and the values are the outcomes of the interactions.
 """
-function get_outcomes(results::Vector{<:Result})
+function get_outcome_sets(results::Vector{<:Result})
     # Initialize a dictionary to store interaction outcomes between individuals
-    outcomes = Dict{Int, Dict{Int, Float64}}()
+    outcome_sets = Dict{Int, Dict{Int, Float64}}()
 
     for result in results 
         # Extract individual IDs and their respective outcomes from the interaction result
@@ -152,16 +140,16 @@ function evaluate_species(
     results::Vector{<:Result}
 )
     evaluations = Dict{String, Dict{String, Evaluation}}()
-    outcomes = get_outcomes(results)
+    outcome_sets = get_outcome_sets(results)
     
     for (species_id, species) in eco.species
         species_creator = eco_creator.species_creators[species_id]
         evaluations[species_id] = Dict(
             "Population" => species_creator.indiv_creator.eval_creator(
-                Dict(indiv => outcomes[indiv.id] for indiv in values(species.pop))
+                Dict(indiv => outcome_sets[indiv.id] for indiv in values(species.pop))
             ),
             "Children" => species_creator.indiv_creator.eval_creator(
-                Dict(indiv => outcomes[indiv.id] for indiv in values(species.children))
+                Dict(indiv => outcome_sets[indiv.id] for indiv in values(species.children))
             )
         )
     end
@@ -194,7 +182,8 @@ function construct_new_species(eco_creator::BasicEcosystemCreator, evaluations)
     
     for (species_id, species_eval) in evaluations
         species_creator = eco_creator.species_creators[species_id]
-        new_species = species_creator(
+        new_species = create_species(
+            species_creator,
             eco_creator.rng, 
             eco_creator.indiv_id_counter, 
             eco_creator.gene_id_counter, 
@@ -217,6 +206,8 @@ function evolve!(
     last_reproduce_time = 0.0
     for gen in 1:n_gen
         eval_time_start = time()
+        jobs = create_jobs(eco_creator.job_creator, eco)
+        results = perform(eco_creator.job_creator.job_performer, jobs)
         observations = eco_creator.job_creator(eco)
         eval_time = time() - eval_time_start
         runtime_report = eco_creator.runtime_reporter(gen, eval_time, last_reproduce_time)
@@ -226,4 +217,6 @@ function evolve!(
         last_reproduce_time = time() - last_reproduce_time_start
     end
     eco
+end
+
 end

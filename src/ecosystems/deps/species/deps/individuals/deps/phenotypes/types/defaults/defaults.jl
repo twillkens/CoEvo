@@ -7,11 +7,10 @@ and mutators that can be defined in other modules.
 """
 module Defaults
 
-export DefaultPhenotype, DefaultPhenotypeCreator, DefaultMutator
+export DefaultPhenotypeCreator
 
-using ...Individuals.Abstract: PhenotypeCreator, Mutator, Phenotype
+using ..Abstract: PhenotypeCreator
 
-struct DefaultPhenotype <: Phenotype end
 """
     DefaultPhenotypeCreator
 
@@ -20,12 +19,5 @@ It acts as a placeholder and can be extended or replaced by more specific config
 """
 struct DefaultPhenotypeCreator <: PhenotypeCreator end
 
-"""
-    DefaultMutator
-
-A default mutator structure used in the co-evolutionary ecosystem. This basic mutator 
-can be extended or replaced with more specific mutation behaviors in derived modules.
-"""
-struct DefaultMutator <: Mutator end
 
 end

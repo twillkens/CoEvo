@@ -1,10 +1,8 @@
 
-include("vector.jl")
-
-using Random: AbstractRNG
 using ....Ecosystems.Utilities.Counters: Counter
-using ...Individuals.Abstract: Individual
-using .Abstract: Mutator
+using .Abstract: Mutator, Individual, AbstractRNG
+
+import .Abstract: mutate
 
 """
     Generic mutation function for `Individual`.

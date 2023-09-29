@@ -1,13 +1,19 @@
+module Basic
+
 export BasicGeneticProgramMutator
 
 using Random: AbstractRNG
 using StatsBase: sample, Weights
 
 using ......Ecosystems.Utilities.Counters: Counter
-using ....Individuals.Genotypes.GeneticPrograms: BasicGeneticProgramGenotype, all_nodes
-using ...Genotypes.GeneticPrograms.Utilities: FuncAlias, Terminal, protected_sine, if_less_then_else
-using ..Abstract: Mutator
+using ....Genotypes.GeneticPrograms.Basic: BasicGeneticProgramGenotype
+using ....Genotypes.GeneticPrograms.Basic.Manipulate: Manipulate 
+using .Manipulate: add_function, remove_function, swap_node, splice_function, inject_noise
+using ....Genotypes.GeneticPrograms.Utilities: Utilities
+using .Utilities: FuncAlias, Terminal, protected_sine, if_less_then_else
+using ...Mutators.Abstract: Mutator
 
+import ...Mutators.Interfaces: mutate
 
 Base.@kwdef struct BasicGeneticProgramMutator <: Mutator
     # Number of structural changes to perform per generation
@@ -40,6 +46,10 @@ Base.@kwdef struct BasicGeneticProgramMutator <: Mutator
         "iflt" => if_less_then_else)
 end
 
+include("methods.jl")
+
+using .Methods: add_function, remove_function, swap_node, splice_function, inject_noise
+
 function mutate(
     mutator::BasicGeneticProgramMutator,
     rng::AbstractRNG, 
@@ -63,4 +73,6 @@ function mutate(
         throw(ErrorException("Root node not in genotype after noise"))
     end
     return geno
+end
+
 end

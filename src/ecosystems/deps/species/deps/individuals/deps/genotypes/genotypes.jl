@@ -1,11 +1,20 @@
 module Genotypes
 
-export Vectors, GeneticPrograms
+export Abstract, Vectors, GeneticPrograms
 
-include("types/types.jl")
+include("abstract/abstract.jl")
+using .Abstract: Abstract
 
-using .Vectors
-using .GeneticPrograms
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
+
+include("types/vectors/vectors.jl")
+using .Vectors: Vectors
+
+include("types/genetic_programs/genetic_programs.jl")
+using .GeneticPrograms: GeneticPrograms
+
+include("methods/methods.jl")
 
 
 end

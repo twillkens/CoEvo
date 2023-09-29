@@ -27,12 +27,18 @@ using .Species.Reporters: BasicSpeciesReporter
 using .Species.Individuals.Genotypes.Vectors: BasicVectorGenotypeCreator
 using .Species.Individuals.Phenotypes.Defaults: DefaultPhenotype, DefaultPhenotypeCreator
 using .Species.Individuals.Phenotypes: BasicVectorPhenotype
+using .Species.Individuals.Mutators: DefaultMutator
+using .Species.Individuals.Mutators.Abstract: Mutator
 using .Species.Individuals: BasicIndividual, BasicIndividualCreator
+using .Species.Evaluators: ScalarFitnessEvaluator
 
 
 using .Species.Reporters.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
 using .CoEvo.Ecosystems: get_outcomes, evolve!
 using .CoEvo.Ecosystems.Abstract: Metric
+
+
+
 
 """
     NumbersGameProblem with Gradient
@@ -121,126 +127,68 @@ end
     @test outcome_set[1] == 1.0
 end
 
-#"""
-#    NumbersGameProblem with Focusing
-#
-#Test the `NumbersGameProblem` domain using the `Focusing` strategy. Evaluates the
-#responses of various phenotypic interactions.
-#"""
-#
-#@testset "NumbersGameProblem with Focusing" begin
-#    problem = NumbersGameProblem(:Focusing)
-#    obscreator = OutcomeObservationCreator() 
-#
-#    phenoA = [4, 16]
-#    phenoB = [5, 14]
-#    
-#    observation = interact(problem, "Focusing", obscreator, [1, 2], phenoA, phenoB)
-#    @test observation.outcome_set[1] == 1.0
-#
-#    phenoB = [5, 16]
-#    observation = interact(problem, "Focusing", obscreator, [1, 2], phenoA, phenoB)
-#    @test observation.outcome_set[1] == 0.0
-#
-#    phenoA = [5, 16, 8]
-#    phenoB = [4, 16, 6]
-#    observation = interact(problem, "Focusing", obscreator, [1, 2], phenoA, phenoB)
-#    @test observation.outcome_set[1] == 1.0
-#end
-#
-#"""
-#    NumbersGameProblem with Relativism
-#
-#Test the `NumbersGameProblem` domain using the `Relativism` strategy. 
-#This checks the outcomes for a set of phenotype interactions under relativistic scenarios.
-#"""
-#
-#@testset "NumbersGameProblem with Relativism" begin
-#    problem = NumbersGameProblem(:Relativism)
-#    obscreator = OutcomeObservationCreator()
-#
-#    a = [1, 6]
-#    b = [4, 5]
-#    c = [2, 4]
-#
-#    observation = interact(problem, "Relativism", obscreator, [1, 2], a, b)
-#    @test observation.outcome_set[1] == 1.0
-#
-#    observation = interact(problem, "Relativism", obscreator, [2, 3], b, c)
-#    @test observation.outcome_set[1] == 1.0
-#
-#    observation = interact(problem, "Relativism", obscreator, [3, 1], c, a)
-#    @test observation.outcome_set[1] == 1.0
-#end
-#
-#"""
-#    BasicSpeciesCreator Test
-#
-#Test the configuration and initialization of species with `BasicSpeciesCreator`.
-#This confirms the proper setup and initial state of species.
-#"""
-#
-#@testset "BasicSpeciesCreator" begin
-#    gen = 1
-#    rng = StableRNG(42)
-#    indiv_id_counter = Counter()
-#    gene_id_counter = Counter()
-#    species_id = "A"
-#    n_pop = 10
-#
-#    default_vector = collect(1:10)
-#
-#    # Define species configuration similar to spawner
-#    species_creator = BasicSpeciesCreator(
-#        id = species_id,
-#        n_pop = n_pop,
-#        geno_creator = BasicVectorGenotypeCreator{Float64}(
-#            default_vector = default_vector
-#        ),
-#        pheno_creator = DefaultPhenotypeCreator(),
-#        indiv_creator = AsexualIndividualCreator(),
-#        eval_creator = ScalarFitnessEvaluationCreator(),
-#        replacer = GenerationalReplacer(),
-#        selector = FitnessProportionateSelector(n_parents = 2),
-#        recombiner = CloneRecombiner(),
-#        mutators = [DefaultMutator()],
-#        reporters = Reporter[],
-#    )
-#
-#    # Instantiate the species using the species configuration
-#    # Assuming there's a way to create initial population from species config
-#    species = species_creator(rng, indiv_id_counter, gene_id_counter) 
-#
-#    # Test the initial state of the population
-#    pop_ids = collect(keys(species.pop))
-#
-#    @test pop_ids == collect(1:10)
-#
-#    pop_indivs = collect(values(species.pop))
-#    genotypes = [indiv.geno for indiv in pop_indivs]
-#
-#    size_reporter = CohortMetricReporter(metric = GenotypeSize())
-#    size_report = size_reporter(gen, species_id, "Population", genotypes)
-#    @test size_report.gen == 1
-#    @test size_report.species_id == species_id
-#    @test size_report.cohort == "Population"
-#    @test size_report.metric == "GenotypeSize"
-#    @test size_report.stat_features.sum == 100.0
-#    @test size_report.stat_features.mean == 10.0
-#    @test size_report.stat_features.minimum == 10.0
-#    @test size_report.stat_features.maximum == 10.0
-#
-#    sum_reporter = CohortMetricReporter(metric = GenotypeSum())
-#    sum_report = sum_reporter(gen, species_id, "Population", genotypes)
-#    @test sum_report.gen == 1
-#    @test sum_report.species_id == species_id
-#    @test sum_report.cohort == "Population"
-#    @test sum_report.metric == "GenotypeSum"
-#    @test sum_report.stat_features.sum == 550.0
-#    @test sum_report.stat_features.mean == 55.0
-#    @test sum_report.stat_features.minimum == 55.0
-#    @test sum_report.stat_features.maximum == 55.0
-#end
+@testset "BasicSpeciesCreator" begin
+    gen = 1
+    rng = StableRNG(42)
+    indiv_id_counter = Counter()
+    gene_id_counter = Counter()
+    species_id = "A"
+    n_pop = 10
+
+    default_vector = collect(1:10)
+
+    # Define species configuration similar to spawner
+    species_creator = BasicSpeciesCreator(
+        id = species_id,
+        n_pop = n_pop,
+        indiv_creator = BasicIndividualCreator(
+            geno_creator = BasicVectorGenotypeCreator(
+                default_vector = default_vector
+            ),
+            pheno_creator = DefaultPhenotypeCreator(),
+            mutators = [DefaultMutator()],
+        ),
+        eval_creator = ScalarFitnessEvaluationCreator(),
+        replacer = GenerationalReplacer(),
+        selector = FitnessProportionateSelector(n_parents = 2),
+        recombiner = CloneRecombiner(),
+        reporters = Reporter[],
+    )
+
+    # Instantiate the species using the species configuration
+    # Assuming there's a way to create initial population from species config
+    species = species_creator(rng, indiv_id_counter, gene_id_counter) 
+
+    # Test the initial state of the population
+    pop_ids = collect(keys(species.pop))
+
+    @test pop_ids == collect(1:10)
+
+    pop_indivs = collect(values(species.pop))
+    genotypes = [indiv.geno for indiv in pop_indivs]
+
+    size_reporter = CohortMetricReporter(metric = GenotypeSize())
+    size_report = size_reporter(gen, species_id, "Population", genotypes)
+    @test size_report.gen == 1
+    @test size_report.species_id == species_id
+    @test size_report.cohort == "Population"
+    @test size_report.metric == "GenotypeSize"
+    @test size_report.stat_features.sum == 100.0
+    @test size_report.stat_features.mean == 10.0
+    @test size_report.stat_features.minimum == 10.0
+    @test size_report.stat_features.maximum == 10.0
+
+    sum_reporter = CohortMetricReporter(metric = GenotypeSum())
+    sum_report = sum_reporter(gen, species_id, "Population", genotypes)
+    @test sum_report.gen == 1
+    @test sum_report.species_id == species_id
+    @test sum_report.cohort == "Population"
+    @test sum_report.metric == "GenotypeSum"
+    @test sum_report.stat_features.sum == 550.0
+    @test sum_report.stat_features.mean == 55.0
+    @test sum_report.stat_features.minimum == 55.0
+    @test sum_report.stat_features.maximum == 55.0
+end
 #
 #"""
 #    `evolve!` Functionality Test

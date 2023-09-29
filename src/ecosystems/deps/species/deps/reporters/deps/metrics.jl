@@ -30,12 +30,13 @@ export GenotypeMetric, EvaluationMetric
 using ......Ecosystems.Abstract: Metric
 
 abstract type GenotypeMetric <: Metric end
+
 abstract type EvaluationMetric <: Metric end
 
 end
 
 
-using .Abstract: GenotypeMetric, EvaluationMetric
+using .Abstract: Abstract, GenotypeMetric, EvaluationMetric
 
 """
     GenotypeSum
