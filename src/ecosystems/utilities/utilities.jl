@@ -19,8 +19,10 @@ The module exports the following types and functions: `Counter`, and `next!`.
 
 module Utilities
 
-include("types/counters.jl")
-include("types/statistics.jl")
+export Counters
 
+include("types/counters/counters.jl")
+
+using .Counters: Counters
 
 end

@@ -11,4 +11,10 @@ using .Interfaces: Interfaces
 include("types/basic.jl")
 using .Basic: Basic
 
+include("methods/measure/measure.jl")
+using .Measure
+
+include("methods/report/report.jl")
+using .Report
+
 end

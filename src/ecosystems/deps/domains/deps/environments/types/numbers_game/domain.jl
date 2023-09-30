@@ -1,17 +1,17 @@
-module Creator
+module Domain
 
 export NumbersGameEnvironment, NumbersGameEnvironmentCreator
 
 using ......Ecosystems.Species.Individuals.Phenotypes.Vectors: Vectors
 using .Vectors.Abstract: VectorPhenotype
 using .Vectors.Basic: BasicVectorPhenotype
-using ...Abstract: Domain, DomainCreator
+using ....Domains.Abstract: Domain as AbstractDomain, DomainCreator
 using ..Metrics: NumbersGameMetric, Control, Sum, Gradient, Focusing, Relativism
 #using .....Ecosystems.Abstract: Metric
 
 import ...Interfaces: next!, create_domain, is_active, refresh!, assign_entities!, get_outcomes
 
-mutable struct NumbersGameEnvironment{P <: VectorPhenotype, M <: NumbersGameMetric} <: Domain
+mutable struct NumbersGameEnvironment{P <: VectorPhenotype, M <: NumbersGameMetric} <: AbstractDomain
     id::String
     entities::Vector{P}
     metric::M

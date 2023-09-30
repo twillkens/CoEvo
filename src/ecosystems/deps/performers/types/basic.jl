@@ -1,8 +1,8 @@
 module Basic
 
 using ..Results.Basic: BasicResult
+using ..Abstract: Domain, Observer, Phenotype, Job, Performer
 
-import ..Abstract: Performer
 import ..Interfaces: perform
 
 struct BasicPerformer <: Performer 

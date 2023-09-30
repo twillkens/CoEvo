@@ -1,6 +1,6 @@
 module Runtime
 
-using .Abstract: EcosystemReporter, EcosystemReport
+using ...Abstract: EcosystemReporter, EcosystemReport
 
 """
     RuntimeReport

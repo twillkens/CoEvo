@@ -5,7 +5,7 @@ export Metrics, Domain
 include("metrics.jl")
 using .Metrics: Metrics
 
-include("creator.jl")
-using .Creator: Creator
+include("domain.jl")
+using .Domain: Domain
 
 end

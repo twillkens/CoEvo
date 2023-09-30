@@ -2,6 +2,12 @@ module Interfaces
 
 export create_species
 
+using DataStructures: OrderedDict
+using ..Abstract: SpeciesCreator, AbstractRNG
+using ....Ecosystems.Utilities.Counters: Counter
+using ....Ecosystems.Species.Evaluators.Abstract: Evaluation
+using ....Ecosystems.Species.Individuals.Abstract: Individual
+
 function create_species(
     species_creator::SpeciesCreator,
     rng::AbstractRNG,

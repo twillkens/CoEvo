@@ -16,9 +16,11 @@ and reporters to facilitate interactive domain configuration.
 module Domains
 
 # Exported Structures
-export Environments, MatchMakers, Observers
+export Abstract, Environments, MatchMakers, Observers
 export Basic
 
+include("abstract/abstract.jl")
+using .Abstract: Abstract
 # Dependencies
 include("deps/environments/environments.jl")
 using .Environments: Environments

@@ -3,7 +3,7 @@ module Interfaces
 
 export create_report
 
-using ..Abstract: DomainReporter
+using ..Abstract: DomainReporter, Observation, DomainReport
 
 
 function create_report(

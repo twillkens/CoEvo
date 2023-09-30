@@ -1,13 +1,25 @@
 module Report
 
 using DataStructures: OrderedDict
+using ...Abstract: Individual, Evaluation, Observation
+using ..Abstract: SpeciesReporter
 
-using ...Species.Individuals.Abstract: Individual
-using ...Species.Evaluators.Abstract: Evaluation
-using .Metrics.Abstract: EvaluationMetric, GenotypeMetric
-import .Abstract: SpeciesReporter, create_report
+using ....Ecosystems.Metrics.Species.Genotype.Abstract: GenotypeMetric
+using ....Ecosystems.Metrics.Species.Evaluation.Abstract: EvaluationMetric
+using ....Ecosystems.Metrics.Species.Individual.Abstract: IndividualMetric
+using ....Ecosystems.Metrics.Species.Abstract: SpeciesMetric
 
+import ...Interfaces: create_reports
 
+function create_report(
+    reporter::SpeciesReporter{<:IndividualMetric}, 
+    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
+)
+    genotypes = [indiv.geno for indiv in keys(indiv_evals)]
+    report = create_report(reporter, genotypes)
+
+    return report
+end
 function create_report(
     reporter::SpeciesReporter{<:GenotypeMetric}, 
     indiv_evals::OrderedDict{<:Individual, <:Evaluation}
@@ -50,35 +62,9 @@ function filter_species_evaluations(
 end
 
 
-function measure(
-    reporter::SpeciesReporter{<:IndividualMetric},
-    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
-)
-    individuals = collect(keys(indiv_evals))
-    measure_set = measure(reporter, individuals)
-    return measure_set
-end
-
-function measure(
-    reporter::SpeciesReporter{<:EvaluationMetric},
-    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
-)
-    evaluations = collect(values(indiv_evals))
-    measure_set = measure(reporter, evaluations)
-    return measure_set
-end
-
-function measure(
-    reporter::SpeciesReporter{<:GenotypeMetric},
-    indiv_evals::OrderedDict{<:Individual, <:Evaluation}
-)
-    genotypes = [indiv.geno for indiv in keys(indiv_evals)]
-    measure_set = measure(reporter, genotypes)
-    return measure_set
-end
 
 function create_reports(
-    reporter::BasicSpeciesReporter{<:SpeciesMetric},
+    reporter::SpeciesReporter{<:SpeciesMetric},
     gen::Int,
     to_print::Bool,
     to_save::Bool,

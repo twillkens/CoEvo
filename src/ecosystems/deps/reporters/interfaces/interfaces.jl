@@ -1,8 +1,8 @@
 module Interfaces
 
-export create_report
+export create_reports
 
-using ..Abstract: SpeciesReporter
+using ..Abstract: Reporter, Observation, Individual, Evaluation
 
 function create_reports(
     reporter::Reporter,

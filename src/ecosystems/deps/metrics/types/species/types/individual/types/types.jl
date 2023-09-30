@@ -2,7 +2,7 @@ module Types
 
 export IndividualIdentityMetric
 
-using ..Abstract: GenotypeMetric
+using .....Ecosystems.Metrics.Species.Genotype.Abstract: GenotypeMetric
 
 Base.@kwdef struct IndividualIdentityMetric <: GenotypeMetric
     name::String = "IndividualIdentity"

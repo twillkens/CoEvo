@@ -16,15 +16,4 @@ function create_report(
     throw(ErrorException("create_report not implemented for $reporter"))
 end
 
-function create_report(
-    reporter::DomainReporter,
-    gen::Int,
-    to_print::Bool,
-    to_save::Bool,
-    domain_id::String,
-    observations::Vector{Observation}
-)::DomainReport
-    throw(ErrorException("create_report not implemented for $reporter"))
-end
-
 end

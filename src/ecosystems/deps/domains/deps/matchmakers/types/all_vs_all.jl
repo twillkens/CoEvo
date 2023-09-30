@@ -1,6 +1,8 @@
 module AllvsAll
 
-using ..Matches
+using ..Abstract: MatchMaker
+using ..Matches.Basic: BasicMatch
+using ....Species.Abstract: AbstractSpecies
 
 """
     AllvsAllMatchMaker <: MatchMaker
@@ -49,6 +51,7 @@ function make_matches(
     matches = [
         BasicMatch(domain.id, [id1, id2]) for (id1, id2) in match_ids
     ]
+    return matches
 end
 
 end

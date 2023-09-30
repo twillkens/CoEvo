@@ -1,6 +1,6 @@
 module Basic
 
-using ..Abstract: Observation, Observer, Metric
+using ..Abstract: Observation, Observer, ObservationMetric
 
 mutable struct BasicObserver{O <: ObservationMetric, S <: Any} <: Observer
     metric::O

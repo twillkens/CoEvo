@@ -1,11 +1,11 @@
 module Types
 
-export GenotypeSum, GenotypeSize
+export EvaluationFitnessMetric
 
-using ...Abstract: EvaluationMetric
+using .....Ecosystems.Metrics.Species.Evaluation.Abstract: EvaluationMetric
 
-Base.@kwdef struct EvaluationFitnessMetric <: GenotypeMetric
-    name::String = "GenotypeSum"
+Base.@kwdef struct EvaluationFitnessMetric <: EvaluationMetric
+    name::String = "EvaluationFitness"
 end
 
 

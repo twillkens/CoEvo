@@ -1,5 +1,7 @@
 module Methods
 
+using ..Abstract: Reporter, Observation, Evaluation, Individual
+
 import ..Interfaces: create_reports
 
 function create_reports(

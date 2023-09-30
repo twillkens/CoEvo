@@ -3,13 +3,9 @@ module Basic
 export BasicJob, BasicJobCreator
 
 using DataStructures: OrderedDict
-
-
-using ..Abstract: Job, JobCreator, Ecosystem, Phenotype
+using ..Abstract: Job, JobCreator, Ecosystem, Phenotype, Domain, Match
 
 import ..Interfaces: create_jobs
-
-
 
 """
     BasicJob{D <: DomainConfiguration, T} <: Job

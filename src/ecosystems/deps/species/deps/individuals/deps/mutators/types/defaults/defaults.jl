@@ -5,12 +5,13 @@ export DefaultMutator
 using ..Abstract: Mutator, AbstractRNG, Genotype
 using .....Ecosystems.Utilities.Counters: Counter
 
-import ..Abstract: mutate, Genotype
+import ..Interfaces: mutate, Genotype
+import ..Abstract: Genotype
 
 struct DefaultMutator <: Mutator end
 
 function mutate(::DefaultMutator, ::AbstractRNG, ::Counter, geno::Genotype) 
-    return indiv
+    return geno
 end
 """
     DefaultMutator
