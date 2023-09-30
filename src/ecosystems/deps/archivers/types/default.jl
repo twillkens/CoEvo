@@ -7,12 +7,11 @@ using JLD2: File, Group, jldopen
 
 using ..Utilities: get_or_make_group!
 
-using ...Ecosystems.Species.Individuals: Individuals
 using ...Ecosystems.Species.Evaluators.Abstract: Evaluation
-using ...Ecosystems.Species.Individuals: Individual
-using .Individuals: BasicIndividual
-using .Individuals.Abstract: Individual
-using .Abstract: Archiver
+using ...Ecosystems.Species.Individuals.Basic: BasicIndividual
+using ...Ecosystems.Performers.Results.Abstract: Result
+using ..Abstract: Archiver, Individual, Evaluation
+
 
 """
     DefaultArchiver

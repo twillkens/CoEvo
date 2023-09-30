@@ -10,10 +10,13 @@ export ScalarFitnessEvaluation, ScalarFitnessEvaluator, sort_indiv_evals
 
 using DataStructures: OrderedDict
 using ....Species.Individuals.Abstract: Individual
-using ...Evaluators.Abstract: Evaluation, Evaluator, Criterion
-using ...Evaluators.Utilities: Maximize, Minimize
+using ...Evaluators.Abstract: Evaluation, Evaluator
+using ...Evaluators.Criteria.Abstract: Criterion
+using ...Evaluators.Criteria.Types: Maximize, Minimize
+using ...Evaluators.Methods: sort_indiv_evals
 
-import ...Evaluators.Abstract: create_evaluation, sort_indiv_evals
+import ...Evaluators.Interfaces: create_evaluation
+
 
 """
     ScalarFitnessEval

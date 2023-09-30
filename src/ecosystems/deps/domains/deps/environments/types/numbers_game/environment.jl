@@ -1,25 +1,27 @@
-module Domain
+module Environment
 
 export NumbersGameEnvironment, NumbersGameEnvironmentCreator
 
 using ......Ecosystems.Species.Individuals.Phenotypes.Vectors: Vectors
 using .Vectors.Abstract: VectorPhenotype
 using .Vectors.Basic: BasicVectorPhenotype
-using ....Domains.Abstract: Domain as AbstractDomain, DomainCreator
+using ...Environments.Abstract: Environment as AbstractEnvironment, EnvironmentCreator
 using ..Metrics: NumbersGameMetric, Control, Sum, Gradient, Focusing, Relativism
-#using .....Ecosystems.Abstract: Metric
 
-import ...Interfaces: next!, create_domain, is_active, refresh!, assign_entities!, get_outcomes
+import ...Environments.Interfaces: next!, create_environment, is_active
+import ...Environments.Interfaces: refresh!, assign_entities!, get_outcomes
 
-mutable struct NumbersGameEnvironment{P <: VectorPhenotype, M <: NumbersGameMetric} <: AbstractDomain
+mutable struct NumbersGameEnvironment{
+    P <: VectorPhenotype, M <: NumbersGameMetric
+} <: AbstractEnvironment
     id::String
     entities::Vector{P}
     metric::M
 end
 
-Base.@kwdef struct NumbersGameDomainCreator{
+Base.@kwdef struct NumbersGameEnvironmentCreator{
     M <: NumbersGameMetric, V <: VectorPhenotype
-} <: DomainCreator
+} <: EnvironmentCreator
     id::String
     metric::M
     entities::Vector{V} = [BasicVectorPhenotype([0.0, 0.0]) for _ in 1:2]
@@ -48,7 +50,7 @@ function NumbersGameEnvironment(metric::Symbol)
 end
 
 
-function create_domain(domain_id::String, env::NumbersGameDomainCreator)
+function create_environment(domain_id::String, env::NumbersGameEnvironmentCreator)
     NumbersGameEnvironment(domain_id, env.entities, env.metric)
 end
 

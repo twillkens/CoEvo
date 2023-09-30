@@ -1,7 +1,7 @@
 module CoEvo
 
 export BasicEcosystem, BasicEcosystemCreator, evolve!,
-       Counter, RuntimeReport, RuntimeReporter,
+       Counter, RuntimeReporter,
        BasicSpecies, BasicSpeciesCreator,
        BasicVectorGenotype, BasicVectorGenotypeCreator,
        BasicGeneticProgram, BasicGeneticProgramGenotypeCreator,
@@ -13,7 +13,7 @@ export BasicEcosystem, BasicEcosystemCreator, evolve!,
        CloneRecombiner, BasicSpeciesReport, BasicSpeciesReporter,
        GenotypeSum, GenotypeSize, EvaluationFitness,
        BasicJob, BasicJobCreator, InteractionScheme,
-       NumbersGameDomain, NumbersGameDomainCreator,
+       NumbersGameEnvironment, NumbersGameEnvironmentCreator,
        create_domain, next!, get_outcome_set, refresh!, act,
        Control, Focusing, Gradient, Relativism, Sum,
        AllvsAllMatchMaker,
@@ -27,15 +27,14 @@ include("ecosystems/ecosystems.jl")
 
 using .Ecosystems.Basic: BasicEcosystem, BasicEcosystemCreator, evolve! #
 using .Ecosystems.Utilities.Counters: Counter #
-using .Ecosystems.Abstract: Reporter
-using .Ecosystems.Reporters: RuntimeReport, RuntimeReporter #
+using .Ecosystems.Reporters.Abstract: Reporter
 
 println("yo")
-using .Ecosystems: Species, Jobs, Archivers
+using .Ecosystems: Species, Metrics, Domains, Jobs, Performers, Measures, Reporters, Archivers
 
 println("yo")
 using .Species.Basic: BasicSpecies, BasicSpeciesCreator #
-using .Species: Individuals, Evaluators, Reproducers, Reporters
+using .Species: Individuals, Evaluators, Reproducers
 
 println("yo")
 using .Individuals.Basic: BasicIndividual, BasicIndividualCreator #
@@ -56,37 +55,35 @@ println("yo")
 using .Mutators.GeneticPrograms.Basic: BasicGeneticProgramMutator #
 println("yo")
 
-using .Evaluators: ScalarFitnessEvaluator, ScalarFitnessEvaluation, Utilities
-using .Evaluators.Utilities: NullCriterion, Maximize, Minimize #
+using .Evaluators.Types: ScalarFitnessEvaluator, ScalarFitnessEvaluation
+using .Evaluators.Criteria.Types: NullCriterion, Maximize, Minimize #
 
 using .Reproducers: Replacers, Selectors, Recombiners
 using .Replacers: IdentityReplacer, GenerationalReplacer #
 using .Selectors: IdentitySelector, FitnessProportionateSelector #
 using .Recombiners: CloneRecombiner #
-using .Reporters: BasicSpeciesReport, BasicSpeciesReporter #
 
-using .Reporters: Abstract, Metrics
-using .Metrics: GenotypeSum, GenotypeSize, EvaluationFitness #
-using .Basic: BasicSpecies, BasicSpeciesCreator #
+using .Reporters.Species.Basic: BasicSpeciesReport, BasicSpeciesReporter #
+using .Reporters.Ecosystem.Runtime: RuntimeReporter #
 
-using .Jobs: BasicJob, BasicJobCreator #
-using .Jobs: Interactions
-using .Interactions: InteractionScheme #
-using .Interactions: Domains, MatchMakers, Observers
+using .Metrics.Species.Genotype.Types: GenotypeSumMetric, GenotypeSizeMetric # 
+using .Metrics.Species.Evaluation.Types: EvaluationFitnessMetric # 
+using .Metrics.Domain.Types: EpisodeLengthMetric
 
-using .Domains: NumbersGame
+using .Jobs.Basic: BasicJob, BasicJobCreator #
 
-using .NumbersGame.Creator: NumbersGameDomain, NumbersGameDomainCreator #
-using .NumbersGame.Metrics: Control, Focusing, Gradient, Relativism, Sum #
+using .Domains.Basic: BasicDomain #
+using .Domains: Environments, MatchMakers, Observers
 
-using .MatchMakers: AllvsAllMatchMaker #
+using .Environments: NumbersGame
 
-using .Observers.Basic: BasicObserver, BasicObserverCreator #
-using .Observers.Metrics: TheVectorWithAverageClosestToPi #
+using .NumbersGame.Environment: NumbersGameEnvironment
+using .NumbersGame.Metrics: Sum, Control, Focusing, Gradient, Relativism #
 
-using .Interactions.Reporters.Basic: BasicReporter, BasicReporterCreator #
-using .Interactions.Reporters.Metrics: TheTwoVectorsWithGreatestSineOfSums
+using .MatchMakers.AllvsAll: AllvsAllMatchMaker #
 
-using .Archivers: DefaultArchiver #
+using .Observers.Basic: BasicObserver
+
+using .Archivers.Default: DefaultArchiver #
 
 end

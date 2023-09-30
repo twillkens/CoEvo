@@ -1,5 +1,7 @@
 module Basic
 
+export BasicObserver, BasicObservation
+
 using ..Abstract: Observation, Observer, ObservationMetric
 
 mutable struct BasicObserver{O <: ObservationMetric, S <: Any} <: Observer

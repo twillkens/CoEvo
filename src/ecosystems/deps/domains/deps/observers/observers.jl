@@ -28,10 +28,13 @@ The module exports: `OutcomeObservation`, `ScalarOutcomeObserver`, and `get_outc
 """
 module Observers
 
-export Abstract, Basic
+export Abstract, Basic, Interfaces
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
+
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
 
 include("types/basic.jl")
 using .Basic: Basic

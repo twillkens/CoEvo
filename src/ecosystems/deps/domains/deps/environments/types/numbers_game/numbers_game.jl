@@ -1,11 +1,11 @@
 module NumbersGame
 
-export Metrics, Domain
+export Metrics, Environment
 
 include("metrics.jl")
 using .Metrics: Metrics
 
-include("domain.jl")
-using .Domain: Domain
+include("environment.jl")
+using .Environment: Environment
 
 end

@@ -1,8 +1,6 @@
-module Utilities
+module Types
 
-export NullCriterion, Maximize, Minimize
-
-using ...Evaluators.Abstract: Criterion
+using ..Abstract: Criterion
 
 """
     NullCriterion

@@ -4,7 +4,7 @@ export create_environment, next!, refresh!, assign_entities!, get_outcomes
 
 using ..Abstract: Environment, EnvironmentCreator, Phenotype
 
-function create_environment(::String, env_creator::EnvironmentCreator)
+function create_environment(env_creator::EnvironmentCreator, domain_id::String)
     throw(ErrorException(
         "`create_environment` not implemented for $env "
         )

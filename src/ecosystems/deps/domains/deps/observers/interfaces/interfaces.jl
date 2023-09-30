@@ -2,9 +2,9 @@ module Interfaces
 
 export observe!, create_observation
 
-using ..Abstract: Domain, Observer, Observation
+using ..Abstract: Environment, Observer, Observation
 
-function observe!(domain::Domain, observer::Observer)
+function observe!(environment::Environment, observer::Observer)
     error("`observe!`` not implemented for $(typeof(domain)), $(typeof(observer))")
 end
 

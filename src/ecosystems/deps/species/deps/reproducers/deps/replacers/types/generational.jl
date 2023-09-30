@@ -3,8 +3,9 @@ export GenerationalReplacer
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 using ...Individuals.Abstract: Individual
-using ...Evaluators.Abstract: Evaluation, Criterion
-using ...Evaluators.Utilities: Maximize
+using ...Evaluators.Abstract: Evaluation
+using ...Evaluators.Criteria.Abstract: Criterion
+using ...Evaluators.Criteria.Types: Maximize
 
 import .Abstract: replace
 

@@ -2,6 +2,7 @@ module Basic
 
 using ..Results.Basic: BasicResult
 using ..Abstract: Domain, Observer, Phenotype, Job, Performer
+using ...Domains.Observers.Interfaces: observe!, create_observation
 
 import ..Interfaces: perform
 
@@ -40,20 +41,20 @@ returns a list of their results.
 - A `Vector` of `InteractionResult` instances, each detailing the outcome of an interaction.
 """
 function perform(::BasicPerformer, job::Job)
-    domains = Dict(
-        domain.id => create_domain(domain) 
+    all_environments = Dict(
+        domain.id => create_environment(domain.environment_creator, domain.id) 
         for domain in job.domains
     )
-    observers = Dict(
+    all_observers = Dict(
         domain.id => domain.observers
         for domain in job.domains
     )
     results = Result[]
     for match in job.matches
-        domain = domains[match.domain_id]
-        observers = observers[match.domain_id]
+        environment = all_environments[match.domain_id]
+        observers = all_observers[match.domain_id]
         phenotypes = [job.pheno_dict[indiv_id] for indiv_id in match.indiv_ids]
-        result = interact(domain, observers, phenotypes)
+        result = interact(environment, observers, phenotypes)
         push!(results, result)
     end
     return results

@@ -7,16 +7,16 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 
-using ..Reporters.Ecosystem.Runtime: RuntimeReporter
 using ..Abstract: Ecosystem, EcosystemCreator, Report, Reporter
 using ..Utilities.Counters: Counter
 using ..Species.Abstract: AbstractSpecies, SpeciesCreator
 using ..Species.Individuals.Abstract: Individual, IndividualCreator
-using ..Jobs.Abstract: JobCreator, Result
+using ..Species.Evaluators.Abstract: Evaluation
+using ..Jobs.Abstract: JobCreator
 using ..Performers.Abstract: Performer
 using ..Performers.Results.Abstract: Result
 using ..Domains.Observers.Abstract: Observation
-using ..Reporters: RuntimeReport, RuntimeReporter
+using ..Reporters.Ecosystem.Runtime: RuntimeReporter
 using ..Archivers.Abstract: Archiver
 
 
