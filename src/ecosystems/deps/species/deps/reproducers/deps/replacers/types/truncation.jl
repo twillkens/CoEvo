@@ -1,3 +1,5 @@
+module Truncation
+
 using Random
 using ....CoEvo.Abstract: Replacer, Evaluation, Criterion
 using ....CoEvo.Utilities.Criteria: Maximize
@@ -28,4 +30,6 @@ function(replacer::TruncationReplacer)(
     candidates = sort_evaluations(replacer.sort_criterion, candidates)
     new_pop_ids = [candidate.id for candidate in candidates[1:replacer.n_pop]]
     return new_pop_ids
+end
+
 end

@@ -1,12 +1,15 @@
 module Selectors
 
-export IdentitySelector, FitnessProportionateSelector
+export Abstract, Interfaces, Types
 
 include("abstract/abstract.jl")
-using .Abstract
+using .Abstract: Abstract
 
-include("types/identity.jl")
-include("types/fitness_proportionate.jl")
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
+
+include("types/types.jl")
+using .Types: Types
 # include("types/tournament.jl")
 
 end # end of Selectors module

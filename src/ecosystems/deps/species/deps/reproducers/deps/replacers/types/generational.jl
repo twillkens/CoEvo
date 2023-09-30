@@ -1,3 +1,5 @@
+module Generational
+
 export GenerationalReplacer
 
 using Random: AbstractRNG
@@ -59,4 +61,6 @@ function replace(
     new_pop_evals = OrderedDict([elites; selected_children])
     new_pop_evals = sort_indiv_evals(replacer.sort_criterion, new_pop_evals)
     return new_pop_evals
+end
+
 end

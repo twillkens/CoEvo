@@ -1,3 +1,4 @@
+module NSGA
 
 using Random
 using ...CoEvo: Sense
@@ -136,4 +137,6 @@ end
 function(s::NSGASelector)(rng::AbstractRNG, pop::Vector{<:Individual}, evals::Dict{Int, DiscoEval})
     pop = nsga!(pop, )
     [nsga_tournament(rng, pop, c.tsize) for _ in 1:s.μ]
+end
+
 end

@@ -13,8 +13,8 @@ using ....Species.Individuals.Abstract: Individual
 using ...Evaluators.Abstract: Evaluation, Evaluator
 using ...Evaluators.Criteria.Abstract: Criterion
 using ...Evaluators.Criteria.Types: Maximize, Minimize
-using ...Evaluators.Methods: sort_indiv_evals
 
+import ...Evaluators.Criteria.Interfaces: sort_indiv_evals
 import ...Evaluators.Interfaces: create_evaluation
 
 

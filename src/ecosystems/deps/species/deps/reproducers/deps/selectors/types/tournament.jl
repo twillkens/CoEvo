@@ -1,3 +1,4 @@
+module Tournament
 """
     TournamentSelector
 
@@ -42,4 +43,6 @@ function(s::TournamentSelector)(
         parent_idxs[i] = tournament_idxs[s.selection_func(fitnesses[tournament_idxs])]
     end
     return pop[parent_idxs]
+end
+
 end

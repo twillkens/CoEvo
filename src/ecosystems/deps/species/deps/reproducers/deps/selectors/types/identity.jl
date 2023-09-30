@@ -1,10 +1,13 @@
+module Identity
+
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
 using ...Individuals.Abstract: Individual
 using ...Species.Evaluators.Abstract: Evaluation
+using .Abstract: Selector
 
-import .Abstract: Selector, select
+import .Interfaces: select
 
 """
     IdentitySelector
@@ -35,4 +38,6 @@ function select(
     parent_evals::OrderedDict{<:Individual, <:Evaluation}
 )
     return parent_evals
+end
+
 end

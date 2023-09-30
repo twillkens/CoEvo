@@ -1,12 +1,15 @@
+module FitnessProportionate
+
 export FitnessProportionateSelector
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ...Individuals.Abstract: Individual
-using ...Species.Evaluators.Abstract: Evaluation
+using ....Individuals.Abstract: Individual
+using ....Species.Evaluators.Abstract: Evaluation
+using ..Abstract: Selector
 
-import .Abstract: Selector, select
+import ..Interfaces: select
 
 """
     FitnessProportionateSelector
@@ -64,7 +67,8 @@ Selects `n_parents` from the population using the fitness-proportionate selectio
 # Returns
 - `Array{Individual}`: A list of selected parent individuals.
 """
-function(selector::FitnessProportionateSelector)(
+function select(
+    selector::FitnessProportionateSelector,
     rng::AbstractRNG, 
     new_pop_evals::OrderedDict{<:Individual, <:Evaluation}
 )
@@ -72,4 +76,6 @@ function(selector::FitnessProportionateSelector)(
     parent_indices = roulette(rng, selector.n_parents, fitnesses)
     parents = collect(keys(new_pop_evals))[parent_indices]
     return parents  
+end
+
 end

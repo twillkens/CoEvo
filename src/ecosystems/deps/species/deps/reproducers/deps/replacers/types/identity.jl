@@ -1,3 +1,5 @@
+module Identity
+
 export IdentityReplacer
 
 using Random: AbstractRNG
@@ -41,4 +43,6 @@ function replace(
     else
         return children_evals
     end
+end
+
 end

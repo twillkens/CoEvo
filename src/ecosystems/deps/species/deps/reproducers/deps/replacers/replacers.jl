@@ -7,12 +7,15 @@ which is a fundamental aspect of evolutionary algorithms.
 """
 module Replacers
 
-export IdentityReplacer, GenerationalReplacer
+export Abstract, Interfaces, Types
 
 include("abstract/abstract.jl")
-using .Abstract
+using .Abstract: Abstract
 
-include("types/identity.jl")
-include("types/generational.jl")
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
+
+include("types/types.jl")
+using .Types: Types
 
 end
