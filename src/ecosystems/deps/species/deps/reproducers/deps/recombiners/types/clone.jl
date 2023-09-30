@@ -1,9 +1,10 @@
-using Random: AbstractRNG
+module Clone
 
-using .....Ecosystems.Utilities.Counters: Counter
-using ...Individuals.Abstract: Individual
+using ......Ecosystems.Utilities.Counters: Counter
 
-import .Abstract: Recombiner, recombine
+using ...Abstract: Recombiner, Individual, AbstractRNG
+
+import ...Interfaces: recombine
 
 """
     CloneRecombiner
@@ -36,4 +37,6 @@ function recombine(
     parents::Vector{I}
 ) where {I <: Individual}
     [I(next!(indiv_id_counter), parent.geno, parent.id) for parent in parents]
+end
+
 end

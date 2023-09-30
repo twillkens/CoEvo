@@ -1,18 +1,21 @@
 module Reproducers
 
-export BasicReproducer
+export Abstract, Replacers, Selectors, Recombiners, Interfaces
 
 include("abstract/abstract.jl")
-using .Abstract
+using .Abstract: Abstract
 
 include("deps/replacers/replacers.jl")
-using .Replacers
+using .Replacers: Replacers
 
 include("deps/selectors/selectors.jl")
-using .Selectors
+using .Selectors: Selectors
 
 include("deps/recombiners/recombiners.jl")
-using .Recombiners
+using .Recombiners: Recombiners
+
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
 
 include("types/basic.jl")
 

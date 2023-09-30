@@ -9,11 +9,16 @@ Use `CloneRecombiner` to create offspring by directly copying the genotype of pa
 """
 module Recombiners
 
-export CloneRecombiner
+export Abstract, Interfaces, Types
 
 include("abstract/abstract.jl")
-using .Abstract
+using .Abstract: Abstract
 
-include("types/clone.jl")
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
+
+include("types/types.jl")
+using .Types: Types
+
 
 end

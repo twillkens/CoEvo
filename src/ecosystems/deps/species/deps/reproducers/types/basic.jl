@@ -1,16 +1,16 @@
+module Basic
+
 export BasicReproducer
 
-using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ...Ecosystems.Utilities.Counters: Counter
-using ..Species.Individuals.Abstract: Individual
-using ..Species.Evaluators.Abstract: Evaluation
-using .Replacers.Abstract: Replacer
-using .Selectors.Abstract: Selector
-using .Recombiners.Abstract: Recombiner
+using .....Ecosystems.Utilities.Counters: Counter
+using ..Abstract: Individual, Evaluation, AbstractRNG, Reproducer
+using ..Replacers.Abstract: Replacer
+using ..Selectors.Abstract: Selector
+using ..Recombiners.Abstract: Recombiner
 
-import .Abstract: Reproducer, reproduce
+import ..Interfaces: reproduce
 
 struct BasicReproducer{
     RP <: Replacer,
@@ -33,4 +33,6 @@ function reproduce(
     parents = select(reproducer.selector, rng, new_pop_evals)
     new_children = recombine(reproducer.recombiner, rng, indiv_id_counter, parents)
     return new_children
+end
+
 end

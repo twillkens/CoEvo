@@ -5,8 +5,6 @@ export BasicDomainReport, BasicDomainReporter
 using ..Abstract: DomainReport, DomainReporter, Metric, Observation, ObservationMetric
 using ..Abstract: DomainMetric, MeasureSet
 
-import ...Interfaces: create_report
-
 # TODO: Finish reports
 struct BasicDomainReport{
     O <: ObservationMetric, 

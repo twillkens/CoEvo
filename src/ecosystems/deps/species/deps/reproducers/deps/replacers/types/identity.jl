@@ -5,11 +5,9 @@ export IdentityReplacer
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ...Individuals.Abstract: Individual
-using ...Species.Evaluators.Abstract: Evaluation
+using ...Abstract: Replacer, Individual, Evaluation
 
-
-import .Abstract: replace
+import ...Interfaces: replace 
 
 """
     IdentityReplacer <: Replacer

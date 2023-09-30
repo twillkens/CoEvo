@@ -2,11 +2,9 @@ module Interfaces
 
 export replace
 
-using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using .....Individuals.Abstract: Individual
-using .....Species.Evaluators.Abstract: Evaluation
+using ..Abstract: Individual, Evaluation, Replacer, AbstractRNG
 
 function replace(
     replacer::Replacer,

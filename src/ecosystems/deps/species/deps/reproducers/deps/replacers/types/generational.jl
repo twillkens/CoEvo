@@ -2,14 +2,12 @@ module Generational
 
 export GenerationalReplacer
 
-using Random: AbstractRNG
 using DataStructures: OrderedDict
-using ...Individuals.Abstract: Individual
-using ...Evaluators.Abstract: Evaluation
-using ...Evaluators.Criteria.Abstract: Criterion
-using ...Evaluators.Criteria.Types: Maximize
 
-import .Abstract: replace
+using ...Abstract: Replacer, Individual, Evaluation, AbstractRNG, Criterion
+using ......Ecosystems.Species.Evaluators.Criteria.Types: Maximize
+
+import ...Interfaces: replace
 
 """
     GenerationalReplacer

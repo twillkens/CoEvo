@@ -21,7 +21,8 @@ export BasicEcosystem, BasicEcosystemCreator, evolve!,
        TheVectorWithAverageClosestToPi,
        BasicReporter, BasicReporterCreator,
        TheTwoVectorsWithGreatestSineOfSums,
-       DefaultArchiver, BasicIndividual, BasicIndividualCreator
+       DefaultArchiver, BasicIndividual, BasicIndividualCreator,
+       NumbersGameEnvironmentCreator
 
 include("ecosystems/ecosystems.jl")
 
@@ -36,11 +37,9 @@ println("yo")
 using .Species.Basic: BasicSpecies, BasicSpeciesCreator #
 using .Species: Individuals, Evaluators, Reproducers
 
-println("yo")
 using .Individuals.Basic: BasicIndividual, BasicIndividualCreator #
 using .Individuals: Genotypes, Phenotypes, Mutators
 
-println("yo")
 using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  #
 using .Genotypes.GeneticPrograms.Basic: BasicGeneticProgramGenotype
 using .Genotypes.GeneticPrograms.Basic: BasicGeneticProgramGenotypeCreator #
@@ -59,9 +58,9 @@ using .Evaluators.Types: ScalarFitnessEvaluator, ScalarFitnessEvaluation
 using .Evaluators.Criteria.Types: NullCriterion, Maximize, Minimize #
 
 using .Reproducers: Replacers, Selectors, Recombiners
-using .Replacers: IdentityReplacer, GenerationalReplacer #
-using .Selectors: IdentitySelector, FitnessProportionateSelector #
-using .Recombiners: CloneRecombiner #
+using .Replacers.Types: IdentityReplacer, GenerationalReplacer #
+using .Selectors.Types: IdentitySelector, FitnessProportionateSelector #
+using .Recombiners.Types: CloneRecombiner #
 
 using .Reporters.Species.Basic: BasicSpeciesReport, BasicSpeciesReporter #
 using .Reporters.Ecosystem.Runtime: RuntimeReporter #
@@ -77,7 +76,7 @@ using .Domains: Environments, MatchMakers, Observers
 
 using .Environments: NumbersGame
 
-using .NumbersGame.Environment: NumbersGameEnvironment
+using .NumbersGame.Environment: NumbersGameEnvironment, NumbersGameEnvironmentCreator #
 using .NumbersGame.Metrics: Sum, Control, Focusing, Gradient, Relativism #
 
 using .MatchMakers.AllvsAll: AllvsAllMatchMaker #

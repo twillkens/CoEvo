@@ -5,8 +5,8 @@ export select
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ....Individuals.Abstract: Individual
-using ....Species.Evaluators.Abstract: Evaluation
+using ..Abstract: Individual, Evaluation, Selector
+
 """
     (selector::Selector)(rng::AbstractRNG, new_pop_evals::OrderedDict{<:I, <:E})
 

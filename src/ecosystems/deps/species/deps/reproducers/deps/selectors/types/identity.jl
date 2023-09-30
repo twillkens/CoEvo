@@ -3,11 +3,9 @@ module Identity
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ...Individuals.Abstract: Individual
-using ...Species.Evaluators.Abstract: Evaluation
-using .Abstract: Selector
+using ...Abstract: Selector, Individual, Evaluation, AbstractRNG
 
-import .Interfaces: select
+import ...Interfaces: select
 
 """
     IdentitySelector
