@@ -9,7 +9,10 @@ using ....Ecosystems.Jobs.Abstract: Job
 using ....Ecosystems.Interactions.Abstract: Interaction
 using ....Ecosystems.Species.Phenotypes.Abstract: Phenotype
 using ....Ecosystems.Interactions.Observers.Abstract: Observer
-import ..Interfaces: perform
+
+using 
+
+import ..Performers.Interfaces: perform
 
 struct BasicPerformer <: Performer 
     n_workers::Int

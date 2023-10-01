@@ -16,7 +16,7 @@ its associated interaction function.
 """
 module Environments
 
-export Abstract, Interfaces, Types
+export Abstract, Interfaces, Types, Methods
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -28,5 +28,8 @@ using .Interfaces: Interfaces
 # Dependencies
 include("types/types.jl")
 using .Types: Types
+
+include("methods/methods.jl")
+using .Methods: Methods
 
 end

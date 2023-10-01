@@ -6,7 +6,7 @@ using ....Interactions.Domains.Abstract: Domain
 using ...Environments.Abstract: Environment, EnvironmentCreator
 using .....Species.Phenotypes.Abstract: Phenotype
 
-import ...Environments.Interfaces: next!, refresh!, is_active, create_environment
+import ...Environments.Interfaces: next!, is_active, create_environment
 
 
 struct StatelessEnvironment{D <: Domain, P <: Phenotype} <: Environment

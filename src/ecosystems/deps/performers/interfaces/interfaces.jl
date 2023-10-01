@@ -2,7 +2,8 @@ module Interfaces
 
 export perform
 
-using ..Abstract: Job, Performer
+using ..Abstract: Performer
+using ...Jobs.Abstract: Job
 
 function perform(performer::Performer, job::Job)
     throw(ErrorException(

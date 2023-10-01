@@ -6,7 +6,6 @@ using Random: AbstractRNG
 using ..Matches.Abstract: Match
 using ..Abstract: MatchMaker
 using ....Species.Abstract: AbstractSpecies
-using ....Interactions.Types: Interaction
 using .....Ecosystems.Abstract: EcosystemCreator, Ecosystem
 
 function make_matches(

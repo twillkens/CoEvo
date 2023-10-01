@@ -25,15 +25,15 @@ using .Abstract: Abstract
 include("deps/domains/domains.jl")
 using .Domains: Domains
 
-# Dependencies
-include("deps/environments/environments.jl")
-using .Environments: Environments
-
 include("deps/matchmakers/matchmakers.jl")
 using .MatchMakers: MatchMakers
 
 include("deps/observers/observers.jl")
 using .Observers: Observers
+
+# Dependencies
+include("deps/environments/environments.jl")
+using .Environments: Environments
 
 include("types/types.jl")
 using .Types: Types

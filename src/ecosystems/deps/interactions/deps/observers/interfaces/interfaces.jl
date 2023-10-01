@@ -1,12 +1,8 @@
 module Interfaces
 
-export observe!, create_observation
+export create_observation
 
-using ..Abstract: Environment, Observer, Observation
-
-function observe!(environment::Environment, observer::Observer)
-    error("`observe!`` not implemented for $(typeof(environment)), $(typeof(observer))")
-end
+using ...Observers.Abstract: Observer, Observation
 
 function create_observation(observer::Observer)::Observation
     error("`create_observation`` not implemented for $(typeof(observer))")
