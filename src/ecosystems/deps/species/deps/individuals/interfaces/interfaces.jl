@@ -2,12 +2,12 @@ module Interfaces
 
 export create_individual
 
-using ..Abstract: Individual, IndividualCreator
-using ..Individuals.Genotypes.Abstract: Genotype
+using ..Individuals.Abstract: Individual, IndividualCreator
+using ...Species.Genotypes.Abstract: Genotype
 
 function create_individual(
     indiv_creator::IndividualCreator, 
-    ::Int, 
+    indiv_id::Int, 
     geno::Genotype, 
     parent_ids::Vector{Int}
 )::Individual

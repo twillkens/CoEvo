@@ -30,42 +30,33 @@ Represents a species population and its offspring.
 """
 struct BasicSpecies{P <: PhenotypeCreator, I <: Individual} <: AbstractSpecies
     id::String
-    pheno_creator::P
-    pop::OrderedDict{Int, I}
-    children::OrderedDict{Int, I}
+    pop::Dict{Int, I}
+    children::Dict{Int, I}
 end
 
 # Constructors
 function BasicSpecies(
-    id::String, pheno_creator::PhenotypeCreator, 
-    pop::Vector{<:Individual}, children::Vector{<:Individual}
+    id::String,
+    pop::Vector{<:Individual},
+    children::Vector{<:Individual}
 )
     return BasicSpecies(
         id,
-        pheno_creator,
-        OrderedDict(indiv.id => indiv for indiv in pop),
-        OrderedDict(indiv.id => indiv for indiv in children)
+        Dict(indiv.id => indiv for indiv in pop),
+        Dict(indiv.id => indiv for indiv in children)
     )
 end
 
-function BasicSpecies(id::String, pop::OrderedDict{Int, I}) where {I <: Individual}
+function BasicSpecies(id::String, pop::Dict{Int, I}) where {I <: Individual}
     return BasicSpecies(
         id, 
-        DefaultPhenotypeCreator(), 
         pop, 
-        OrderedDict{Int, I}(), 
+        Dict{Int, I}(), 
     )
 end
 
-function BasicSpecies(
-    id::String, pheno_creator::PhenotypeCreator, pop::OrderedDict{Int, I}
-) where {I <: Individual}
-    return BasicSpecies(
-        id, 
-        pheno_creator, 
-        pop, 
-        OrderedDict{Int, I}(), 
-    )
+function get_all_individuals(species::BasicSpecies)
+    return merge(species.pop, species.children)
 end
 
 
@@ -88,15 +79,25 @@ Defines the parameters for species generation.
 - `reporters::Vector{R}`: A list of reporters for gathering species metrics.
 """
 @Base.kwdef struct BasicSpeciesCreator{
+    G <: GenotypeCreator,
     I <: IndividualCreator,
+    P <: PhenotypeCreator,
     E <: Evaluator,
-    R <: Reproducer,
+    RP <: Replacer,
+    S <: Selector,
+    RC <: Recombiner,
+    M <: Mutator,
 } <: SpeciesCreator
     id::String
     n_pop::Int
+    geno_creator::G
     indiv_creator::I
+    pheno_creator::P
     evaluator::E
-    reproducer::R
+    replacer::RP
+    selector::S
+    recombiner::RC
+    mutators::Vector{M}
 end
 
 """
@@ -112,13 +113,13 @@ function create_species(
     species_creator::BasicSpeciesCreator,
     rng::AbstractRNG, 
     indiv_id_counter::Counter = Counter(),
-    gene_id_counter::Counter = Counter()
+    gene_id_counter::Counter = Counter(),
 )
-    indiv_ids = next!(indiv_id_counter, species_creator.n_pop)
     genos = create_genotypes(
         species_creator.geno_creator, rng, gene_id_counter, species_creator.n_pop
     ) 
-    pop = OrderedDict(
+    indiv_ids = next!(indiv_id_counter, species_creator.n_pop)
+    pop = Dict(
         indiv_id => species_creator.indiv_creator(indiv_id, geno) 
         for (indiv_id, geno) in zip(indiv_ids, genos)
     )
@@ -147,23 +148,14 @@ function create_species(
     species::AbstractSpecies,
     evaluation::Evaluation
 ) 
-    new_children = reproduce(
-        species_creator.reproducer,
-        species_creator.indiv_creator.mutators,
-        rng, 
-        indiv_id_counter, 
-        gene_id_counter, 
-        pop_evals, 
-        children_evals
-    )
-    new_pop = OrderedDict(indiv.id => indiv for indiv in keys(new_pop_evals))
-    new_children = OrderedDict(indiv.id => indiv for indiv in new_children)
-    new_species = BasicSpecies(species_creator.id, species_creator.pheno_creator, new_pop, new_children)
+    new_pop = replace(species_creator.replacer, rng, species, evaluation)
+    parents = select(species_creator.selector, rng, species, evaluation)
+    new_children = recombine(species_creator.recombiner, rng, indiv_id_counter, parents)
+    for mutator in species_creator.mutators
+        new_children = mutate(mutator, rng, gene_id_counter, new_children)
+    end
+    new_species = BasicSpecies(species_creator.id, new_pop, new_children)
     return new_species
-end
-
-function get_all_individuals(species::BasicSpecies)
-    return merge(species.pop, species.children)
 end
 
 end

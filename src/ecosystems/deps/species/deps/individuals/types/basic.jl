@@ -3,10 +3,8 @@ module Basic
 export BasicIndividual, BasicIndividualCreator
 
 using ....Ecosystems.Utilities.Counters: Counter
-using ...Individuals.Genotypes.Abstract: Genotype, GenotypeCreator
-using ...Individuals.Phenotypes.Abstract: Phenotype, PhenotypeCreator
-using ...Individuals.Mutators.Abstract: Mutator
-using ..Abstract: Individual, IndividualCreator
+using ...Species.Genotypes.Abstract: Genotype, GenotypeCreator
+using ..Individuals.Abstract: Individual, IndividualCreator
 
 import ..Interfaces: create_individual
 
@@ -32,19 +30,8 @@ end
 
 Creator for constructing instances of `BasicIndividual`.
 """
-Base.@kwdef struct BasicIndividualCreator{
-    G <: GenotypeCreator, 
-    P <: PhenotypeCreator, 
-    M <: Mutator
-} <: IndividualCreator 
-    geno_creator::G
-    pheno_creator::P
-    mutators::Vector{M}
-end
+Base.@kwdef struct BasicIndividualCreator end
 
-function BasicIndividualCreator(geno_creator::G, pheno_creator::P) where {G <: GenotypeCreator, P <: PhenotypeCreator}
-    BasicIndividualCreator(geno_creator, pheno_creator, Mutator[])
-end
 
 """
     (creator::BasicIndividualCreator)(id::Int, geno::Genotype, parent_ids::Vector{Int})
