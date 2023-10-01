@@ -1,16 +1,16 @@
 module Basic
 
 using Distributed: remotecall, fetch
-using ....Ecosystems.Results: Result
+using ....Ecosystems.Interactions.Results: Result
 using ..Performers.Abstract: Performer
-using ...Interactions.Observers.Interfaces: observe!, create_observation
 
 using ....Ecosystems.Jobs.Abstract: Job
+using ....Ecosystems.Jobs.Basic: BasicJob
 using ....Ecosystems.Interactions.Abstract: Interaction
 using ....Ecosystems.Species.Phenotypes.Abstract: Phenotype
 using ....Ecosystems.Interactions.Observers.Abstract: Observer
-
-using 
+using ....Ecosystems.Interactions.Environments.Interfaces: create_environment, create_observer
+using ....Ecosystems.Interactions.Methods.Interact: interact
 
 import ..Performers.Interfaces: perform
 
@@ -18,23 +18,6 @@ struct BasicPerformer <: Performer
     n_workers::Int
 end
 
-function interact(
-    domain::Domain, 
-    observers::Vector{<:Observer},
-    phenotypes::Vector{<:Phenotype}
-)
-    refresh!(domain, observers, phenotypes)
-    observe!(domain, observers)
-    while is_active(domain)
-        next!(domain)
-        observe!(domain, observers)
-    end
-    indiv_ids = [pheno.id for pheno in phenotypes]
-    outcome_set = get_outcome_set(domain)
-    observations = [create_observation(observer) for observer in observers]
-    result = BasicResult(domain.id, indiv_ids, outcome_set, observations)
-    return result
-end
 """
     perform(job::BasicJob) -> Vector{InteractionResult}
 
@@ -48,21 +31,20 @@ returns a list of their results.
 # Returns
 - A `Vector` of `InteractionResult` instances, each detailing the outcome of an interaction.
 """
-function perform(::BasicPerformer, job::Job)
-    all_environments = Dict(
-        domain.id => create_environment(domain.environment_creator, domain.id) 
-        for domain in job.domains
-    )
-    all_observers = Dict(
-        domain.id => domain.observers
-        for domain in job.domains
-    )
+function perform(::BasicPerformer, job::BasicJob)
     results = Result[]
     for match in job.matches
-        environment = all_environments[match.domain_id]
-        observers = all_observers[match.domain_id]
-        phenotypes = [job.pheno_dict[indiv_id] for indiv_id in match.indiv_ids]
-        result = interact(environment, observers, phenotypes)
+        environment_creator = job.interactions[match.interaction_id].environment_creator
+        observer_creators = job.interactions[match.interaction_id].observers
+        phenotypes = [job.phenotypes[indiv_id] for indiv_id in match.indiv_ids]
+        environment = create_environment(environment_creator, phenotypes)
+        observers = [create_observer(creator, environment) for creator in observer_creators]
+        result = interact(
+            match.interaction_id, 
+            match.indiv_ids,
+            environment, 
+            observers
+        )
         push!(results, result)
     end
     return results

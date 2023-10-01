@@ -14,6 +14,9 @@ using .Basic: Basic
 include("methods/measure/measure.jl")
 using .Measure
 
+include("methods/measure/custom.jl")
+using .Custom
+
 include("methods/report/report.jl")
 using .Report
 

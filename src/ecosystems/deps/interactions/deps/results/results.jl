@@ -2,7 +2,7 @@ module Results
 
 export Result, get_indiv_outcomes, get_observations
 
-using ..Ecosystems.Interactions.Observers: Observation
+using ...Ecosystems.Interactions.Observers: Observation
 
 struct Result{O <: Observation}
     interaction_id::String

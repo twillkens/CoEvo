@@ -1,9 +1,13 @@
 module Abstract
 
-export Observation, Observer
+export Observation, Observer, ObserverCreator
 
-abstract type Observation end
+using ....Metrics.Observation.Abstract: ObservationMetric
 
-abstract type Observer end
+abstract type Observation{O <: ObservationMetric} end
+
+abstract type Observer{O <: ObservationMetric} end
+
+abstract type ObserverCreator{O <: ObservationMetric} end
 
 end

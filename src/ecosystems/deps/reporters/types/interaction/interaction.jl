@@ -1,4 +1,4 @@
-module Domain
+module Interaction
 
 export Abstract, Basic
 

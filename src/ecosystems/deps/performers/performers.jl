@@ -1,13 +1,10 @@
 module Performers
 
-export Abstract, Results, Interfaces
+export Abstract, Interfaces
 export Basic
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
-
-include("deps/results/results.jl")
-using .Results: Results
 
 include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces

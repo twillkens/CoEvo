@@ -1,6 +1,9 @@
 module Methods
 
-export NumbersGame
+export Interact, NumbersGame
+
+include("interact.jl")
+using .Interact: Interact
 
 include("numbers_game.jl")
 using .NumbersGame: NumbersGame

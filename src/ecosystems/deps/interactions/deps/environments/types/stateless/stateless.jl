@@ -10,9 +10,7 @@ import ...Environments.Interfaces: next!, is_active, create_environment
 
 
 struct StatelessEnvironment{D <: Domain, P <: Phenotype} <: Environment
-    interaction_id::String
     domain::D
-    indiv_ids::Vector{Int}
     phenotypes::Vector{P}
 end
 
@@ -22,14 +20,10 @@ end
 
 function create_environment(
     env_creator::StatelessEnvironmentCreator,
-    domain::Domain,
-    indiv_ids::Vector{Int},
     phenotypes::Vector{<:Phenotype}
 )
     return StatelessEnvironment(
-        env_creator.domain.id,
-        domain,
-        indiv_ids,
+        env_creator.domain,
         phenotypes
     )
 end

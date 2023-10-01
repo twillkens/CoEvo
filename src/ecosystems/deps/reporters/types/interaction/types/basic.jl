@@ -4,19 +4,20 @@ export BasicInteractionReport, BasicInteractionReporter
 
 using ..Abstract: InteractionReport, InteractionReporter, Metric, Observation, ObservationMetric
 using ..Abstract: OutcomeMetric, MeasureSet
+using ....Ecosystems.Metrics.Interaction.Abstract: InteractionMetric
 
 # TODO: Finish reports
 struct BasicInteractionReport{
     O <: ObservationMetric, 
-    D <: OutcomeMetric, 
+    I <: InteractionMetric, 
     M <: MeasureSet
-} <: InteractionReport{O, D, M}
+} <: InteractionReport{O, I, M}
     gen::Int
     to_print::Bool
     to_save::Bool
     interaction_id::String
     observation_metric::O
-    outcome_metric::D
+    outcome_metric::I
     measure_set::M
     print_measures::Vector{Symbol}
     save_measures::Vector{Symbol}
@@ -31,15 +32,15 @@ function Base.show(
     println(io, "----------------------DOMAIN-------------------------------")
     println(io, "Generation $(report.gen)")
     println(io, "Interaction ID: $(report.interaction_id)")
-    println(io, "Metric: $(report.metric)")
-    println(io, "       Data: $(report.data)")
+    println(io, "Metric: $(report.outcome_metric)")
+    println(io, "       Data: $(report.observation_metric)")
     
 end
 
 Base.@kwdef struct BasicInteractionReporter{
-    D <: OutcomeMetric
-} <: InteractionReporter{D}
-    metric::D
+    I <: InteractionMetric
+} <: InteractionReporter{I}
+    metric::I
     interaction_ids::Vector{String}
     print_interval::Int = 1
     save_interval::Int = 0

@@ -31,6 +31,9 @@ using .MatchMakers: MatchMakers
 include("deps/observers/observers.jl")
 using .Observers: Observers
 
+include("deps/results/results.jl")
+using .Results: Results 
+
 # Dependencies
 include("deps/environments/environments.jl")
 using .Environments: Environments

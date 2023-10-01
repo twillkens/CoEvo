@@ -6,7 +6,7 @@ module Runtime
 
 export RuntimeReporter, RuntimeReport, create_runtime_report
 
-using ....Abstract: EcosystemReporter, EcosystemReport
+using ...Ecosystem.Abstract: EcosystemReporter, EcosystemReport
 
 """
     RuntimeReport
@@ -47,7 +47,7 @@ Create an instance of `RuntimeReporter` and call it with the necessary arguments
 Base.@kwdef struct RuntimeReporter <: EcosystemReporter
     print_interval::Int = 1
     save_interval::Int = 0
-    n_round::Int = 6
+    n_round::Int = 5
 end
 
 function Base.show(io::IO, report::RuntimeReport)

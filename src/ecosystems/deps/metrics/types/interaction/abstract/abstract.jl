@@ -1,9 +1,9 @@
 module Abstract
 
-export OutcomeMetric
+export InteractionMetric
 
 using ...Abstract: Metric
 
-abstract type OutcomeMetric <: Metric end
+abstract type InteractionMetric <: Metric end
 
 end

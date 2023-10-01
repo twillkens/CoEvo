@@ -4,6 +4,9 @@ export create_report
 
 using ..Abstract: SpeciesReporter
 
+using ....Ecosystems.Species.Abstract: AbstractSpecies
+using ....Ecosystems.Species.Evaluators.Abstract: Evaluation
+
 function create_report(
     reporter::SpeciesReporter,
     gen::Int,
@@ -14,6 +17,14 @@ function create_report(
     values::Vector{Float64}
 )
     throw(ErrorException("create_report not implemented for $reporter"))
+end
+
+function measure(
+    reporter::SpeciesReporter,
+    species::AbstractSpecies,
+    evaluation::Evaluation
+)
+    throw(ErrorException("measure not implemented for $reporter, $species, $evaluation"))
 end
 
 end

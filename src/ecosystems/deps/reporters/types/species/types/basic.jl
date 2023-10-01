@@ -3,7 +3,9 @@ module Basic
 export BasicSpeciesReporter
 
 using DataStructures: OrderedDict
-using ..Abstract: SpeciesReport, SpeciesReporter, SpeciesMetric, MeasureSet
+using ..Species.Abstract: SpeciesReport, SpeciesReporter
+using ....Metrics.Species.Abstract: SpeciesMetric
+using ....Measures.Abstract: MeasureSet
 using ..Abstract: Individual, Evaluation, Observation
 
 import ..Interfaces: create_report
@@ -30,7 +32,6 @@ struct BasicSpeciesReport{MET <: SpeciesMetric, MEA <: MeasureSet} <: SpeciesRep
     to_print::Bool
     to_save::Bool
     species_id::String
-    cohort::String
     metric::MET
     measure_set::MEA
     print_measures::Vector{Symbol}
@@ -46,7 +47,7 @@ function Base.show(io::IO, report::BasicSpeciesReport)
     println(io, "Metric: $(report.metric)")
     
     for measurement in report.print_measures
-        value = getfield(report.measurement_set, measurement)
+        value = getfield(report.measure_set, measurement)
         println(io, "    $measurement: $value")
     end
 end
@@ -55,8 +56,7 @@ Base.@kwdef struct BasicSpeciesReporter{M <: SpeciesMetric} <: SpeciesReporter{M
     metric::M
     print_interval::Int = 1
     save_interval::Int = 0
-    n_round::Int = 2
-    to_check::Vector{Pair{String, String}} = Vector{Pair{String, String}}[]
+    n_round::Int = 3
     print_features::Vector{Symbol} = [:mean, :std, :minimum, :maximum]
     save_features::Vector{Symbol} = [:mean, :std, :minimum, :maximum]
 end

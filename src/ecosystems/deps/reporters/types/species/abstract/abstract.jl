@@ -1,17 +1,10 @@
 module Abstract
 
-export SpeciesReport, SpeciesReporter, Individual, SpeciesMetric, Evaluation, MeasureSet
-export Genotype, Evaluation
-
-using ...Abstract: Reporter, Report
+export SpeciesReport, SpeciesReporter
 
 using .....Ecosystems.Measures.Abstract: MeasureSet
-using .....Ecosystems.Species.Individuals.Abstract: Individual
 using .....Ecosystems.Metrics.Species.Abstract: SpeciesMetric
-using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
-using .....Ecosystems.Interactions.Observers.Abstract: Observation
-using .....Ecosystems.Species.Individuals.Genotypes.Abstract: Genotype
-using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
+using ...Reporters.Abstract: Reporter, Report
 
 abstract type SpeciesReport{MET <: SpeciesMetric, MEA <: MeasureSet} <: Report end
 

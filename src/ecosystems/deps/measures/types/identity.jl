@@ -1,4 +1,4 @@
-module IndividualIdentity
+module Identity
 
 export IndividualIdentityMeasureSet
 

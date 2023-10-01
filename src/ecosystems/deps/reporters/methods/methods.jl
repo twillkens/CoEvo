@@ -1,14 +1,18 @@
 module Methods
 
-using ..Abstract: Reporter, Observation, Evaluation, Individual
+using ..Reporters.Abstract: Report, Reporter
+using ...Interactions.Observers.Abstract: Observation
+using ...Species.Evaluators.Abstract: Evaluation
+using ...Species.Abstract: AbstractSpecies
 
-import ..Interfaces: create_reports
+import ..Reporters.Interfaces: create_reports
 
 function create_reports(
-    ::Reporter,
+    reporter::Reporter,
     gen::Int,
+    species::Dict{String, AbstractSpecies},
+    evaluations::Dict{String, Evaluation},
     observations::Vector{Observation},
-    species_evaluations::Dict{String, Dict{String, Dict{<:Individual, <:Evaluation}}}
 )
     to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
     to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
@@ -17,8 +21,9 @@ function create_reports(
         gen,
         to_print,
         to_save,
+        species,
+        evaluations,
         observations,
-        species_evaluations
     )
 end
 
