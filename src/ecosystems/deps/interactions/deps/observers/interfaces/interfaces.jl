@@ -5,7 +5,7 @@ export observe!, create_observation
 using ..Abstract: Environment, Observer, Observation
 
 function observe!(environment::Environment, observer::Observer)
-    error("`observe!`` not implemented for $(typeof(interaction)), $(typeof(observer))")
+    error("`observe!`` not implemented for $(typeof(environment)), $(typeof(observer))")
 end
 
 function create_observation(observer::Observer)::Observation

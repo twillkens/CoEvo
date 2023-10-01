@@ -5,7 +5,9 @@ export select
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ..Abstract: Individual, Evaluation, Selector
+using ..Selectors.Abstract: Selector
+using ...Species.Individuals: Individual
+using ...Species.Evaluators.Abstract: Evaluation
 
 """
     (selector::Selector)(rng::AbstractRNG, new_pop_evals::OrderedDict{<:I, <:E})
@@ -30,10 +32,11 @@ it throws an error.
 function select(
     selector::Selector,
     ::AbstractRNG, 
-    new_pop_evals::OrderedDict{Individual, Evaluation}
+    pop::Dict{Int, Individual},
+    evaluation::Evaluation
 )
     throw(ErrorException(
-        "Selector $selector not implemented for $new_pop_evals")
+        "Selector $selector not implemented for $evaluation")
     )
 end
 

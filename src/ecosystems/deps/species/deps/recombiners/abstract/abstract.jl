@@ -1,11 +1,7 @@
 module Abstract
 
-export Recombiner, Individual, AbstractRNG
-
-using .....Ecosystems.Species.Individuals.Abstract: Individual
-using Random: AbstractRNG
+export Recombiner
 
 abstract type Recombiner end
-
 
 end

@@ -1,11 +1,11 @@
 module Interfaces
 
-export create_species, get_all_individuals
+export create_species
 
-using ..Abstract: SpeciesCreator, AbstractRNG
+using ..Species.Abstract: SpeciesCreator, AbstractRNG, AbstractSpecies
 using ....Ecosystems.Utilities.Counters: Counter
 using ....Ecosystems.Species.Evaluators.Abstract: Evaluation
-using ....Ecosystems.Species.Individuals.Abstract: Individual
+using ....Ecosystems.Species.Individuals: Individual
 
 
 function create_species(
@@ -34,14 +34,6 @@ function create_species(
     )
 end
 
-function get_all_individuals(
-    species::AbstractSpecies
-)::Dict{Int, Individual}
-    throw(ErrorException(
-        "`get_all_individuals` not implemented for species $species"
-        )
-    )
-end
 
 
 end

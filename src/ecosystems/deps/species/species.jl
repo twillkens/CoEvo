@@ -47,7 +47,6 @@ using .Selectors: Selectors
 include("deps/recombiners/recombiners.jl")
 using .Recombiners: Recombiners
 
-
 include("deps/mutators/mutators.jl")
 using .Mutators: Mutators
 
@@ -55,7 +54,7 @@ include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces
 
 # Types
-include("types/types.jl")
-using .Types: Types
+include("types/basic.jl")
+using .Basic: Basic
 
 end

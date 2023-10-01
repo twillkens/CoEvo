@@ -1,6 +1,6 @@
 module Genotypes
 
-export Abstract, Vectors, GeneticPrograms
+export Abstract, Interfaces, Vectors, GeneticPrograms, Methods
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -15,6 +15,7 @@ include("types/genetic_programs/genetic_programs.jl")
 using .GeneticPrograms: GeneticPrograms
 
 include("methods/methods.jl")
+using Methods: Methods
 
 
 end

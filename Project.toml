@@ -1,5 +1,6 @@
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"

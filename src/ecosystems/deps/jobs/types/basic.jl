@@ -4,6 +4,7 @@ export BasicJob, BasicJobCreator
 
 using DataStructures: OrderedDict
 using ..Abstract: Job, JobCreator, Ecosystem, Phenotype, Interaction, Match
+using ...Species.Phenotypes.Abstract: Phenotype
 
 import ..Interfaces: create_jobs
 
@@ -38,11 +39,6 @@ phenotype configuration of each species in the given ecosystem `eco`.
   for each species in the ecosystem.
 """
 function get_pheno_dict(eco::Ecosystem)
-    Dict(
-        indiv_id => create_phenotype(species.pheno_creator, indiv.geno)
-        for species in values(eco.species)
-        for (indiv_id, indiv) in merge(species.pop, species.children)
-    )
 end
 
 """
@@ -91,15 +87,38 @@ Results from all interactions are aggregated and returned.
 # Returns
 - A `Vector` of `InteractionResult` detailing outcomes of all interactions executed.
 """
-function create_jobs(job_creator::BasicJobCreator, eco::Ecosystem)
+
+using ...Species.Phenotypes.Interfaces: create_phenotype
+
+function create_phenotypes(
+    all_species::Dict{String, <:AbstractSpecies},
+    pheno_creators::Dict{String, <:PhenotypeCreator}
+)
+    phenotypes = Dict(
+        indiv_id => create_phenotype(pheno_creators[species_id], indiv.geno)
+        for (species_id, species) in all_species
+        for (indiv_id, indiv) in merge(species.pop, species.children)
+    )
+    return phenotypes
+end
+
+import ...Interactions.MatchMakers.Interfaces: make_matches
+using ...Species.Abstract: AbstractSpecies
+using ...Species.Phenotypes.Abstract: PhenotypeCreator
+
+function create_jobs(
+    job_creator::BasicJobCreator, 
+    all_species::Dict{String, <:AbstractSpecies},
+    phenotype_creators::Dict{String, <:PhenotypeCreator}
+)
     matches = vcat(
         [
-            make_matches(interaction.matchmaker, eco) 
+            make_matches(interaction.matchmaker, all_species) 
             for interaction in values(job_creator.interactions)
         ]...
     )
     match_partitions = make_partitions(matches, job_creator.n_workers)
-    pheno_dict = get_pheno_dict(eco)
+    pheno_dict = create_phenotypes(all_species, phenotype_creators)
     jobs = [
         BasicJob(job_creator.interactions, pheno_dict, match_partition)
         for match_partition in match_partitions

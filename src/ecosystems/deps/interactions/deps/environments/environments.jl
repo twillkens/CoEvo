@@ -16,7 +16,7 @@ its associated interaction function.
 """
 module Environments
 
-export Abstract, Interfaces, NumbersGame
+export Abstract, Interfaces, Types
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -26,7 +26,7 @@ include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces
 
 # Dependencies
-include("types/numbers_game/numbers_game.jl")
-using .NumbersGame: NumbersGame
+include("types/types.jl")
+using .Types: Types
 
 end

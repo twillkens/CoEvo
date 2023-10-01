@@ -5,9 +5,11 @@ export FitnessProportionateSelector
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ...Abstract: Selector, Individual, Evaluation, AbstractRNG
+using ...Selectors.Abstract: Selector
 
-import ...Interfaces: select
+import ...Selectors.Interfaces: select
+using ....Species.Individuals: Individual
+using ....Species.Evaluators.Types: ScalarFitnessEvaluation
 
 
 """
@@ -69,11 +71,13 @@ Selects `n_parents` from the population using the fitness-proportionate selectio
 function select(
     selector::FitnessProportionateSelector,
     rng::AbstractRNG, 
-    new_pop_evals::OrderedDict{<:Individual, <:Evaluation}
+    new_pop::Dict{Int, <:Individual},
+    evaluation::ScalarFitnessEvaluation
 )
-    fitnesses = [eval.fitness for eval in values(new_pop_evals)]
+    new_pop = collect(values(new_pop))
+    fitnesses = [evaluation.fitnesses[indiv.id] for indiv in new_pop]
     parent_indices = roulette(rng, selector.n_parents, fitnesses)
-    parents = collect(keys(new_pop_evals))[parent_indices]
+    parents = [new_pop[i] for i in parent_indices]
     return parents  
 end
 

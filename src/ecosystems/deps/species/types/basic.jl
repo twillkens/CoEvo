@@ -7,15 +7,21 @@ using DataStructures: OrderedDict
 
 using ...Ecosystems.Utilities.Counters: Counter, next!
 using ..Abstract: AbstractSpecies, SpeciesCreator
-using ..Individuals.Abstract: IndividualCreator, Individual
-using ..Individuals.Genotypes.Abstract: GenotypeCreator
-using ..Individuals.Phenotypes.Abstract: PhenotypeCreator
-using ..Evaluators.Abstract: Evaluator, Evaluation
-using ..Reproducers.Abstract: Reproducer
-using ..Individuals.Mutators.Interfaces: mutate
+using ..Individuals: Individual
+using ..Species.Genotypes.Abstract: GenotypeCreator
+using ..Species.Genotypes.Methods: create_genotypes
+using ..Species.Phenotypes.Abstract: PhenotypeCreator
+using ..Species.Evaluators.Abstract: Evaluator, Evaluation
+using ..Species.Replacers.Abstract: Replacer
+using ..Species.Replacers.Interfaces: replace
+using ..Species.Selectors.Abstract: Selector
+using ..Species.Selectors.Interfaces: select
+using ..Species.Recombiners.Abstract: Recombiner
+using ..Species.Recombiners.Interfaces: recombine
+using ..Species.Mutators.Abstract: Mutator
+using ..Species.Mutators.Interfaces: mutate
 
-import ..Interfaces: create_species, get_all_individuals
-
+import ..Species.Interfaces: create_species
 
 """
     BasicSpecies{P <: PhenotypeCreator, I <: Individual}
@@ -55,9 +61,6 @@ function BasicSpecies(id::String, pop::Dict{Int, I}) where {I <: Individual}
     )
 end
 
-function get_all_individuals(species::BasicSpecies)
-    return merge(species.pop, species.children)
-end
 
 
 """
@@ -78,9 +81,8 @@ Defines the parameters for species generation.
 - `mutators::Vector{M}`: A list of mutation mechanisms.
 - `reporters::Vector{R}`: A list of reporters for gathering species metrics.
 """
-@Base.kwdef struct BasicSpeciesCreator{
+Base.@kwdef struct BasicSpeciesCreator{
     G <: GenotypeCreator,
-    I <: IndividualCreator,
     P <: PhenotypeCreator,
     E <: Evaluator,
     RP <: Replacer,
@@ -91,7 +93,6 @@ Defines the parameters for species generation.
     id::String
     n_pop::Int
     geno_creator::G
-    indiv_creator::I
     pheno_creator::P
     evaluator::E
     replacer::RP
@@ -120,7 +121,7 @@ function create_species(
     ) 
     indiv_ids = next!(indiv_id_counter, species_creator.n_pop)
     pop = Dict(
-        indiv_id => species_creator.indiv_creator(indiv_id, geno) 
+        indiv_id => Individual(indiv_id, geno, Int[]) 
         for (indiv_id, geno) in zip(indiv_ids, genos)
     )
     return BasicSpecies(species_creator.id, species_creator.pheno_creator, pop)

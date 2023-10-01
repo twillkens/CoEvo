@@ -18,6 +18,9 @@ using .Metrics: Metrics
 include("deps/interactions/interactions.jl")
 using .Interactions: Interactions
 
+include("deps/results/results.jl")
+using .Results: Results
+
 include("deps/jobs/jobs.jl")
 using .Jobs: Jobs
 
@@ -32,6 +35,9 @@ using .Reporters: Reporters
 
 include("deps/archivers/archivers.jl")
 using .Archivers: Archivers
+
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
 
 include("types/basic.jl")
 using .Basic: Basic

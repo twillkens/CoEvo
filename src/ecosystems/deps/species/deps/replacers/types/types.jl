@@ -8,10 +8,7 @@ using .Identity: IdentityReplacer
 include("generational.jl")
 using .Generational: GenerationalReplacer
 
-# TODO: Implement tournament selection
-# include("tournament.jl")
-
-# TODO: Implement truncation selection
-# include("truncation.jl")
+include("truncation.jl")
+using .Truncation: TruncationReplacer
 
 end

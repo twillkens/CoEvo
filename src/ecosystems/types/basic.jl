@@ -7,17 +7,21 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 
-using ..Abstract: Ecosystem, EcosystemCreator, Report, Reporter
+using ..Abstract: Ecosystem, EcosystemCreator
 using ..Utilities.Counters: Counter
 using ..Species.Abstract: AbstractSpecies, SpeciesCreator
-using ..Species.Individuals.Abstract: Individual, IndividualCreator
+using ..Species.Individuals: Individual
 using ..Species.Evaluators.Abstract: Evaluation
+using ..Species.Evaluators.Interfaces: create_evaluation
 using ..Jobs.Abstract: JobCreator
 using ..Performers.Abstract: Performer
-using ..Performers.Results.Abstract: Result
+using ..Results: Result
 using ..Interactions.Observers.Abstract: Observation
 using ..Reporters.Ecosystem.Types.Runtime: RuntimeReporter
+using ..Reporters.Abstract: Reporter, Report
+using ..Reporters.Interfaces: create_reports
 using ..Archivers.Abstract: Archiver
+using ..Results: get_indiv_outcomes, extract_observations
 
 
 struct BasicEcosystem{S <: AbstractSpecies} <: Ecosystem
@@ -78,13 +82,13 @@ function evaluate_species(
     eco::Ecosystem, 
     results::Vector{<:Result}
 )
-    outcome_sets = get_outcome_sets(results)
+    indiv_outcomes = get_indiv_outcomes(results)
 
     species_evaluations = Dict(
         species => create_evaluation(
             eco_creator.species_creators[species_id].evaluator,
             species, 
-            outcome_sets
+            indiv_outcomes
         ) 
         for (species_id, species) in eco.species
     )
@@ -95,11 +99,11 @@ end
 function create_reports(
     gen::Int, 
     reporters::Vector{<:Reporter}, 
-    species_evaluations::Dict{String, Dict{String, Dict{<:Individual, <:Evaluation}}},
+    old_species::Dict{String, <:AbstractSpecies},
     observations::Vector{<:Observation}
 )
     reports = [
-        create_report(reporter, gen, observations, species_evaluations) 
+        create_reports(reporter, gen, observations, species_evaluations) 
         for reporter in reporters
     ]
 

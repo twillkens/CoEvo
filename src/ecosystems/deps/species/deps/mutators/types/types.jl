@@ -1,2 +1,11 @@
+module Types
 
-include("genetic_programs/genetic_programs.jl")
+export Identity, IdentityMutator, GeneticProgram, GeneticProgramMutator
+
+include("identity/identity.jl")
+using .Identity: Identity, IdentityMutator
+
+include("genetic_program/genetic_program.jl")
+using .GeneticProgram: GeneticProgram, GeneticProgramMutator
+
+end

@@ -3,7 +3,7 @@ module Interfaces
 export create_genotype
 
 using ..Abstract: Genotype, GenotypeCreator, AbstractRNG
-using ......Ecosystems.Utilities.Counters: Counter
+using .....Ecosystems.Utilities.Counters: Counter
 
 function create_genotype(
     geno_creator::GenotypeCreator, 

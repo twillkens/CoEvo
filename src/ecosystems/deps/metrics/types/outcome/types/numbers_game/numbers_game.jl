@@ -2,7 +2,7 @@ module NumbersGame
 
 export NumbersGameMetric, Control, Sum, Gradient, Focusing, Relativism
 
-using ......Ecosystems.Metrics.Interaction.Abstract: OutcomeMetric
+using ...Outcome.Abstract: OutcomeMetric
 
 """
     NumbersGameMetric

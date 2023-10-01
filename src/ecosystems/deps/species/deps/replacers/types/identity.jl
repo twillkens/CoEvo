@@ -3,9 +3,9 @@ module Identity
 export IdentityReplacer
 
 using Random: AbstractRNG
-using DataStructures: OrderedDict
-
-using ...Abstract: Replacer, Individual, Evaluation
+using ....Species.Replacers.Abstract: Replacer
+using ....Species.Abstract: AbstractSpecies
+using ....Species.Evaluators.Abstract: Evaluation
 
 import ...Interfaces: replace 
 
@@ -33,14 +33,11 @@ Execute the replacement using the `IdentityReplacer` strategy.
 function replace(
     ::IdentityReplacer,
     ::AbstractRNG, 
-    pop_evals::OrderedDict{<:Individual, <:Evaluation},
-    children_evals::OrderedDict{<:Individual, <:Evaluation}
+    species::AbstractSpecies,
+    ::Evaluation
 )
-    if length(pop_evals) > 0
-        return pop_evals
-    else
-        return children_evals
-    end
+    population = species.pop
+    return population
 end
 
 end

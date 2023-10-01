@@ -1,6 +1,6 @@
 module Abstract
 
-export MatchMaker, AbstractSpecies
+export MatchMaker
 
 abstract type MatchMaker end
 

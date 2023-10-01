@@ -1,9 +1,10 @@
 module Identity
 
 using Random: AbstractRNG
-using DataStructures: OrderedDict
 
-using ...Abstract: Selector, Individual, Evaluation, AbstractRNG
+using ...Selectors.Abstract: Selector
+using ....Species.Individuals: Individual
+using ....Species.Evaluators.Abstract: Evaluation
 
 import ...Interfaces: select
 
@@ -33,9 +34,11 @@ Apply the identity selection strategy, returning the provided population as-is.
 function select(
     ::IdentitySelector,
     ::AbstractRNG, 
-    parent_evals::OrderedDict{<:Individual, <:Evaluation}
+    new_pop::Dict{Int, <:Individual},
+    evaluation::Evaluation
 )
-    return parent_evals
+    parents = new_pop
+    return parents
 end
 
 end

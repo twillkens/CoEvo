@@ -1,35 +1,38 @@
 module Truncation
 
-using Random
-using ....CoEvo.Abstract: Replacer, Evaluation, Criterion
-using ....CoEvo.Utilities.Criteria: Maximize
+using Random: AbstractRNG
+
+using ...Replacers.Abstract: Replacer
+using ....Species.Abstract: AbstractSpecies
+using ....Evaluators.Abstract: Evaluation
+using ....Evaluators.Interfaces: get_ranked_ids
 
 # Returns the best npop individuals from both the population and children
 Base.@kwdef struct TruncationReplacer <: Replacer
-    n_pop::Int = -1
     type::Symbol = :plus
-    sort_criterion::Criterion = Maximize()
 end
 
 
-function(replacer::TruncationReplacer)(
-    ::AbstractRNG, pop::Vector{<:Evaluation}, children::Vector{<:Evaluation}
+function replace(
+    replacer::TruncationReplacer,
+    ::AbstractRNG,
+    species::AbstractSpecies,
+    evaluation::Evaluation
 )
-    if length(children) == 0
-        candidates = pop
+    if length(species.children) == 0
+        candidates = species.pop
     elseif replacer.type == :plus
-        candidates = [pop ; children]
+        candidates = merge(species.children, species.pop)
     elseif replacer.type == :comma
-        candidates = children
+        candidates = species.children
     else
         throw(ErrorException("Invalid TruncationReplacer type: $(replacer.type)"))
     end
-    if replacer.n_pop == -1
-        return candidates
-    end
-    candidates = sort_evaluations(replacer.sort_criterion, candidates)
-    new_pop_ids = [candidate.id for candidate in candidates[1:replacer.n_pop]]
-    return new_pop_ids
+    ranked_ids = get_ranked_ids(evaluation, collect(keys(candidates)))
+    new_pop = Dict(
+        id => indiv for (id, indiv) in candidates if id in ranked_ids[1:length(species.pop)]
+    )
+    return new_pop
 end
 
 end

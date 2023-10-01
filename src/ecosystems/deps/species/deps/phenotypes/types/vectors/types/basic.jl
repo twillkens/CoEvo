@@ -3,7 +3,7 @@ module Basic
 export BasicVectorPhenotype
 
 using ...Phenotypes.Abstract: PhenotypeCreator
-using ..Abstract: VectorPhenotype
+using ..Vectors.Abstract: VectorPhenotype
 using ....Genotypes.Vectors.Basic: BasicVectorGenotype
 
 import ...Interfaces: create_phenotype, act

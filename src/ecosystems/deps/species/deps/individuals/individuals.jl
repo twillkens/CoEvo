@@ -6,15 +6,14 @@ in a co-evolutionary system.
 """
 module Individuals
 
-export Abstract, Interfaces
+export Individual
 
-include("abstract/abstract.jl")
-using .Abstract: Abstract
+using ..Species.Genotypes.Abstract: Genotype
 
-include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
-
-include("types/basic.jl")
-using .Basic: Basic
+struct Individual{G <: Genotype}
+    id::Int
+    geno::G
+    parent_ids::Vector{Int}
+end
 
 end

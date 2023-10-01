@@ -6,14 +6,11 @@ It supports various evaluation types, with the included type being `ScalarFitnes
 """
 module Evaluators
 
-export Abstract, Interfaces, Criteria, Types, Methods
+export Abstract, Interfaces, Types, Methods
 
 # Include abstract definitions and interfaces relevant to evaluations.
 include("abstract/abstract.jl")
 using .Abstract: Abstract
-
-include("deps/criteria/criteria.jl")
-using .Criteria: Criteria
 
 include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces

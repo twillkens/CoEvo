@@ -7,12 +7,7 @@ implements the default behavior for unimplemented selector types.
 """
 module Abstract
 
-export Selector, Individual, Evaluation, AbstractRNG
-
-using ......Ecosystems.Species.Evaluators.Criteria.Abstract: Criterion
-using .....Ecosystems.Species.Individuals.Abstract: Individual
-using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
-using Random: AbstractRNG
+export Selector
 
 abstract type Selector end
 

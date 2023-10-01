@@ -8,17 +8,17 @@ module ScalarFitness
 
 export ScalarFitnessEvaluation, ScalarFitnessEvaluator
 
+using DataStructures: OrderedDict
 using ....Species.Abstract: AbstractSpecies
-using ....Species.Interfaces: get_all_individuals
-using ....Species.Individuals.Abstract: Individual
+using ....Species.Individuals: Individual
 using ...Evaluators.Abstract: Evaluation, Evaluator
 
-import ...Evaluators.Interfaces: create_evaluation
+import ...Evaluators.Interfaces: create_evaluation, get_ranked_ids
 
 
 struct ScalarFitnessEvaluation <: Evaluation
     species_id::String
-    fitnessess::OrderedDict{Int, Float64}
+    fitnesses::OrderedDict{Int, Float64}
 end
 
 Base.@kwdef struct ScalarFitnessEvaluator <: Evaluator 
@@ -30,8 +30,8 @@ function create_evaluation(
     evaluator::ScalarFitnessEvaluator,
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
-) 
-    indiv_ids = [indiv.id for indiv in get_all_individuals(species)]
+) # TODO: handle species w/o pop/children fields
+    indiv_ids = [indiv.id for indiv in merge(species.pop, species.children)] 
     outcome_sums = [
         sum(outcomes[indiv_id][partner_id] 
         for partner_id in keys(outcomes[indiv_id]))
@@ -52,5 +52,13 @@ function create_evaluation(
     evaluation = ScalarFitnessEvaluation(species.id, indiv_fitnesses)
     return evaluation
 end
+
+function get_ranked_ids(evaluator::ScalarFitnessEvaluation, ids::Vector{Int})
+    ranked_ids = filter(
+        indiv_id -> indiv_id in ids, keys(evaluator.fitnesses)
+    )
+    return ranked_ids
+end
+
 
 end

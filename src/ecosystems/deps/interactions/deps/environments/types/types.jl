@@ -1,8 +1,11 @@
 module Types
 
-export NumbersGame
+export Stateless
 
-include("numbers_game/numbers_game.jl")
-using .NumbersGame: NumbersGame
+include("stateless/stateless.jl")
+using .Stateless: Stateless
+
+include("tape/tape.jl")
+using .Tape: Tape
 
 end

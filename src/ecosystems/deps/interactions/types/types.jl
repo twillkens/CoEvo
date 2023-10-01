@@ -2,14 +2,10 @@ module Types
 
 export BasicInteraction
 
-module Basic
-
-export BasicInteraction
-
-using ...Abstract: Interaction
-using ...MatchMakers.Abstract: MatchMaker
-using ...Observers.Abstract: Observer
-using ...Environments.Abstract: EnvironmentCreator
+using ..Interactions.Abstract: Interaction
+using ..MatchMakers.Abstract: MatchMaker
+using ..Observers.Abstract: Observer
+using ..Environments.Abstract: EnvironmentCreator
 
 Base.@kwdef struct BasicInteraction{
     E <: EnvironmentCreator, 
@@ -22,10 +18,5 @@ Base.@kwdef struct BasicInteraction{
     matchmaker::M
     observers::Vector{O}
 end
-
-end
-
-using .Basic: BasicInteraction
-
 
 end

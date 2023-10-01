@@ -1,4 +1,4 @@
-module Interaction
+module Outcome
 
 export Abstract, Types
 

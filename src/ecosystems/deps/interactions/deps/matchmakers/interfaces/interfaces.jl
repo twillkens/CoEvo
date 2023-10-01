@@ -1,13 +1,23 @@
 module Interfaces
 
+export make_matches
+
+using Random: AbstractRNG
 using ..Matches.Abstract: Match
-using ..Abstract: AbstractSpecies
+using ..Abstract: MatchMaker
+using ....Species.Abstract: AbstractSpecies
+using ....Interactions.Types: Interaction
+using .....Ecosystems.Abstract: EcosystemCreator, Ecosystem
 
 function make_matches(
-    matchmaker::MatchMaker, species::Vector{<:AbstractSpecies}::Vector{Match}
+    matchmaker::MatchMaker, 
+    rng::AbstractRNG,
+    all_species::Dict{String, AbstractSpecies},
+    interaction_id::String,
+    species_ids::Vector{String}
 )
     throw(ErrorException(
-        "`make_matches` not implemented for matchmaker $matchmaker, species $species"
+        "`make_matches` not implemented for matchmaker $matchmaker"
         )
     )
 end

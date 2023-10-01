@@ -1,8 +1,6 @@
 module Abstract
 
-export Environment, EnvironmentCreator, Phenotype
-
-using .....Ecosystems.Species.Individuals.Phenotypes.Abstract: Phenotype
+export Environment, EnvironmentCreator
 
 abstract type Environment end
 

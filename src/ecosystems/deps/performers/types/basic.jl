@@ -1,9 +1,14 @@
 module Basic
 
-using ..Results.Basic: BasicResult
-using ..Abstract: Domain, Observer, Phenotype, Job, Performer
-using ...Domains.Observers.Interfaces: observe!, create_observation
+using Distributed: remotecall, fetch
+using ....Ecosystems.Results: Result
+using ..Performers.Abstract: Performer
+using ...Interactions.Observers.Interfaces: observe!, create_observation
 
+using ....Ecosystems.Jobs.Abstract: Job
+using ....Ecosystems.Interactions.Abstract: Interaction
+using ....Ecosystems.Species.Phenotypes.Abstract: Phenotype
+using ....Ecosystems.Interactions.Observers.Abstract: Observer
 import ..Interfaces: perform
 
 struct BasicPerformer <: Performer 
@@ -61,5 +66,15 @@ function perform(::BasicPerformer, job::Job)
 end
 
 
+function perform(performer::BasicPerformer, jobs::Vector{Job})
+    if length(jobs) == 1
+        results = perform(performer, jobs[1])
+    else
+        futures = [remotecall(perform, i, performer, job) for (i, job) in enumerate(jobs)]
+        results = [fetch(f) for f in futures]
+    end
+    results = vcat(results...)
+    return results
+end
 
 end

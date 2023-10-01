@@ -2,13 +2,13 @@ module Interfaces
 
 export create_ecosystem, evolve!
 
-using ..Abstract: Ecosystem, EcosystemCreator
-using ..Performers.Results.Abstract: Result
+using ..Ecosystems.Abstract: Ecosystem, EcosystemCreator
+using ..Results: Result
 using ..Reporters.Abstract: Report
 
 function create_ecosystem(eco_creator::EcosystemCreator)::Ecosystem
     throw(ErrorException(
-        "`create_environment` not implemented for $env "
+        "`create_environment` not implemented for $eco_creator"
         )
     )
 end
@@ -21,7 +21,7 @@ function create_ecosystem(
     reports::Vector{Report}
 )::Ecosystem
     throw(ErrorException(
-        "`create_environment` not implemented for $env "
+        "`create_ecosystem` not implemented for $ecosystem_creator"
         )
     )
 end

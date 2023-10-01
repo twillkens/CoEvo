@@ -1,8 +1,8 @@
 module IndividualIdentity
 
-export IndividualsMeasureSet
+export IndividualIdentityMeasureSet
 
-using ....Ecosystems.Species.Individuals.Abstract: Individual
+using ....Ecosystems.Species.Individuals: Individual
 using ..Abstract: MeasureSet
 
 struct IndividualIdentityMeasureSet <: MeasureSet

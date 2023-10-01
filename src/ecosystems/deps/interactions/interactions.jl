@@ -17,10 +17,14 @@ module Interactions
 
 # Exported Structures
 export Abstract, Environments, MatchMakers, Observers
-export Basic
+export Types, Methods
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
+
+include("deps/domains/domains.jl")
+using .Domains: Domains
+
 # Dependencies
 include("deps/environments/environments.jl")
 using .Environments: Environments
@@ -33,5 +37,8 @@ using .Observers: Observers
 
 include("types/types.jl")
 using .Types: Types
+
+include("methods/methods.jl")
+using .Methods: Methods
 
 end

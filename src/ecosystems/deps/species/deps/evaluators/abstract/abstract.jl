@@ -6,9 +6,7 @@ extended for specific evaluation strategies in the co-evolutionary framework.
 """
 module Abstract
 
-export Evaluator, Evaluation, Individual
-
-using ....Ecosystems.Species.Individuals.Abstract: Individual
+export Evaluator, Evaluation
 
 abstract type Evaluation end
 

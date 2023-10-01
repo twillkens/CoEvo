@@ -3,6 +3,7 @@ module AllvsAll
 using ..Abstract: MatchMaker
 using ..Matches.Basic: BasicMatch
 using ....Species.Abstract: AbstractSpecies
+using Random: AbstractRNG
 
 """
     AllvsAllMatchMaker <: MatchMaker
@@ -36,11 +37,14 @@ Matchmaking function to create pairs of individuals between two species based on
 - Throws an error if an invalid type is set in `AllvsAllMatchMaker`.
 """
 function make_matches(
-    matchmaker::AllvsAllMatchMaker, sp1::AbstractSpecies, sp2::AbstractSpecies
+    matchmaker::AllvsAllMatchMaker, 
+    interaction_id::String, 
+    sp1::AbstractSpecies, 
+    sp2::AbstractSpecies
 )
     if matchmaker.type == :comma
-        ids1 = length(s1.children) == 0 ? collect(keys(sp1.pop)) : collect(keys(sp1.children))
-        ids2 = length(s2.children) == 0 ? collect(keys(sp2.pop)) : collect(keys(sp2.children))
+        ids1 = length(sp1.children) == 0 ? collect(keys(sp1.pop)) : collect(keys(sp1.children))
+        ids2 = length(sp2.children) == 0 ? collect(keys(sp2.pop)) : collect(keys(sp2.children))
     elseif matchmaker.type == :plus
         ids1 = [collect(keys(sp1.pop)); collect(keys(sp1.children))]
         ids2 = [collect(keys(sp2.pop)); collect(keys(sp2.children))]
@@ -49,8 +53,24 @@ function make_matches(
     end
     match_ids = vec(collect(Iterators.product(ids1, ids2)))
     matches = [
-        BasicMatch(interaction.id, [id1, id2]) for (id1, id2) in match_ids
+        BasicMatch(interaction_id, [id1, id2]) for (id1, id2) in match_ids
     ]
+    return matches
+end
+
+function make_matches(
+    matchmaker::AllvsAllMatchMaker,
+    ::AbstractRNG,
+    all_species::Dict{String, <:AbstractSpecies},
+    interaction_id::String,
+    species_ids::Vector{String}
+)
+    if length(species_ids) != 2
+        throw(ErrorException("Only two-entity interactions are supported for now."))
+    end
+    species1 = all_species[species_ids[1]]
+    species2 = all_species[species_ids[2]]
+    matches = make_matches(matchmaker, interaction_id, species1, species2)
     return matches
 end
 

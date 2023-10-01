@@ -2,7 +2,7 @@ module Abstract
 
 export OutcomeMetric
 
-using ...Abstract: Metric
+using ...Metrics.Abstract: Metric
 
 abstract type OutcomeMetric <: Metric end
 

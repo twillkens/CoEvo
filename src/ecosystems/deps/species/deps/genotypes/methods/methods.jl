@@ -1,7 +1,12 @@
-using ....Ecosystems.Utilities.Counters: Counter
-using .Abstract: GenotypeCreator, AbstractRNG
+module Methods
 
-import .Interfaces: create_genotype
+export create_genotypes
+
+using Random: AbstractRNG
+using .....Ecosystems.Utilities.Counters: Counter
+using ..Genotypes.Abstract: Genotype, GenotypeCreator
+
+import ..Genotypes.Interfaces: create_genotype
 
 
 """
@@ -15,7 +20,14 @@ for this purpose. The number of genotypes returned is determined by `n_pop`.
 - An array of genotype instances, each derived from the given configuration.
 """
 function create_genotypes(
-    geno_creator::GenotypeCreator, rng::AbstractRNG, gene_id_counter::Counter, n_pop::Int
-)::Vector{Genotype}
-    [create_genotype(geno_creator, rng, gene_id_counter) for _ in 1:n_pop]
+    geno_creator::GenotypeCreator, 
+    rng::AbstractRNG, 
+    gene_id_counter::Counter, 
+    n_pop::Int
+)
+    genotypes = [create_genotype(geno_creator, rng, gene_id_counter) for _ in 1:n_pop]
+
+    return genotypes
+end
+
 end
