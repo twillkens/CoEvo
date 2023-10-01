@@ -1,11 +1,11 @@
 module Ecosystem
 
-export Abstract, Runtime
+export Abstract, Types
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
 
-include("types/runtime/runtime.jl")
-using .Runtime: Runtime
+include("types/types.jl")
+using .Types: Types
 
 end

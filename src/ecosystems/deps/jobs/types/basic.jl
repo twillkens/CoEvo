@@ -3,29 +3,20 @@ module Basic
 export BasicJob, BasicJobCreator
 
 using DataStructures: OrderedDict
-using ..Abstract: Job, JobCreator, Ecosystem, Phenotype, Domain, Match
+using ..Abstract: Job, JobCreator, Ecosystem, Phenotype, Interaction, Match
 
 import ..Interfaces: create_jobs
 
-"""
-    BasicJob{D <: DomainConfiguration, T} <: Job
 
-Defines a job that orchestrates a set of interactions.
-
-# Fields
-- `domain_creators::Vector{D}`: Configurations for interaction domains.
-- `pheno_dict::Dict{Int, T}`: Dictionary mapping individual IDs to their phenotypes.
-- `recipes::Vector{InteractionRecipe}`: Interaction recipes to be executed in this job.
-"""
-struct BasicJob{T <: Domain, P <: Phenotype, M <: Match} <: Job
-    domains::OrderedDict{String, T}
+struct BasicJob{I <: Interaction, P <: Phenotype, M <: Match} <: Job
+    interactions::OrderedDict{String, I}
     phenotypes::Dict{Int, P}
     matches::Vector{M}
 end
 
 
-Base.@kwdef struct BasicJobCreator{T <: Domain} <: JobCreator
-    domains::OrderedDict{String, T} 
+Base.@kwdef struct BasicJobCreator{I <: Interaction} <: JobCreator
+    interactions::OrderedDict{String, I} 
     n_workers::Int = 1
 end
 
@@ -94,7 +85,7 @@ Using the given job configuration, construct and execute interaction jobs based 
 Results from all interactions are aggregated and returned.
 
 # Arguments
-- `cfg::JobCfg`: The job configuration detailing domains and number of workers.
+- `cfg::JobCfg`: The job configuration detailing interactions and number of workers.
 - `eco::Ecosystem`: The ecosystem providing entities for interaction.
 
 # Returns
@@ -103,14 +94,14 @@ Results from all interactions are aggregated and returned.
 function create_jobs(job_creator::BasicJobCreator, eco::Ecosystem)
     matches = vcat(
         [
-            make_matches(domain.matchmaker, eco) 
-            for domain in values(job_creator.domains)
+            make_matches(interaction.matchmaker, eco) 
+            for interaction in values(job_creator.interactions)
         ]...
     )
     match_partitions = make_partitions(matches, job_creator.n_workers)
     pheno_dict = get_pheno_dict(eco)
     jobs = [
-        BasicJob(job_creator.domains, pheno_dict, match_partition)
+        BasicJob(job_creator.interactions, pheno_dict, match_partition)
         for match_partition in match_partitions
     ]
     return jobs

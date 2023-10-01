@@ -1,8 +1,8 @@
 module Types
 
-export BasicReproducer
+export Basic
 
 include("basic.jl")
-using .Basic: BasicReproducer
+using .Basic: Basic
 
 end

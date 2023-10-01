@@ -8,7 +8,7 @@ abstract type JobCreator end
 
 using ....Ecosystems.Abstract: Ecosystem
 using ....Ecosystems.Species.Individuals.Phenotypes.Abstract: Phenotype
-using ....Ecosystems.Domains.Abstract: Domain
-using ....Ecosystems.Domains.MatchMakers.Matches.Abstract: Match
+using ....Ecosystems.Interactions.Abstract: Interaction
+using ....Ecosystems.Interactions.MatchMakers.Matches.Abstract: Match
 
 end

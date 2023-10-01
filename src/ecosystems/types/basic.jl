@@ -15,8 +15,8 @@ using ..Species.Evaluators.Abstract: Evaluation
 using ..Jobs.Abstract: JobCreator
 using ..Performers.Abstract: Performer
 using ..Performers.Results.Abstract: Result
-using ..Domains.Observers.Abstract: Observation
-using ..Reporters.Ecosystem.Runtime: RuntimeReporter
+using ..Interactions.Observers.Abstract: Observation
+using ..Reporters.Ecosystem.Types.Runtime: RuntimeReporter
 using ..Archivers.Abstract: Archiver
 
 
@@ -54,7 +54,7 @@ function show(io::IO, c::BasicEcosystemCreator)
           ", trial: ", c.trial,
           ", rng: ", typeof(c.rng), 
           ", species: ", keys(c.species_creators), 
-          ", domains: ", c.job_creator.domain_creators,")")
+          ", interactions: ", c.job_creator.interactions,")")
 end
 
 function create_ecosystem(eco_creator::BasicEcosystemCreator)
@@ -73,6 +73,25 @@ function create_ecosystem(eco_creator::BasicEcosystemCreator)
 end
 
 
+function evaluate_species(
+    eco_creator::BasicEcosystemCreator,
+    eco::Ecosystem, 
+    results::Vector{<:Result}
+)
+    outcome_sets = get_outcome_sets(results)
+
+    species_evaluations = Dict(
+        species => create_evaluation(
+            eco_creator.species_creators[species_id].evaluator,
+            species, 
+            outcome_sets
+        ) 
+        for (species_id, species) in eco.species
+    )
+    
+    return species_evaluations
+end
+
 function create_reports(
     gen::Int, 
     reporters::Vector{<:Reporter}, 
@@ -87,12 +106,34 @@ function create_reports(
     return reports
 end
 
-function archive_reports!(archivers::Vector{<:Archiver}, reports::Vector{<:Report})
-    [archive_report!(archiver, report) for archiver in archivers for report in reports]
+function archive_reports!(eco_creator::BasicEcosystemCreator, reports::Vector{<:Report})
+    [archive_report!(eco_creator.archiver, report) for report in reports]
 
     return nothing
 end
 
+function construct_new_species(
+    eco_creator::BasicEcosystemCreator, 
+    species_evaluations::Dict{<:Species, <:Evaluation}
+)
+    all_new_species = Dict(
+        species.id => create_species(
+            eco_creator.species_creators[species_id],
+            eco_creator.rng, 
+            eco_creator.indiv_id_counter,
+            eco_creator.gene_id_counter,
+            species,
+            evaluation
+        ) for (species, evaluation) in species_evaluations
+    )
+
+    return all_new_species
+end
+
+using  ..Jobs.Interfaces: create_jobs
+using ..Performers.Interfaces: perform
+using ..Interfaces: create_ecosystem, evolve!
+using ..Evaluators.Methods: create_evaluations
 
 function create_ecosystem(
     gen::Int, 
@@ -113,121 +154,6 @@ function create_ecosystem(
     
     return new_eco
 end
-
-function extract_observations(results::Vector{<:Result})
-    return [observation for result in results for observation in result.observations]
-end
-
-function process_domain_reports(
-    gen::Int, eco_creator::BasicEcosystemCreator, observations::Vector{<:Observation}
-)
-    reports = Report[]
-    for (domain_id, domain) in eco_creator.job_creator.domains
-        filtered_observations = filter(obs -> obs.domain_id == domain_id, observations)
-        for reporter in domain.reporters
-            push!(reports, reporter(gen, domain_id, filtered_observations))
-        end
-    end
-    return reports
-end
-"""
-    get_outcomes(observations::Vector{<:Observation})
-
-Extracts and organizes interaction outcomes between pairs of individuals from a given set of 
-observations.
-
-# Arguments
-- `observations::Vector{<:Observation}`: A vector of observations, where each observation typically captures the outcomes of interactions for specific pairs of individuals.
-
-# Returns
-- A dictionary where the primary keys are individual IDs. The value associated with each individual ID is another dictionary. In this inner dictionary, the keys are IDs of interacting partners, and the values are the outcomes of the interactions.
-"""
-function get_outcome_sets(results::Vector{<:Result})
-    # Initialize a dictionary to store interaction outcomes between individuals
-    outcome_sets = Dict{Int, Dict{Int, Float64}}()
-
-    for result in results 
-        # Extract individual IDs and their respective outcomes from the interaction result
-        indiv_id1, indiv_id2 = result.indiv_ids
-        outcome1, outcome2 = result.outcome_set
-
-        # Use `get!` to simplify dictionary insertion. 
-        # If the key doesn't exist, a new dictionary is initialized and the outcome is recorded.
-        get!(outcome_sets, indiv_id1, Dict{Int, Float64}())[indiv_id2] = outcome1
-        get!(outcome_sets, indiv_id2, Dict{Int, Float64}())[indiv_id1] = outcome2
-    end
-    return outcome_sets
-end
-
-function evaluate_species(
-    eco_creator::BasicEcosystemCreator,
-    eco::Ecosystem, 
-    results::Vector{<:Result}
-)
-    evaluations = Dict{String, Dict{String, Dict{<:Individual, <:Evaluation}}}()
-    outcome_sets = get_outcome_sets(results)
-    
-    for (species_id, species) in eco.species
-        species_creator = eco_creator.species_creators[species_id]
-        evaluations[species_id] = Dict(
-            "Population" => create_evaluations(
-                species_creator.eval_creator,
-                Dict(indiv => outcome_sets[indiv.id] for indiv in values(species.pop))
-            ),
-            "Children" => create_evaluations(
-                species_creator.eval_creator,
-                Dict(indiv => outcome_sets[indiv.id] for indiv in values(species.children))
-            )
-        )
-    end
-    
-    return evaluations
-end
-
-function generate_species_reports(gen::Int, eco_creator::BasicEcosystemCreator, evaluations)
-    reports = Report[]
-    
-    for (species_id, species_eval) in evaluations
-        species_creator = eco_creator.species_creators[species_id]
-        
-        for (cohort, evals) in species_eval
-            for reporter in species_creator.reporters
-                push!(reports, reporter(gen, species_id, cohort, evals))
-            end
-        end
-    end
-    
-    return reports
-end
-
-function archive_reports!(eco_creator::BasicEcosystemCreator, reports)
-    [archive_report!(eco_creator.archiver, report) for report in reports]
-
-    return nothing
-end
-
-function construct_new_species(eco_creator::BasicEcosystemCreator, evaluations)
-    all_new_species = Pair{String, AbstractSpecies}[]
-    
-    for (species_id, species_eval) in evaluations
-        species_creator = eco_creator.species_creators[species_id]
-        new_species = create_species(
-            species_creator,
-            eco_creator.rng, 
-            eco_creator.indiv_id_counter, 
-            eco_creator.gene_id_counter, 
-            species_eval["Population"], 
-            species_eval["Children"]
-        )
-        push!(all_new_species, species_id => new_species)
-    end
-
-    all_new_species = Dict(all_new_species)
-    
-    return all_new_species
-end
-
-
 
 function evolve!(
     eco_creator::BasicEcosystemCreator;

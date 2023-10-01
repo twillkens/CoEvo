@@ -83,7 +83,7 @@ function set_derived_tests(pop::Vector{DiscoEval}, seed::UInt32)
     #clusters
 end
 
-function(eval_creator::DiscoEvalCfg)(id::Int, outcomes::Dict{Int, Float64})
+function(evaluator::DiscoEvalCfg)(id::Int, outcomes::Dict{Int, Float64})
     fitness = sum(val for val in values(outcomes))
     return DiscoEval(id, fitness, outcomes)
 end

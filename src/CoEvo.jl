@@ -14,7 +14,7 @@ export BasicEcosystem, BasicEcosystemCreator, evolve!,
        GenotypeSum, GenotypeSize, EvaluationFitness,
        BasicJob, BasicJobCreator, InteractionScheme,
        NumbersGameEnvironment, NumbersGameEnvironmentCreator,
-       create_domain, next!, get_outcome_set, refresh!, act,
+       next!, get_outcome_set, refresh!, act,
        Control, Focusing, Gradient, Relativism, Sum,
        AllvsAllMatchMaker,
        BasicObserver, BasicObserverCreator,
@@ -31,7 +31,7 @@ using .Ecosystems.Utilities.Counters: Counter #
 using .Ecosystems.Reporters.Abstract: Reporter
 
 println("yo")
-using .Ecosystems: Species, Metrics, Domains, Jobs, Performers, Measures, Reporters, Archivers
+using .Ecosystems: Species, Metrics, Interactions, Jobs, Performers, Measures, Reporters, Archivers
 
 println("yo")
 using .Species.Basic: BasicSpecies, BasicSpeciesCreator #
@@ -67,12 +67,12 @@ using .Reporters.Ecosystem.Runtime: RuntimeReporter #
 
 using .Metrics.Species.Genotype.Types: GenotypeSumMetric, GenotypeSizeMetric # 
 using .Metrics.Species.Evaluation.Types: EvaluationFitnessMetric # 
-using .Metrics.Domain.Types: EpisodeLengthMetric
+using .Metrics.Interaction.Types: EpisodeLengthMetric
 
 using .Jobs.Basic: BasicJob, BasicJobCreator #
 
-using .Domains.Basic: BasicDomain #
-using .Domains: Environments, MatchMakers, Observers
+using .Interactions.Basic: BasicInteraction #
+using .Interactions: Environments, MatchMakers, Observers
 
 using .Environments: NumbersGame
 

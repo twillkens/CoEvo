@@ -1,6 +1,6 @@
 module Interfaces
 
-export create_species
+export create_species, get_all_individuals
 
 using DataStructures: OrderedDict
 using ..Abstract: SpeciesCreator, AbstractRNG
@@ -18,6 +18,15 @@ function create_species(
 )
     throw(ErrorException(
         "`create_species` not implemented for species $species_creator, rng $rng, indiv_id_counter $indiv_id_counter, gene_id_counter $gene_id_counter, pop_evals $pop_evals, children_evals $children_evals"
+        )
+    )
+end
+
+function get_all_individuals(
+    species::AbstractSpecies
+)
+    throw(ErrorException(
+        "`get_all_individuals` not implemented for species $species"
         )
     )
 end

@@ -2,9 +2,9 @@ module Types
 
 export EpisodeLengthMetric
 
-using ..Abstract: DomainMetric
+using ..Abstract: OutcomeMetric
 
-Base.@kwdef struct EpisodeLengthMetric <: DomainMetric
+Base.@kwdef struct EpisodeLengthMetric <: OutcomeMetric
     name::String = "Episode Length"
 end
 

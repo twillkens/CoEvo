@@ -15,7 +15,7 @@ import ..Interfaces: reproduce
 struct BasicReproducer{
     RP <: Replacer,
     S <: Selector,
-    RC <: Recombiner
+    RC <: Recombiner,
 } <: Reproducer
     replacer::RP
     selector::S
@@ -24,14 +24,19 @@ end
 
 function reproduce(
     reproducer::BasicReproducer,
+    mutator::Mutator,
     rng::AbstractRNG, 
     indiv_id_counter::Counter,  
-    pop_evals::OrderedDict{<:Individual, <:Evaluation},
-    children_evals::OrderedDict{<:Individual, <:Evaluation}
+    species::AbstractSpecies,
+    evaluation::Evaluation
 )
-    new_pop_evals = replace(reproducer.replacer, rng, pop_evals, children_evals)
-    parents = select(reproducer.selector, rng, new_pop_evals)
+    new_pop = replace(reproducer.replacer, rng, species, evaluation)
+    parents = select(reproducer.selector, rng, species, evaluation)
     new_children = recombine(reproducer.recombiner, rng, indiv_id_counter, parents)
+    for mutator in species_creator.indiv_creator.mutators
+        new_children = mutate(mutator, rng, gene_id_counter, new_children)
+    end
+
     return new_children
 end
 

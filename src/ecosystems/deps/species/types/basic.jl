@@ -5,7 +5,6 @@ export BasicSpecies, BasicSpeciesCreator
 using Random: AbstractRNG
 using DataStructures: OrderedDict
 
-using ...Ecosystems.Abstract: Reporter
 using ...Ecosystems.Utilities.Counters: Counter, next!
 using ..Abstract: AbstractSpecies, SpeciesCreator
 using ..Individuals.Abstract: IndividualCreator, Individual
@@ -13,6 +12,9 @@ using ..Individuals.Genotypes.Abstract: GenotypeCreator
 using ..Individuals.Phenotypes.Abstract: PhenotypeCreator
 using ..Evaluators.Abstract: Evaluator, Evaluation
 using ..Reproducers.Abstract: Reproducer
+using ..Individuals.Mutators.Interfaces: mutate
+
+import ..Interfaces: create_species, get_all_individuals
 
 
 """
@@ -78,7 +80,7 @@ Defines the parameters for species generation.
 - `geno_creator::G`: Genotype configuration.
 - `pheno_creator::P`: Phenotype configuration.
 - `indiv_creator::I`: Individual configuration.
-- `eval_creator::E`: Evaluation configuration.
+- `evaluator::E`: Evaluation configuration.
 - `replacer::RP`: Mechanism for replacing old individuals with new ones.
 - `selector::S`: Mechanism for selecting parents for reproduction.
 - `recombiner::RC`: Mechanism for recombination (e.g., crossover).
@@ -88,15 +90,13 @@ Defines the parameters for species generation.
 @Base.kwdef struct BasicSpeciesCreator{
     I <: IndividualCreator,
     E <: Evaluator,
-    R1 <: Reproducer,
-    R2 <: Reporter
+    R <: Reproducer,
 } <: SpeciesCreator
     id::String
     n_pop::Int
     indiv_creator::I
     evaluator::E
-    reproducer::R1
-    reporters::Vector{R2}
+    reproducer::R
 end
 
 """
@@ -144,24 +144,26 @@ function create_species(
     rng::AbstractRNG, 
     indiv_id_counter::Counter,  
     gene_id_counter::Counter,  
-    pop_evals::OrderedDict{<:Individual, <:Evaluation},
-    children_evals::OrderedDict{<:Individual, <:Evaluation},
+    species::AbstractSpecies,
+    evaluation::Evaluation
 ) 
     new_children = reproduce(
         species_creator.reproducer,
+        species_creator.indiv_creator.mutators,
         rng, 
         indiv_id_counter, 
         gene_id_counter, 
         pop_evals, 
         children_evals
     )
-    for mutator in species_creator.indiv_creator.mutators
-        new_children = mutate(mutator, rng, gene_id_counter, new_children)
-    end
     new_pop = OrderedDict(indiv.id => indiv for indiv in keys(new_pop_evals))
     new_children = OrderedDict(indiv.id => indiv for indiv in new_children)
     new_species = BasicSpecies(species_creator.id, species_creator.pheno_creator, new_pop, new_children)
     return new_species
+end
+
+function get_all_individuals(species::BasicSpecies)
+    return merge(species.pop, species.children)
 end
 
 end

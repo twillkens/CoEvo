@@ -9,7 +9,7 @@ using .....Ecosystems.Measures.Abstract: MeasureSet
 using .....Ecosystems.Species.Individuals.Abstract: Individual
 using .....Ecosystems.Metrics.Species.Abstract: SpeciesMetric
 using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
-using .....Ecosystems.Domains.Observers.Abstract: Observation
+using .....Ecosystems.Interactions.Observers.Abstract: Observation
 using .....Ecosystems.Species.Individuals.Genotypes.Abstract: Genotype
 using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
 

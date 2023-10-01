@@ -1,12 +1,12 @@
 module Abstract
 
-export Performer, Job, Domain, Phenotype, Observer
+export Performer, Job, Interaction, Phenotype, Observer
 
 abstract type Performer end
 
 using ....Ecosystems.Jobs.Abstract: Job
-using ....Ecosystems.Domains.Abstract: Domain
+using ....Ecosystems.Interactions.Abstract: Interaction
 using ....Ecosystems.Species.Individuals.Phenotypes.Abstract: Phenotype
-using ....Ecosystems.Domains.Observers.Abstract: Observer
+using ....Ecosystems.Interactions.Observers.Abstract: Observer
 
 end
