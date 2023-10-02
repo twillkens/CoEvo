@@ -15,7 +15,7 @@ include("types/genetic_programs/genetic_programs.jl")
 using .GeneticPrograms: GeneticPrograms
 
 include("methods/methods.jl")
-using Methods: Methods
+using .Methods: Methods
 
 
 end

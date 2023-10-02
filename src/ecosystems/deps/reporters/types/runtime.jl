@@ -1,13 +1,14 @@
-module Types
-
-export Runtime
-
 module Runtime
 
 export RuntimeReporter, RuntimeReport, create_runtime_report
 
-using ...Ecosystem.Abstract: EcosystemReporter, EcosystemReport
+using ...Reporters.Abstract: Reporter, Report
+using ...Ecosystems.Metrics.Abstract: Metric
+using ...Ecosystems.Measures.Abstract: MeasureSet
 
+
+struct RuntimeMetric <: Metric end
+struct RuntimeMeasure <: MeasureSet end
 """
     RuntimeReport
 
@@ -21,8 +22,10 @@ processes during a specific generation.
 - `eval_time`: The time taken (in seconds) for the evaluation process.
 - `reproduce_time`: The time taken (in seconds) for the reproduction process.
 """
-struct RuntimeReport <: EcosystemReport
+struct RuntimeReport{M <: Metric, MEA <: MeasureSet} <: Report{M, MEA}
     gen::Int
+    metric::M
+    measure::MEA
     eco_id::String
     to_print::Bool
     to_save::Bool
@@ -44,7 +47,8 @@ to print and/or save reports at specific generation intervals.
 # Usage
 Create an instance of `RuntimeReporter` and call it with the necessary arguments to generate a report.
 """
-Base.@kwdef struct RuntimeReporter <: EcosystemReporter
+Base.@kwdef struct RuntimeReporter{MET <: Metric} <: Reporter{MET}
+    metric::MET = RuntimeMetric()
     print_interval::Int = 1
     save_interval::Int = 0
     n_round::Int = 5
@@ -69,6 +73,8 @@ function create_runtime_report(
     to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
     report = RuntimeReport(
         gen, 
+        RuntimeMetric(),
+        RuntimeMeasure(),
         eco_id,
         to_print, 
         to_save, 
@@ -77,9 +83,5 @@ function create_runtime_report(
     )
     return report 
 end
-
-end
-
-using .Runtime: Runtime
 
 end

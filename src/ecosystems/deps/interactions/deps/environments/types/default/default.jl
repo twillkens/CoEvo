@@ -3,7 +3,8 @@ module Default
 export DefaultEnvironmentCreator
 
 using ....Environments.Abstract: EnvironmentCreator
+using ....Domains.Abstract: Domain
 
-struct DefaultEnvironmentCreator <: EnvironmentCreator end
+struct DefaultEnvironmentCreator{D <: Domain} <: EnvironmentCreator{D} end
 
 end

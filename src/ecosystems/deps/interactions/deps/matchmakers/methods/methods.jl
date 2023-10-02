@@ -3,7 +3,7 @@ module Methods
 using ..Abstract: MatchMaker
 using ....Species.Abstract: AbstractSpecies
 using ....Ecosystems.Abstract: EcosystemCreator, Ecosystem
-using ...Interactions: Interaction
+using ....Interactions.Abstract: Interaction
 import ..MatchMakers.Interfaces: make_matches
 
 
@@ -15,7 +15,7 @@ function make_matches(
     eco::Ecosystem
 )
     make_matches(
-        interaction.matchmaker, 
+        matchmaker, 
         eco_creator.rng, 
         eco.species, 
         interaction.id, 

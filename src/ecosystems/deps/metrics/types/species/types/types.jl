@@ -1,6 +1,6 @@
 module Types
 
-using ..Abstract: SpeciesMetric
+using ..Species.Abstract: SpeciesMetric
 
 Base.@kwdef struct FitnessMetric <: SpeciesMetric 
     name::String = "Fitness"

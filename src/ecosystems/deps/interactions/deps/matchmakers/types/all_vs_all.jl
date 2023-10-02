@@ -1,6 +1,6 @@
 module AllvsAll
 
-using ..Abstract: MatchMaker
+using ..MatchMakers.Abstract: MatchMaker
 using ..Matches.Basic: BasicMatch
 using ....Species.Abstract: AbstractSpecies
 using Random: AbstractRNG

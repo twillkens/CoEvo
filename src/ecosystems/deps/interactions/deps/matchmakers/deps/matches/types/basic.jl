@@ -2,7 +2,7 @@ module Basic
 
 export BasicMatch
 
-using ..Abstract: Match
+using ..Matches.Abstract: Match
 
 """
     InteractionRecipe

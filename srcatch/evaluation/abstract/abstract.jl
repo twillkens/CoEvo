@@ -2,7 +2,7 @@ module Abstract
 
 export EvaluationMetric
 
-using ...Abstract: SpeciesMetric
+using ..Species.Abstract: SpeciesMetric
 
 abstract type EvaluationMetric <: SpeciesMetric end
 

@@ -16,7 +16,7 @@ and reporters to facilitate interactive interaction configuration.
 module Interactions
 
 # Exported Structures
-export Abstract, Environments, MatchMakers, Observers
+export Abstract, Domains, MatchMakers, Observers, Results, Environments, Types, Methods
 export Types, Methods
 
 include("abstract/abstract.jl")

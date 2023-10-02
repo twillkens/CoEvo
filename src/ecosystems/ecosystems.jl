@@ -15,9 +15,6 @@ using .Species: Species
 include("deps/metrics/metrics.jl")
 using .Metrics: Metrics
 
-include("deps/results/results.jl")
-using .Results: Results
-
 include("deps/interactions/interactions.jl")
 using .Interactions: Interactions
 

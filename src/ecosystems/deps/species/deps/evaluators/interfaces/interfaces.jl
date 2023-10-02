@@ -7,7 +7,7 @@ using ...Species.Abstract: AbstractSpecies
 
 function create_evaluation(
     evaluator::Evaluator,
-    species::AbstractSpecies
+    species::AbstractSpecies,
     outcomes::Dict{Int, Float64}
 )
     throw(ErrorException(
@@ -16,7 +16,7 @@ end
 
 function get_ranked_ids(evaluator::Evaluator, ids::Vector{Int})
     throw(ErrorException(
-        "`get_ranked_ids` not implemented for $evaluator and $species."))
+        "`get_ranked_ids` not implemented for $evaluator and $ids."))
 end
 
 

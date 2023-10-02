@@ -6,7 +6,7 @@ using ....Interactions.Domains.Abstract: Domain
 using ...Environments.Abstract: Environment, EnvironmentCreator
 using .....Species.Phenotypes.Abstract: Phenotype
 
-struct TapeEnvironment{D <: Domain, P <: Phenotype} <: Environment 
+struct TapeEnvironment{D <: Domain, P <: Phenotype} <: Environment{D, P}
     domain::D
     phenotypes::Vector{Phenotype}
     max_length::Int
@@ -16,7 +16,7 @@ struct TapeEnvironment{D <: Domain, P <: Phenotype} <: Environment
     actions2::Vector{Float64}
 end
 
-struct TapeEnvironmentCreator{D <: Domain} <: EnvironmentCreator
+struct TapeEnvironmentCreator{D <: Domain} <: EnvironmentCreator{D}
     domain::D
     max_length::Int
 end

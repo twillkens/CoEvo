@@ -1,9 +1,6 @@
 module Abstract 
 
-export Archiver, Individual, Evaluation
-
-using ...Ecosystems.Species.Individuals.Abstract: Individual
-using ...Ecosystems.Species.Evaluators.Abstract: Evaluation
+export Archiver
 
 abstract type Archiver end
 

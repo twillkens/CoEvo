@@ -7,6 +7,7 @@ using Random: AbstractRNG
 import ...Genotypes.Interfaces: create_genotype   
 using ..GeneticPrograms.Genes: ExpressionNodeGene
 using ..GeneticPrograms.Genotypes: GeneticProgramGenotype
+using ...Genotypes.Abstract: GenotypeCreator
 
 
 
@@ -18,7 +19,7 @@ Creator for creating a `GeneticProgramGenotype`.
 # Fields:
 - `startval::Union{Symbol, Function, Real}`: Initial value to be used for the terminal node. Default is `0.0`.
 """
-Base.@kwdef struct GeneticProgramGenotypeCreator <: GeneticProgramGenotypeCreator 
+Base.@kwdef struct GeneticProgramGenotypeCreator <: GenotypeCreator 
     startval::Union{Symbol, Function, Real} = 0.0
 end
 

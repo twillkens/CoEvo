@@ -4,13 +4,13 @@ export add_function, remove_function, swap_node, splice_function, inject_noise
 
 using Random: AbstractRNG, rand
 
-using .......Ecosystems.Utilities.Counters: Counter, next!
-using .....Genotypes.GeneticPrograms: GeneticProgramGenotype
-using ...Mutators.GeneticProgram: GeneticProgramMutator
-using .....Genotypes.GeneticPrograms.Utilities: Terminal
-using .....Genotypes.GeneticPrograms.Methods: Manipulate
+using ......Ecosystems.Utilities.Counters: Counter, next!
+using ......Ecosystems.Species.Genotypes.GeneticPrograms: GeneticProgramGenotype
+using ..Mutators: GeneticProgramMutator
+using ......Ecosystems.Species.Genotypes.GeneticPrograms.Utilities: Terminal
+using ......Ecosystems.Species.Genotypes.GeneticPrograms.Methods: Manipulate
 import .Manipulate: add_function, remove_function, inject_noise, swap_node, splice_function
-using .....Genotypes.GeneticPrograms.Methods: Traverse
+using ......Ecosystems.Species.Genotypes.GeneticPrograms.Methods: Traverse
 using .Traverse: all_nodes, get_ancestors, get_descendents
 
 """

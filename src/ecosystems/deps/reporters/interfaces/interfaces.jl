@@ -5,7 +5,7 @@ export create_reports
 using ..Reporters.Abstract: Report, Reporter
 using ...Ecosystems.Interactions.Observers.Abstract: Observation
 using ...Ecosystems.Species.Abstract: AbstractSpecies
-using ...Ecosystems.Species.Evaluators: Evaluation
+using ...Ecosystems.Species.Evaluators.Abstract: Evaluation
 
 function create_reports(
     reporter::Reporter,
@@ -14,7 +14,7 @@ function create_reports(
     to_save::Bool,
     species::Dict{String, AbstractSpecies},
     evaluations::Dict{String, Evaluation},
-    observations::Vector{Observation},
+    observations::Dict{String, Vector{Observation}},
 )::Vector{Report}
     throw(ErrorException("create_report not implemented for $reporter"))
 end

@@ -8,6 +8,8 @@ using ...Mutators.Abstract: Mutator
 using .....Ecosystems.Utilities.Counters: Counter
 using ...Species.Individuals: Individual
 
+import ..Mutators.Interfaces: mutate
+
 function mutate(
     mutator::Mutator,
     rng::AbstractRNG,

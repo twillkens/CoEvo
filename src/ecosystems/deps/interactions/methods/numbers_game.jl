@@ -3,7 +3,7 @@ module NumbersGame
 using ....Interactions.Environments.Abstract: Environment, EnvironmentCreator
 using ...Environments.Types.Stateless: StatelessEnvironment
 using ....Interactions.Domains.Types.NumbersGame: NumbersGameDomain
-using ....Metrics.Outcome.NumbersGame: Control, Sum, Gradient, Focusing, Relativism
+using ....Metrics.Outcome.Types.NumbersGame: Control, Sum, Gradient, Focusing, Relativism
 using ....Species.Phenotypes.Vectors.Basic: VectorPhenotype
 using ....Species.Phenotypes.Interfaces: act
 

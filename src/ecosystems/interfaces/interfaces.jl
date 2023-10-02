@@ -3,7 +3,7 @@ module Interfaces
 export create_ecosystem, evolve!
 
 using ..Ecosystems.Abstract: Ecosystem, EcosystemCreator
-using ..Results: Result
+using ..Interactions.Results: Result
 using ..Reporters.Abstract: Report
 
 function create_ecosystem(eco_creator::EcosystemCreator)::Ecosystem

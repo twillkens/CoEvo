@@ -10,18 +10,22 @@ using DataStructures: OrderedDict
 using ..Abstract: Ecosystem, EcosystemCreator
 using ..Utilities.Counters: Counter
 using ..Species.Abstract: AbstractSpecies, SpeciesCreator
+using ..Species.Interfaces: create_species
 using ..Species.Individuals: Individual
 using ..Species.Evaluators.Abstract: Evaluation
 using ..Species.Evaluators.Interfaces: create_evaluation
 using ..Jobs.Abstract: JobCreator
 using ..Performers.Abstract: Performer
-using ..Results: Result
+using ..Interactions.Results: Result, get_indiv_outcomes, get_observations
 using ..Interactions.Observers.Abstract: Observation
-using ..Reporters.Ecosystem.Types.Runtime: RuntimeReporter
+using ..Reporters.Runtime: RuntimeReporter, create_runtime_report
 using ..Reporters.Abstract: Reporter, Report
 using ..Reporters.Interfaces: create_reports
 using ..Archivers.Abstract: Archiver
-using ..Results: get_indiv_outcomes, extract_observations
+using  ..Jobs.Interfaces: create_jobs
+using ..Performers.Interfaces: perform
+
+import ..Ecosystems.Interfaces: create_ecosystem, evolve!
 
 
 struct BasicEcosystem{S <: AbstractSpecies} <: Ecosystem
@@ -96,33 +100,35 @@ function evaluate_species(
     return species_evaluations
 end
 
-function create_reports(
+function create_all_reports(
     gen::Int, 
     reporters::Vector{<:Reporter}, 
-    old_species::Dict{String, <:AbstractSpecies},
+    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
     observations::Vector{<:Observation}
 )
     reports = [
-        create_reports(reporter, gen, observations, species_evaluations) 
+        create_reports(reporter, gen, species_evaluations, observations) 
         for reporter in reporters
     ]
+
+    reports = vcat(reports...)
 
     return reports
 end
 
 function archive_reports!(eco_creator::BasicEcosystemCreator, reports::Vector{<:Report})
-    [archive_report!(eco_creator.archiver, report) for report in reports]
+    #[archive_report!(eco_creator.archiver, report) for report in reports]
 
     return nothing
 end
 
 function construct_new_species(
     eco_creator::BasicEcosystemCreator, 
-    species_evaluations::Dict{<:Species, <:Evaluation}
+    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation}
 )
     all_new_species = Dict(
         species.id => create_species(
-            eco_creator.species_creators[species_id],
+            eco_creator.species_creators[species.id],
             eco_creator.rng, 
             eco_creator.indiv_id_counter,
             eco_creator.gene_id_counter,
@@ -134,25 +140,21 @@ function construct_new_species(
     return all_new_species
 end
 
-using  ..Jobs.Interfaces: create_jobs
-using ..Performers.Interfaces: perform
-using ..Interfaces: create_ecosystem, evolve!
-using ..Evaluators.Methods: create_evaluations
 
 function create_ecosystem(
     gen::Int, 
     eco_creator::BasicEcosystemCreator,
     eco::Ecosystem, 
-    results::Vector{<:Result}, 
+    results::Vector{Result}, 
     reports::Vector{Report}
 )
-    observations = extract_observations(results)
+    observations = [result.observation for result in results]
     species_evaluations = evaluate_species(eco_creator, eco, results)
-    generation_reports = create_reports(
+    generation_reports = create_all_reports(
         gen, eco_creator.reporters, observations, species_evaluations
     )
     append!(reports, generation_reports)
-    archive_reports!(eco_creator.archivers, reports)
+    archive_reports!(eco_creator.archiver, reports)
     all_new_species = construct_new_species(eco_creator, species_evaluations)
     new_eco = BasicEcosystem(eco_creator.id, all_new_species)
     
@@ -170,7 +172,7 @@ function evolve!(
         jobs = create_jobs(eco_creator.job_creator, eco)
         results = perform(eco_creator.job_creator.job_performer, jobs)
         eval_time = time() - eval_time_start
-        runtime_report = create_report(
+        runtime_report = create_runtime_report(
             eco_creator.runtime_reporter, gen, eval_time, last_reproduce_time
         )
         reports = Report[runtime_report]

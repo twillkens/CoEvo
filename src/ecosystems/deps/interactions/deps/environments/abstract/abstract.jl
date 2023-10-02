@@ -2,8 +2,11 @@ module Abstract
 
 export Environment, EnvironmentCreator
 
-abstract type Environment end
+using ...Domains.Abstract: Domain
+using ....Species.Phenotypes.Abstract: Phenotype
 
-abstract type EnvironmentCreator end
+abstract type Environment{D <: Domain, P <: Phenotype} end
+
+abstract type EnvironmentCreator{D <: Domain} end
 
 end

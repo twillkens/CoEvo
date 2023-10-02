@@ -2,6 +2,8 @@ module Abstract
 
 export Domain
 
-abstract type Domain end
+using ....Ecosystems.Metrics.Outcome.Abstract: OutcomeMetric
+
+abstract type Domain{O <: OutcomeMetric} end
 
 end

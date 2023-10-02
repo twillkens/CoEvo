@@ -1,4 +1,4 @@
-module Mutator
+module Mutators
 
 export GeneticProgramMutator
 

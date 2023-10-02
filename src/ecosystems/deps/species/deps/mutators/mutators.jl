@@ -1,6 +1,6 @@
 module Mutators
 
-export Abstract, Interfaces, GeneticProgram, Identity, Methods
+export Abstract, Interfaces, GeneticPrograms, Identity, Methods
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -11,8 +11,8 @@ using .Interfaces: Interfaces
 include("types/identity/identity.jl")
 using .Identity: Identity
 
-include("types/genetic_program/genetic_program.jl")
-using .GeneticProgram: GeneticProgram
+include("types/genetic_programs/genetic_programs.jl")
+using .GeneticPrograms: GeneticPrograms
 
 include("methods/methods.jl")
 using .Methods: Methods

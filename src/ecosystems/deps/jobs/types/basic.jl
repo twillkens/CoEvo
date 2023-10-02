@@ -8,8 +8,14 @@ using ...Ecosystems.Abstract: Ecosystem
 using ...Interactions.Abstract: Interaction
 using ...Interactions.MatchMakers.Matches.Abstract: Match
 using ...Species.Phenotypes.Abstract: Phenotype
+using ...Species.Abstract: AbstractSpecies
+using ...Species.Phenotypes.Interfaces: create_phenotype
+using ...Species.Abstract: AbstractSpecies
+using ...Species.Phenotypes.Abstract: PhenotypeCreator
 
-import ..Interfaces: create_jobs
+
+import ..Jobs.Interfaces: create_jobs
+import ...Interactions.MatchMakers.Interfaces: make_matches
 
 
 struct BasicJob{I <: Interaction, P <: Phenotype, M <: Match} <: Job
@@ -58,7 +64,6 @@ Results from all interactions are aggregated and returned.
 - A `Vector` of `InteractionResult` detailing outcomes of all interactions executed.
 """
 
-using ...Species.Phenotypes.Interfaces: create_phenotype
 
 function create_phenotypes(
     all_species::Dict{String, <:AbstractSpecies},
@@ -71,10 +76,6 @@ function create_phenotypes(
     )
     return phenotypes
 end
-
-import ...Interactions.MatchMakers.Interfaces: make_matches
-using ...Species.Abstract: AbstractSpecies
-using ...Species.Phenotypes.Abstract: PhenotypeCreator
 
 function create_jobs(
     job_creator::BasicJobCreator, 

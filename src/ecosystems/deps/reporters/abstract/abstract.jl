@@ -2,8 +2,11 @@ module Abstract
 
 export Report, Reporter
 
-abstract type Report end
+using ....Ecosystems.Metrics.Abstract: Metric
+using ....Ecosystems.Measures.Abstract: MeasureSet
 
-abstract type Reporter end
+abstract type Report{MET <: Metric, MEA <: MeasureSet} end
+
+abstract type Reporter{M <: Metric} end
 
 end

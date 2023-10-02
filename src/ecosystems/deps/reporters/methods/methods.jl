@@ -16,7 +16,7 @@ function create_reports(
 )
     to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
     to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
-    create_reports(
+    reports = create_reports(
         reporter,
         gen,
         to_print,
@@ -25,6 +25,7 @@ function create_reports(
         evaluations,
         observations,
     )
+    return reports
 end
 
 end
