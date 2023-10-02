@@ -1,6 +1,8 @@
 module Ecosystems
 
-export Abstract, Utilities, Reporters, Species, Interactions, Jobs, Performers, Archivers
+export Abstract, Utilities
+export Species, Metrics, Interactions, Jobs, Performers, Measurements, Reporters, Archivers
+export Interfaces
 export Basic
 
 include("abstract/abstract.jl")
@@ -24,8 +26,8 @@ using .Jobs: Jobs
 include("deps/performers/performers.jl")
 using .Performers: Performers
 
-include("deps/measures/measures.jl")
-using .Measures: Measures
+include("deps/measurements/measurements.jl")
+using .Measurements: Measurements
 
 include("deps/reporters/reporters.jl")
 using .Reporters: Reporters

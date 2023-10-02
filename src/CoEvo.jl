@@ -1,89 +1,231 @@
 module CoEvo
 
-#export BasicEcosystem, BasicEcosystemCreator, evolve!,
-#       Counter, RuntimeReporter,
-#       BasicSpecies, BasicSpeciesCreator,
-#       BasicVectorGenotype, BasicVectorGenotypeCreator,
-#       BasicGeneticProgram, BasicGeneticProgramGenotypeCreator,
-#       BasicVectorPhenotype, DefaultPhenotype, DefaultPhenotypeCreator,
-#       DefaultMutator, BasicGeneticProgramMutator,
-#       NullCriterion, Maximize, Minimize,
-#       IdentityReplacer, GenerationalReplacer,
-#       IdentitySelector, FitnessProportionateSelector,
-#       CloneRecombiner, BasicSpeciesReport, BasicSpeciesReporter,
-#       GenotypeSum, GenotypeSize, EvaluationFitness,
-#       BasicJob, BasicJobCreator, InteractionScheme,
-#       NumbersGameEnvironment, NumbersGameEnvironmentCreator,
-#       next!, get_outcome_set, refresh!, act,
-#       Control, Focusing, Gradient, Relativism, Sum,
-#       AllvsAllMatchMaker,
-#       BasicObserver, BasicObserverCreator,
-#       TheVectorWithAverageClosestToPi,
-#       BasicReporter, BasicReporterCreator,
-#       TheTwoVectorsWithGreatestSineOfSums,
-#       DefaultArchiver, BasicIndividual, BasicIndividualCreator,
-#       NumbersGameEnvironmentCreator
+export Ecosystem, EcosystemCreator,
+       BasicEcosystem, BasicEcosystemCreator, evolve!,
+       Counter,
+       Species,
+       AbstractSpecies,
+       create_species,
+       BasicSpecies, BasicSpeciesCreator,
+       Genotypes,
+       Genotype,
+       create_genotype,
+       VectorGenotype, VectorGenotypeCreator,
+       BasicVectorGenotype, BasicVectorGenotypeCreator,
+       GeneticProgramGenotype, GeneticProgramGenotypeCreator,
+       Phenotypes,
+       Phenotype, PhenotypeCreator,
+       create_phenotype, act,
+       DefaultPhenotypeCreator,
+       BasicVectorPhenotype,
+       Individuals,
+       Individual,
+       Evaluators,
+       create_evaluation, get_ranked_ids,
+       Evaluation, Evaluator,
+       ScalarFitnessEvaluator, ScalarFitnessEvaluation,
+       Replacers,
+       Replacer,
+       replace,
+       IdentityReplacer, GenerationalReplacer,
+       Selectors,
+       Selector,
+       select,
+       IdentitySelector, FitnessProportionateSelector,
+       Recombiners,
+       Recombiner,
+       recombine,
+       CloneRecombiner,
+       Mutators,
+       Mutator,
+       mutate,
+       IdentityMutator,
+       GeneticProgramMutator,
+       Metrics,
+       Metric,
+       OutcomeMetric,
+       NumbersGameMetrics,
+       ObservationMetric,
+       SpeciesMetric,
+       InteractionMetric,
+       EvaluationMetric,
+       TestBasedFitness,
+       Interactions,
+       Interaction,
+       interact,
+       Domains, MatchMakers, Observers, Results, Environments,
+       BasicInteraction,
+       Domain,
+       NumbersGameDomain,
+       MatchMaker,
+       AllvsAllMatchMaker,
+       Observer,
+       create_observation,
+       BasicObserver,
+       Result,
+       Environment, EnvironmentCreator,
+       create_environment, next!, get_outcome_set, is_active, observe!,
+       StatelessEnvironment, StatelessEnvironmentCreator,
+       Jobs,
+       Job, JobCreator,
+       create_jobs,
+       BasicJob, BasicJobCreator,
+       Performers,
+       Performer,
+       perform,
+       BasicPerformer,
+       Measurements,
+       Measurement,
+       BasicStatisticalMeasurement,
+       Reporters,
+       Reporter,
+       create_report,
+       BasicReporter, BasicReport,
+       RuntimeReporter, RuntimeReport,
+       Archivers,
+       Archiver,
+       archive!,
+       BasicArchiver
+
 
 include("ecosystems/ecosystems.jl")
 
-using .Ecosystems.Basic: BasicEcosystem, BasicEcosystemCreator, evolve! #
-println("using .Ecosystems.Basic: BasicEcosystem, BasicEcosystemCreator, evolve!")
-using .Ecosystems.Utilities.Counters: Counter #
-println("using .Ecosystems.Utilities.Counters: Counter")
-using .Ecosystems.Reporters.Abstract: Reporter
-println("using .Ecosystems.Reporters.Abstract: Reporter")
+using .Ecosystems.Abstract: Ecosystem, EcosystemCreator
+using .Ecosystems.Basic: BasicEcosystem, BasicEcosystemCreator, evolve! 
+using .Ecosystems.Utilities.Counters: Counter
+println("loaded ecosystems")
 
-using .Ecosystems: Species, Metrics, Interactions, Jobs, Performers, Measures, Reporters, Archivers
-println("using .Ecosystems: Species, Metrics, Interactions, Jobs, Performers, Measures, Reporters, Archivers")
+using .Ecosystems: Species
+using .Species.Abstract: AbstractSpecies
+using .Species.Interfaces: create_species
+using .Species.Basic: BasicSpecies, BasicSpeciesCreator 
+println("loaded species")
 
-using .Species.Basic: BasicSpecies, BasicSpeciesCreator #
-println("using .Species.Basic: BasicSpecies, BasicSpeciesCreator")
-using .Species: Genotypes, Phenotypes, Individuals, Evaluators
-println("using .Species: Genotypes, Phenotypes, Individuals, Evaluators")
-using .Species: Replacers, Selectors, Recombiners, Mutators, Interfaces
-println("using .Species: Replacers, Selectors, Recombiners, Mutators, Interfaces")
-
-using .Individuals: Individual
-
-using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  #
+using .Species: Genotypes
+using .Genotypes.Abstract: Genotype
+using .Genotypes.Interfaces: create_genotype
+using .Genotypes.Vectors.Abstract: VectorGenotype, VectorGenotypeCreator
+using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  
 using .Genotypes.GeneticPrograms: GeneticProgramGenotype
-using .Genotypes.GeneticPrograms: GeneticProgramGenotypeCreator #
+using .Genotypes.GeneticPrograms: GeneticProgramGenotypeCreator 
+println("loaded genotypes")
 
-using .Phenotypes.Defaults: DefaultPhenotypeCreator #
+using .Species: Phenotypes
+using .Phenotypes.Abstract: Phenotype, PhenotypeCreator
+using .Phenotypes.Interfaces: create_phenotype, act
+using .Phenotypes.Defaults: DefaultPhenotypeCreator 
 using .Phenotypes.Vectors.Basic: BasicVectorPhenotype
+println("loaded phenotypes")
 
-using .Mutators.Identity: IdentityMutator #
-using .Mutators.GeneticPrograms: GeneticProgramMutator #
+using .Species: Individuals
+using .Individuals: Individual
+println("loaded individuals")
 
-using .Evaluators.Types: ScalarFitnessEvaluator, ScalarFitnessEvaluation
-println("using .Evaluators.Types: ScalarFitnessEvaluator, ScalarFitnessEvaluation")
+using .Species: Mutators
+using .Mutators.Abstract: Mutator
+using .Mutators.Interfaces: mutate
+using .Mutators.Identity: IdentityMutator 
+using .Mutators.GeneticPrograms: GeneticProgramMutator 
+println("loaded mutators")
 
-using .Replacers.Types: IdentityReplacer, GenerationalReplacer #
-println("using .Replacers.Types: IdentityReplacer, GenerationalReplacer")
-using .Selectors.Types: IdentitySelector, FitnessProportionateSelector #
-println("using .Selectors.Types: IdentitySelector, FitnessProportionateSelector")
-using .Recombiners.Types: CloneRecombiner #
-println("using .Recombiners.Types: CloneRecombiner")
+using .Species: Evaluators
+using .Evaluators.Interfaces: create_evaluation, get_ranked_ids
+using .Evaluators.Abstract: Evaluation, Evaluator
+using .Evaluators.Types.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
+using .Evaluators.Types.Null: NullEvaluator, NullEvaluation
+println("loaded evaluators")
 
-using .Reporters.Basic: BasicReporter, BasicReport #
-using .Reporters.Runtime: RuntimeReporter, RuntimeReport #
+using .Species: Replacers
+using .Replacers.Abstract: Replacer
+using .Replacers.Interfaces: replace
+using .Replacers.Types: IdentityReplacer, GenerationalReplacer 
+println("loaded replacers")
 
-#using .Metrics.Species.Genotype.Types: GenotypeSumMetric, GenotypeSizeMetric # 
-#using .Metrics.Species.Evaluation.Types: EvaluationFitnessMetric # 
-#using .Metrics.Interaction.Types: EpisodeLengthMetric
+using .Species: Selectors
+using .Selectors.Abstract: Selector
+using .Selectors.Interfaces: select
+using .Selectors.Types: IdentitySelector, FitnessProportionateSelector 
+println("loaded selectors")
 
-using .Jobs.Basic: BasicJob, BasicJobCreator #
+using .Species: Recombiners
+using .Recombiners.Abstract: Recombiner
+using .Recombiners.Interfaces: recombine
+using .Recombiners.Types: CloneRecombiner 
+println("loaded recombiners")
 
+using .Ecosystems: Metrics
+using .Metrics.Abstract: Metric
+using .Metrics.Outcomes.Abstract: OutcomeMetric
+using .Metrics.Outcomes.Types.NumbersGame: NumbersGame as NumbersGameMetrics
+using .Metrics.Observations.Abstract: ObservationMetric
+using .Metrics.Species.Abstract: SpeciesMetric
+using .Metrics.Interactions.Abstract: InteractionMetric
+using .Metrics.Evaluations.Abstract: EvaluationMetric
+using .Metrics.Evaluations.Types: TestBasedFitness
+println("loaded metrics")
+
+using .Ecosystems: Interactions
+using .Interactions.Abstract: Interaction
+using .Interactions.Methods.Interact: interact
+using .Interactions.Methods: NumbersGame as NumbersGameMethods
 using .Interactions: Domains, MatchMakers, Observers, Results, Environments
-using .Interactions.Types: BasicInteraction #
+using .Interactions.Types: BasicInteraction 
+println("loaded interactions")
 
-using .Domains.Types.NumbersGame: NumbersGameDomain #
-using .Metrics.Outcome.Types.NumbersGame: Control, Focusing, Gradient, Relativism, Sum #
+using .Interactions: Domains
+using .Domains.Abstract: Domain
+using .Domains.Types.NumbersGame: NumbersGameDomain
+println("loaded domains")
 
-using .MatchMakers.AllvsAll: AllvsAllMatchMaker #
+using .Interactions: MatchMakers
+using .MatchMakers.Abstract: MatchMaker
+using .MatchMakers.AllvsAll: AllvsAllMatchMaker 
+println("loaded matchmakers")
 
+using .Interactions: Observers
+using .Observers.Abstract: Observer
+using .Observers.Interfaces: create_observation
 using .Observers.Basic: BasicObserver
+println("loaded observers")
 
-using .Archivers.Default: DefaultArchiver #
+using .Interactions: Results
+using .Results: Result
+println("loaded results")
+
+using .Interactions: Environments
+using .Environments.Abstract: Environment, EnvironmentCreator
+using .Environments.Interfaces: create_environment, next!, get_outcome_set, is_active, observe! #
+using .Environments.Types.Stateless: StatelessEnvironment, StatelessEnvironmentCreator #
+println("loaded environments")
+
+using .Ecosystems: Jobs
+using .Jobs.Abstract: Job, JobCreator
+using .Jobs.Interfaces: create_jobs
+using .Jobs.Basic: BasicJob, BasicJobCreator 
+println("loaded jobs")
+
+using .Ecosystems.Performers: Performers
+using .Performers.Abstract: Performer
+using .Performers.Interfaces: perform
+using .Performers.Basic: BasicPerformer
+println("loaded performers")
+
+using .Ecosystems: Measurements
+using .Measurements.Abstract: Measurement
+using .Measurements: BasicStatisticalMeasurement
+println("loaded measurements")
+
+using .Ecosystems: Reporters
+using .Reporters.Abstract: Reporter
+using .Reporters.Interfaces: create_report, measure
+using .Reporters.Types.Basic: BasicReporter, BasicReport
+using .Reporters.Types.Runtime: RuntimeReporter, RuntimeReport
+println("loaded reporters")
+
+using .Ecosystems: Archivers
+using .Archivers.Abstract: Archiver
+using .Archivers.Interfaces: archive!
+using .Archivers.Basic: BasicArchiver
+println("loaded archivers")
 
 end

@@ -1,7 +1,6 @@
 module Performers
 
-export Abstract, Interfaces
-export Basic
+export Abstract, Interfaces, Basic
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -11,6 +10,5 @@ using .Interfaces: Interfaces
 
 include("types/basic.jl")
 using .Basic: Basic
-
 
 end

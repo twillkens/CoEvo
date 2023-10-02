@@ -5,12 +5,12 @@ export create_environment, next!, get_outcome_set, is_active, observe!
 using ..Environments.Abstract: Environment, EnvironmentCreator
 using ....Species.Phenotypes.Abstract: Phenotype
 using ...Interactions.Observers.Abstract: Observer, ObserverCreator
+using ...Interactions.Domains.Abstract: Domain
 
 
 function create_environment(
     env_creator::EnvironmentCreator, 
-    domain::String,
-    phenotypes::Vector{<:Phenotype}
+    phenotypes::Vector{Phenotype},
 )::Environment
     throw(ErrorException(
         "`create_environment` not implemented for $env_creator "

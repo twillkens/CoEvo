@@ -1,22 +1,28 @@
 module Interfaces
 
-export create_reports
+export create_report
 
 using ..Reporters.Abstract: Report, Reporter
 using ...Ecosystems.Interactions.Observers.Abstract: Observation
 using ...Ecosystems.Species.Abstract: AbstractSpecies
 using ...Ecosystems.Species.Evaluators.Abstract: Evaluation
+using ...Ecosystems.Interactions.Abstract: Interaction
 
-function create_reports(
+function create_report(
     reporter::Reporter,
     gen::Int,
-    to_print::Bool,
-    to_save::Bool,
-    species::Dict{String, AbstractSpecies},
-    evaluations::Dict{String, Evaluation},
-    observations::Dict{String, Vector{Observation}},
-)::Vector{Report}
+    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
+    interaction_observations::Dict{<:Interaction, <:Observation}
+)::Report
     throw(ErrorException("create_report not implemented for $reporter"))
+end
+
+function measure(
+    reporter::Reporter,
+    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
+    interaction_observations::Dict{<:Interaction, <:Observation}
+)
+    throw(ErrorException("measure not implemented for $reporter"))
 end
 
 end

@@ -9,7 +9,7 @@ using ...Selectors.Abstract: Selector
 
 import ...Selectors.Interfaces: select
 using ....Species.Individuals: Individual
-using ....Species.Evaluators.Types: ScalarFitnessEvaluation
+using ....Species.Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
 
 
 """

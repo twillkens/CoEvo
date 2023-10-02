@@ -1,8 +1,11 @@
 module Types
 
-export ScalarFitnessEvaluation, ScalarFitnessEvaluator
+export Null, ScalarFitness
 
-include("scalar_fitness.jl")
-using .ScalarFitness: ScalarFitnessEvaluation, ScalarFitnessEvaluator
+include("null/null.jl")
+using .Null: Null
+
+include("scalar_fitness/scalar_fitness.jl")
+using .ScalarFitness: ScalarFitness
 
 end

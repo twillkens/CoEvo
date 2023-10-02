@@ -3,7 +3,7 @@ module NumbersGame
 
 export NumbersGameDomain
 
-using .....Ecosystems.Metrics.Outcome.Types.NumbersGame: NumbersGame as NumbersGameMetrics
+using .....Ecosystems.Metrics.Outcomes.Types.NumbersGame: NumbersGame as NumbersGameMetrics
 using .NumbersGameMetrics: NumbersGameMetric, Control, Sum, Gradient, Focusing, Relativism
 using ...Domains.Abstract: Domain
 

@@ -3,23 +3,27 @@ module NumbersGame
 using ....Interactions.Environments.Abstract: Environment, EnvironmentCreator
 using ...Environments.Types.Stateless: StatelessEnvironment
 using ....Interactions.Domains.Types.NumbersGame: NumbersGameDomain
-using ....Metrics.Outcome.Types.NumbersGame: Control, Sum, Gradient, Focusing, Relativism
+using ....Metrics.Outcomes.Types.NumbersGame: Control, Sum, Gradient, Focusing, Relativism
 using ....Species.Phenotypes.Vectors.Basic: VectorPhenotype
 using ....Species.Phenotypes.Interfaces: act
 
+import ....Interactions.Environments.Interfaces: get_outcome_set
+import ....Species.Phenotypes.Interfaces: act
 
-function create_environment(
-    ::EnvironmentCreator, 
-    interaction_id::String,
-    domain::NumbersGameDomain,
-    indiv_ids::Vector{Int},
-    phenotypes::Vector{<:VectorPhenotype}
-)
-    return StatelessEnvironment(interaction_id, domain, indiv_ids, phenotypes)
-end
+# function create_environment(
+#     ::EnvironmentCreator, 
+#     interaction_id::String,
+#     domain::NumbersGameDomain,
+#     indiv_ids::Vector{Int},
+#     phenotypes::Vector{<:VectorPhenotype}
+# )
+#     return StatelessEnvironment(interaction_id, domain, indiv_ids, phenotypes)
+# end
 
-function get_outcome_set(env::Environment{NumbersGameDomain, <:VectorPhenotype})
-    A, B = act(env.entities[1], nothing), act(env, env.entities[2], nothing)
+function get_outcome_set(
+    env::Environment{D, P}) where {D <: NumbersGameDomain, P <: VectorPhenotype
+}
+    A, B = act(env.phenotypes[1], nothing), act(env.phenotypes[2], nothing)
     get_outcome_set(env.domain.outcome_metric, A, B)
 end
 

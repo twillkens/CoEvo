@@ -2,7 +2,7 @@ module Interfaces
 
 export perform
 
-using ..Abstract: Performer
+using ..Performers.Abstract: Performer
 using ...Jobs.Abstract: Job
 
 function perform(performer::Performer, job::Job)

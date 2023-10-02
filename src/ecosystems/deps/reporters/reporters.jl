@@ -29,23 +29,8 @@ using .Abstract: Abstract
 include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces
 
-#include("types/species/species.jl")
-#using .Species: Species
-
-#include("types/interaction/interaction.jl")
-#using .Interaction: Interaction
-
-# include("types/ecosystem/ecosystem.jl")
-# using .Ecosystem: Ecosystem
-
-include("types/basic.jl")
-using .Basic: Basic
-
-include("types/runtime.jl")
-using .Runtime: Runtime
-
-include("methods/methods.jl")
-using .Methods
+include("types/types.jl")
+using .Types: Types
 
 end
 

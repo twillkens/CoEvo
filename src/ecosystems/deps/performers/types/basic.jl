@@ -1,5 +1,7 @@
 module Basic
 
+export BasicPerformer
+
 using Distributed: remotecall, fetch
 using ....Ecosystems.Interactions.Results: Result
 using ..Performers.Abstract: Performer

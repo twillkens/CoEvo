@@ -1,9 +1,12 @@
 module Types
 
+export GenotypeSize
+
 using ..Species.Abstract: SpeciesMetric
 
-Base.@kwdef struct FitnessMetric <: SpeciesMetric 
-    name::String = "Fitness"
+Base.@kwdef struct GenotypeSize <: SpeciesMetric 
+    name::String = "GenotypeSize"
 end
+
 
 end

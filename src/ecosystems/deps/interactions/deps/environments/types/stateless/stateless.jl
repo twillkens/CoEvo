@@ -9,12 +9,12 @@ using .....Species.Phenotypes.Abstract: Phenotype
 import ...Environments.Interfaces: next!, is_active, create_environment
 
 
-struct StatelessEnvironment{D <: Domain, P <: Phenotype} <: Environment{D, P}
+struct StatelessEnvironment{D, P} <: Environment{D, P}
     domain::D
     phenotypes::Vector{P}
 end
 
-struct StatelessEnvironmentCreator{D <: Domain} <: EnvironmentCreator{D}
+struct StatelessEnvironmentCreator{D} <: EnvironmentCreator{D}
     domain::D
 end
 

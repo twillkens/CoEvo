@@ -34,7 +34,7 @@ Represents a species population and its offspring.
 - `pop::OrderedDict{Int, I}`: Current population.
 - `children::OrderedDict{Int, I}`: Offspring of the population.
 """
-struct BasicSpecies{P <: PhenotypeCreator, I <: Individual} <: AbstractSpecies
+struct BasicSpecies{I <: Individual} <: AbstractSpecies
     id::String
     pop::Dict{Int, I}
     children::Dict{Int, I}
@@ -124,7 +124,7 @@ function create_species(
         indiv_id => Individual(indiv_id, geno, Int[]) 
         for (indiv_id, geno) in zip(indiv_ids, genos)
     )
-    return BasicSpecies(species_creator.id, species_creator.pheno_creator, pop)
+    return BasicSpecies(species_creator.id, pop)
 end
 
 """

@@ -8,7 +8,7 @@ using Random: AbstractRNG
 using ....Species.Replacers.Abstract: Replacer
 using ....Species.Individuals: Individual
 using ....Species.Abstract: AbstractSpecies
-using ....Species.Evaluators.Types: ScalarFitnessEvaluation
+using ....Species.Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
 
 import ...Interfaces: replace
 

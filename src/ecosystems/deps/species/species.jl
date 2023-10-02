@@ -20,8 +20,8 @@ Provides tools and configurations for defining and managing species in a coevolu
 """
 module Species
 
-export Abstract, Genotypes, Phenotypes, Individuals, Individuals, Evaluators
-export Replacers, Selectors, Recombiners, Interfaces, Types
+export Abstract, Genotypes, Phenotypes, Individuals, Evaluators
+export Replacers, Selectors, Recombiners, Mutators, Interfaces, Types
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract

@@ -2,7 +2,7 @@ module Abstract
 
 export Observation, Observer, ObserverCreator
 
-using ....Metrics.Observation.Abstract: ObservationMetric
+using ....Metrics.Observations.Abstract: ObservationMetric
 
 abstract type Observation{O <: ObservationMetric, D <: Any} end
 

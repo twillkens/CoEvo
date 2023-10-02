@@ -18,9 +18,9 @@ using ..Jobs.Abstract: JobCreator
 using ..Performers.Abstract: Performer
 using ..Interactions.Results: Result, get_indiv_outcomes, get_observations
 using ..Interactions.Observers.Abstract: Observation
-using ..Reporters.Runtime: RuntimeReporter, create_runtime_report
+using ..Reporters.Types.Runtime: RuntimeReporter, create_runtime_report
 using ..Reporters.Abstract: Reporter, Report
-using ..Reporters.Interfaces: create_reports
+using ..Reporters.Interfaces: create_report
 using ..Archivers.Abstract: Archiver
 using  ..Jobs.Interfaces: create_jobs
 using ..Performers.Interfaces: perform
@@ -107,11 +107,9 @@ function create_all_reports(
     observations::Vector{<:Observation}
 )
     reports = [
-        create_reports(reporter, gen, species_evaluations, observations) 
+        create_report(reporter, gen, species_evaluations, observations) 
         for reporter in reporters
     ]
-
-    reports = vcat(reports...)
 
     return reports
 end

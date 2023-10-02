@@ -2,8 +2,10 @@ module Abstract
 
 export VectorPhenotype, VectorPhenotypeCreator
 
-abstract type VectorPhenotype end 
+using ....Species.Phenotypes.Abstract: Phenotype
 
-abstract type VectorPhenotypeCreator end 
+abstract type VectorPhenotype <: Phenotype end 
+
+abstract type VectorPhenotypeCreator <: Phenotype end 
 
 end

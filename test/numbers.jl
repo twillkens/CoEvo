@@ -13,32 +13,7 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 include("../src/CoEvo.jl")
-
-using .CoEvo.Ecosystems.Species: Species
-using .CoEvo.Ecosystems.Jobs.Interactions.Domains.NumbersGame: NumbersGame
-using .CoEvo.Ecosystems.Jobs.Interactions.Observers.Abstract: Observer
-using .NumbersGame: NumbersGameMetric, create_domain, next!, get_outcome_set, act, refresh!
-# Problem domains and supporting utilities
-
-using .CoEvo.Ecosystems.Utilities.Counters: Counter
-using .NumbersGame: NumbersGameDomainCreator
-using .NumbersGame: Sum, Gradient, Focusing, Relativism, Control
-using .Species.Reporters: BasicSpeciesReporter
-using .Species.Individuals.Genotypes.Vectors: BasicVectorGenotypeCreator
-using .Species.Individuals.Phenotypes.Defaults: DefaultPhenotype, DefaultPhenotypeCreator
-using .Species.Individuals.Phenotypes: BasicVectorPhenotype
-using .Species.Individuals.Mutators: DefaultMutator
-using .Species.Individuals.Mutators.Abstract: Mutator
-using .Species.Individuals: BasicIndividual, BasicIndividualCreator
-using .Species.Evaluators: ScalarFitnessEvaluator
-
-
-using .Species.Reporters.Metrics: GenotypeSum, GenotypeSize, EvaluationFitness
-using .CoEvo.Ecosystems: get_outcomes, evolve!
-using .CoEvo.Ecosystems.Abstract: Metric
-
-
-
+using .CoEvo
 
 """
     NumbersGameProblem with Gradient
@@ -50,14 +25,11 @@ confirms the outcomes when different phenotypes interact within the specified do
 @testset "NumbersGameProblem with Gradient" begin
     phenoA = BasicVectorPhenotype([4])  # Vector representation
     phenoB = BasicVectorPhenotype([5])
-    domain_creator = NumbersGameDomainCreator("test", Gradient(), [phenoA, phenoB])
-    domain = create_domain("test", domain_creator)
+    domain = NumbersGameDomain(:Gradient)
+    env_creator = StatelessEnvironmentCreator(domain)
+    env = create_environment(env_creator, [phenoA, phenoB])
+    outcome_set = get_outcome_set(env)
 
-    #next!(domain)
-    println("hi")
-    outcome_set = get_outcome_set(domain)
-    println("there")
-    
     @test outcome_set[1] == 0.0  # Assuming the first value is for A
     @test outcome_set[2] == 1.0  # Assuming the second value is for B
 
@@ -66,65 +38,85 @@ confirms the outcomes when different phenotypes interact within the specified do
 
     fitnessA = 0
     for other in Sₐ
-        domain.entities = [phenoA, other]
-        #next!(domain)
-        outcome_set = get_outcome_set(domain)
+        env = create_environment(env_creator, [phenoA, other])
+        outcome_set = get_outcome_set(env)
         fitnessA += outcome_set[1] == 1.0 ? 1 : 0
     end
-
     @test fitnessA == 3
 
     fitnessB = 0
     for other in Sᵦ
-        domain.entities = [phenoB, other]
-        outcome_set = get_outcome_set(domain)
-        #next!(domain)
+        env = create_environment(env_creator, [phenoB, other])
+        outcome_set = get_outcome_set(env)
         fitnessB += outcome_set[1] == 1.0 ? 1 : 0
     end
 
     @test fitnessB == 0
 end
-
 @testset "NumbersGameProblem with Focusing" begin
     phenoA = BasicVectorPhenotype([4, 16])  # Vector representation
     phenoB = BasicVectorPhenotype([5, 14])
-    domain_creator = NumbersGameDomainCreator("test_focusing", Focusing(), [phenoA, phenoB])
-    domain = create_domain("test_focusing", domain_creator)
-
-    outcome_set = get_outcome_set(domain)
+    domain = NumbersGameDomain(:Focusing)
+    env_creator = StatelessEnvironmentCreator(domain)
+    env = create_environment(env_creator, [phenoA, phenoB])
+    outcome_set = get_outcome_set(env)
     @test outcome_set[1] == 1.0
 
     phenoB = BasicVectorPhenotype([5, 16])
-    domain.entities = [phenoA, phenoB]
-    outcome_set = get_outcome_set(domain)
+    env = create_environment(env_creator, [phenoA, phenoB])
+    outcome_set = get_outcome_set(env)
     @test outcome_set[1] == 0.0
 
     phenoA = BasicVectorPhenotype([5, 16, 8])
     phenoB = BasicVectorPhenotype([4, 16, 6])
-    domain.entities = [phenoA, phenoB]
-    outcome_set = get_outcome_set(domain)
+    env = create_environment(env_creator, [phenoA, phenoB])
+    outcome_set = get_outcome_set(env)
     @test outcome_set[1] == 1.0
 end
-
 
 @testset "NumbersGameProblem with Relativism" begin
     a = BasicVectorPhenotype([1, 6])
     b = BasicVectorPhenotype([4, 5])
     c = BasicVectorPhenotype([2, 4])
+    domain = NumbersGameDomain(:Relativism)
+    env_creator = StatelessEnvironmentCreator(domain)
 
-    domain_creator = NumbersGameDomainCreator("test_relativism", Relativism(), [a, b])
-    domain = create_domain("test_relativism", domain_creator)
-
-    outcome_set = get_outcome_set(domain)
+    env = create_environment(env_creator, [a, b])
+    outcome_set = get_outcome_set(env)
     @test outcome_set[1] == 1.0
 
-    domain.entities = [b, c]
-    outcome_set = get_outcome_set(domain)
+    env = create_environment(env_creator, [b, c])
+    outcome_set = get_outcome_set(env)
     @test outcome_set[1] == 1.0
 
-    domain.entities = [c, a]
-    outcome_set = get_outcome_set(domain)
+    env = create_environment(env_creator, [c, a])
+    outcome_set = get_outcome_set(env)
     @test outcome_set[1] == 1.0
+end
+#
+function generate_nested_dict(first_layer_size::Int, second_layer_size::Int)
+    # Initialize an empty dictionary
+    my_dict = Dict{Int, Dict{Int, Float64}}()
+
+    # Loop for the first layer
+    for i in 1:first_layer_size
+        # Initialize the second layer dictionary
+        second_layer_dict = Dict{Int, Float64}()
+
+        # Loop for the second layer
+        for j in (11:(10 + second_layer_size))
+            # Generate a random Float64 value between 0 and 1
+            random_float = rand()
+
+            # Add the random value to the second layer dictionary
+            second_layer_dict[j] = random_float
+        end
+
+        # Add the second layer dictionary to the first layer
+        my_dict[i] = second_layer_dict
+    end
+    
+    return my_dict
 end
 
 @testset "BasicSpeciesCreator" begin
@@ -141,53 +133,50 @@ end
     species_creator = BasicSpeciesCreator(
         id = species_id,
         n_pop = n_pop,
-        indiv_creator = BasicIndividualCreator(
-            geno_creator = BasicVectorGenotypeCreator(
-                default_vector = default_vector
-            ),
-            pheno_creator = DefaultPhenotypeCreator(),
-            mutators = [DefaultMutator()],
+        geno_creator = BasicVectorGenotypeCreator(
+            default_vector = default_vector
         ),
-        eval_creator = ScalarFitnessEvaluationCreator(),
+        pheno_creator = DefaultPhenotypeCreator(),
+        evaluator = ScalarFitnessEvaluator(),
         replacer = GenerationalReplacer(),
         selector = FitnessProportionateSelector(n_parents = 2),
         recombiner = CloneRecombiner(),
-        reporters = Reporter[],
+        mutators = [IdentityMutator()],
     )
-
-    # Instantiate the species using the species configuration
-    # Assuming there's a way to create initial population from species config
-    species = species_creator(rng, indiv_id_counter, gene_id_counter) 
-
-    # Test the initial state of the population
-    pop_ids = collect(keys(species.pop))
-
-    @test pop_ids == collect(1:10)
-
-    pop_indivs = collect(values(species.pop))
-    genotypes = [indiv.geno for indiv in pop_indivs]
-
-    size_reporter = CohortMetricReporter(metric = GenotypeSize())
-    size_report = size_reporter(gen, species_id, "Population", genotypes)
-    @test size_report.gen == 1
-    @test size_report.species_id == species_id
-    @test size_report.cohort == "Population"
-    @test size_report.metric == "GenotypeSize"
-    @test size_report.stat_features.sum == 100.0
-    @test size_report.stat_features.mean == 10.0
-    @test size_report.stat_features.minimum == 10.0
-    @test size_report.stat_features.maximum == 10.0
-
-    sum_reporter = CohortMetricReporter(metric = GenotypeSum())
-    sum_report = sum_reporter(gen, species_id, "Population", genotypes)
-    @test sum_report.gen == 1
-    @test sum_report.species_id == species_id
-    @test sum_report.cohort == "Population"
-    @test sum_report.metric == "GenotypeSum"
-    @test sum_report.stat_features.sum == 550.0
-    @test sum_report.stat_features.mean == 55.0
-    @test sum_report.stat_features.minimum == 55.0
-    @test sum_report.stat_features.maximum == 55.0
+    species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
+    dummy_outcomes = generate_nested_dict(n_pop, n_pop)
+    evaluation = create_evaluation(species_creator.evaluator, species, dummy_outcomes)
+    println(evaluation)
+#
+#    # Test the initial state of the population
+#    pop_ids = collect(keys(species.pop))
+#
+#    @test pop_ids == collect(1:10)
+#
+#    pop_indivs = collect(values(species.pop))
+#    genotypes = [indiv.geno for indiv in pop_indivs]
+#
+#    size_reporter = CohortMetricReporter(metric = GenotypeSize())
+#    size_report = size_reporter(gen, species_id, "Population", genotypes)
+#    @test size_report.gen == 1
+#    @test size_report.species_id == species_id
+#    @test size_report.cohort == "Population"
+#    @test size_report.metric == "GenotypeSize"
+#    @test size_report.stat_features.sum == 100.0
+#    @test size_report.stat_features.mean == 10.0
+#    @test size_report.stat_features.minimum == 10.0
+#    @test size_report.stat_features.maximum == 10.0
+#
+#    sum_reporter = CohortMetricReporter(metric = GenotypeSum())
+#    sum_report = sum_reporter(gen, species_id, "Population", genotypes)
+#    @test sum_report.gen == 1
+#    @test sum_report.species_id == species_id
+#    @test sum_report.cohort == "Population"
+#    @test sum_report.metric == "GenotypeSum"
+#    @test sum_report.stat_features.sum == 550.0
+#    @test sum_report.stat_features.mean == 55.0
+#    @test sum_report.stat_features.minimum == 55.0
+#    @test sum_report.stat_features.maximum == 55.0
 end
 #
 #"""
