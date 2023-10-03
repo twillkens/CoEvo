@@ -12,7 +12,7 @@ using ...Reporters.Abstract: Report
 using ...Reporters.Types.Basic: BasicReport
 using ...Reporters.Types.Runtime: RuntimeReport
 using ...Metrics.Evaluations.Types: AllSpeciesFitness
-using ...Metrics.Species.Types: GenotypeSum
+using ...Metrics.Species.Types: GenotypeSum, GenotypeSize
 using ...Metrics.Outcomes.Types.Generic: AbsoluteError
 using ...Measurements: GroupStatisticalMeasurement, BasicStatisticalMeasurement
 
@@ -53,6 +53,22 @@ function archive!(
         #println("Std: ", measurement.std)
     end
 end
+
+function archive!(
+    ::BasicArchiver, 
+    gen::Int, 
+    report::BasicReport{GenotypeSize, GroupStatisticalMeasurement}
+)
+    for (species_id, measurement) in report.measurement.measurements
+        println("----")
+        println("Root tree size for species ", species_id)
+        println("Mean: ", measurement.mean)
+        println("Min: ", measurement.minimum)
+        println("Max: ", measurement.maximum)
+        println("Std: ", measurement.std)
+    end
+end
+
 function archive!(
     ::BasicArchiver, 
     gen::Int, 

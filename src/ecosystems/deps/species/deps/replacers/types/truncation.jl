@@ -7,6 +7,8 @@ using ....Species.Abstract: AbstractSpecies
 using ....Evaluators.Abstract: Evaluation
 using ....Evaluators.Interfaces: get_ranked_ids
 
+import ...Replacers.Interfaces: replace
+
 # Returns the best npop individuals from both the population and children
 Base.@kwdef struct TruncationReplacer <: Replacer
     type::Symbol = :plus

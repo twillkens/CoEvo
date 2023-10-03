@@ -11,20 +11,31 @@ using .....Genotypes.GeneticPrograms.Methods: Manipulate
 using .Manipulate: add_function, remove_function, swap_node, splice_function, inject_noise
 using .....Genotypes.GeneticPrograms.Methods.Traverse: all_nodes 
 using .....Genotypes.GeneticPrograms.Utilities: Utilities
+using .....Genotypes.Abstract: Genotype
 using .Utilities: FuncAlias, Terminal, protected_sine, if_less_then_else
 using ....Mutators.Abstract: Mutator
 
 import ....Mutators.Interfaces: mutate
+
+function identity(
+    rng::AbstractRNG, 
+    gene_id_counter::Counter, 
+    mutator::Mutator, 
+    geno::Genotype
+)
+    return geno
+end
 
 Base.@kwdef struct GeneticProgramMutator <: Mutator
     # Number of structural changes to perform per generation
     n_mutations::Int = 1
     # Uniform probability of each type of structural change
     mutation_probabilities::Dict{Function, Float64} = Dict(
-        add_function => 1 / 4,
-        remove_function => 1 / 4,
-        splice_function => 1 / 4,
-        swap_node => 1 / 4,
+        add_function => 2 / 16,
+        remove_function => 0 / 16,
+        splice_function => 1 / 1,
+        swap_node => 1 / 16,
+        identity => 3 / 4
     )
     terminals::Dict{Terminal, Int} = Dict(
         :read => 1, 
@@ -37,7 +48,7 @@ Base.@kwdef struct GeneticProgramMutator <: Mutator
         (*, 2),
         (if_less_then_else, 4),
     ])
-    noise_std::Float64 = 0.1
+    noise_std::Float64 = 0.05
     string_arg_dict::Dict{String, Any} = Dict(
         "read" => :read, 
         "+" => +, 

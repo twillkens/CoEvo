@@ -12,12 +12,35 @@ using .....Ecosystems.Species.Evaluators.Types.ScalarFitness: ScalarFitnessEvalu
 using .....Ecosystems.Species.Abstract: AbstractSpecies
 using .....Ecosystems.Interactions.Abstract: Interaction
 using .....Ecosystems.Interactions.Observers.Abstract: Observation
-using  ....Reporters.Abstract: Reporter
+using ....Reporters.Abstract: Reporter
+using .....Species.Genotypes.GeneticPrograms: GeneticProgramGenotype, ExpressionNodeGene
+using .....Species.Genotypes.GeneticPrograms.Methods.Traverse: get_node, get_child_nodes
 using ...Basic: BasicReport, BasicReporter
 
 import ....Reporters.Interfaces: create_report, measure
 
+function get_size(genotype::GeneticProgramGenotype)
+    root = get_node(genotype, genotype.root_id)
+    children = get_child_nodes(genotype, root)
+    return length(children) + 1
+end
 
+
+function measure(
+    ::Reporter{GenotypeSize},
+    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
+    ::Vector{<:Observation}
+)
+    species_measurements = Dict(
+        species.id => BasicStatisticalMeasurement(
+            [get_size(individual.geno) for individual in values(species.pop)]
+        ) 
+        for species in keys(species_evaluations)
+    )
+        
+    measurement = GroupStatisticalMeasurement(species_measurements)
+    return measurement
+end
 
 function measure(
     ::Reporter{GenotypeSum},
@@ -65,28 +88,6 @@ function measure(
     return measurement
 end
 
-function measure(
-    ::Reporter{TestBasedFitness},
-    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
-)
-    subject_evaluations = filter(
-        species_evaluation -> species_evaluation[1].id == "subjects", 
-        collect(species_evaluations)
-    )
-    evaluation = subject_evaluations[1][2]
-    fitnesses = collect(values(evaluation.fitnesses))
-    measurement = BasicStatisticalMeasurement(fitnesses)
-    return measurement
-end
-
-function measure(
-    reporter::Reporter{TestBasedFitness},
-    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
-    observations::Vector{<:Observation}
-)
-    measurement = measure(reporter, species_evaluations)
-    return measurement
-end
 
 
 function create_report(

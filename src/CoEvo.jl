@@ -27,14 +27,17 @@ export Ecosystem, EcosystemCreator,
        Evaluation, Evaluator,
        ScalarFitnessEvaluator, ScalarFitnessEvaluation,
        NullEvaluator, NullEvaluation,
+       DiscoEvaluator, DiscoEvaluation, NSGA, nsga!,
+       dominates, fast_non_dominated_sort!, crowding_distance_assignment!,
+       DiscoRecord, Max, Min,
        Replacers,
        Replacer,
        replace,
-       IdentityReplacer, GenerationalReplacer,
+       IdentityReplacer, GenerationalReplacer, TruncationReplacer,
        Selectors,
        Selector,
        select,
-       IdentitySelector, FitnessProportionateSelector,
+       IdentitySelector, FitnessProportionateSelector, TournamentSelector,
        Recombiners,
        Recombiner,
        recombine,
@@ -90,7 +93,10 @@ export Ecosystem, EcosystemCreator,
        Archivers,
        Archiver,
        archive!,
-       BasicArchiver
+       BasicArchiver,
+       Control, CooperativeMatching, Competitive, CooperativeMismatching,
+       ContinuousPredictionGameDomain,
+       TapeEnvironment, TapeEnvironmentCreator #
 
 
 include("ecosystems/ecosystems.jl")
@@ -143,18 +149,20 @@ using .Evaluators.Interfaces: create_evaluation, get_ranked_ids
 using .Evaluators.Abstract: Evaluation, Evaluator
 using .Evaluators.Types.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
 using .Evaluators.Types.Null: NullEvaluator, NullEvaluation
+using .Evaluators.Types.Disco: DiscoEvaluator, DiscoEvaluation, NSGA, nsga!, DiscoRecord, Max, Min
+using .Evaluators.Types.Disco: dominates, fast_non_dominated_sort!, crowding_distance_assignment!
 println("loaded evaluators")
 
 using .Species: Replacers
 using .Replacers.Abstract: Replacer
 using .Replacers.Interfaces: replace
-using .Replacers.Types: IdentityReplacer, GenerationalReplacer 
+using .Replacers.Types: IdentityReplacer, GenerationalReplacer, TruncationReplacer
 println("loaded replacers")
 
 using .Species: Selectors
 using .Selectors.Abstract: Selector
 using .Selectors.Interfaces: select
-using .Selectors.Types: IdentitySelector, FitnessProportionateSelector 
+using .Selectors.Types: IdentitySelector, FitnessProportionateSelector, TournamentSelector
 println("loaded selectors")
 
 using .Species: Recombiners
@@ -167,6 +175,7 @@ using .Ecosystems: Metrics
 using .Metrics.Abstract: Metric
 using .Metrics.Outcomes.Abstract: OutcomeMetric
 using .Metrics.Outcomes.Types.NumbersGame: NumbersGame as NumbersGameMetrics
+using .Metrics.Outcomes.Types.ContinuousPredictionGame: Control, CooperativeMatching, Competitive, CooperativeMismatching 
 using .Metrics.Outcomes.Types.Generic: AbsoluteError
 using .Metrics.Observations.Abstract: ObservationMetric
 using .Metrics.Species.Abstract: SpeciesMetric
@@ -188,6 +197,7 @@ using .Interactions: Domains
 using .Domains.Abstract: Domain
 using .Domains.Types.NumbersGame: NumbersGameDomain
 using .Domains.Types.SymbolicRegression: SymbolicRegressionDomain
+using .Domains.Types.ContinuousPredictionGame: ContinuousPredictionGameDomain
 println("loaded domains")
 
 using .Interactions: MatchMakers
@@ -210,6 +220,7 @@ using .Interactions: Environments
 using .Environments.Abstract: Environment, EnvironmentCreator
 using .Environments.Interfaces: create_environment, next!, get_outcome_set, is_active, observe! #
 using .Environments.Types.Stateless: StatelessEnvironment, StatelessEnvironmentCreator #
+using .Environments.Types.Tape: TapeEnvironment, TapeEnvironmentCreator #
 println("loaded environments")
 
 using .Ecosystems: Jobs

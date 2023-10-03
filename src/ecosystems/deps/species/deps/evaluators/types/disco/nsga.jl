@@ -1,11 +1,28 @@
 module NSGA
 
-using Random
-using ...CoEvo: Sense
-using ...CoEvo.Utilities: Max, Min
-using ..Evaluations: DiscoEval
+export DiscoRecord, nsga!, nsga_tournament, Max, Min, Sense
+export dominates, fast_non_dominated_sort!, crowding_distance_assignment!
 
-function dominates(::Max, a::DiscoEval, b::DiscoEval)
+using Random
+using DataStructures: SortedDict
+
+abstract type Sense end
+
+struct Max <: Sense end
+struct Min <: Sense end
+
+
+Base.@kwdef mutable struct DiscoRecord
+    id::Int = 0
+    fitness::Float64 = 0
+    tests::Vector{Float64} = Float64[]
+    rank::Int = 0
+    crowding::Float64 = 0.0
+    dom_count::Int = 0
+    dom_list::Vector{Int} = Int[]
+    derived_tests::Vector{Float64} = Float64[]
+end
+function dominates(::Max, a::DiscoRecord, b::DiscoRecord)
     res = false
     for i in eachindex(a.derived_tests)
         @inbounds a.derived_tests[i] < b.derived_tests[i] && return false
@@ -14,7 +31,7 @@ function dominates(::Max, a::DiscoEval, b::DiscoEval)
     res
 end
 
-function dominates(::Min, a::DiscoEval, b::DiscoEval)
+function dominates(::Min, a::DiscoRecord, b::DiscoRecord)
     res = false
     for i in eachindex(a.derived_tests)
         @inbounds a.derived_tests[i] > b.derived_tests[i] && return false
@@ -23,7 +40,7 @@ function dominates(::Min, a::DiscoEval, b::DiscoEval)
     res
 end
 
-function fast_non_dominated_sort!(indivs::Vector{<:DiscoEval}, sense::Sense)
+function fast_non_dominated_sort!(indivs::Vector{<:DiscoRecord}, sense::Sense)
     n = length(indivs)
 
     for p in indivs
@@ -64,7 +81,7 @@ function fast_non_dominated_sort!(indivs::Vector{<:DiscoEval}, sense::Sense)
     nothing
 end
 
-function crowding_distance_assignment!(indivs::Vector{<:DiscoEval})
+function crowding_distance_assignment!(indivs::Vector{<:DiscoRecord})
     for ind in indivs
         ind.crowding = 0.
     end
@@ -81,10 +98,10 @@ function crowding_distance_assignment!(indivs::Vector{<:DiscoEval})
     end
 end
 
-function nsga!(indivs::Vector{<:DiscoEval}, sense::Sense = Max())
+function nsga!(indivs::Vector{<:DiscoRecord}, sense::Sense = Max())
     fast_non_dominated_sort!(indivs, sense)
     sort!(indivs, by = ind -> ind.rank, alg = Base.Sort.QuickSort)
-    fronts = SortedDict{Int, Vector{<:DiscoEval}}()
+    fronts = SortedDict{Int, Vector{<:DiscoRecord}}()
     for ind in indivs 
         if haskey(fronts, ind.rank)
             a = fronts[ind.rank]
@@ -93,7 +110,7 @@ function nsga!(indivs::Vector{<:DiscoEval}, sense::Sense = Max())
             fronts[ind.rank] = [ind]
         end
     end
-    sorted_indivs = DiscoEval[]
+    sorted_indivs = DiscoRecord[]
     for front_indivs in values(fronts)
         crowding_distance_assignment!(front_indivs)
         sort!(
@@ -101,25 +118,25 @@ function nsga!(indivs::Vector{<:DiscoEval}, sense::Sense = Max())
             by = ind -> ind.crowding,
             rev=true, alg=Base.Sort.QuickSort
         )
-        append!(sorted_indivs, front)
+        append!(sorted_indivs, front_indivs)
     end
     sorted_indivs
 end
 
 
-function nsga_tournament(rng::AbstractRNG, parents::Array{<:DiscoEval}, tourn_size::Int64) 
-    function get_winner(d1::DiscoEval, d2::DiscoEval)
+function nsga_tournament(rng::AbstractRNG, parents::Array{<:DiscoRecord}, tourn_size::Int64) 
+    function get_winner(d1::DiscoRecord, d2::DiscoRecord)
         if d1.rank < d2.rank
-            return ind1
+            return d1
         elseif d2.rank < d1.rank
-            return ind2
+            return d2
         else
             if d1.crowding > d2.crowding
-                return ind1
+                return d1
             elseif d2.crowding > d1.crowding
-                return ind2
+                return d2
             else
-                return rand(rng, (ind1, ind2))
+                return rand(rng, (d1, d2))
             end
         end
     end
@@ -128,15 +145,15 @@ function nsga_tournament(rng::AbstractRNG, parents::Array{<:DiscoEval}, tourn_si
 end
 
 
-Base.@kwdef struct NSGASelector <: Selector
-    μ::Int = 50
-    tsize::Int = 3
-    sense::Sense = Max()
-end
+#Base.@kwdef struct NSGASelector <: Selector
+#    μ::Int = 50
+#    tsize::Int = 3
+#    sense::Sense = Max()
+#end
 
-function(s::NSGASelector)(rng::AbstractRNG, pop::Vector{<:Individual}, evals::Dict{Int, DiscoEval})
-    pop = nsga!(pop, )
-    [nsga_tournament(rng, pop, c.tsize) for _ in 1:s.μ]
-end
+#function(s::NSGASelector)(rng::AbstractRNG, pop::Vector{<:Individual}, evals::Dict{Int, DiscoRecord})
+#    pop = nsga!(pop, )
+#    [nsga_tournament(rng, pop, c.tsize) for _ in 1:s.μ]
+#end
 
 end

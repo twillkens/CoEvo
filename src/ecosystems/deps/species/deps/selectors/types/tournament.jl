@@ -1,6 +1,15 @@
 module Tournament
 
 using ...Selectors.Abstract: Selector
+using StatsBase: sample
+using Random: AbstractRNG
+using ....Evaluators.Interfaces: get_ranked_ids
+using ....Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
+using ....Evaluators.Types.Disco: DiscoEvaluation
+using ....Species.Individuals: Individual
+
+import ...Selectors.Interfaces: select
+
 
 Base.@kwdef struct TournamentSelector <: Selector
     μ::Int # number of parents to select
@@ -24,16 +33,18 @@ Executes the tournament selection strategy.
 function select(
     selector::TournamentSelector,
     rng::AbstractRNG, 
-    pop::Vector{<:Individual}, 
-    evals::Dict{Int, ScalarFitnessEval}
+    new_pop::Dict{Int, <:Individual},
+    evaluation::DiscoEvaluation
 )
-    fitnesses = map(i -> evals[i.id].fitness, pop) 
-    parent_idxs = Array{Int}(undef, s.μ)
-    for i in 1:s.μ
-        tournament_idxs = sample(rng, 1:length(pop), s.tournament_size, replace=false)
-        parent_idxs[i] = tournament_idxs[s.selection_func(fitnesses[tournament_idxs])]
+    ranked_ids = get_ranked_ids(evaluation, collect(keys(new_pop)))
+    parent_idxs = Array{Int}(undef, selector.μ)
+    for i in 1:selector.μ
+        tournament_idxs = sample(rng, 1:length(ranked_ids), selector.tournament_size, replace=false)
+        parent_idx = selector.selection_func(tournament_idxs)
+        parent_idxs[i] = ranked_ids[parent_idx]
     end
-    return pop[parent_idxs]
+    parents = [new_pop[idx] for idx in parent_idxs]
+    return parents
 end
 
 end

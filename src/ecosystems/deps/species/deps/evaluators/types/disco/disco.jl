@@ -1,4 +1,19 @@
+module Disco
+
+export DiscoEvaluator, DiscoEvaluation, DiscoRecord, NSGA, nsga!, Max, Min
+export dominates, fast_non_dominated_sort!, crowding_distance_assignment!
+
+using DataStructures: OrderedDict, SortedDict
+using ....Species.Abstract: AbstractSpecies
+using ....Species.Individuals: Individual
+using ...Evaluators.Abstract: Evaluation, Evaluator
+
+import ...Evaluators.Interfaces: create_evaluation, get_ranked_ids
 using PyCall
+
+include("nsga.jl")
+using .NSGA: NSGA, DiscoRecord, nsga!, Max, Min, dominates
+using .NSGA: fast_non_dominated_sort!, crowding_distance_assignment!
 
 const center_initializer = PyNULL()
 const kmeans = PyNULL()
@@ -15,14 +30,19 @@ end
 
 
 """
-    DiscoEvalCfg <: EvaluationCreator
+    DiscoRecordCfg <: EvaluationCreator
 
 A configuration for the Disco evaluation. This serves as a placeholder for potential configuration parameters.
 """
-Base.@kwdef struct DiscoEvalCfg <: EvaluationCreator end
+Base.@kwdef struct DiscoEvaluator <: Evaluator end
 
+struct DiscoEvaluation <: Evaluation
+    species_id::String
+    disco_records::Vector{DiscoRecord}
+    outcomes::Dict{Int, Dict{Int, Float64}}
+end
 """
-    DiscoEval
+    DiscoRecord
 
 Represents a Disco evaluation which includes fitness, rank, crowding distance, 
 dominance count, list of dominated evaluations, and derived tests.
@@ -35,16 +55,6 @@ dominance count, list of dominated evaluations, and derived tests.
 - `dom_list::Vector{Int}`: List of solutions dominated by this individual.
 - `derived_tests::Vector{Float64}`: Derived test results.
 """
-Base.@kwdef mutable struct DiscoEval <: Evaluation
-    id::Int
-    fitness::Float64
-    tests::Dict{Int, Float64}
-    rank::Int = 0
-    crowding::Float64 = 0.0
-    dom_count::Int = 0
-    dom_list::Vector{Int} = Int[]
-    derived_tests::Vector{Float64} = Float64[]
-end
 
 function vecvec_to_matrix(vecvec)
      dim1 = length(vecvec)
@@ -58,8 +68,8 @@ function vecvec_to_matrix(vecvec)
      return my_array
  end
 
-function set_derived_tests(pop::Vector{DiscoEval}, seed::UInt32)
-    ys = [sort(collect(values(indiv.rdict))) for indiv in pop]
+function set_derived_tests!(pop::Vector{DiscoRecord}, seed::UInt32)
+    ys = [indiv.tests for indiv in pop]
     m = vecvec_to_matrix(ys)
     m = transpose(m)
     centers = center_initializer.kmeans_plusplus_initializer(m, 2, random_state=seed).initialize()
@@ -70,20 +80,31 @@ function set_derived_tests(pop::Vector{DiscoEval}, seed::UInt32)
     for (indiv, center) in zip(pop, eachrow(centers))
         indiv.derived_tests = center
     end
-    pop
-    #clusters = Vector{Vector{String}}()
-    #numstring_dict = Dict(i => k for (i, k) in enumerate(sort(collect(keys(pop[1].rdict)))))
-    #for numcluster in xmeans_instance.get_clusters()
-    #    stringcluster = Vector{String}()
-    #    for num in numcluster
-    #        push!(stringcluster, numstring_dict[num + 1])
-    #    end
-    #    push!(clusters, stringcluster)
-    #end
-    #clusters
 end
 
-function(evaluator::DiscoEvalCfg)(id::Int, outcomes::Dict{Int, Float64})
-    fitness = sum(val for val in values(outcomes))
-    return DiscoEval(id, fitness, outcomes)
+function create_evaluation(
+    ::DiscoEvaluator,
+    species::AbstractSpecies,
+    outcomes::Dict{Int, Dict{Int, Float64}}
+)
+    discos = [
+        DiscoRecord(
+            id = indiv.id, 
+            fitness = sum(values(outcomes[indiv.id])), 
+            tests = collect(values(SortedDict(collect(outcomes[indiv.id]))))
+        ) 
+        for indiv in values(merge(species.pop, species.children))
+    ]
+    set_derived_tests!(discos, UInt32(42))
+    sorted_records = nsga!(discos, Max())
+    evaluation = DiscoEvaluation(species.id, sorted_records, outcomes)
+
+    return evaluation
+end
+
+function get_ranked_ids(evaluation::DiscoEvaluation, ids::Vector{Int})
+    ranked_ids = [record.id for record in evaluation.disco_records if record.id in ids]
+    return ranked_ids
+end
+
 end
