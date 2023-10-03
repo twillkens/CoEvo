@@ -75,7 +75,6 @@ function get_outcome_set(
     distances = [
         min(diff1, diff2) for (diff1, diff2) in zip(environment.tape1, environment.tape2)
     ]
-    println(environment.tape1)
     max_dist = π * environment.max_length
     distance_score = sum(distances) / max_dist
     outcome_set = get_outcome_set(environment.domain, distance_score)
