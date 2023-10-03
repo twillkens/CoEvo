@@ -9,10 +9,11 @@ export Ecosystem, EcosystemCreator,
        BasicSpecies, BasicSpeciesCreator,
        Genotypes,
        Genotype,
-       create_genotype,
+       create_genotypes,
        VectorGenotype, VectorGenotypeCreator,
        BasicVectorGenotype, BasicVectorGenotypeCreator,
        GeneticProgramGenotype, GeneticProgramGenotypeCreator,
+       ExpressionNodeGene, Traverse, Manipulate, GPUtilities,
        Phenotypes,
        Phenotype, PhenotypeCreator,
        create_phenotype, act,
@@ -46,6 +47,7 @@ export Ecosystem, EcosystemCreator,
        NumbersGameMetrics,
        ObservationMetric,
        SpeciesMetric,
+       GenotypeSize, GenotypeSum,
        InteractionMetric,
        EvaluationMetric,
        TestBasedFitness, AllSpeciesFitness,
@@ -102,11 +104,13 @@ println("loaded species")
 
 using .Species: Genotypes
 using .Genotypes.Abstract: Genotype
-using .Genotypes.Interfaces: create_genotype
+using .Genotypes.Interfaces: create_genotypes
 using .Genotypes.Vectors.Abstract: VectorGenotype, VectorGenotypeCreator
 using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  
-using .Genotypes.GeneticPrograms: GeneticProgramGenotype
-using .Genotypes.GeneticPrograms: GeneticProgramGenotypeCreator 
+using .Genotypes.GeneticPrograms.Genes: ExpressionNodeGene 
+using .Genotypes.GeneticPrograms: GeneticProgramGenotype, GeneticProgramGenotypeCreator 
+using .Genotypes.GeneticPrograms.Methods: Traverse, Manipulate
+using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtilities
 println("loaded genotypes")
 
 using .Species: Phenotypes
@@ -114,6 +118,7 @@ using .Phenotypes.Abstract: Phenotype, PhenotypeCreator
 using .Phenotypes.Interfaces: create_phenotype, act
 using .Phenotypes.Defaults: DefaultPhenotypeCreator 
 using .Phenotypes.Vectors.Basic: BasicVectorPhenotype
+using .Phenotypes.GeneticPrograms.Phenotypes: GeneticProgramPhenotype
 println("loaded phenotypes")
 
 using .Species: Individuals
@@ -159,6 +164,7 @@ using .Metrics.Outcomes.Abstract: OutcomeMetric
 using .Metrics.Outcomes.Types.NumbersGame: NumbersGame as NumbersGameMetrics
 using .Metrics.Observations.Abstract: ObservationMetric
 using .Metrics.Species.Abstract: SpeciesMetric
+using .Metrics.Species.Types: GenotypeSize, GenotypeSum
 using .Metrics.Interactions.Abstract: InteractionMetric
 using .Metrics.Evaluations.Abstract: EvaluationMetric
 using .Metrics.Evaluations.Types: TestBasedFitness, AllSpeciesFitness

@@ -41,6 +41,7 @@ function recombine(
     individuals = [
         Individual(next!(indiv_id_counter), parent.geno, [parent.id]) for parent in parents
     ]
+    #println([indiv.geno.genes for indiv in individuals])
     return individuals
 end
 

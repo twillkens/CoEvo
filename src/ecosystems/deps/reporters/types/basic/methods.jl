@@ -3,6 +3,7 @@ module Methods
 using DataStructures: OrderedDict
 using .....Metrics.Abstract: Metric
 using .....Metrics.Evaluations.Types: TestBasedFitness, AllSpeciesFitness
+using .....Metrics.Species.Types: GenotypeSum, GenotypeSize
 using .....Measurements.Abstract: Measurement
 using .....Measurements: BasicStatisticalMeasurement, GroupStatisticalMeasurement
 using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
@@ -14,28 +15,22 @@ using ...Basic: BasicReport, BasicReporter
 
 import ....Reporters.Interfaces: create_report, measure
 
-function Base.show(io::IO, report::BasicReport{AllSpeciesFitness, GroupStatisticalMeasurement})
-    println("yo")
-    for (species_id, measurement) in report.measurement.measurements
-        println("hi")
-        println(io, "Fitness for species ", species_id)
-        println(io, "Mean: ", measurement.mean)
-        println(io, "Min: ", measurement.minimum)
-        println(io, "Max: ", measurement.maximum)
-        println(io, "Std: ", measurement.std)
-    end
-end
 
-function Base.show(io::IO, report::BasicReport{TestBasedFitness, BasicStatisticalMeasurement})
-    fitness_mean = report.measurement.mean
-    fitness_min = report.measurement.minimum
-    fitness_max = report.measurement.maximum
-    fitness_std = report.measurement.std
-    println(io, "Fitness")
-    println(io, "Mean: ", fitness_mean)
-    println(io, "Min: ", fitness_min)
-    println(io, "Max: ", fitness_max)
-    println(io, "Std: ", fitness_std)
+
+function measure(
+    ::Reporter{GenotypeSum},
+    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
+    ::Vector{<:Observation}
+)
+    species_measurements = Dict(
+        species.id => BasicStatisticalMeasurement(
+            [sum(individual.geno.genes) for individual in values(species.pop)]
+        ) 
+        for species in keys(species_evaluations)
+    )
+        
+    measurement = GroupStatisticalMeasurement(species_measurements)
+    return measurement
 end
 
 function measure(

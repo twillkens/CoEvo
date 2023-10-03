@@ -4,16 +4,12 @@ using Test
 
 include("../src/CoEvo.jl")
 using .CoEvo
-using .CoEvo.Utilities.Counters: Counter
-using .CoEvo.Ecosystems.Species.Individuals.Models.GeneticPrograms: GeneticPrograms as GP
-using .GP: BasicGeneticProgramGenotype, BasicGeneticProgramGenotypeCreator
-using .GP.Genes: ExpressionNodeGene
-using .GP.Utilities: protected_division, Terminal
-using .GP.Genotypes.Utilities: get_node
-using .GP.Genotypes.Mutations: add_function, remove_function, splice_function, 
-using .GP.Genotypes.Mutations: swap_node, inject_noise
 
-BasicGeneticProgramGenotypeCreator()(StableRNG(42), Counter())
+using .Manipulate: add_function, remove_function, splice_function, swap_node, inject_noise
+using .Traverse: get_node
+using .CoEvo.Ecosystems.Species.Genotypes.GeneticPrograms.Utilities: Utilities as GPUtils 
+using .GPUtils: protected_division, Terminal, FuncAlias, protected_sine, if_less_then_else
+using .Phenotypes.Interfaces: act
 """
     dummygeno() -> BasicGeneticProgramGenotype
 
@@ -24,7 +20,7 @@ function dummygeno()
     node2 = ExpressionNodeGene(2, 1, 2.0)
     node3 = ExpressionNodeGene(3, 1, 3.0)
 
-    return BasicGeneticProgramGenotype(
+    return GeneticProgramGenotype(
         root_id = 1,
         functions = Dict(1 => root),
         terminals = Dict(2 => node2, 3 => node3)
@@ -52,7 +48,7 @@ function big_geno()
         10 => ExpressionNodeGene(10, 4, 10.0)
     )
 
-    return BasicGeneticProgramGenotype(root_id=1, functions=funcs, terminals=terms)
+    return GeneticProgramGenotype(root_id=1, functions=funcs, terminals=terms)
 end
 
 
@@ -95,13 +91,6 @@ end
         noise_dict_error = Dict(1 => 0.5)
         @test_throws ErrorException inject_noise(geno, noise_dict_error)
     end
-
-    # @testset "conversion to Expr" begin
-    #     expr = Base.Expr(geno)
-    #     @test expr == Expr(:call, +, 2, 3)
-    #     @test eval(expr) == 5.0
-    # end
-
 end
 
 @testset "Deterministic Mutation Functions Big" begin
@@ -129,11 +118,80 @@ end
     end
 end
 
+@testset "Phenotype" begin
+function dummygeno_challenge()
+    funcs = Dict(
+        1 => ExpressionNodeGene(1, nothing, if_less_then_else, [5, 2, 8, 3]),
+        2 => ExpressionNodeGene(2, 1, +, [6, 7]),
+        3 => ExpressionNodeGene(3, 1, protected_sine, [4]),
+        4 => ExpressionNodeGene(4, 3, *, [9, 10]),
+        10 => ExpressionNodeGene(10, 4, +, [11, 12]),
+    )
+    terms = Dict(
+        5 => ExpressionNodeGene(5, 1, π),
+        6 => ExpressionNodeGene(6, 2, π),
+        7 => ExpressionNodeGene(7, 2, :read),
+        8 => ExpressionNodeGene(8, 3, :read),
+        9 => ExpressionNodeGene(9, 4, :read),
+        11 => ExpressionNodeGene(11, 10, :read),
+        12 => ExpressionNodeGene(12, 10, -3/2),
+    )
 
+    return GeneticProgramGenotype(root_id=1, functions=funcs, terminals=terms)
+end
 
+geno = dummygeno_challenge()
 
+phenotype_creator = DefaultPhenotypeCreator()
 
+phenotype = create_phenotype(phenotype_creator, geno)
+value = act(phenotype, [0, π, -π])
+@test value ≈ 1.0
 
+end
 
+@testset "Splice" begin
 
-println(dummygeno())
+    function splice_geno()
+        funcs = Dict(
+            1 => ExpressionNodeGene(1, nothing, protected_sine, [2]),
+            2 => ExpressionNodeGene(2, 1, +, [3, 4]),
+            5 => ExpressionNodeGene(5, nothing, protected_sine, [6]),
+            6 => ExpressionNodeGene(6, 5, -, [7, 10]),
+            7 => ExpressionNodeGene(7, 6, *, [8, 9]),
+        )
+        terms = Dict(
+            3 => ExpressionNodeGene(3, 2, 1.0),
+            4 => ExpressionNodeGene(4, 2, 2.0),
+            8 => ExpressionNodeGene(8, 7, 3.0),
+            9 => ExpressionNodeGene(9, 7, 4.0),
+            10 => ExpressionNodeGene(10, 6, 5.0),
+        )
+
+        return GeneticProgramGenotype(root_id=1, functions=funcs, terminals=terms)
+    end
+
+    @testset "splice1" begin
+        geno = splice_geno()
+        new_geno = splice_function(geno, 6, 7, 2)
+        expected_funcs = Dict(
+            1 => ExpressionNodeGene(1, nothing, protected_sine, [6]),
+            2 => ExpressionNodeGene(2, 6, +, [3, 4]),
+            5 => ExpressionNodeGene(5, nothing, protected_sine, [7]),
+            6 => ExpressionNodeGene(6, 1, -, [2, 10]),
+            7 => ExpressionNodeGene(7, 5, *, [8, 9])
+        )
+        expected_terms = Dict(
+            3 => ExpressionNodeGene(3, 2, 1.0),
+            4 => ExpressionNodeGene(4, 2, 2.0),
+            8 => ExpressionNodeGene(8, 7, 3.0),
+            9 => ExpressionNodeGene(9, 7, 4.0),
+            10 => ExpressionNodeGene(10, 6, 5.0)
+        )
+        expected = GeneticProgramGenotype(root_id=1, functions=expected_funcs, terminals=expected_terms)
+        @test expected == new_geno
+    end
+
+    # ...[You can follow this structure for the other testsets]
+
+end

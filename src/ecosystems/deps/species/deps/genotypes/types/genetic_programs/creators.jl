@@ -4,12 +4,11 @@ export GeneticProgramGenotypeCreator
 
 using .....Ecosystems.Utilities.Counters: Counter, next!
 using Random: AbstractRNG
-import ...Genotypes.Interfaces: create_genotype   
 using ..GeneticPrograms.Genes: ExpressionNodeGene
 using ..GeneticPrograms.Genotypes: GeneticProgramGenotype
 using ...Genotypes.Abstract: GenotypeCreator
 
-
+import ...Genotypes.Interfaces: create_genotypes   
 
 """
     GeneticProgramGenotypeCreator <: GeneticProgramGenotypeCreator 
@@ -37,7 +36,6 @@ Construct a `GeneticProgramGenotype` using the provided configuration.
 """
 function create_genotype(
     geno_creator::GeneticProgramGenotypeCreator,
-    ::AbstractRNG, 
     gene_id_counter::Counter
 )
     root_id = next!(gene_id_counter)
@@ -47,6 +45,16 @@ function create_genotype(
             root_id => ExpressionNodeGene(root_id, nothing, geno_creator.startval)
         )
     )
+end
+
+function create_genotypes(
+    geno_creator::GeneticProgramGenotypeCreator,
+    ::AbstractRNG,
+    gene_id_counter::Counter,
+    n_pop::Int
+)
+    genotypes = [create_genotype(geno_creator, gene_id_counter) for _ in 1:n_pop]
+    return genotypes
 end
 
 end

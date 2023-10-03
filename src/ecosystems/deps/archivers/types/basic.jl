@@ -12,6 +12,7 @@ using ...Reporters.Abstract: Report
 using ...Reporters.Types.Basic: BasicReport
 using ...Reporters.Types.Runtime: RuntimeReport
 using ...Metrics.Evaluations.Types: AllSpeciesFitness
+using ...Metrics.Species.Types: GenotypeSum
 using ...Measurements: GroupStatisticalMeasurement 
 
 import ..Archivers.Interfaces: archive!
@@ -40,15 +41,29 @@ end
 function archive!(
     ::BasicArchiver, 
     gen::Int, 
+    report::BasicReport{GenotypeSum, GroupStatisticalMeasurement}
+)
+    for (species_id, measurement) in report.measurement.measurements
+        println("----")
+        println("Sum for species ", species_id)
+        println("Mean: ", measurement.mean)
+        #println("Min: ", measurement.minimum)
+        #println("Max: ", measurement.maximum)
+        #println("Std: ", measurement.std)
+    end
+end
+function archive!(
+    ::BasicArchiver, 
+    gen::Int, 
     report::BasicReport{AllSpeciesFitness, GroupStatisticalMeasurement}
 )
     for (species_id, measurement) in report.measurement.measurements
         println("----")
         println("Fitness for species ", species_id)
         println("Mean: ", measurement.mean)
-        println("Min: ", measurement.minimum)
-        println("Max: ", measurement.maximum)
-        println("Std: ", measurement.std)
+        #println("Min: ", measurement.minimum)
+        #println("Max: ", measurement.maximum)
+        #println("Std: ", measurement.std)
     end
 end
 # # Save an individual to a JLD2.Group

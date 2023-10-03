@@ -9,7 +9,7 @@ using ...Ecosystems.Utilities.Counters: Counter, next!
 using ..Abstract: AbstractSpecies, SpeciesCreator
 using ..Individuals: Individual
 using ..Species.Genotypes.Abstract: GenotypeCreator
-using ..Species.Genotypes.Methods: create_genotypes
+using ..Species.Genotypes.Interfaces: create_genotypes
 using ..Species.Phenotypes.Abstract: PhenotypeCreator
 using ..Species.Evaluators.Abstract: Evaluator, Evaluation
 using ..Species.Replacers.Abstract: Replacer

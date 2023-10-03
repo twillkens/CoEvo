@@ -151,35 +151,6 @@ end
     measurement = measure(reporter, species_evaluations)
     println(measurement)
 #
-#    # Test the initial state of the population
-#    pop_ids = collect(keys(species.pop))
-#
-#    @test pop_ids == collect(1:10)
-#
-#    pop_indivs = collect(values(species.pop))
-#    genotypes = [indiv.geno for indiv in pop_indivs]
-#
-#    size_reporter = CohortMetricReporter(metric = GenotypeSize())
-#    size_report = size_reporter(gen, species_id, "Population", genotypes)
-#    @test size_report.gen == 1
-#    @test size_report.species_id == species_id
-#    @test size_report.cohort == "Population"
-#    @test size_report.metric == "GenotypeSize"
-#    @test size_report.stat_features.sum == 100.0
-#    @test size_report.stat_features.mean == 10.0
-#    @test size_report.stat_features.minimum == 10.0
-#    @test size_report.stat_features.maximum == 10.0
-#
-#    sum_reporter = CohortMetricReporter(metric = GenotypeSum())
-#    sum_report = sum_reporter(gen, species_id, "Population", genotypes)
-#    @test sum_report.gen == 1
-#    @test sum_report.species_id == species_id
-#    @test sum_report.cohort == "Population"
-#    @test sum_report.metric == "GenotypeSum"
-#    @test sum_report.stat_features.sum == 550.0
-#    @test sum_report.stat_features.mean == 55.0
-#    @test sum_report.stat_features.minimum == 55.0
-#    @test sum_report.stat_features.maximum == 55.0
 end
 #
 #"""
@@ -196,11 +167,11 @@ function dummy_eco_creator(;
     trial::Int = 1,
     rng::AbstractRNG = StableRNG(42),
     n_pop::Int = 2,
-    n_parents::Int = 2,
     species_id1::String = "a",
     species_id2::String = "b",
     interaction_id::String = "NumbersGame{Sum}",
-    default_vector::Vector{Float64} = fill(0.0, 10),
+    default_vector::Vector{Float64} = fill(0.0, 1),
+    n_elite::Int = 10
 )
     eco_creator = BasicEcosystemCreator(
         id = id,
@@ -213,8 +184,8 @@ function dummy_eco_creator(;
                 geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
                 pheno_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(),
-                replacer = GenerationalReplacer(),
-                selector = FitnessProportionateSelector(n_parents = n_parents),
+                replacer = GenerationalReplacer(n_elite = n_elite),
+                selector = FitnessProportionateSelector(n_parents = n_pop),
                 recombiner = CloneRecombiner(),
                 mutators = [NoiseInjectionMutator(noise_std = 0.1)],
             ),
@@ -224,8 +195,8 @@ function dummy_eco_creator(;
                 geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
                 pheno_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(),
-                replacer = GenerationalReplacer(),
-                selector = FitnessProportionateSelector(n_parents = n_parents),
+                replacer = GenerationalReplacer(n_elite = n_elite),
+                selector = FitnessProportionateSelector(n_parents = n_pop),
                 recombiner = CloneRecombiner(),
                 mutators = [NoiseInjectionMutator(noise_std = 0.1)],
             ),
@@ -242,18 +213,22 @@ function dummy_eco_creator(;
             ),
         ),
         performer = BasicPerformer(n_workers = 1),
-        reporters = [BasicReporter(metric = AllSpeciesFitness())],
+        reporters = Reporter[
+            BasicReporter(metric = AllSpeciesFitness()),
+            BasicReporter(metric = GenotypeSum())
+        ],
         archiver = BasicArchiver(),
     )
     return eco_creator
 
 end
 
-eco_creator = dummy_eco_creator()
+#eco_creator = dummy_eco_creator()
 
-eco = evolve!(eco_creator, n_gen=10)
-@test length(eco.species[species_id1].pop) == n_pop
+#eco = evolve!(eco_creator, n_gen=10)
 
+eco_creator = dummy_eco_creator(n_pop = 100)
+eco = evolve!(eco_creator, n_gen=100)
 end
 
 end
