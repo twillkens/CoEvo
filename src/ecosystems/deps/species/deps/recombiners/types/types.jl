@@ -2,7 +2,7 @@ module Types
 
 export CloneRecombiner
 
-include("clone.jl")
+include("clone/clone.jl")
 using .Clone: CloneRecombiner
 
 end

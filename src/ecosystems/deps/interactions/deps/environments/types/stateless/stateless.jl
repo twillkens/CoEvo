@@ -19,11 +19,11 @@ struct StatelessEnvironmentCreator{D} <: EnvironmentCreator{D}
 end
 
 function create_environment(
-    env_creator::StatelessEnvironmentCreator,
+    environment_creator::StatelessEnvironmentCreator,
     phenotypes::Vector{<:Phenotype}
 )
     return StatelessEnvironment(
-        env_creator.domain,
+        environment_creator.domain,
         phenotypes
     )
 end

@@ -22,13 +22,13 @@ struct TapeEnvironmentCreator{D <: Domain} <: EnvironmentCreator{D}
 end
 
 function create_environment(
-    env_creator::TapeEnvironmentCreator,
+    environment_creator::TapeEnvironmentCreator,
     phenotypes::Vector{<:Phenotype}
 )
     return TapeEnvironment(
-        env_creator.domain,
+        environment_creator.domain,
         phenotypes,
-        env_creator.max_length,
+        environment_creator.max_length,
         Float64[],
         Float64[],
         Float64[],

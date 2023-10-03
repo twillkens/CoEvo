@@ -2,8 +2,8 @@ module Basic
 
 export BasicObserver, BasicObservation
 
-using ..Observers.Abstract: Observation, Observer, ObserverCreator
-using ....Metrics.Observations.Abstract: ObservationMetric
+using ...Observers.Abstract: Observation, Observer, ObserverCreator
+using .....Metrics.Observations.Abstract: ObservationMetric
 
 struct BasicObserverCreator{O <: ObservationMetric} <: ObserverCreator{O}
     metric::O

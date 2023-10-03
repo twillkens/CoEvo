@@ -39,8 +39,7 @@ export Ecosystem, EcosystemCreator,
        Mutators,
        Mutator,
        mutate,
-       IdentityMutator,
-       GeneticProgramMutator,
+       IdentityMutator, GeneticProgramMutator, NoiseInjectionMutator,
        Metrics,
        Metric,
        OutcomeMetric,
@@ -49,7 +48,7 @@ export Ecosystem, EcosystemCreator,
        SpeciesMetric,
        InteractionMetric,
        EvaluationMetric,
-       TestBasedFitness,
+       TestBasedFitness, AllSpeciesFitness,
        Interactions,
        Interaction,
        interact,
@@ -59,9 +58,9 @@ export Ecosystem, EcosystemCreator,
        NumbersGameDomain,
        MatchMaker,
        AllvsAllMatchMaker,
-       Observer,
+       Observer, Observation,
        create_observation,
-       BasicObserver,
+       BasicObserver, BasicObservation, NullObservation,
        Result,
        Environment, EnvironmentCreator,
        create_environment, next!, get_outcome_set, is_active, observe!,
@@ -79,7 +78,7 @@ export Ecosystem, EcosystemCreator,
        BasicStatisticalMeasurement,
        Reporters,
        Reporter,
-       create_report,
+       create_report, measure,
        BasicReporter, BasicReport,
        RuntimeReporter, RuntimeReport,
        Archivers,
@@ -124,8 +123,9 @@ println("loaded individuals")
 using .Species: Mutators
 using .Mutators.Abstract: Mutator
 using .Mutators.Interfaces: mutate
-using .Mutators.Identity: IdentityMutator 
-using .Mutators.GeneticPrograms: GeneticProgramMutator 
+using .Mutators.Types.Identity: IdentityMutator 
+using .Mutators.Types.GeneticPrograms: GeneticProgramMutator 
+using .Mutators.Types.NoiseInjection: NoiseInjectionMutator 
 println("loaded mutators")
 
 using .Species: Evaluators
@@ -161,7 +161,7 @@ using .Metrics.Observations.Abstract: ObservationMetric
 using .Metrics.Species.Abstract: SpeciesMetric
 using .Metrics.Interactions.Abstract: InteractionMetric
 using .Metrics.Evaluations.Abstract: EvaluationMetric
-using .Metrics.Evaluations.Types: TestBasedFitness
+using .Metrics.Evaluations.Types: TestBasedFitness, AllSpeciesFitness
 println("loaded metrics")
 
 using .Ecosystems: Interactions
@@ -183,9 +183,10 @@ using .MatchMakers.AllvsAll: AllvsAllMatchMaker
 println("loaded matchmakers")
 
 using .Interactions: Observers
-using .Observers.Abstract: Observer
+using .Observers.Abstract: Observer, Observation
 using .Observers.Interfaces: create_observation
-using .Observers.Basic: BasicObserver
+using .Observers.Types.Basic: BasicObserver, BasicObservation
+using .Observers.Types.Null: NullObservation
 println("loaded observers")
 
 using .Interactions: Results

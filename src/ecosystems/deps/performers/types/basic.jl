@@ -16,7 +16,7 @@ using ....Ecosystems.Interactions.Methods.Interact: interact
 
 import ..Performers.Interfaces: perform
 
-struct BasicPerformer <: Performer 
+Base.@kwdef struct BasicPerformer <: Performer 
     n_workers::Int
 end
 
@@ -53,7 +53,7 @@ function perform(::BasicPerformer, job::BasicJob)
 end
 
 
-function perform(performer::BasicPerformer, jobs::Vector{Job})
+function perform(performer::BasicPerformer, jobs::Vector{<:Job})
     if length(jobs) == 1
         results = perform(performer, jobs[1])
     else

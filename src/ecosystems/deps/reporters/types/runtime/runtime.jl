@@ -55,10 +55,6 @@ Base.@kwdef struct RuntimeReporter{MET <: Metric} <: Reporter{MET}
 end
 
 function Base.show(io::IO, report::RuntimeReport)
-    println(io, "-----------------------------------------------------------")
-    println(io, "Generation: $report.gen")
-    println(io, "Evaluation time: $(report.eval_time)")
-    println(io, "Reproduction time: $(report.reproduce_time)")
 end
 
 # Define how a RuntimeReporter produces a report.

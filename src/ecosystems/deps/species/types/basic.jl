@@ -150,11 +150,12 @@ function create_species(
     evaluation::Evaluation
 ) 
     new_pop = replace(species_creator.replacer, rng, species, evaluation)
-    parents = select(species_creator.selector, rng, species, evaluation)
+    parents = select(species_creator.selector, rng, new_pop, evaluation)
     new_children = recombine(species_creator.recombiner, rng, indiv_id_counter, parents)
     for mutator in species_creator.mutators
         new_children = mutate(mutator, rng, gene_id_counter, new_children)
     end
+    new_children = Dict(indiv.id => indiv for indiv in new_children)
     new_species = BasicSpecies(species_creator.id, new_pop, new_children)
     return new_species
 end

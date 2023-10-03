@@ -55,19 +55,6 @@ function roulette(rng::AbstractRNG, μ::Int, fits::Vector{<:Real})
     return selected
 end
 
-"""
-    (selector::FitnessProportionateSelector)(rng::AbstractRNG, new_pop_evals::OrderedDict{<:Individual, <:Evaluation})
-
-Selects `n_parents` from the population using the fitness-proportionate selection strategy.
-
-# Arguments
-- `rng::AbstractRNG`: A random number generator.
-- `new_pop_evals::OrderedDict{<:Individual, <:Evaluation}`: An ordered dictionary of the population's 
-                                                           individuals and their evaluations.
-
-# Returns
-- `Array{Individual}`: A list of selected parent individuals.
-"""
 function select(
     selector::FitnessProportionateSelector,
     rng::AbstractRNG, 
@@ -78,6 +65,7 @@ function select(
     fitnesses = [evaluation.fitnesses[indiv.id] for indiv in new_pop]
     parent_indices = roulette(rng, selector.n_parents, fitnesses)
     parents = [new_pop[i] for i in parent_indices]
+    parent_ids = [parent.id for parent in parents]
     return parents  
 end
 

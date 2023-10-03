@@ -9,8 +9,8 @@ using ....Ecosystems.Interactions.Results: Result
 
 import ...Environments.Interfaces: next!, get_outcome_set, is_active, observe!
 
-observe!(env::Environment, observers::Vector{<:Observer}) = [
-   observe!(env, observer) for observer in observers
+observe!(environment::Environment, observers::Vector{<:Observer}) = [
+   observe!(environment, observer) for observer in observers
 ]
 
 function interact(

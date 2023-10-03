@@ -9,11 +9,11 @@ using ...Interactions.Domains.Abstract: Domain
 
 
 function create_environment(
-    env_creator::EnvironmentCreator, 
+    environment_creator::EnvironmentCreator, 
     phenotypes::Vector{Phenotype},
 )::Environment
     throw(ErrorException(
-        "`create_environment` not implemented for $env_creator "
+        "`create_environment` not implemented for $environment_creator "
         )
     )
 end
@@ -29,23 +29,23 @@ function observe!(environment::Environment, observer::Observer)
 end
 
 
-function next!(env::Environment)::Nothing
+function next!(environment::Environment)::Nothing
     throw(ErrorException(
-        "`next!` not implemented for env $env"
+        "`next!` not implemented for environment $environment"
         )
     )
 end
 
-function get_outcome_set(env::Environment)::Vector{Float64}
+function get_outcome_set(environment::Environment)::Vector{Float64}
     throw(ErrorException(
-        "`get_outcomes` not implemented for env $env"
+        "`get_outcomes` not implemented for environment $environment"
         )
     )
 end
 
-function is_active(env::Environment)::Bool
+function is_active(environment::Environment)::Bool
     throw(ErrorException(
-        "`is_active` not implemented for env $env"
+        "`is_active` not implemented for environment $environment"
         )
     )
 end

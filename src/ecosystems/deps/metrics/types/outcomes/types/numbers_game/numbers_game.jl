@@ -49,7 +49,7 @@ struct Relativism <: NumbersGameMetric end
 """
     NumbersGameEnvironment{M <: NumbersGameMetric} <: Problem
 
-A env env for the numbers game with a specific metric.
+A environment environment for the numbers game with a specific metric.
 
 # Fields:
 - `metric::M`: Metric determining the nature of interactions.

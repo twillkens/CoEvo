@@ -13,10 +13,10 @@ Base.@kwdef struct BasicInteraction{
     O <: Observer, 
 } <: Interaction
     id::String
-    env_creator::E
+    environment_creator::E
     species_ids::Vector{String}
     matchmaker::M
-    observers::Vector{O}
+    observers::Vector{O} = Observer[]
 end
 
 end

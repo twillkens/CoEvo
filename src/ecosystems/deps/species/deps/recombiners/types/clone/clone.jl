@@ -38,8 +38,9 @@ function recombine(
     indiv_id_counter::Counter, 
     parents::Vector{<:Individual}
 ) 
-    child_id = next!(indiv_id_counter)
-    individuals = [Individual(child_id, parent.geno, parent.id) for parent in parents]
+    individuals = [
+        Individual(next!(indiv_id_counter), parent.geno, [parent.id]) for parent in parents
+    ]
     return individuals
 end
 

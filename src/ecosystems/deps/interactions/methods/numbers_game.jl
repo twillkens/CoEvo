@@ -21,10 +21,10 @@ import ....Species.Phenotypes.Interfaces: act
 # end
 
 function get_outcome_set(
-    env::Environment{D, P}) where {D <: NumbersGameDomain, P <: VectorPhenotype
+    environment::Environment{D, P}) where {D <: NumbersGameDomain, P <: VectorPhenotype
 }
-    A, B = act(env.phenotypes[1], nothing), act(env.phenotypes[2], nothing)
-    get_outcome_set(env.domain.outcome_metric, A, B)
+    A, B = act(environment.phenotypes[1], nothing), act(environment.phenotypes[2], nothing)
+    get_outcome_set(environment.domain.outcome_metric, A, B)
 end
 
 """

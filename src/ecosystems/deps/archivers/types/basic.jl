@@ -9,6 +9,12 @@ using ..Utilities: get_or_make_group!
 
 using ..Archivers.Abstract: Archiver
 using ...Reporters.Abstract: Report
+using ...Reporters.Types.Basic: BasicReport
+using ...Reporters.Types.Runtime: RuntimeReport
+using ...Metrics.Evaluations.Types: AllSpeciesFitness
+using ...Measurements: GroupStatisticalMeasurement 
+
+import ..Archivers.Interfaces: archive!
 
 
 Base.@kwdef struct BasicArchiver <: Archiver 
@@ -16,9 +22,35 @@ Base.@kwdef struct BasicArchiver <: Archiver
 end
 
 
-function archive!(archiver::BasicArchiver, gen::Int, report::Report)
+#function archive!(archiver::BasicArchiver, gen::Int, report::Report)
+#    println("Archiving generation $gen")
+#    println("Report: $report")
+#end
+function archive!(
+    ::BasicArchiver, 
+    gen::Int, 
+    report::RuntimeReport
+)
+    println("-----------------------------------------------------------")
+    println("Generation: $report.gen")
+    println("Evaluation time: $(report.eval_time)")
+    println("Reproduction time: $(report.reproduce_time)")
 end
 
+function archive!(
+    ::BasicArchiver, 
+    gen::Int, 
+    report::BasicReport{AllSpeciesFitness, GroupStatisticalMeasurement}
+)
+    for (species_id, measurement) in report.measurement.measurements
+        println("----")
+        println("Fitness for species ", species_id)
+        println("Mean: ", measurement.mean)
+        println("Min: ", measurement.minimum)
+        println("Max: ", measurement.maximum)
+        println("Std: ", measurement.std)
+    end
+end
 # # Save an individual to a JLD2.Group
 # function save_individual!(
 #     archiver::DefaultArchiver, indiv_group::Group, indiv::BasicIndividual

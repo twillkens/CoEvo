@@ -5,7 +5,6 @@ export evolve!
 
 using Random: AbstractRNG
 using StableRNGs: StableRNG
-using DataStructures: OrderedDict
 
 using ..Abstract: Ecosystem, EcosystemCreator
 using ..Utilities.Counters: Counter
@@ -16,21 +15,24 @@ using ..Species.Evaluators.Abstract: Evaluation
 using ..Species.Evaluators.Interfaces: create_evaluation
 using ..Jobs.Abstract: JobCreator
 using ..Performers.Abstract: Performer
+using ..Interactions.Abstract: Interaction
 using ..Interactions.Results: Result, get_indiv_outcomes, get_observations
 using ..Interactions.Observers.Abstract: Observation
 using ..Reporters.Types.Runtime: RuntimeReporter, create_runtime_report
 using ..Reporters.Abstract: Reporter, Report
 using ..Reporters.Interfaces: create_report
 using ..Archivers.Abstract: Archiver
+using ..Archivers.Interfaces: archive!
 using  ..Jobs.Interfaces: create_jobs
 using ..Performers.Interfaces: perform
+using ..Interactions.Observers.Types.Null: NullObservation
 
 import ..Ecosystems.Interfaces: create_ecosystem, evolve!
 
 
 struct BasicEcosystem{S <: AbstractSpecies} <: Ecosystem
     id::String
-    species::OrderedDict{String, S}
+    species::Dict{String, S}
 end
 
 function Base.show(io::IO, eco::BasicEcosystem)
@@ -52,8 +54,8 @@ Base.@kwdef struct BasicEcosystemCreator{
     performer::P
     reporters::Vector{R}
     archiver::A
-    indiv_id_counter::Counter
-    gene_id_counter::Counter
+    indiv_id_counter::Counter = Counter()
+    gene_id_counter::Counter = Counter()
     runtime_reporter::RuntimeReporter = RuntimeReporter()
 end
 
@@ -68,7 +70,8 @@ end
 function create_ecosystem(eco_creator::BasicEcosystemCreator)
     # Determine species IDs and populate species dictionary
     all_species = Dict(
-        species_id => species_creator(
+        species_id => create_species(
+            species_creator,
             eco_creator.rng, 
             eco_creator.indiv_id_counter, 
             eco_creator.gene_id_counter
@@ -102,10 +105,11 @@ end
 
 function create_all_reports(
     gen::Int, 
-    reporters::Vector{<:Reporter}, 
+    eco_creator::BasicEcosystemCreator,
     species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
     observations::Vector{<:Observation}
 )
+    reporters = eco_creator.reporters
     reports = [
         create_report(reporter, gen, species_evaluations, observations) 
         for reporter in reporters
@@ -114,9 +118,8 @@ function create_all_reports(
     return reports
 end
 
-function archive_reports!(eco_creator::BasicEcosystemCreator, reports::Vector{<:Report})
-    #[archive_report!(eco_creator.archiver, report) for report in reports]
-
+function archive_reports!(archiver::Archiver, gen::Int, reports::Vector{<:Report})
+    [archive!(archiver, gen, report) for report in reports]
     return nothing
 end
 
@@ -138,21 +141,26 @@ function construct_new_species(
     return all_new_species
 end
 
+function collect_observation(results::Vector{<:Result})
+    observations = vcat([result.observations for result in results]...)
+    if length(observations) == 0
+        return [NullObservation()]
+    end
+    return observations
+end
 
 function create_ecosystem(
-    gen::Int, 
     eco_creator::BasicEcosystemCreator,
+    gen::Int, 
     eco::Ecosystem, 
-    results::Vector{Result}, 
-    reports::Vector{Report}
+    results::Vector{<:Result}, 
+    reports::Vector{<:Report}
 )
-    observations = [result.observation for result in results]
     species_evaluations = evaluate_species(eco_creator, eco, results)
-    generation_reports = create_all_reports(
-        gen, eco_creator.reporters, observations, species_evaluations
-    )
+    observations = collect_observation(results)
+    generation_reports = create_all_reports(gen, eco_creator, species_evaluations, observations)
     append!(reports, generation_reports)
-    archive_reports!(eco_creator.archiver, reports)
+    archive_reports!(eco_creator.archiver, gen, reports)
     all_new_species = construct_new_species(eco_creator, species_evaluations)
     new_eco = BasicEcosystem(eco_creator.id, all_new_species)
     
@@ -167,11 +175,16 @@ function evolve!(
     last_reproduce_time = 0.0
     for gen in 1:n_gen
         eval_time_start = time()
-        jobs = create_jobs(eco_creator.job_creator, eco)
-        results = perform(eco_creator.job_creator.job_performer, jobs)
+        jobs = create_jobs(
+            eco_creator.job_creator,
+            eco_creator.rng, 
+            eco_creator.species_creators, 
+            eco.species
+        )
+        results = perform(eco_creator.performer, jobs)
         eval_time = time() - eval_time_start
         runtime_report = create_runtime_report(
-            eco_creator.runtime_reporter, gen, eval_time, last_reproduce_time
+            eco_creator.runtime_reporter, eco_creator.id, gen, eval_time, last_reproduce_time
         )
         reports = Report[runtime_report]
 

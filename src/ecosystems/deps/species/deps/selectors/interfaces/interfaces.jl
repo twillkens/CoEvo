@@ -6,6 +6,7 @@ using Random: AbstractRNG
 using DataStructures: OrderedDict
 
 using ..Selectors.Abstract: Selector
+using ...Species.Abstract: AbstractSpecies
 using ...Species.Individuals: Individual
 using ...Species.Evaluators.Abstract: Evaluation
 
@@ -32,9 +33,9 @@ it throws an error.
 function select(
     selector::Selector,
     ::AbstractRNG, 
-    pop::Dict{Int, Individual},
+    new_pop::Dict{Int, Individual},
     evaluation::Evaluation
-)
+)::Vector{Individual}
     throw(ErrorException(
         "Selector $selector not implemented for $evaluation")
     )

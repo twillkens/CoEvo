@@ -9,6 +9,6 @@ using .Abstract: Abstract
 #using .IndividualIdentity: IndividualIdentityMeasureSet
 
 include("types/basic_statistical.jl")
-using .BasicStatistical: BasicStatisticalMeasurement 
+using .BasicStatistical: BasicStatisticalMeasurement, GroupStatisticalMeasurement
 
 end

@@ -27,19 +27,16 @@ function replace(
         return species.pop
     end
 
-    
-    pop_ids = filter(
-        (indiv_id, fitness) -> indiv_id in species.pop, keys(evaluation.fitnesses)
-    )
-    children_ids = filter(
-        (indiv_id, fitness) -> indiv_id in species.children, keys(evaluation.fitnesses)
-    )
+    eval_ids = collect(keys(evaluation.fitnesses))
+    pop_ids = [indiv_id for indiv_id in eval_ids if indiv_id in keys(species.pop)]
+    children_ids = [indiv_id for indiv_id in eval_ids if indiv_id in keys(species.children)]
     elite_ids = pop_ids[1:replacer.n_elite]
     n_children = length(species.pop) - replacer.n_elite
     children_ids = children_ids[1:n_children]
     new_pop = Dict(
         id => indiv for (id, indiv) in merge(species.pop, species.children) 
-        if id in Set([elite_ids ; children_ids]))
+        if id in Set([elite_ids ; children_ids])
+    )
 
     return new_pop
 end

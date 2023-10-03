@@ -6,15 +6,15 @@ using Random: AbstractRNG
 using StatsBase: sample, Weights
 
 using ......Ecosystems.Utilities.Counters: Counter, next!
-using ....Genotypes.GeneticPrograms: GeneticProgramGenotype
-using ....Genotypes.GeneticPrograms.Methods: Manipulate
+using .....Genotypes.GeneticPrograms: GeneticProgramGenotype
+using .....Genotypes.GeneticPrograms.Methods: Manipulate
 using .Manipulate: add_function, remove_function, swap_node, splice_function, inject_noise
-using ....Genotypes.GeneticPrograms.Methods.Traverse: all_nodes 
-using ....Genotypes.GeneticPrograms.Utilities: Utilities
+using .....Genotypes.GeneticPrograms.Methods.Traverse: all_nodes 
+using .....Genotypes.GeneticPrograms.Utilities: Utilities
 using .Utilities: FuncAlias, Terminal, protected_sine, if_less_then_else
-using ...Mutators.Abstract: Mutator
+using ....Mutators.Abstract: Mutator
 
-import ...Mutators.Interfaces: mutate
+import ....Mutators.Interfaces: mutate
 
 Base.@kwdef struct GeneticProgramMutator <: Mutator
     # Number of structural changes to perform per generation

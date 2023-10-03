@@ -1,6 +1,6 @@
 module BasicStatistical
 
-export BasicStatisticalMeasurement, extract_stat_features
+export BasicStatisticalMeasurement, GroupStatisticalMeasurement, extract_stat_features
 
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
 using HypothesisTests: OneSampleTTest, confint
@@ -48,8 +48,11 @@ Base.@kwdef struct BasicStatisticalMeasurement <: Measurement
     mode::Real = 0.0
 end
 
+struct GroupStatisticalMeasurement <: Measurement
+    measurements::Dict{String, BasicStatisticalMeasurement}
+end
+
 function BasicStatisticalMeasurement(vec::Vector{<:Real}, n_round::Int=2)
-    println(vec)
     if isempty(vec) || length(vec) == 1
         return BasicStatisticalMeasurement()
     end

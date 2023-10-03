@@ -11,8 +11,8 @@ using .....Ecosystems.Abstract: EcosystemCreator, Ecosystem
 function make_matches(
     matchmaker::MatchMaker, 
     rng::AbstractRNG,
-    all_species::Dict{String, AbstractSpecies},
     interaction_id::String,
+    all_species::Dict{String, <:AbstractSpecies},
     species_ids::Vector{String}
 )
     throw(ErrorException(

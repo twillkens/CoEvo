@@ -12,7 +12,7 @@ function create_report(
     reporter::Reporter,
     gen::Int,
     species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
-    interaction_observations::Dict{<:Interaction, <:Observation}
+    observations::Vector{<:Observation}
 )::Report
     throw(ErrorException("create_report not implemented for $reporter"))
 end
@@ -20,7 +20,7 @@ end
 function measure(
     reporter::Reporter,
     species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
-    interaction_observations::Dict{<:Interaction, <:Observation}
+    observations::Vector{<:Observation}
 )
     throw(ErrorException("measure not implemented for $reporter"))
 end

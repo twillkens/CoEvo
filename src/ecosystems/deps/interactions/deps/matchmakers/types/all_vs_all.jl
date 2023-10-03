@@ -5,6 +5,8 @@ using ..Matches.Basic: BasicMatch
 using ....Species.Abstract: AbstractSpecies
 using Random: AbstractRNG
 
+import ..MatchMakers.Interfaces: make_matches
+
 """
     AllvsAllMatchMaker <: MatchMaker
 
@@ -61,8 +63,8 @@ end
 function make_matches(
     matchmaker::AllvsAllMatchMaker,
     ::AbstractRNG,
-    all_species::Dict{String, <:AbstractSpecies},
     interaction_id::String,
+    all_species::Dict{String, <:AbstractSpecies},
     species_ids::Vector{String}
 )
     if length(species_ids) != 2

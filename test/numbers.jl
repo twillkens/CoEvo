@@ -124,7 +124,7 @@ end
     rng = StableRNG(42)
     indiv_id_counter = Counter()
     gene_id_counter = Counter()
-    species_id = "A"
+    species_id = "subjects"
     n_pop = 10
 
     default_vector = collect(1:10)
@@ -146,7 +146,10 @@ end
     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
     evaluation = create_evaluation(species_creator.evaluator, species, dummy_outcomes)
-    println(evaluation)
+    reporter = BasicReporter(metric = TestBasedFitness())
+    species_evaluations = Dict(species => evaluation)
+    measurement = measure(reporter, species_evaluations)
+    println(measurement)
 #
 #    # Test the initial state of the population
 #    pop_ids = collect(keys(species.pop))
@@ -186,74 +189,71 @@ end
 #Ensures the successful progression of generations and expected state changes.
 #"""
 #
-#@testset "evolve!" begin
-#
-#function dummy_eco_creator(;
-#    id::String = "test",
-#    trial::Int = 1,
-#    rng::AbstractRNG = StableRNG(42),
-#    n_pop::Int = 2,
-#    n_parents::Int = 2,
-#    species_id1::String = "a",
-#    species_id2::String = "b",
-#    domain_id::String = "NumbersGame{Sum}",
-#    default_vector::Vector{Float64} = fill(0.0, 10),
-#)
-#    eco_creator = CoevolutionaryEcosystemCreator(
-#        id = id,
-#        trial = trial,
-#        rng = rng,
-#        species_creators = OrderedDict(
-#            species_id1 => BasicSpeciesCreator(
-#                id = species_id1,
-#                n_pop = n_pop,
-#                geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
-#                pheno_creator = DefaultPhenotypeCreator(),
-#                indiv_creator = AsexualIndividualCreator(),
-#                eval_creator = ScalarFitnessEvaluationCreator(),
-#                replacer = GenerationalReplacer(),
-#                selector = FitnessProportionateSelector(n_parents = n_parents),
-#                recombiner = CloneRecombiner(),
-#                mutators = [DefaultMutator()],
-#                reporters = [CohortMetricReporter(metric = EvaluationFitness())],
-#            ),
-#            species_id2 => BasicSpeciesCreator(
-#                id = species_id2,
-#                n_pop = n_pop,
-#                geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
-#                pheno_creator = DefaultPhenotypeCreator(),
-#                indiv_creator = AsexualIndividualCreator(),
-#                eval_creator = ScalarFitnessEvaluationCreator(),
-#                replacer = GenerationalReplacer(),
-#                selector = FitnessProportionateSelector(n_parents = n_parents),
-#                recombiner = CloneRecombiner(),
-#                mutators = [DefaultMutator()],
-#                reporters = [CohortMetricReporter(metric = EvaluationFitness())],
-#            ),
-#        ),
-#        job_creator = InteractionJobCreator(
-#            n_workers = 1,
-#            dom_creators = OrderedDict(
-#                domain_id => InteractiveDomainCreator(
-#                    id = domain_id,
-#                    problem = NumbersGameProblem(:Sum),
-#                    species_ids = [species_id1, species_id2],
-#                    obs_creator = OutcomeObservationCreator(),
-#                    matchmaker = AllvsAllMatchMaker(type = :plus),
-#                    reporters = Reporter[]
-#                ),
-#            ),
-#        ),
-#        archiver = DefaultArchiver(),
-#        indiv_id_counter = Counter(),
-#        gene_id_counter = Counter(),
-#        runtime_reporter = RuntimeReporter(),
-#    )
-#
-#    eco = evolve!(eco_creator, n_gen=10)
-#    @test length(eco.species[species_id1].pop) == n_pop
-#end
-#
-#end
+@testset "evolve!" begin
+
+function dummy_eco_creator(;
+    id::String = "test",
+    trial::Int = 1,
+    rng::AbstractRNG = StableRNG(42),
+    n_pop::Int = 2,
+    n_parents::Int = 2,
+    species_id1::String = "a",
+    species_id2::String = "b",
+    interaction_id::String = "NumbersGame{Sum}",
+    default_vector::Vector{Float64} = fill(0.0, 10),
+)
+    eco_creator = BasicEcosystemCreator(
+        id = id,
+        trial = trial,
+        rng = rng,
+        species_creators = Dict(
+            species_id1 => BasicSpeciesCreator(
+                id = species_id1,
+                n_pop = n_pop,
+                geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
+                pheno_creator = DefaultPhenotypeCreator(),
+                evaluator = ScalarFitnessEvaluator(),
+                replacer = GenerationalReplacer(),
+                selector = FitnessProportionateSelector(n_parents = n_parents),
+                recombiner = CloneRecombiner(),
+                mutators = [NoiseInjectionMutator(noise_std = 0.1)],
+            ),
+            species_id2 => BasicSpeciesCreator(
+                id = species_id2,
+                n_pop = n_pop,
+                geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
+                pheno_creator = DefaultPhenotypeCreator(),
+                evaluator = ScalarFitnessEvaluator(),
+                replacer = GenerationalReplacer(),
+                selector = FitnessProportionateSelector(n_parents = n_parents),
+                recombiner = CloneRecombiner(),
+                mutators = [NoiseInjectionMutator(noise_std = 0.1)],
+            ),
+        ),
+        job_creator = BasicJobCreator(
+            n_workers = 1,
+            interactions = Dict(
+                interaction_id => BasicInteraction(
+                    id = interaction_id,
+                    environment_creator = StatelessEnvironmentCreator(NumbersGameDomain(:Sum)),
+                    species_ids = [species_id1, species_id2],
+                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                ),
+            ),
+        ),
+        performer = BasicPerformer(n_workers = 1),
+        reporters = [BasicReporter(metric = AllSpeciesFitness())],
+        archiver = BasicArchiver(),
+    )
+    return eco_creator
+
+end
+
+eco_creator = dummy_eco_creator()
+
+eco = evolve!(eco_creator, n_gen=10)
+@test length(eco.species[species_id1].pop) == n_pop
+
+end
 
 end
