@@ -146,9 +146,9 @@ end
     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
     evaluation = create_evaluation(species_creator.evaluator, species, dummy_outcomes)
-    reporter = BasicReporter(metric = TestBasedFitness())
+    reporter = BasicReporter(metric = AllSpeciesFitness())
     species_evaluations = Dict(species => evaluation)
-    measurement = measure(reporter, species_evaluations)
+    measurement = measure(reporter, species_evaluations, Observation[])
     println(measurement)
 #
 end

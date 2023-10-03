@@ -12,7 +12,7 @@ using .Manipulate: add_function, remove_function, swap_node, splice_function, in
 using .....Genotypes.GeneticPrograms.Methods.Traverse: all_nodes 
 using .....Genotypes.GeneticPrograms.Utilities: Utilities
 using .....Genotypes.Abstract: Genotype
-using .Utilities: FuncAlias, Terminal, protected_sine, if_less_then_else
+using .Utilities: FuncAlias, Terminal, protected_sine, if_less_then_else, protected_cosine, protected_division
 using ....Mutators.Abstract: Mutator
 
 import ....Mutators.Interfaces: mutate
@@ -31,11 +31,11 @@ Base.@kwdef struct GeneticProgramMutator <: Mutator
     n_mutations::Int = 1
     # Uniform probability of each type of structural change
     mutation_probabilities::Dict{Function, Float64} = Dict(
-        add_function => 2 / 16,
-        remove_function => 0 / 16,
-        splice_function => 1 / 1,
-        swap_node => 1 / 16,
-        identity => 3 / 4
+        add_function => 1 / 8,
+        remove_function => 1 / 8,
+        splice_function => 1 / 8,
+        swap_node => 1 / 8,
+        identity => 2 / 4
     )
     terminals::Dict{Terminal, Int} = Dict(
         :read => 1, 
@@ -43,6 +43,8 @@ Base.@kwdef struct GeneticProgramMutator <: Mutator
     )
     functions::Dict{FuncAlias, Int} = Dict([
         (protected_sine, 1), 
+        (protected_cosine, 1), 
+        (protected_division, 2), 
         (+, 2), 
         (-, 2), 
         (*, 2),

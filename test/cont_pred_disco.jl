@@ -66,9 +66,9 @@ function cont_pred_eco_creator(;
                     id = interaction_id1,
                     environment_creator = TapeEnvironmentCreator(
                         ContinuousPredictionGameDomain(
-                            CooperativeMatching()
+                            CooperativeMismatching()
                         ),
-                        32
+                        16
                     ),
                     species_ids = [species_id1, species_id2],
                     matchmaker = AllvsAllMatchMaker(type = :plus),
@@ -79,7 +79,7 @@ function cont_pred_eco_creator(;
                         ContinuousPredictionGameDomain(
                             Competitive()
                         ),
-                        32
+                        16
                     ),
                     species_ids = [species_id1, species_id3],
                     matchmaker = AllvsAllMatchMaker(type = :plus),
@@ -89,6 +89,7 @@ function cont_pred_eco_creator(;
         performer = BasicPerformer(n_workers = n_workers),
         reporters = Reporter[
             BasicReporter(metric = GenotypeSize()),
+            BasicReporter(metric = AllSpeciesFitness()),
         ],
         archiver = BasicArchiver(),
     )
@@ -96,7 +97,7 @@ function cont_pred_eco_creator(;
 end
 
 
-eco_creator = cont_pred_eco_creator(n_pop = 100, n_workers = 5)
-eco = evolve!(eco_creator, n_gen=500)
+eco_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 5)
+eco = evolve!(eco_creator, n_gen=1_000)
 
 
