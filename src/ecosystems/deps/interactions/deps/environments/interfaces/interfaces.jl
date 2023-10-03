@@ -10,8 +10,8 @@ using ...Interactions.Domains.Abstract: Domain
 
 function create_environment(
     environment_creator::EnvironmentCreator, 
-    phenotypes::Vector{Phenotype},
-)::Environment
+    phenotypes::Vector{P},
+) where {P <: Phenotype}
     throw(ErrorException(
         "`create_environment` not implemented for $environment_creator "
         )

@@ -11,6 +11,7 @@ export Ecosystem, EcosystemCreator,
        Genotype,
        create_genotypes,
        VectorGenotype, VectorGenotypeCreator,
+       ScalarRangeGenotypeCreator,
        BasicVectorGenotype, BasicVectorGenotypeCreator,
        GeneticProgramGenotype, GeneticProgramGenotypeCreator,
        ExpressionNodeGene, Traverse, Manipulate, GPUtilities,
@@ -25,6 +26,7 @@ export Ecosystem, EcosystemCreator,
        create_evaluation, get_ranked_ids,
        Evaluation, Evaluator,
        ScalarFitnessEvaluator, ScalarFitnessEvaluation,
+       NullEvaluator, NullEvaluation,
        Replacers,
        Replacer,
        replace,
@@ -36,7 +38,7 @@ export Ecosystem, EcosystemCreator,
        Recombiners,
        Recombiner,
        recombine,
-       CloneRecombiner,
+       CloneRecombiner, IdentityRecombiner,
        Mutators,
        Mutator,
        mutate,
@@ -45,6 +47,7 @@ export Ecosystem, EcosystemCreator,
        Metric,
        OutcomeMetric,
        NumbersGameMetrics,
+       AbsoluteError,
        ObservationMetric,
        SpeciesMetric,
        GenotypeSize, GenotypeSum,
@@ -58,6 +61,7 @@ export Ecosystem, EcosystemCreator,
        BasicInteraction,
        Domain,
        NumbersGameDomain,
+       SymbolicRegressionDomain,
        MatchMaker,
        AllvsAllMatchMaker,
        Observer, Observation,
@@ -107,6 +111,7 @@ using .Genotypes.Abstract: Genotype
 using .Genotypes.Interfaces: create_genotypes
 using .Genotypes.Vectors.Abstract: VectorGenotype, VectorGenotypeCreator
 using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  
+using .Genotypes.Vectors.Basic: ScalarRangeGenotypeCreator
 using .Genotypes.GeneticPrograms.Genes: ExpressionNodeGene 
 using .Genotypes.GeneticPrograms: GeneticProgramGenotype, GeneticProgramGenotypeCreator 
 using .Genotypes.GeneticPrograms.Methods: Traverse, Manipulate
@@ -155,13 +160,14 @@ println("loaded selectors")
 using .Species: Recombiners
 using .Recombiners.Abstract: Recombiner
 using .Recombiners.Interfaces: recombine
-using .Recombiners.Types: CloneRecombiner 
+using .Recombiners.Types: CloneRecombiner, IdentityRecombiner 
 println("loaded recombiners")
 
 using .Ecosystems: Metrics
 using .Metrics.Abstract: Metric
 using .Metrics.Outcomes.Abstract: OutcomeMetric
 using .Metrics.Outcomes.Types.NumbersGame: NumbersGame as NumbersGameMetrics
+using .Metrics.Outcomes.Types.Generic: AbsoluteError
 using .Metrics.Observations.Abstract: ObservationMetric
 using .Metrics.Species.Abstract: SpeciesMetric
 using .Metrics.Species.Types: GenotypeSize, GenotypeSum
@@ -181,6 +187,7 @@ println("loaded interactions")
 using .Interactions: Domains
 using .Domains.Abstract: Domain
 using .Domains.Types.NumbersGame: NumbersGameDomain
+using .Domains.Types.SymbolicRegression: SymbolicRegressionDomain
 println("loaded domains")
 
 using .Interactions: MatchMakers

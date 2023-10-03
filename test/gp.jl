@@ -195,3 +195,44 @@ end
     # ...[You can follow this structure for the other testsets]
 
 end
+
+@testset "ContinuousPredictionGame" begin
+
+using .CoEvo.Ecosystems.Metrics.Outcomes.Types.ContinuousPredictionGame: Control
+using .CoEvo.Ecosystems.Interactions.Domains.Types.ContinuousPredictionGame: ContinuousPredictionGameDomain
+using .CoEvo.Ecosystems.Interactions.Environments.Types.Tape: TapeEnvironment, TapeEnvironmentCreator
+
+geno1 = GeneticProgramGenotype(
+    root_id = 1,
+    functions = Dict{Int, ExpressionNodeGene}(),
+    terminals = Dict(1 => ExpressionNodeGene(1, nothing, :read) )
+)
+
+geno2 = GeneticProgramGenotype(
+    root_id = 1,
+    functions = Dict(
+        1 => ExpressionNodeGene(1, nothing, +, [2, 3]) 
+    ),
+    terminals = Dict(
+        2 => ExpressionNodeGene(2, 1, :read) ,
+        3 => ExpressionNodeGene(3, 1, π)
+    )
+)
+
+pheno1 = create_phenotype(DefaultPhenotypeCreator(), geno1)
+pheno2 = create_phenotype(DefaultPhenotypeCreator(), geno2)
+outcome_metric = Control()
+domain = ContinuousPredictionGameDomain(outcome_metric)
+env_creator = TapeEnvironmentCreator(domain, 10)
+
+env = create_environment(env_creator, [pheno1, pheno2])
+
+while is_active(env)
+    println("pos1: ", env.pos1, " pos2: ", env.pos2)
+    next!(env)
+end
+println("tape1: $(env.tape1), tape2: $(env.tape2)")
+outcomes = get_outcome_set(env)
+println(outcomes)
+
+end

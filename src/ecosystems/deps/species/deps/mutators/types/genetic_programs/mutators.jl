@@ -64,7 +64,7 @@ function mutate(
         mutator.n_mutations
     )
     for mutation in mutations
-        geno = mutation(rng, gene_id_counter, mutation, geno)
+        geno = mutation(rng, gene_id_counter, mutator, geno)
     end
     if geno.root_id ∉ keys(all_nodes(geno))
         throw(ErrorException("Root node not in genotype"))

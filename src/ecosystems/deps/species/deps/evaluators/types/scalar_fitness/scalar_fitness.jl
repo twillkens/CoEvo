@@ -13,6 +13,7 @@ import ...Evaluators.Interfaces: create_evaluation, get_ranked_ids
 struct ScalarFitnessEvaluation <: Evaluation
     species_id::String
     fitnesses::OrderedDict{Int, Float64}
+    outcome_sums::Vector{Float64}
 end
 
 Base.@kwdef struct ScalarFitnessEvaluator <: Evaluator 
@@ -31,19 +32,16 @@ function create_evaluation(
         for partner_id in keys(outcomes[indiv_id]))
         for indiv_id in indiv_ids
     ]
-    if evaluator.maximize
-        fitnesses = outcome_sums
-    else
-        shift_value = abs(minimum(outcome_sums) + evaluator.epsilon)
-        fitnesses = outcome_sums .- shift_value
-    end
+    fitnesses = evaluator.maximize ? outcome_sums : -outcome_sums
+    min_fitness = minimum(fitnesses)
+    shift_value = (min_fitness <= 0) ? abs(min_fitness) + evaluator.epsilon : 0
+    fitnesses .+= shift_value
 
     indiv_fitnesses = Dict(
         indiv_ids[i] => fitnesses[i] for i in eachindex(indiv_ids)
     )
-    reverse = evaluator.maximize
-    indiv_fitnesses = OrderedDict(sort(collect(indiv_fitnesses), by = x-> x[2], rev=reverse))
-    evaluation = ScalarFitnessEvaluation(species.id, indiv_fitnesses)
+    indiv_fitnesses = OrderedDict(sort(collect(indiv_fitnesses), by = x-> x[2], rev=true))
+    evaluation = ScalarFitnessEvaluation(species.id, indiv_fitnesses, outcome_sums)
     return evaluation
 end
 

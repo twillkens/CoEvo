@@ -2,11 +2,13 @@ module Methods
 
 using DataStructures: OrderedDict
 using .....Metrics.Abstract: Metric
+using .....Metrics.Outcomes.Types.Generic: AbsoluteError
 using .....Metrics.Evaluations.Types: TestBasedFitness, AllSpeciesFitness
 using .....Metrics.Species.Types: GenotypeSum, GenotypeSize
 using .....Measurements.Abstract: Measurement
 using .....Measurements: BasicStatisticalMeasurement, GroupStatisticalMeasurement
 using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
+using .....Ecosystems.Species.Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
 using .....Ecosystems.Species.Abstract: AbstractSpecies
 using .....Ecosystems.Interactions.Abstract: Interaction
 using .....Ecosystems.Interactions.Observers.Abstract: Observation
@@ -34,6 +36,19 @@ function measure(
 end
 
 function measure(
+    ::Reporter{AbsoluteError},
+    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
+    ::Vector{<:Observation}
+)
+    evaluation = filter(
+        species_evaluation -> species_evaluation[1].id == "Subjects", 
+        collect(species_evaluations)
+    )[1][2]
+    measurement = BasicStatisticalMeasurement(evaluation.outcome_sums)
+    return measurement
+end
+
+function measure(
     ::Reporter{AllSpeciesFitness},
     species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
     ::Vector{<:Observation}
@@ -43,6 +58,7 @@ function measure(
             collect(values(evaluation.fitnesses))
         ) 
         for (species, evaluation) in species_evaluations
+            if typeof(evaluation) == ScalarFitnessEvaluation
     )
         
     measurement = GroupStatisticalMeasurement(species_measurements)

@@ -178,8 +178,10 @@ function splice_function(
     # root of the target's subtree.
     elseif segment_top.id == geno.root_id
         ancestors = get_ancestors(geno, segment_top)
-        target_subtree_root = ancestors[end]
-        geno.root_id = length(ancestors) > 0 ? target_subtree_root.id : segment_top.id
+        if length(ancestors) > 0
+            target_subtree_root = ancestors[end]
+            geno.root_id = target_subtree_root.id
+        end
     end
     # If the segment bottom's child is a terminal, remove it.
     if segment_bottom_child_id in keys(geno.terminals) && 

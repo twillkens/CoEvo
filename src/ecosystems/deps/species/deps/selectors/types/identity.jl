@@ -35,9 +35,9 @@ function select(
     ::IdentitySelector,
     ::AbstractRNG, 
     new_pop::Dict{Int, <:Individual},
-    evaluation::Evaluation
+    ::Evaluation
 )
-    parents = new_pop
+    parents = collect(values(new_pop))
     return parents
 end
 

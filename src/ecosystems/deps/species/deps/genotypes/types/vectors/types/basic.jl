@@ -51,8 +51,8 @@ function create_genotypes(
 end
 
 Base.@kwdef struct ScalarRangeGenotypeCreator <: VectorGenotypeCreator
-    start_value::Float64 = -5.0
-    stop_value::Float64 = 4.9
+    start_value::Float64 = -2.0
+    stop_value::Float64 = 2.0
 end
 
 function create_genotypes(

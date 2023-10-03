@@ -14,5 +14,9 @@ function act(pheno::Phenotype, ::Any)
     throw(ErrorException("act not implemented for $pheno"))
 end
 
+function act(pheno::Phenotype)
+    return act(pheno, nothing)
+end
+
 
 end

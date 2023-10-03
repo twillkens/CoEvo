@@ -9,7 +9,7 @@ using .....Species.Phenotypes.Abstract: Phenotype
 import ...Environments.Interfaces: next!, is_active, create_environment
 
 
-struct StatelessEnvironment{D, P} <: Environment{D, P}
+struct StatelessEnvironment{D, P <: Phenotype} <: Environment{D}
     domain::D
     phenotypes::Vector{P}
 end
@@ -19,9 +19,9 @@ struct StatelessEnvironmentCreator{D} <: EnvironmentCreator{D}
 end
 
 function create_environment(
-    environment_creator::StatelessEnvironmentCreator,
-    phenotypes::Vector{<:Phenotype}
-)
+    environment_creator::StatelessEnvironmentCreator{D},
+    phenotypes::Vector{P}
+) where {D <: Domain, P <: Phenotype}
     return StatelessEnvironment(
         environment_creator.domain,
         phenotypes

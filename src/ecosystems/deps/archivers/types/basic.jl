@@ -13,7 +13,8 @@ using ...Reporters.Types.Basic: BasicReport
 using ...Reporters.Types.Runtime: RuntimeReport
 using ...Metrics.Evaluations.Types: AllSpeciesFitness
 using ...Metrics.Species.Types: GenotypeSum
-using ...Measurements: GroupStatisticalMeasurement 
+using ...Metrics.Outcomes.Types.Generic: AbsoluteError
+using ...Measurements: GroupStatisticalMeasurement, BasicStatisticalMeasurement
 
 import ..Archivers.Interfaces: archive!
 
@@ -33,7 +34,7 @@ function archive!(
     report::RuntimeReport
 )
     println("-----------------------------------------------------------")
-    println("Generation: $report.gen")
+    println("Generation: $gen")
     println("Evaluation time: $(report.eval_time)")
     println("Reproduction time: $(report.reproduce_time)")
 end
@@ -51,6 +52,18 @@ function archive!(
         #println("Max: ", measurement.maximum)
         #println("Std: ", measurement.std)
     end
+end
+function archive!(
+    ::BasicArchiver, 
+    gen::Int, 
+    report::BasicReport{AbsoluteError, BasicStatisticalMeasurement}
+)
+    measurement = report.measurement
+    println("----")
+    println("AbsoluteError")
+    println("Min: ", measurement.minimum)
+    println("Mean: ", measurement.mean)
+    println("Max: ", measurement.maximum)
 end
 function archive!(
     ::BasicArchiver, 
