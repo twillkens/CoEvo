@@ -20,7 +20,10 @@ end
 
 function Base.show(io::IO, nodes::Vector{LinearNode})
     for (i, node) in enumerate(nodes)
-        print(io, "$i: LinearNode(id: $(node.id), type: $(node.type), value: $(node.value), arity: $(node.arity), jump: $(node.jump_length))\n")
+        print(
+            io, "$i: LinearNode(id: $(node.id), type: $(node.type), value: $(node.value), 
+            arity: $(node.arity), jump: $(node.jump_length))\n"
+        )
     end
 end
 
@@ -67,15 +70,6 @@ function linearize(genotype::GeneticProgramGenotype, node_id::Int = genotype.roo
                 )
             catch e
                 println("Error in linearize_genotype: $e")
-                println("-------")
-                println("Linearize: $(genotype)")
-                println("\nAll nodes so far")
-                println(nodes)
-                println("start_then: $start_then")
-                println("start_else: $start_else")
-                println("jump_length: $jump_length")
-                println("\nLocal Nodes")
-                println(local_node_list)
                 throw(e)
             end
         else
@@ -101,3 +95,15 @@ function linearize(genotype::GeneticProgramGenotype, node_id::Int = genotype.roo
 end
 
 end
+
+
+
+                #println("-------")
+                #println("Linearize: $(genotype)")
+                #println("\nAll nodes so far")
+                #println(nodes)
+                #println("start_then: $start_then")
+                #println("start_else: $start_else")
+                #println("jump_length: $jump_length")
+                #println("\nLocal Nodes")
+                #println(local_node_list)

@@ -5,10 +5,10 @@ using ...Environments.Types.Stateless: StatelessEnvironment
 using ....Interactions.Domains.Types.NumbersGame: NumbersGameDomain
 using ....Metrics.Outcomes.Types.NumbersGame: Control, Sum, Gradient, Focusing, Relativism
 using ....Species.Phenotypes.Vectors.Basic: VectorPhenotype
-using ....Species.Phenotypes.Interfaces: act
+using ....Species.Phenotypes.Interfaces: act!
 
 import ....Interactions.Environments.Interfaces: get_outcome_set
-import ....Species.Phenotypes.Interfaces: act
+import ....Species.Phenotypes.Interfaces: act!
 
 # function create_environment(
 #     ::EnvironmentCreator, 
@@ -22,7 +22,7 @@ import ....Species.Phenotypes.Interfaces: act
 
 function get_outcome_set(
     environment::StatelessEnvironment{D, <:VectorPhenotype}) where {D <: NumbersGameDomain}
-    A, B = act(environment.phenotypes[1], nothing), act(environment.phenotypes[2], nothing)
+    A, B = act!(environment.phenotypes[1], nothing), act!(environment.phenotypes[2], nothing)
     get_outcome_set(environment.domain.outcome_metric, A, B)
 end
 

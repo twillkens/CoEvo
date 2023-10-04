@@ -32,7 +32,9 @@ function cont_pred_eco_creator(;
                 pheno_creator = DefaultPhenotypeCreator(),
                 evaluator = DiscoEvaluator(),
                 replacer = TruncationReplacer(:plus),
-                selector = TournamentSelector(μ = n_pop, tournament_size = 3, selection_func=argmin),
+                selector = TournamentSelector(
+                    μ = n_pop, tournament_size = 3, selection_func=argmin
+                ),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
             ),
@@ -43,7 +45,9 @@ function cont_pred_eco_creator(;
                 pheno_creator = DefaultPhenotypeCreator(),
                 evaluator = DiscoEvaluator(),
                 replacer = TruncationReplacer(:plus),
-                selector = TournamentSelector(μ = n_pop, tournament_size = 3, selection_func=argmin),
+                selector = TournamentSelector(
+                    μ = n_pop, tournament_size = 3, selection_func=argmin
+                ),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
             ),

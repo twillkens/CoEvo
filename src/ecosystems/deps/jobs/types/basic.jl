@@ -69,7 +69,7 @@ function create_phenotypes(
     all_species::Dict{String, <:AbstractSpecies},
 )
     pheno_creators = Dict(
-        species_id => species_creator.pheno_creator
+        species_id => species_creator.phenotype_creator
         for (species_id, species_creator) in species_creators
     )
     phenotypes = Dict(

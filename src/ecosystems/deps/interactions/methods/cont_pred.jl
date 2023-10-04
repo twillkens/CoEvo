@@ -9,7 +9,7 @@ using ....Metrics.Outcomes.Types.ContinuousPredictionGame: Competitive
 using ....Metrics.Outcomes.Types.ContinuousPredictionGame: CooperativeMatching
 using ....Metrics.Outcomes.Types.ContinuousPredictionGame: CooperativeMismatching
 using ....Species.Phenotypes.Abstract: Phenotype
-using ....Species.Phenotypes.Interfaces: act
+using ....Species.Phenotypes.Interfaces: act!
 
 import ....Interactions.Environments.Interfaces: get_outcome_set, next!, is_active
 
@@ -22,7 +22,7 @@ function next!(
 ) where {D <: ContinuousPredictionGameDomain}
     a1, a2 = environment.phenotypes
     tape1, tape2 = environment.tape1, environment.tape2
-    move1, move2 = act(a1, tape2), act(a2, tape1)
+    move1, move2 = act!(a1, tape2), act!(a2, tape1)
     environment.pos1 = radianshift(environment.pos1 + move1)
     environment.pos2 = radianshift(environment.pos2 + move2)
     diff1 = radianshift(environment.pos2 - environment.pos1)

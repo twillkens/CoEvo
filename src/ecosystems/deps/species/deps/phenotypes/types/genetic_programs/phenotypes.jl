@@ -5,7 +5,7 @@ export GeneticProgramPhenotype
 using ....Genotypes.GeneticPrograms: GeneticProgramGenotype
 using ...Abstract: PhenotypeCreator, Phenotype
 
-import ...Phenotypes.Interfaces: act, create_phenotype
+import ...Phenotypes.Interfaces: act!, create_phenotype
 using ..Nodes: linearize, LinearNode, FUNCTION, TERMINAL, CONDITIONAL, ELSEJUMP, NodeType
 
 
@@ -28,35 +28,35 @@ function create_phenotype(::PhenotypeCreator, geno::GeneticProgramGenotype)
 end
 
 
-function read_tape!(pheno::GeneticProgramPhenotype)
-    val = pheno.tape[pheno.head]
-    pheno.head -= 1
-    if pheno.head == 0
-        pheno.head = length(pheno.tape)
+function read_tape!(phenotype::GeneticProgramPhenotype)
+    val = phenotype.tape[phenotype.head]
+    phenotype.head -= 1
+    if phenotype.head == 0
+        phenotype.head = length(phenotype.tape)
     end
     return val
 end
 
-function set_tape!(pheno::GeneticProgramPhenotype, tape::Vector{<:Real})
-    pheno.tape = tape
-    pheno.head = length(tape)
+function set_tape!(phenotype::GeneticProgramPhenotype, tape::Vector{<:Real})
+    phenotype.tape = tape
+    phenotype.head = length(tape)
 end
 
-function act(pheno::GeneticProgramPhenotype, tape::Vector{<:Real} = [0.0, π])
+function act!(phenotype::GeneticProgramPhenotype, tape::Vector{<:Real} = [0.0, π])
     try
-        set_tape!(pheno, tape)
+        set_tape!(phenotype, tape)
         # The stack stores intermediate results or operands for function nodes.
         stack = Real[]
         
         # Start iterating over each node in the linearized execution graph.
         i = 1
-        while i <= length(pheno.linear_nodes)
-            node = pheno.linear_nodes[i]
+        while i <= length(phenotype.linear_nodes)
+            node = phenotype.linear_nodes[i]
             # If the current node is a TERMINAL:
             if node.type == TERMINAL
                 # If the terminal is a 'read' operation, fetch the value from the data array in the phenotype.
                 # Otherwise, use the value of the terminal.
-                val = (node.value == :read) ? read_tape!(pheno) : node.value
+                val = (node.value == :read) ? read_tape!(phenotype) : node.value
                 
                 # Push the value to the stack.
                 push!(stack, val)
@@ -92,23 +92,23 @@ function act(pheno::GeneticProgramPhenotype, tape::Vector{<:Real} = [0.0, π])
         # Return the final computed value.
         if length(stack) != 1
             println("-------")
-            println("Spin: $(pheno.tape)")
+            println("Spin: $(phenotype.tape)")
             println(stack)
-            #pp(pheno.linear_nodes)
+            #pp(phenotype.linear_nodes)
             throw(ErrorException("Stack should have exactly one value at the end of execution."))
         end
         return pop!(stack)
     catch e
         println("Error in spin: $e")
         println("-------")
-        println("Spin: $(pheno.tape)")
-        #println(pheno.geno)
+        println("Spin: $(phenotype.tape)")
+        #println(phenotype.geno)
         println(stack)
-        #pp(pheno.linear_nodes)
+        #pp(phenotype.linear_nodes)
         throw(e)
     end
 end
 
-act(pheno::GeneticProgramPhenotype, value::Real) = act(pheno, [value])
+act!(phenotype::GeneticProgramPhenotype, value::Real) = act!(phenotype, [value])
 
 end

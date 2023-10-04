@@ -7,47 +7,32 @@ export Ecosystem, EcosystemCreator,
        AbstractSpecies,
        create_species,
        BasicSpecies, BasicSpeciesCreator,
-       Genotypes,
-       Genotype,
-       create_genotypes,
+       Genotypes, Genotype, create_genotypes,
        VectorGenotype, VectorGenotypeCreator,
        ScalarRangeGenotypeCreator,
        BasicVectorGenotype, BasicVectorGenotypeCreator,
        GeneticProgramGenotype, GeneticProgramGenotypeCreator,
        ExpressionNodeGene, Traverse, Manipulate, GPUtilities,
-       Phenotypes,
-       Phenotype, PhenotypeCreator,
-       create_phenotype, act,
+       Phenotypes,Phenotype, PhenotypeCreator,
+       create_phenotype, act!,
        DefaultPhenotypeCreator,
        BasicVectorPhenotype,
-       Individuals,
-       Individual,
-       Evaluators,
-       create_evaluation, get_ranked_ids,
-       Evaluation, Evaluator,
+       Individuals, Individual,
+       Evaluators, create_evaluation, get_ranked_ids, Evaluation, Evaluator,
        ScalarFitnessEvaluator, ScalarFitnessEvaluation,
        NullEvaluator, NullEvaluation,
        DiscoEvaluator, DiscoEvaluation, NSGA, nsga!,
        dominates, fast_non_dominated_sort!, crowding_distance_assignment!,
        DiscoRecord, Max, Min,
-       Replacers,
-       Replacer,
-       replace,
+       Replacers, Replacer, replace,
        IdentityReplacer, GenerationalReplacer, TruncationReplacer,
-       Selectors,
-       Selector,
-       select,
+       Selectors, Selector, select,
        IdentitySelector, FitnessProportionateSelector, TournamentSelector,
-       Recombiners,
-       Recombiner,
-       recombine,
+       Recombiners, Recombiner, recombine,
        CloneRecombiner, IdentityRecombiner,
-       Mutators,
-       Mutator,
-       mutate,
+       Mutators, Mutator, mutate,
        IdentityMutator, GeneticProgramMutator, NoiseInjectionMutator,
-       Metrics,
-       Metric,
+       Metrics, Metric,
        OutcomeMetric,
        NumbersGameMetrics,
        AbsoluteError,
@@ -96,8 +81,11 @@ export Ecosystem, EcosystemCreator,
        BasicArchiver,
        Control, CooperativeMatching, Competitive, CooperativeMismatching,
        ContinuousPredictionGameDomain,
-       TapeEnvironment, TapeEnvironmentCreator #
-
+       TapeEnvironment, TapeEnvironmentCreator,
+         GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
+         GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
+        GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
+        GnarlNetworkGenotypeMethods
 
 include("ecosystems/ecosystems.jl")
 
@@ -122,14 +110,20 @@ using .Genotypes.GeneticPrograms.Genes: ExpressionNodeGene
 using .Genotypes.GeneticPrograms: GeneticProgramGenotype, GeneticProgramGenotypeCreator 
 using .Genotypes.GeneticPrograms.Methods: Traverse, Manipulate
 using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtilities
+using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
+using .Genotypes.GnarlNetworks: GnarlNetworkConnectionGene, GnarlNetworkNodeGene
+using .Genotypes.GnarlNetworks.Methods: Methods as GnarlNetworkGenotypeMethods
+
 println("loaded genotypes")
 
 using .Species: Phenotypes
 using .Phenotypes.Abstract: Phenotype, PhenotypeCreator
-using .Phenotypes.Interfaces: create_phenotype, act
+using .Phenotypes.Interfaces: create_phenotype, act!
 using .Phenotypes.Defaults: DefaultPhenotypeCreator 
 using .Phenotypes.Vectors.Basic: BasicVectorPhenotype
 using .Phenotypes.GeneticPrograms.Phenotypes: GeneticProgramPhenotype
+using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron
+using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotypeInputConnection
 println("loaded phenotypes")
 
 using .Species: Individuals
@@ -142,6 +136,7 @@ using .Mutators.Interfaces: mutate
 using .Mutators.Types.Identity: IdentityMutator 
 using .Mutators.Types.GeneticPrograms: GeneticProgramMutator 
 using .Mutators.Types.NoiseInjection: NoiseInjectionMutator 
+using .Mutators.Types.GnarlNetworks: GnarlNetworkMutator
 println("loaded mutators")
 
 using .Species: Evaluators

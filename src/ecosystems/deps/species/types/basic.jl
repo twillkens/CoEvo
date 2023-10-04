@@ -30,7 +30,7 @@ Represents a species population and its offspring.
 
 # Fields
 - `id::String`: Unique species identifier.
-- `pheno_creator::P`: Phenotype configuration.
+- `phenotype_creator::P`: Phenotype configuration.
 - `pop::OrderedDict{Int, I}`: Current population.
 - `children::OrderedDict{Int, I}`: Offspring of the population.
 """
@@ -72,7 +72,7 @@ Defines the parameters for species generation.
 - `id::String`: A unique identifier for the species.
 - `n_pop::Int`: Size of the population.
 - `geno_creator::G`: Genotype configuration.
-- `pheno_creator::P`: Phenotype configuration.
+- `phenotype_creator::P`: Phenotype configuration.
 - `indiv_creator::I`: Individual configuration.
 - `evaluator::E`: Evaluation configuration.
 - `replacer::RP`: Mechanism for replacing old individuals with new ones.
@@ -93,7 +93,7 @@ Base.@kwdef struct BasicSpeciesCreator{
     id::String
     n_pop::Int
     geno_creator::G
-    pheno_creator::P
+    phenotype_creator::P
     evaluator::E
     replacer::RP
     selector::S

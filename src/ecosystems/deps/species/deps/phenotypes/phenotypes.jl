@@ -1,6 +1,6 @@
 module Phenotypes
 
-export Abstract, Vectors, Defaults, GeneticPrograms
+export Abstract, Vectors, Defaults, GeneticPrograms, GnarlNetworks
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -16,5 +16,8 @@ using .Vectors: Vectors
 
 include("types/genetic_programs/genetic_programs.jl")
 using .GeneticPrograms: GeneticPrograms
+
+include("types/gnarl/gnarl.jl")
+using .GnarlNetworks: GnarlNetworks
 
 end
