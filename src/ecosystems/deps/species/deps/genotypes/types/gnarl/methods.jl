@@ -5,6 +5,12 @@ using .....Ecosystems.Utilities.Counters: Counter
 using ..GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkConnectionGene, GnarlNetworkNodeGene
 import ...Genotypes.Interfaces: create_genotypes
 
+function get_neuron_positions(geno::GnarlNetworkGenotype)
+    fixed_positions = Float32.(-geno.n_input_nodes:geno.n_output_nodes)
+    hidden_positions = Float32.([node.position for node in geno.hidden_nodes])
+    neuron_positions = sort([fixed_positions; hidden_positions])
+    return neuron_positions
+end
 function get_inputs(genotype::GnarlNetworkGenotype)
     position_type = typeof(genotype.connections).parameters[1]
     Set(position_type(i) for i in -genotype.n_inputs:0)

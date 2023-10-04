@@ -82,10 +82,10 @@ export Ecosystem, EcosystemCreator,
        Control, CooperativeMatching, Competitive, CooperativeMismatching,
        ContinuousPredictionGameDomain,
        TapeEnvironment, TapeEnvironmentCreator,
-         GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
-         GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
-        GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
-        GnarlNetworkGenotypeMethods
+       GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
+       GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
+       GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
+       GnarlNetworkGenotypeMethods
 
 include("ecosystems/ecosystems.jl")
 

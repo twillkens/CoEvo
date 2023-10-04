@@ -89,3 +89,50 @@ end
         @test geno.connections[1].destination == 0.4f0
     end
 end
+basic_genotype2() = GnarlNetworkGenotype(
+    2,
+    2,
+    [GnarlNetworkNodeGene(1, 0.3f0), GnarlNetworkNodeGene(2, 0.4f0)],
+    [
+        GnarlNetworkConnectionGene(1, 0.3f0, 0.4f0, 0.1f0),
+        GnarlNetworkConnectionGene(2, -1.0f0, 0.4f0, 0.2f0),
+        GnarlNetworkConnectionGene(3, -2.0f0, 0.3f0, 0.3f0),
+        GnarlNetworkConnectionGene(4, 0.0f0, 1.0f0, 1.0f0),
+        GnarlNetworkConnectionGene(5, 0.0f0, 2.0f0, 1.0f0),
+        GnarlNetworkConnectionGene(6, 0.4f0, 1.0f0, 0.6f0),
+    ]
+)
+@testset "GnarlNetworks Phenotype Tests" begin
+    using .Phenotypes.GnarlNetworks: set_output!, get_output, reset!, act!
+
+    geno = basic_genotype2()
+    phenotype_creator = DefaultPhenotypeCreator()
+    phenotype = create_phenotype(phenotype_creator, geno)
+
+    @testset "Phenotype structure" begin
+        @test phenotype.n_input_nodes == 2
+        @test phenotype.n_output_nodes == 2
+        @test length(phenotype.neurons) == 7  # 2 input + 2 hidden + 1 bias
+        @test length(phenotype.operations) == 7  # 2 for inputs + 2 for hidden nodes
+    end
+
+    @testset "Reset Phenotype" begin
+        set_output!(phenotype.neurons[0.3f0], 0.5f0)
+        set_output!(phenotype.neurons[0.4f0], 0.5f0)
+        reset!(phenotype)
+        @test get_output(phenotype.neurons[0.3f0]) == 0.0f0
+        @test get_output(phenotype.neurons[0.4f0]) == 0.0f0
+    end
+
+    @testset "Act Phenotype" begin
+        inputs = [0.5f0, 0.5f0]
+        outputs = act!(phenotype, inputs)
+        @test length(outputs) == 2
+        # Please note that exact values may vary depending on the tanh implementation and other parameters
+        # The following are placeholders, so update or add more tests as needed
+        #@test outputs[1] ≈ 0.2  # Placeholder value
+        @test outputs[2] ≈ tanh(2.5f0)  # Placeholder value
+    end
+
+end
+

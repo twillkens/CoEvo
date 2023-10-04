@@ -5,6 +5,7 @@ export GnarlNetworkPhenotypeNodeOperation
 
 using ...Genotypes.GnarlNetworks: GnarlNetworkGenotype
 using ...Phenotypes.Abstract: Phenotype, PhenotypeCreator
+using ...Genotypes.GnarlNetworks.GnarlMethods: get_neuron_positions
 
 import ...Phenotypes.Interfaces: act!, reset!, create_phenotype
 
@@ -31,7 +32,7 @@ struct GnarlNetworkPhenotypeInputConnection
 end
 
 struct GnarlNetworkPhenotypeNodeOperation
-    incoming_connections::Vector{GnarlNetworkPhenotypeInputConnection}
+    input_connections::Vector{GnarlNetworkPhenotypeInputConnection}
     output_node::GnarlNetworkPhenotypeNeuron
 end
 
@@ -43,9 +44,7 @@ struct GnarlNetworkPhenotype
 end
 
 function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype)
-    neuron_positions = [
-        node.position for node in [genotype.inputs; genotype.hidden; genotype.outputs]
-    ]
+    neuron_positions = get_neuron_positions(genotype)
     neurons = Dict(
         position => GnarlNetworkPhenotypeNeuron(position, 0.0f0)
         for position in neuron_positions
@@ -88,9 +87,9 @@ function act!(
     end
     operations = phenotype.operations
     for i in 1:phenotype.n_input_nodes
-        set_output!(operations[i].outnode, inputs[i])
+        set_output!(operations[i].output_node, inputs[i])
     end
-    set_output!(operations[phenotype.n_input_nodes + 1].outnode, 1.0f0) # Bias
+    set_output!(operations[phenotype.n_input_nodes + 1].output_node, 1.0f0) # Bias
     start_operation_idx = phenotype.n_input_nodes + 2
     for operation in operations[start_operation_idx:end]
         sum = 0.0f0

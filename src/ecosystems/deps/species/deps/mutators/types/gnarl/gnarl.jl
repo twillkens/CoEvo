@@ -1,7 +1,7 @@
 module GnarlNetworks
 
 export mutate_weight, GnarlNetworkMutator, mutate_weights, add_node, remove_node
-export add_connection, remove_connection
+export add_connection, remove_connection, get_neuron_positions, find_valid_connection_positions
 
 using StatsBase: Weights, sample
 using ....Species.Genotypes.Abstract: Genotype
@@ -9,6 +9,8 @@ using Random: AbstractRNG, shuffle!
 using .....Ecosystems.Utilities.Counters: Counter, next!
 using  ...Mutators.Abstract: Mutator
 using ....Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkConnectionGene, GnarlNetworkNodeGene
+using ....Genotypes.GnarlNetworks.GnarlMethods: get_neuron_positions
+
 import ...Mutators.Interfaces: mutate
 
 
@@ -71,12 +73,6 @@ function indexof(a::Array{Float32}, f::Float32)
     return index
 end
 
-function get_neuron_positions(geno::GnarlNetworkGenotype)
-    fixed_positions = Float32.(-geno.n_input_nodes:geno.n_output_nodes)
-    hidden_positions = Float32.([node.position for node in geno.hidden_nodes])
-    neuron_positions = [fixed_positions; hidden_positions]
-    return neuron_positions
-end
 
 function find_valid_connection_positions(geno::GnarlNetworkGenotype)
     neuron_positions = get_neuron_positions(geno)
