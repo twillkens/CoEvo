@@ -115,7 +115,7 @@ end
         geno_creator = BasicVectorGenotypeCreator(
             default_vector = default_vector
         ),
-        pheno_creator = DefaultPhenotypeCreator(),
+        phenotype_creator = DefaultPhenotypeCreator(),
         evaluator = DiscoEvaluator(),
         replacer = GenerationalReplacer(),
         selector = FitnessProportionateSelector(n_parents = 2),
@@ -125,12 +125,80 @@ end
     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
     evaluation = create_evaluation(species_creator.evaluator, species, dummy_outcomes)
-    println(evaluation)
-    #reporter = BasicReporter(metric = TestBasedFitness())
-    #species_evaluations = Dict(species => evaluation)
-    #measurement = measure(reporter, species_evaluations)
-    #println(measurement)
+    @test length(evaluation.disco_records) == n_pop
 end
+
+
+@testset "nsga!-2" begin
+    # source: https://www.ntnu.no/wiki/download/attachments/195538363/lecture%205.pdf?version=1&modificationDate=1598695184000&api=v2
+    tests1 =  DiscoRecord(id = 1,  derived_tests = [0.31, 6.10])
+    tests2 =  DiscoRecord(id = 2,  derived_tests = [0.43, 6.79])
+    tests3 =  DiscoRecord(id = 3,  derived_tests = [0.22, 7.09])
+    tests4 =  DiscoRecord(id = 4,  derived_tests = [0.59, 7.85])
+    tests5 =  DiscoRecord(id = 5,  derived_tests = [0.66, 3.65])
+    tests6 =  DiscoRecord(id = 6,  derived_tests = [0.83, 4.23])
+    tests7 =  DiscoRecord(id = 7,  derived_tests = [0.21, 5.90])
+    tests8 =  DiscoRecord(id = 8,  derived_tests = [0.79, 3.97])
+    tests9 =  DiscoRecord(id = 9,  derived_tests = [0.51, 6.51])
+    tests10 = DiscoRecord(id = 10, derived_tests = [0.27, 6.93])
+    tests11 = DiscoRecord(id = 11, derived_tests = [0.58, 4.52])
+    tests12 = DiscoRecord(id = 12, derived_tests = [0.24, 8.54])
+
+    alltests = [tests1, tests2, tests3, tests4, tests5,
+                tests6, tests7, tests8, tests9, tests10,
+                tests11, tests12]
+    pop = alltests
+
+    sortedpop = nsga!(shuffle(pop), Min())
+
+    front1 = [1, 2, 3]
+    front2 = [4, 5, 6, 7]
+    front3 = [8, 9, 10, 11]
+    front4 = [12]
+
+    @test pop[1].rank == 2
+    @test pop[1].crowding != Inf16
+    @test pop[1].crowding > pop[10].crowding
+    @test findfirst(x -> x == pop[1], sortedpop) in front2
+
+    @test pop[2].rank == 3
+    @test findfirst(x -> x == pop[2], sortedpop) in front3
+
+    @test pop[3].rank == 2
+    @test pop[3].crowding ≈ Inf16
+    @test findfirst(x -> x == pop[3], sortedpop) in front2
+
+    @test pop[4].rank == 4
+    @test findfirst(x -> x == pop[4], sortedpop) in front4
+
+    @test pop[5].rank == 1
+    @test findfirst(x -> x == pop[5], sortedpop) in front1
+
+    @test pop[6].rank == 3
+    @test findfirst(x -> x == pop[6], sortedpop) in front3
+
+    @test pop[7].rank == 1
+    @test findfirst(x -> x == pop[7], sortedpop) in front1
+
+    @test pop[8].rank == 2
+    @test pop[8].crowding ≈ Inf16
+    @test findfirst(x -> x == pop[8], sortedpop) in front2
+
+    @test pop[9].rank == 3
+    @test findfirst(x -> x == pop[9], sortedpop) in front3
+
+    @test pop[10].rank == 2
+    @test pop[10].crowding != Inf16
+    @test findfirst(x -> x == pop[10], sortedpop) in front2
+
+    @test pop[11].rank == 1
+    @test findfirst(x -> x == pop[11], sortedpop) in front1
+
+    @test pop[12].rank == 3
+    @test findfirst(x -> x == pop[12], sortedpop) in front3
+
+end
+
 # @testset "nsga!-2" begin
 #     # source: https://www.ntnu.no/wiki/download/attachments/195538363/lecture%205.pdf?version=1&modificationDate=1598695184000&api=v2
 #     tests1 =  [0.31, 6.10]
