@@ -85,7 +85,7 @@ export Ecosystem, EcosystemCreator,
        GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
        GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
        GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
-       GnarlNetworkGenotypeMethods
+       GnarlMethods
 
 include("ecosystems/ecosystems.jl")
 

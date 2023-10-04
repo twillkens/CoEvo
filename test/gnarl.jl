@@ -136,3 +136,53 @@ basic_genotype2() = GnarlNetworkGenotype(
 
 end
 
+@testset "GNARL Methods" begin
+    using .GnarlMethods: get_neuron_positions, get_inputs, get_outputs, get_required_nodes, minimize
+
+    @testset "get_required_nodes" begin
+        in_pos = Set(Float32.([-2.0, -1.0, 0.0]))
+        hidden_pos = Set(Float32.([0.5, 0.75]))
+        out_pos = Set(Float32.([1.0, 2.0]))
+        conn_tups = Set(Tuple{Float32, Float32}[
+            (-2.0, 0.5), 
+            (0.5, 1.0), 
+            (0.75, 2.0), 
+            (0.75, 0.75)
+        ])
+        @test get_required_nodes(in_pos, hidden_pos, out_pos, conn_tups, true) == Set(Float32.([0.5]))
+        @test get_required_nodes(in_pos, hidden_pos, out_pos, conn_tups, false) == Set(Float32.([0.5, 0.75]))
+    end
+
+    @testset "minimize" begin
+        g = GnarlNetworkGenotype(
+            3,
+            2,
+            [
+                GnarlNetworkNodeGene(4, 0.1), 
+                GnarlNetworkNodeGene(5, 0.2), 
+                GnarlNetworkNodeGene(6, 0.3), 
+                GnarlNetworkNodeGene(7, 0.4), 
+                GnarlNetworkNodeGene(8, 0.5), 
+                GnarlNetworkNodeGene(9, 0.6)
+            ],
+            [
+                GnarlNetworkConnectionGene(12, -2.0, 0.2, 0.0), 
+                GnarlNetworkConnectionGene(13, 0.0, 0.4, 0.0),
+                GnarlNetworkConnectionGene(14, 0.2, 0.3, 0.0),
+                GnarlNetworkConnectionGene(15, 0.2, 1.0, 0.0),
+                GnarlNetworkConnectionGene(16, 0.3, 0.2, 0.0),
+                GnarlNetworkConnectionGene(17, 0.3, 2.0, 0.0),
+                GnarlNetworkConnectionGene(18, 0.4, 0.6, 0.0),
+                GnarlNetworkConnectionGene(19, 0.5, 0.5, 0.0),
+                GnarlNetworkConnectionGene(20, 0.5, 2.0, 0.0),
+                GnarlNetworkConnectionGene(21, 0.6, 0.4, 0.0)
+            ]
+        )
+
+        g2 = minimize(g)
+
+        @test g2.hidden_nodes == [GnarlNetworkNodeGene(5, 0.2), GnarlNetworkNodeGene(6, 0.3)]
+        @test length(g2.connections) == 5
+    end
+
+end

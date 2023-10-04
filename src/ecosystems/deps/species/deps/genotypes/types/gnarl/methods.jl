@@ -12,13 +12,11 @@ function get_neuron_positions(geno::GnarlNetworkGenotype)
     return neuron_positions
 end
 function get_inputs(genotype::GnarlNetworkGenotype)
-    position_type = typeof(genotype.connections).parameters[1]
-    Set(position_type(i) for i in -genotype.n_inputs:0)
+    Set(Float32(i) for i in -genotype.n_input_nodes:0)
 end
 
 function get_outputs(genotype::GnarlNetworkGenotype)
-    position_type = typeof(genotype.connections).parameters[1]
-    Set(position_type(i) for i in 1:genotype.n_outputs)
+    Set(Float32(i) for i in 1:genotype.n_output_nodes)
 end
 
 # ... (other methods remain unchanged)
@@ -136,7 +134,12 @@ function minimize(genotype::GnarlNetworkGenotype)
         connection -> origin_is_minimal(connection) && destination_is_minimal(connection),
         genotype.connections
     )
-    GnarlNetworkGenotype(genotype.inputs, minimal_hidden_nodes, genotype.outputs, minimal_connections)
+    GnarlNetworkGenotype(
+        genotype.n_input_nodes, 
+        genotype.n_output_nodes, 
+        minimal_hidden_nodes, 
+        minimal_connections
+    )
 end
 
 end
