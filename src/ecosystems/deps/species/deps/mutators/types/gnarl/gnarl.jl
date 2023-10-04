@@ -57,7 +57,7 @@ function remove_node(geno::GnarlNetworkGenotype, node_to_remove::GnarlNetworkNod
     return geno
 end
 
-function remove_node(rng::AbstractRNG, geno::GnarlNetworkGenotype)
+function remove_node(rng::AbstractRNG, ::Counter, geno::GnarlNetworkGenotype)
     if length(geno.hidden_nodes) == 0
         return geno
     end
@@ -150,7 +150,7 @@ function remove_connection(
     return genotype
 end
 
-function remove_connection(rng::AbstractRNG, geno::GnarlNetworkGenotype)
+function remove_connection(rng::AbstractRNG, ::Counter, geno::GnarlNetworkGenotype)
     if length(geno.connections) == 0
         return geno
     end

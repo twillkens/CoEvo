@@ -1,4 +1,4 @@
-module Methods
+module GnarlMethods
 
 using Random: AbstractRNG
 using .....Ecosystems.Utilities.Counters: Counter

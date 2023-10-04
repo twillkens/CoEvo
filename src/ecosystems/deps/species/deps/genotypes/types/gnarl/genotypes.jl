@@ -7,6 +7,8 @@ using .....Ecosystems.Utilities.Counters: Counter
 using ..Genes: GnarlNetworkNodeGene, GnarlNetworkConnectionGene
 using ...Genotypes.Abstract: Genotype, GenotypeCreator
 
+import ....Genotypes.Interfaces: create_genotypes
+
 struct GnarlNetworkGenotype <: Genotype
     n_input_nodes::Int
     n_output_nodes::Int

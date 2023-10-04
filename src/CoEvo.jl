@@ -112,7 +112,7 @@ using .Genotypes.GeneticPrograms.Methods: Traverse, Manipulate
 using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtilities
 using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
 using .Genotypes.GnarlNetworks: GnarlNetworkConnectionGene, GnarlNetworkNodeGene
-using .Genotypes.GnarlNetworks.Methods: Methods as GnarlNetworkGenotypeMethods
+using .Genotypes.GnarlNetworks.GnarlMethods: GnarlMethods
 
 println("loaded genotypes")
 
