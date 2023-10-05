@@ -1,7 +1,7 @@
 using Test
 using Random
 using StableRNGs
-include("../../src/CoEvo.jl")
+#include("../../src/CoEvo.jl")
 using .CoEvo
 using .FiniteStateMachineMinimizers: minimize, minimize_verbose
 

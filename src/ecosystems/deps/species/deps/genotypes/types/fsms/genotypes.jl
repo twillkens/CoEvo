@@ -67,6 +67,10 @@ function create_genotypes(
     return genotypes
 end
 
+function Base.:(==)(fsm1::FiniteStateMachineGenotype, fsm2::FiniteStateMachineGenotype)
+    return is_isomorphic(fsm1, fsm2)
+end
+
 function is_isomorphic(fsm1::FiniteStateMachineGenotype, fsm2::FiniteStateMachineGenotype)
     # Check if both FSMs have the same number of states
     if length(fsm1.ones) != length(fsm2.ones) || length(fsm1.zeros) != length(fsm2.zeros)
@@ -108,26 +112,36 @@ end
 
 
 function fsm_hash(fsm::FiniteStateMachineGenotype{T}, h::UInt) where T
-    visited = Set{T}()
     result = []
 
-    function dfs(state)
-        push!(visited, state)
-
+    # Helper function to add state details to result
+    function add_state_details(state)
         for bit in [true, false]
             next_state = get(fsm.links, (state, bit), nothing)
             if next_state !== nothing
-                push!(result, (bit, state in fsm.ones, state in fsm.zeros, next_state in fsm.ones, next_state in fsm.zeros))
-                if next_state ∉ visited
-                    dfs(next_state)
-                end
+                push!(result, (
+                    bit, 
+                    state == fsm.start,
+                    state in fsm.ones, 
+                    state in fsm.zeros, 
+                    next_state in fsm.ones, 
+                    next_state in fsm.zeros)
+                )
             end
         end
     end
 
-    dfs(fsm.start)
+    # Iterate over all states and add their details
+    for state in keys(fsm.links)
+        add_state_details(state)
+    end
+
+    # Sort transitions for consistent order
+    sort!(result)
+
     return hash(result, h)
 end
+
 
 function Base.hash(x::FiniteStateMachineGenotype{T}, h::UInt=zero(UInt)) where T
     return fsm_hash(x, h)

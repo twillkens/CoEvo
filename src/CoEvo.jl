@@ -67,7 +67,9 @@ export Ecosystem, EcosystemCreator,
        GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
        GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
        GnarlMethods,
-       FiniteStateMachineMinimizers
+       FiniteStateMachineMinimizers,
+       LinguisticPredictionGameDomain, LinguisticPredictionGameEnvironmentCreator,
+       LinguisticPredictionGameEnvironment
 
 include("ecosystems/ecosystems.jl")
 
@@ -167,7 +169,7 @@ println("loaded interactions")
 using .Interactions: Domains
 using .Domains.Abstract: Domain
 using .Domains.Concrete: NumbersGameDomain, SymbolicRegressionDomain
-using .Domains.Concrete: ContinuousPredictionGameDomain
+using .Domains.Concrete: ContinuousPredictionGameDomain, LinguisticPredictionGameDomain
  
 println("loaded domains")
 
@@ -192,6 +194,8 @@ using .Environments.Abstract: Environment, EnvironmentCreator
 using .Environments.Interfaces: create_environment, next!, get_outcome_set, is_active, observe! #
 using .Environments.Concrete.Stateless: StatelessEnvironment, StatelessEnvironmentCreator #
 using .Environments.Concrete.Tape: TapeEnvironment, TapeEnvironmentCreator #
+using .Environments.Concrete.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
+using .Environments.Concrete.LinguisticPredictionGame: LingusticPredictionGameEnvironment
 println("loaded environments")
 
 using .Ecosystems: Jobs

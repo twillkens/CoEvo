@@ -7,6 +7,6 @@ using .CoEvo
 
 include("mutate.jl")
 include("hopcroft.jl")
-#include("simulate.jl")
-#include("evaluate.jl")
-#include("equals.jl")
+include("equals.jl")
+include("simulate.jl")
+#include("evolove.jl")

@@ -2,7 +2,7 @@ using Test
 using Random
 using StableRNGs
 using StatsBase
-include("../../src/CoEvo.jl")
+#include("../../src/CoEvo.jl")
 using .CoEvo
 using .FiniteStateMachineMutators: FiniteStateMachineMutator, add_state, remove_state
 using .FiniteStateMachineMutators: change_link, change_label 

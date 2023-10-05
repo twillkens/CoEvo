@@ -53,13 +53,4 @@ function measure(::NumbersGameDomain{Relativism}, A::Vector{<:Real}, B::Vector{<
     return outcome_decision(A[idx] > B[idx])
 end
 
-"""
-    NumbersGameEnvironment{M <: NumbersGameOutcomeMetric} <: Problem
-
-A environment environment for the numbers game with a specific metric.
-
-# Fields:
-- `metric::M`: Metric determining the nature of interactions.
-"""
-
 end

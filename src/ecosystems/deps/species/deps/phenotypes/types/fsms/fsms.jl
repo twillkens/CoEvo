@@ -5,7 +5,7 @@ export FiniteStateMachinePhenotype
 using ..Phenotypes.Abstract: Phenotype, PhenotypeCreator
 using ...Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
 
-import ..Phenotypes.Interfaces: create_phenotype
+import ..Phenotypes.Interfaces: create_phenotype, act!
 
 struct FiniteStateMachinePhenotype{T} <: Phenotype
     start::Tuple{T, Bool}
@@ -24,6 +24,11 @@ function create_phenotype(
         new_links
     )
     return phenotype
+end
+
+function act!(phenotype::FiniteStateMachinePhenotype{T}, state::T, bit::Bool) where T
+    next_state, next_bit = phenotype.links[(state, bit)]
+    return next_state, next_bit
 end
 
 end
