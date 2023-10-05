@@ -1,8 +1,10 @@
 module Interfaces
 
-export create_genotypes
+export create_genotypes, minimize
 
-using ..Abstract: Genotype, GenotypeCreator, AbstractRNG
+using Random: AbstractRNG
+
+using ..Genotypes.Abstract: Genotype, GenotypeCreator, AbstractRNG
 using .....Ecosystems.Utilities.Counters: Counter
 
 function create_genotypes(
@@ -10,9 +12,15 @@ function create_genotypes(
     rng::AbstractRNG,
     gene_id_counter::Counter,
     n_pop::Int
-)::Genotype
+)::Vector{Genotype}
     throw(ErrorException(
         "Default genotype creation for $geno_creator, not implemented."
+    ))
+end
+
+function minimize(geno::Genotype)::Genotype
+    throw(ErrorException(
+        "Default genotype minimization for $geno, not implemented."
     ))
 end
 

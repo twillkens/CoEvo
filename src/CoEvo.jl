@@ -13,10 +13,11 @@ export Ecosystem, EcosystemCreator,
        BasicVectorGenotype, BasicVectorGenotypeCreator,
        GeneticProgramGenotype, GeneticProgramGenotypeCreator,
        ExpressionNodeGene, Traverse, Manipulate, GPUtilities,
-       Phenotypes,Phenotype, PhenotypeCreator,
-       create_phenotype, act!,
+       FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator,
+       Phenotypes, Phenotype, PhenotypeCreator, create_phenotype, act!,
        DefaultPhenotypeCreator,
        BasicVectorPhenotype,
+       FiniteStateMachinePhenotype,
        Individuals, Individual,
        Evaluators, create_evaluation, get_ranked_ids, Evaluation, Evaluator,
        ScalarFitnessEvaluator, ScalarFitnessEvaluation,
@@ -31,7 +32,7 @@ export Ecosystem, EcosystemCreator,
        Recombiners, Recombiner, recombine,
        CloneRecombiner, IdentityRecombiner,
        Mutators, Mutator, mutate,
-       IdentityMutator, GeneticProgramMutator, NoiseInjectionMutator,
+       IdentityMutator, GeneticProgramMutator, NoiseInjectionMutator, FiniteStateMachineMutators,
        Metrics, Metric,
        OutcomeMetric,
        NumbersGameMetrics,
@@ -85,7 +86,8 @@ export Ecosystem, EcosystemCreator,
        GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
        GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
        GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
-       GnarlMethods
+       GnarlMethods,
+       FiniteStateMachineMinimizers
 
 include("ecosystems/ecosystems.jl")
 
@@ -113,6 +115,8 @@ using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtilities
 using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
 using .Genotypes.GnarlNetworks: GnarlNetworkConnectionGene, GnarlNetworkNodeGene
 using .Genotypes.GnarlNetworks.GnarlMethods: GnarlMethods
+using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator
+using .Genotypes.FiniteStateMachines: FiniteStateMachineMinimizers
 
 println("loaded genotypes")
 
@@ -124,6 +128,7 @@ using .Phenotypes.Vectors.Basic: BasicVectorPhenotype
 using .Phenotypes.GeneticPrograms.Phenotypes: GeneticProgramPhenotype
 using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron
 using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotypeInputConnection
+using .Phenotypes.FiniteStateMachines: FiniteStateMachinePhenotype
 println("loaded phenotypes")
 
 using .Species: Individuals
@@ -137,6 +142,7 @@ using .Mutators.Types.Identity: IdentityMutator
 using .Mutators.Types.GeneticPrograms: GeneticProgramMutator 
 using .Mutators.Types.NoiseInjection: NoiseInjectionMutator 
 using .Mutators.Types.GnarlNetworks: GnarlNetworkMutator
+using .Mutators.Types.FiniteStateMachineMutators: FiniteStateMachineMutators
 println("loaded mutators")
 
 using .Species: Evaluators

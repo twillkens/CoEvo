@@ -25,7 +25,10 @@ function create_evaluation(
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
 ) 
-    indiv_ids = [indiv.id for indiv in values(merge(species.pop, species.children)) if indiv.id in keys(outcomes)]
+    indiv_ids = [
+        indiv.id for indiv in values(merge(species.pop, species.children)) 
+        if indiv.id in keys(outcomes)
+    ]
     outcome_sums = [
         sum(outcomes[indiv_id][partner_id] 
         for partner_id in keys(outcomes[indiv_id]))
@@ -40,7 +43,6 @@ function create_evaluation(
         indiv_ids[i] => fitnesses[i] for i in eachindex(indiv_ids)
     )
     indiv_fitnesses = OrderedDict(sort(collect(indiv_fitnesses), by = x-> x[2], rev=true))
-    #println(collect(values(indiv_fitnesses))[1:10])
     evaluation = ScalarFitnessEvaluation(species.id, indiv_fitnesses, outcome_sums)
     return evaluation
 end

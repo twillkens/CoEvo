@@ -136,7 +136,7 @@ confirms the outcomes when different phenotypes interact within the specified do
          geno_creator = BasicVectorGenotypeCreator(
              default_vector = default_vector
          ),
-         pheno_creator = DefaultPhenotypeCreator(),
+         phenotype_creator = DefaultPhenotypeCreator(),
          evaluator = ScalarFitnessEvaluator(),
          replacer = GenerationalReplacer(),
          selector = FitnessProportionateSelector(n_parents = 2),
@@ -182,7 +182,7 @@ function dummy_eco_creator(;
                 id = species_id1,
                 n_pop = n_pop,
                 geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
-                pheno_creator = DefaultPhenotypeCreator(),
+                phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(),
                 replacer = GenerationalReplacer(n_elite = n_elite),
                 selector = FitnessProportionateSelector(n_parents = n_pop),
@@ -193,7 +193,7 @@ function dummy_eco_creator(;
                 id = species_id2,
                 n_pop = n_pop,
                 geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
-                pheno_creator = DefaultPhenotypeCreator(),
+                phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(),
                 replacer = GenerationalReplacer(n_elite = n_elite),
                 selector = FitnessProportionateSelector(n_parents = n_pop),

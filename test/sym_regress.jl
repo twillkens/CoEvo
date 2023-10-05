@@ -85,7 +85,7 @@ function sym_regress_eco_creator(;
         ),
         performer = BasicPerformer(n_workers = 1),
         reporters = Reporter[
-            BasicReporter(metric = AbsoluteError()),
+            # BasicReporter(metric = AbsoluteError()),
         ],
         archiver = BasicArchiver(),
     )
@@ -94,7 +94,7 @@ function sym_regress_eco_creator(;
 end
 
 eco_creator = sym_regress_eco_creator(n_pop = 100)
-eco = evolve!(eco_creator, n_gen=1000)
+eco = evolve!(eco_creator, n_gen=10)
 
 end
 

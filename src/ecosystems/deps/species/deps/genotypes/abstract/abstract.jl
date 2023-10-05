@@ -1,6 +1,6 @@
 module Abstract
 
-export Gene, Genotype, GenotypeCreator, AbstractRNG
+export Gene, Genotype, GenotypeCreator
 
 using Random: AbstractRNG
 using .....Ecosystems.Utilities.Counters: Counter

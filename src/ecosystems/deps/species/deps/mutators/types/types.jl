@@ -1,7 +1,7 @@
 module Types
 
 export Identity, IdentityMutator, GeneticPrograms, GeneticProgramMutator, NoiseInjectionMutator
-export GnarlNetworks, GnarlNetworkMutator
+export GnarlNetworks, GnarlNetworkMutator, FiniteStateMachineMutators, FiniteStateMachineMutator
 
 include("identity/identity.jl")
 using .Identity: Identity, IdentityMutator
@@ -14,5 +14,8 @@ using .GeneticPrograms: GeneticPrograms, GeneticProgramMutator
 
 include("gnarl/gnarl.jl")
 using .GnarlNetworks: GnarlNetworks, GnarlNetworkMutator
+
+include("fsms/fsms.jl")
+using .FiniteStateMachineMutators: FiniteStateMachineMutators, FiniteStateMachineMutator
 
 end

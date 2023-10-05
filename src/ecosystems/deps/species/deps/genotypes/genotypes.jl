@@ -1,6 +1,6 @@
 module Genotypes
 
-export Abstract, Interfaces, Vectors, GeneticPrograms, GnarlNetworks
+export Abstract, Interfaces, Vectors, GeneticPrograms, GnarlNetworks, FiniteStateMachines
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -17,5 +17,7 @@ using .GeneticPrograms: GeneticPrograms
 include("types/gnarl/gnarl.jl")
 using .GnarlNetworks: GnarlNetworks
 
+include("types/fsms/fsms.jl")
+using .FiniteStateMachines: FiniteStateMachines
 
 end
