@@ -2,6 +2,7 @@ module ScalarFitness
 
 export ScalarFitnessEvaluation, ScalarFitnessEvaluator
 
+using Random: AbstractRNG
 using DataStructures: OrderedDict
 using ....Species.Abstract: AbstractSpecies
 using ....Species.Individuals: Individual
@@ -22,6 +23,7 @@ end
 
 function create_evaluation(
     evaluator::ScalarFitnessEvaluator,
+    ::AbstractRNG,
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
 ) 

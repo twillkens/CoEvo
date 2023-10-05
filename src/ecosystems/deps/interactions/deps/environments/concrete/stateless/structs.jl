@@ -14,7 +14,7 @@ struct StatelessEnvironment{D, P <: Phenotype} <: Environment{D}
     phenotypes::Vector{P}
 end
 
-struct StatelessEnvironmentCreator{D} <: EnvironmentCreator{D}
+Base.@kwdef struct StatelessEnvironmentCreator{D} <: EnvironmentCreator{D}
     domain::D
 end
 

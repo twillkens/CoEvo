@@ -71,7 +71,6 @@ end
     pop = alltests
                                         
     sorted_pop = nsga_sort!(shuffle(pop), Min())
-    println([record.id for record in sorted_pop])
     @test pop[1].rank == 1
     @test pop[1].crowding ≈ Inf16
     @test findfirst(x -> x == pop[1], pop) in [1, 2, 3, 4]
@@ -159,7 +158,6 @@ end
     function_maximums = [1.0, 60.0]
 
     sortedpop = nsga_sort!(shuffle(pop), Min(), function_minimiums, function_maximums)
-    println([(record.id, record.rank, record.crowding) for record in sortedpop])
     front1 = [1, 2, 3]
     front2 = [4, 5, 6, 7]
     front3 = [8, 9, 10, 11]

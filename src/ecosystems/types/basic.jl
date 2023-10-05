@@ -94,6 +94,7 @@ function evaluate_species(
     species_evaluations = Dict(
         species => create_evaluation(
             eco_creator.species_creators[species_id].evaluator,
+            eco_creator.rng,
             species, 
             indiv_outcomes
         ) 

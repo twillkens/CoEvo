@@ -45,7 +45,6 @@ function create_evaluation(
         id => [pair.second for pair in sort(collect(outcomes[id]), by = x -> x[1])]
         for (id, tests) in merge(species.pop, species.children)
     )
-    println("individual_tests: ", individual_tests)
     if evaluator.perform_disco
         xmeans_seed = rand(rng, UInt32)
         individual_tests = get_derived_tests(individual_tests, xmeans_seed)

@@ -2,6 +2,7 @@ module Null
 
 export NullEvaluation, NullEvaluator
 
+using Random: AbstractRNG
 using DataStructures: OrderedDict
 using ....Species.Abstract: AbstractSpecies
 using ....Species.Individuals: Individual
@@ -16,6 +17,7 @@ Base.@kwdef struct NullEvaluator <: Evaluator end
 
 function create_evaluation(
     ::NullEvaluator,
+    ::AbstractRNG,
     ::AbstractSpecies,
     ::Dict{Int, Dict{Int, Float64}}
 ) 

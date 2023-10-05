@@ -8,7 +8,7 @@ using ......Species.Phenotypes.Abstract: Phenotype
 
 import ....Environments.Interfaces: create_environment, is_active
 
-struct TapeEnvironmentCreator{D <: Domain} <: EnvironmentCreator{D}
+Base.@kwdef struct TapeEnvironmentCreator{D <: Domain} <: EnvironmentCreator{D}
     domain::D
     max_length::Int
 end
