@@ -8,13 +8,11 @@ The `CoEvo` module provides tools and structures for co-evolutionary simulations
 """
 
 @testset "SymbolicRegression" begin
+println("Starting tests for SymbolicRegression...")
 
-using Random: AbstractRNG
-using StableRNGs: StableRNG
-using DataStructures: OrderedDict
-include("../src/CoEvo.jl")
-using .CoEvo
-using .Metrics.Outcomes.Types.Generic: AbsoluteError
+#include("../src/CoEvo.jl")
+#using .CoEvo
+using .Metrics.Concrete.Common: AbsoluteError
 
 using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtilities
 using .GPUtilities: protected_division, Terminal, FuncAlias, protected_sine, if_less_then_else
@@ -39,7 +37,7 @@ function sym_regress_eco_creator(;
                 id = species_id1,
                 n_pop = n_pop,
                 geno_creator = GeneticProgramGenotypeCreator(),
-                pheno_creator = DefaultPhenotypeCreator(),
+                phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = false),
                 replacer = GenerationalReplacer(n_elite = n_elite),
                 selector = FitnessProportionateSelector(n_parents = n_pop),
@@ -60,7 +58,7 @@ function sym_regress_eco_creator(;
                     start_value = -5.0,
                     stop_value = 5.0,
                 ),
-                pheno_creator = DefaultPhenotypeCreator(),
+                phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NullEvaluator(),
                 replacer = IdentityReplacer(),
                 selector = IdentitySelector(),
@@ -88,6 +86,7 @@ function sym_regress_eco_creator(;
             # BasicReporter(metric = AbsoluteError()),
         ],
         archiver = BasicArchiver(),
+        runtime_reporter = RuntimeReporter(print_interval = 0),
     )
     return eco_creator
 
@@ -95,7 +94,9 @@ end
 
 eco_creator = sym_regress_eco_creator(n_pop = 100)
 eco = evolve!(eco_creator, n_gen=10)
+@test length(eco.species) == 2
 
 end
 
+println("Finished tests for SymbolicRegression.")
 end

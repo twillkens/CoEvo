@@ -12,7 +12,7 @@ export Ecosystem, EcosystemCreator,
        ScalarRangeGenotypeCreator,
        BasicVectorGenotype, BasicVectorGenotypeCreator,
        GeneticProgramGenotype, GeneticProgramGenotypeCreator,
-       ExpressionNodeGene, Traverse, Manipulate, GPUtilities,
+       ExpressionNodeGene,
        FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator,
        Phenotypes, Phenotype, PhenotypeCreator, create_phenotype, act!,
        DefaultPhenotypeCreator,
@@ -22,9 +22,7 @@ export Ecosystem, EcosystemCreator,
        Evaluators, create_evaluation, get_ranked_ids, Evaluation, Evaluator,
        ScalarFitnessEvaluator, ScalarFitnessEvaluation,
        NullEvaluator, NullEvaluation,
-       DiscoEvaluator, DiscoEvaluation, NSGA, nsga!,
-       dominates, fast_non_dominated_sort!, crowding_distance_assignment!,
-       DiscoRecord, Max, Min,
+       NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods, Disco,
        Replacers, Replacer, replace,
        IdentityReplacer, GenerationalReplacer, TruncationReplacer,
        Selectors, Selector, select,
@@ -34,14 +32,7 @@ export Ecosystem, EcosystemCreator,
        Mutators, Mutator, mutate,
        IdentityMutator, GeneticProgramMutator, NoiseInjectionMutator, FiniteStateMachineMutators,
        Metrics, Metric,
-       OutcomeMetric,
-       NumbersGameMetrics,
-       AbsoluteError,
-       ObservationMetric,
-       SpeciesMetric,
        GenotypeSize, GenotypeSum,
-       InteractionMetric,
-       EvaluationMetric,
        TestBasedFitness, AllSpeciesFitness,
        Interactions,
        Interaction,
@@ -64,24 +55,13 @@ export Ecosystem, EcosystemCreator,
        Job, JobCreator,
        create_jobs,
        BasicJob, BasicJobCreator,
-       Performers,
-       Performer,
-       perform,
-       BasicPerformer,
-       Measurements,
-       Measurement,
-       BasicStatisticalMeasurement,
-       Reporters,
-       Reporter,
-       create_report, measure,
-       BasicReporter, BasicReport,
+       Performers, Performer, perform, BasicPerformer,
+       Measurements, Measurement, BasicStatisticalMeasurement,
+       Reporters, Reporter, create_report, measure, BasicReporter, BasicReport,
        RuntimeReporter, RuntimeReport,
-       Archivers,
-       Archiver,
-       archive!,
-       BasicArchiver,
-       Control, CooperativeMatching, Competitive, CooperativeMismatching,
+       Archivers, Archiver, archive!, BasicArchiver,
        ContinuousPredictionGameDomain,
+       NumbersGameOutcomeMetrics, PredictionGameOutcomeMetrics,
        TapeEnvironment, TapeEnvironmentCreator,
        GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
        GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
@@ -110,8 +90,6 @@ using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator
 using .Genotypes.Vectors.Basic: ScalarRangeGenotypeCreator
 using .Genotypes.GeneticPrograms.Genes: ExpressionNodeGene 
 using .Genotypes.GeneticPrograms: GeneticProgramGenotype, GeneticProgramGenotypeCreator 
-using .Genotypes.GeneticPrograms.Methods: Traverse, Manipulate
-using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtilities
 using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
 using .Genotypes.GnarlNetworks: GnarlNetworkConnectionGene, GnarlNetworkNodeGene
 using .Genotypes.GnarlNetworks.GnarlMethods: GnarlMethods
@@ -150,8 +128,7 @@ using .Evaluators.Interfaces: create_evaluation, get_ranked_ids
 using .Evaluators.Abstract: Evaluation, Evaluator
 using .Evaluators.Types.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
 using .Evaluators.Types.Null: NullEvaluator, NullEvaluation
-using .Evaluators.Types.Disco: DiscoEvaluator, DiscoEvaluation, NSGA, nsga!, DiscoRecord, Max, Min
-using .Evaluators.Types.Disco: dominates, fast_non_dominated_sort!, crowding_distance_assignment!
+using .Evaluators.Types.NSGAII: NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods, Disco
 println("loaded evaluators")
 
 using .Species: Replacers
@@ -174,31 +151,24 @@ println("loaded recombiners")
 
 using .Ecosystems: Metrics
 using .Metrics.Abstract: Metric
-using .Metrics.Outcomes.Abstract: OutcomeMetric
-using .Metrics.Outcomes.Types.NumbersGame: NumbersGame as NumbersGameMetrics
-using .Metrics.Outcomes.Types.ContinuousPredictionGame: Control, CooperativeMatching, Competitive, CooperativeMismatching 
-using .Metrics.Outcomes.Types.Generic: AbsoluteError
-using .Metrics.Observations.Abstract: ObservationMetric
-using .Metrics.Species.Abstract: SpeciesMetric
-using .Metrics.Species.Types: GenotypeSize, GenotypeSum
-using .Metrics.Interactions.Abstract: InteractionMetric
-using .Metrics.Evaluations.Abstract: EvaluationMetric
-using .Metrics.Evaluations.Types: TestBasedFitness, AllSpeciesFitness
+using .Metrics.Concrete.Common: AbsoluteError, NullMetric, RuntimeMetric
+using .Metrics.Concrete.Evaluations: TestBasedFitness, AllSpeciesFitness
+using .Metrics.Concrete.Genotypes: GenotypeSum, GenotypeSize
+using .Metrics.Concrete.Outcomes: NumbersGameOutcomeMetrics, PredictionGameOutcomeMetrics
 println("loaded metrics")
 
 using .Ecosystems: Interactions
 using .Interactions.Abstract: Interaction
-using .Interactions.Methods.Interact: interact
-using .Interactions.Methods: NumbersGame as NumbersGameMethods
+using .Interactions.Interfaces: interact
+using .Interactions.Concrete.Basic: BasicInteraction 
 using .Interactions: Domains, MatchMakers, Observers, Results, Environments
-using .Interactions.Types: BasicInteraction 
 println("loaded interactions")
 
 using .Interactions: Domains
 using .Domains.Abstract: Domain
-using .Domains.Types.NumbersGame: NumbersGameDomain
-using .Domains.Types.SymbolicRegression: SymbolicRegressionDomain
-using .Domains.Types.ContinuousPredictionGame: ContinuousPredictionGameDomain
+using .Domains.Concrete: NumbersGameDomain, SymbolicRegressionDomain
+using .Domains.Concrete: ContinuousPredictionGameDomain
+ 
 println("loaded domains")
 
 using .Interactions: MatchMakers
@@ -209,8 +179,8 @@ println("loaded matchmakers")
 using .Interactions: Observers
 using .Observers.Abstract: Observer, Observation
 using .Observers.Interfaces: create_observation
-using .Observers.Types.Basic: BasicObserver, BasicObservation
-using .Observers.Types.Null: NullObservation
+using .Observers.Concrete.Basic: BasicObserver, BasicObservation
+using .Observers.Concrete.Null: NullObservation
 println("loaded observers")
 
 using .Interactions: Results
@@ -220,8 +190,8 @@ println("loaded results")
 using .Interactions: Environments
 using .Environments.Abstract: Environment, EnvironmentCreator
 using .Environments.Interfaces: create_environment, next!, get_outcome_set, is_active, observe! #
-using .Environments.Types.Stateless: StatelessEnvironment, StatelessEnvironmentCreator #
-using .Environments.Types.Tape: TapeEnvironment, TapeEnvironmentCreator #
+using .Environments.Concrete.Stateless: StatelessEnvironment, StatelessEnvironmentCreator #
+using .Environments.Concrete.Tape: TapeEnvironment, TapeEnvironmentCreator #
 println("loaded environments")
 
 using .Ecosystems: Jobs
@@ -233,7 +203,7 @@ println("loaded jobs")
 using .Ecosystems.Performers: Performers
 using .Performers.Abstract: Performer
 using .Performers.Interfaces: perform
-using .Performers.Basic: BasicPerformer
+using .Performers.Concrete.Basic: BasicPerformer
 println("loaded performers")
 
 using .Ecosystems: Measurements
@@ -251,7 +221,7 @@ println("loaded reporters")
 using .Ecosystems: Archivers
 using .Archivers.Abstract: Archiver
 using .Archivers.Interfaces: archive!
-using .Archivers.Basic: BasicArchiver
+using .Archivers.Concrete.Basic: BasicArchiver
 println("loaded archivers")
 
 end

@@ -1,6 +1,6 @@
 module Types
 
-export Null, ScalarFitness, Disco
+export Null, ScalarFitness, NSGAII
 
 include("null/null.jl")
 using .Null: Null
@@ -8,7 +8,7 @@ using .Null: Null
 include("scalar_fitness/scalar_fitness.jl")
 using .ScalarFitness: ScalarFitness
 
-include("disco/disco.jl")
-using .Disco: Disco
+include("nsga-ii/nsga-ii.jl")
+using .NSGAII: NSGAII
 
 end

@@ -1,10 +1,9 @@
 module Methods
 
-using DataStructures: OrderedDict
 using .....Metrics.Abstract: Metric
-using .....Metrics.Outcomes.Types.Generic: AbsoluteError
-using .....Metrics.Evaluations.Types: TestBasedFitness, AllSpeciesFitness
-using .....Metrics.Species.Types: GenotypeSum, GenotypeSize
+using .....Metrics.Concrete.Common: AbsoluteError
+using .....Metrics.Concrete.Evaluations: TestBasedFitness, AllSpeciesFitness
+using .....Metrics.Concrete.Genotypes: GenotypeSum, GenotypeSize
 using .....Measurements.Abstract: Measurement
 using .....Measurements: BasicStatisticalMeasurement, GroupStatisticalMeasurement
 using .....Ecosystems.Species.Evaluators.Abstract: Evaluation

@@ -1,6 +1,6 @@
 module Archivers
 
-export Abstract, Interfaces, Utilities, Basic
+export Abstract, Interfaces, Utilities, Concrete
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -11,7 +11,7 @@ using .Interfaces: Interfaces
 include("utilities/utilities.jl")
 using .Utilities: Utilities
 
-include("types/basic.jl")
-using .Basic: Basic
+include("concrete/concrete.jl")
+using .Concrete: Concrete
 
 end

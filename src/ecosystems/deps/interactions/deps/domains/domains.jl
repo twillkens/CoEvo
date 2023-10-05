@@ -1,11 +1,14 @@
 module Domains
 
-export Abstract, Types
+export Abstract, Interfaces, Concrete
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
 
-include("types/types.jl")
-using .Types: Types
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
+
+include("concrete/concrete.jl")
+using .Concrete: Concrete
 
 end

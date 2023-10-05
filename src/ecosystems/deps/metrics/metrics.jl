@@ -1,11 +1,11 @@
 module Metrics
 
-export Abstract, Ecosystems, Evaluations, Interactions, Observations, Outcomes, Species
+export Abstract, Concrete
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
 
-include("types/types.jl")
-using .Types: Ecosystems, Evaluations, Interactions, Observations, Outcomes, Species
+include("concrete/concrete.jl")
+using .Concrete: Concrete
 
 end

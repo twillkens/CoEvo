@@ -1,9 +1,14 @@
 using Test
-using Random
-using StableRNGs: StableRNG
-include("../src/CoEvo.jl")
-using .CoEvo
-using .Mutators.Types.GnarlNetworks: mutate_weights, add_node, remove_node, add_connection, remove_connection, mutate
+#using Random
+#using StableRNGs: StableRNG
+#include("../src/CoEvo.jl")
+#using .CoEvo
+
+@testset "Gnarl" begin
+println("Starting tests for Gnarl...")
+
+using .Mutators.Types.GnarlNetworks: mutate_weights, add_node, remove_node, add_connection
+using .Mutators.Types.GnarlNetworks: remove_connection, mutate
 
 
 # Mock the required external modules/functions for testing purposes
@@ -64,7 +69,7 @@ basic_genotype() = GnarlNetworkGenotype(
 end
 @testset "GnarlNetworks Genotypes Tests" begin
 
-    rng = Random.MersenneTwister(1234)  # Deterministic RNG for reproducibility
+    rng = StableRNG(42)  # Deterministic RNG for reproducibility
     counter = Counter(1)
     genotype_creator = GnarlNetworkGenotypeCreator(2, 1)
 
@@ -185,4 +190,7 @@ end
         @test length(g2.connections) == 5
     end
 
+end
+
+println("Finished tests for Gnarl.")
 end

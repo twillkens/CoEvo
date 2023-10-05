@@ -4,8 +4,7 @@ export create_environment, next!, get_outcome_set, is_active, observe!
 
 using ..Environments.Abstract: Environment, EnvironmentCreator
 using ....Species.Phenotypes.Abstract: Phenotype
-using ...Interactions.Observers.Abstract: Observer, ObserverCreator
-using ...Interactions.Domains.Abstract: Domain
+using ...Interactions.Observers.Abstract: Observer
 
 
 function create_environment(
@@ -18,16 +17,9 @@ function create_environment(
     )
 end
 
-function create_observer(observer_creator::ObserverCreator, environment::Environment)::Observer
-    throw(ErrorException(
-        "`create_observer`` not implemented for $observer_creator, $environment"
-    ))
-end
-
 function observe!(environment::Environment, observer::Observer)
     error("`observe!`` not implemented for $(typeof(environment)), $(typeof(observer))")
 end
-
 
 function next!(environment::Environment)::Nothing
     throw(ErrorException(

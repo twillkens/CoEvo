@@ -25,7 +25,7 @@ using ..Archivers.Abstract: Archiver
 using ..Archivers.Interfaces: archive!
 using  ..Jobs.Interfaces: create_jobs
 using ..Performers.Interfaces: perform
-using ..Interactions.Observers.Types.Null: NullObservation
+using ..Interactions.Observers.Concrete.Null: NullObservation
 
 import ..Ecosystems.Interfaces: create_ecosystem, evolve!
 

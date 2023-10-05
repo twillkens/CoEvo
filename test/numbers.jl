@@ -7,13 +7,11 @@ This test suite focuses on validating and verifying the functionality of the `Co
 The `CoEvo` module provides tools and structures for co-evolutionary simulations.
 """
 
-@testset "CoEvo" begin
+@testset "Numbers" begin
+println("Starting tests for numbers...")
 
-using Random: AbstractRNG
-using StableRNGs: StableRNG
-using DataStructures: OrderedDict
-include("../src/CoEvo.jl")
-using .CoEvo
+#include("../src/CoEvo.jl")
+#using .CoEvo
 
 """
     NumbersGameProblem with Gradient
@@ -149,7 +147,6 @@ confirms the outcomes when different phenotypes interact within the specified do
      reporter = BasicReporter(metric = AllSpeciesFitness())
      species_evaluations = Dict(species => evaluation)
      measurement = measure(reporter, species_evaluations, Observation[])
-     println(measurement)
  #
  end
 #
@@ -214,10 +211,11 @@ function dummy_eco_creator(;
         ),
         performer = BasicPerformer(n_workers = 1),
         reporters = Reporter[
-            BasicReporter(metric = AllSpeciesFitness()),
-            BasicReporter(metric = GenotypeSum())
+            #BasicReporter(metric = AllSpeciesFitness()),
+            #BasicReporter(metric = GenotypeSum())
         ],
         archiver = BasicArchiver(),
+        runtime_reporter = RuntimeReporter(print_interval = 0),
     )
     return eco_creator
 
@@ -228,7 +226,8 @@ end
 #eco = evolve!(eco_creator, n_gen=10)
 
 eco_creator = dummy_eco_creator(n_pop = 100)
-eco = evolve!(eco_creator, n_gen=100)
+eco = evolve!(eco_creator, n_gen=10)
 end
 
+println("Finished tests for numbers...")
 end

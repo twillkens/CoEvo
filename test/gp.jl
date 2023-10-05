@@ -2,14 +2,19 @@ using StableRNGs: StableRNG
 using DataStructures: OrderedDict
 using Test
 
-include("../src/CoEvo.jl")
-using .CoEvo
+#include("../src/CoEvo.jl")
+#using .CoEvo
+begin @testset "GeneticPrograms" begin
 
+println("Starting tests for GP...")
+
+using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtils
+using .Genotypes.GeneticPrograms.Methods: Manipulate, Traverse
 using .Manipulate: add_function, remove_function, splice_function, swap_node, inject_noise
 using .Traverse: get_node
 using .CoEvo.Ecosystems.Species.Genotypes.GeneticPrograms.Utilities: Utilities as GPUtils 
 using .GPUtils: protected_division, Terminal, FuncAlias, protected_sine, if_less_then_else
-using .Phenotypes.Interfaces: act
+using .Phenotypes.Interfaces: act!
 """
     dummygeno() -> BasicGeneticProgramGenotype
 
@@ -145,7 +150,7 @@ geno = dummygeno_challenge()
 phenotype_creator = DefaultPhenotypeCreator()
 
 phenotype = create_phenotype(phenotype_creator, geno)
-value = act(phenotype, [0, π, -π])
+value = act!(phenotype, [0, π, -π])
 @test value ≈ 1.0
 
 end
@@ -198,9 +203,7 @@ end
 
 @testset "ContinuousPredictionGame" begin
 
-using .CoEvo.Ecosystems.Metrics.Outcomes.Types.ContinuousPredictionGame: Control
-using .CoEvo.Ecosystems.Interactions.Domains.Types.ContinuousPredictionGame: ContinuousPredictionGameDomain
-using .CoEvo.Ecosystems.Interactions.Environments.Types.Tape: TapeEnvironment, TapeEnvironmentCreator
+using .PredictionGameOutcomeMetrics: Control
 
 geno1 = GeneticProgramGenotype(
     root_id = 1,
@@ -227,12 +230,19 @@ env_creator = TapeEnvironmentCreator(domain, 10)
 
 env = create_environment(env_creator, [pheno1, pheno2])
 
+# TODO: concrete test for env
 while is_active(env)
-    println("pos1: ", env.pos1, " pos2: ", env.pos2)
+    #println("pos1: ", env.pos1, " pos2: ", env.pos2)
     next!(env)
 end
-println("tape1: $(env.tape1), tape2: $(env.tape2)")
+#println("tape1: $(env.tape1), tape2: $(env.tape2)")
 outcomes = get_outcome_set(env)
-println(outcomes)
+@test length(outcomes) == 2
+
+end
+
+println("Finished tests for GP...")
+
+end
 
 end

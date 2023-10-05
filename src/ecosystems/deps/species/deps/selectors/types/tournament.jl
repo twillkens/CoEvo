@@ -5,7 +5,7 @@ using StatsBase: sample
 using Random: AbstractRNG
 using ....Evaluators.Interfaces: get_ranked_ids
 using ....Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
-using ....Evaluators.Types.Disco: DiscoEvaluation
+using ....Evaluators.Types.NSGAII: NSGAIIEvaluation
 using ....Species.Individuals: Individual
 
 import ...Selectors.Interfaces: select
@@ -34,7 +34,7 @@ function select(
     selector::TournamentSelector,
     rng::AbstractRNG, 
     new_pop::Dict{Int, <:Individual},
-    evaluation::DiscoEvaluation
+    evaluation::NSGAIIEvaluation
 )
     ranked_ids = get_ranked_ids(evaluation, collect(keys(new_pop)))
     parent_idxs = Array{Int}(undef, selector.μ)

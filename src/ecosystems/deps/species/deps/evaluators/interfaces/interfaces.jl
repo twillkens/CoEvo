@@ -2,11 +2,14 @@ module Interfaces
 
 export create_evaluation, get_ranked_ids
 
+using Random: AbstractRNG
+
 using ..Evaluators.Abstract: Evaluator 
 using ...Species.Abstract: AbstractSpecies
 
 function create_evaluation(
     evaluator::Evaluator,
+    rng::AbstractRNG,
     species::AbstractSpecies,
     outcomes::Dict{Int, Float64}
 )

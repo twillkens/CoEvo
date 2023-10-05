@@ -16,8 +16,8 @@ and reporters to facilitate interactive interaction configuration.
 module Interactions
 
 # Exported Structures
-export Abstract, Domains, MatchMakers, Observers, Results, Environments, Types, Methods
-export Types, Methods
+export Abstract, Domains, MatchMakers, Observers, Results, Environments
+export Interfaces, Concrete
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -34,14 +34,13 @@ using .Observers: Observers
 include("deps/results/results.jl")
 using .Results: Results 
 
-# Dependencies
 include("deps/environments/environments.jl")
 using .Environments: Environments
 
-include("types/types.jl")
-using .Types: Types
+include("interfaces/interfaces.jl")
+using .Interfaces: Interfaces
 
-include("methods/methods.jl")
-using .Methods: Methods
+include("concrete/concrete.jl")
+using .Concrete: Concrete
 
 end

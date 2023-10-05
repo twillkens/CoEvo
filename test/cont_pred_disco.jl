@@ -30,7 +30,7 @@ function cont_pred_eco_creator(;
                 n_pop = n_pop,
                 geno_creator = GeneticProgramGenotypeCreator(),
                 pheno_creator = DefaultPhenotypeCreator(),
-                evaluator = DiscoEvaluator(),
+                evaluator = NSGAIIEvaluator(),
                 replacer = TruncationReplacer(:plus),
                 selector = TournamentSelector(
                     μ = n_pop, tournament_size = 3, selection_func=argmin
@@ -43,7 +43,7 @@ function cont_pred_eco_creator(;
                 n_pop = n_pop,
                 geno_creator = GeneticProgramGenotypeCreator(),
                 pheno_creator = DefaultPhenotypeCreator(),
-                evaluator = DiscoEvaluator(),
+                evaluator = NSGAIIEvaluator(),
                 replacer = TruncationReplacer(:plus),
                 selector = TournamentSelector(
                     μ = n_pop, tournament_size = 3, selection_func=argmin
@@ -56,7 +56,7 @@ function cont_pred_eco_creator(;
                 n_pop = n_pop,
                 geno_creator = GeneticProgramGenotypeCreator(),
                 pheno_creator = DefaultPhenotypeCreator(),
-                evaluator = DiscoEvaluator(),
+                evaluator = NSGAIIEvaluator(),
                 replacer = TruncationReplacer(:plus),
                 selector = TournamentSelector(μ = n_pop, tournament_size = 3),
                 recombiner = CloneRecombiner(),

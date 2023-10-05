@@ -1,9 +1,14 @@
-include("../src/CoEvo.jl")
-using .CoEvo
+#include("../src/CoEvo.jl")
+#using .CoEvo
 using Random
 using StableRNGs: StableRNG
 using Test
 using DataStructures
+
+using .NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
+using .NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
+
+@testset "NSGA-II" begin
 
 function generate_nested_dict(first_layer_size::Int, second_layer_size::Int)
     # Initialize an empty dictionary
@@ -32,10 +37,10 @@ end
 @testset "Disco" begin
     
 @testset "fast_non_dominated_sort!" begin
-    tests1 = DiscoRecord(id = 1, derived_tests = [1.0, 1.0, 1.0, 1.0])
-    tests2 = DiscoRecord(id = 2, derived_tests = [1.0, 1.0, 1.0, 0.0])
-    tests3 = DiscoRecord(id = 3, derived_tests = [1.0, 1.0, 0.0, 0.0])
-    tests4 = DiscoRecord(id = 4, derived_tests = [1.0, 0.0, 0.0, 0.0])
+    tests1 = NSGAIIRecord(id = 1, derived_tests = [1.0, 1.0, 1.0, 1.0])
+    tests2 = NSGAIIRecord(id = 2, derived_tests = [1.0, 1.0, 1.0, 0.0])
+    tests3 = NSGAIIRecord(id = 3, derived_tests = [1.0, 1.0, 0.0, 0.0])
+    tests4 = NSGAIIRecord(id = 4, derived_tests = [1.0, 0.0, 0.0, 0.0])
     alltests = [tests1, tests2, tests3, tests4]
     records = [tests3, tests4, tests2, tests1]
 
@@ -50,22 +55,23 @@ end
 
 @testset "nsga!-1" begin
     # source: https://www.ntnu.no/wiki/download/attachments/195538363/lecture%205.pdf?version=1&modificationDate=1598695184000&api=v2
-    tests1 =  DiscoRecord(id = 1, derived_tests = [0.1710, 5.8290])
-    tests2 =  DiscoRecord(id = 2, derived_tests = [0.2180, 2.3470])
-    tests3 =  DiscoRecord(id = 3, derived_tests = [0.6690, 1.3960])
-    tests4 =  DiscoRecord(id = 4, derived_tests = [3.0110, 0.0700])
-    tests5 =  DiscoRecord(id = 5, derived_tests = [10.308, 1.4650])
-    tests6 =  DiscoRecord(id = 6, derived_tests = [1.6180, 10.708])
-    tests7 =  DiscoRecord(id = 7, derived_tests = [2.2750, 12.308])
-    tests8 =  DiscoRecord(id = 8, derived_tests = [3.3550, 14.682])
-    tests9 =  DiscoRecord(id = 9, derived_tests = [4.6710, 17.317])
-    tests10 = DiscoRecord(id = 10,derived_tests =  [16.854, 37.275])
+    tests1 =  NSGAIIRecord(id = 1, derived_tests = [0.1710, 5.8290])
+    tests2 =  NSGAIIRecord(id = 2, derived_tests = [0.2180, 2.3470])
+    tests3 =  NSGAIIRecord(id = 3, derived_tests = [0.6690, 1.3960])
+    tests4 =  NSGAIIRecord(id = 4, derived_tests = [3.0110, 0.0700])
+    tests5 =  NSGAIIRecord(id = 5, derived_tests = [10.308, 1.4650])
+    tests6 =  NSGAIIRecord(id = 6, derived_tests = [1.6180, 10.708])
+    tests7 =  NSGAIIRecord(id = 7, derived_tests = [2.2750, 12.308])
+    tests8 =  NSGAIIRecord(id = 8, derived_tests = [3.3550, 14.682])
+    tests9 =  NSGAIIRecord(id = 9, derived_tests = [4.6710, 17.317])
+    tests10 = NSGAIIRecord(id = 10,derived_tests =  [16.854, 37.275])
 
     alltests = [tests1, tests2, tests3, tests4, tests5,
                 tests6, tests7, tests8, tests9, tests10]
     pop = alltests
                                         
-    nsga!(shuffle(pop), Min())
+    sorted_pop = nsga_sort!(shuffle(pop), Min())
+    println([record.id for record in sorted_pop])
     @test pop[1].rank == 1
     @test pop[1].crowding ≈ Inf16
     @test findfirst(x -> x == pop[1], pop) in [1, 2, 3, 4]
@@ -116,7 +122,7 @@ end
             default_vector = default_vector
         ),
         phenotype_creator = DefaultPhenotypeCreator(),
-        evaluator = DiscoEvaluator(),
+        evaluator = NSGAIIEvaluator(),
         replacer = GenerationalReplacer(),
         selector = FitnessProportionateSelector(n_parents = 2),
         recombiner = CloneRecombiner(),
@@ -124,40 +130,43 @@ end
     )
     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
-    evaluation = create_evaluation(species_creator.evaluator, species, dummy_outcomes)
+    evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
     @test length(evaluation.disco_records) == n_pop
 end
 
 
 @testset "nsga!-2" begin
     # source: https://www.ntnu.no/wiki/download/attachments/195538363/lecture%205.pdf?version=1&modificationDate=1598695184000&api=v2
-    tests1 =  DiscoRecord(id = 1,  derived_tests = [0.31, 6.10])
-    tests2 =  DiscoRecord(id = 2,  derived_tests = [0.43, 6.79])
-    tests3 =  DiscoRecord(id = 3,  derived_tests = [0.22, 7.09])
-    tests4 =  DiscoRecord(id = 4,  derived_tests = [0.59, 7.85])
-    tests5 =  DiscoRecord(id = 5,  derived_tests = [0.66, 3.65])
-    tests6 =  DiscoRecord(id = 6,  derived_tests = [0.83, 4.23])
-    tests7 =  DiscoRecord(id = 7,  derived_tests = [0.21, 5.90])
-    tests8 =  DiscoRecord(id = 8,  derived_tests = [0.79, 3.97])
-    tests9 =  DiscoRecord(id = 9,  derived_tests = [0.51, 6.51])
-    tests10 = DiscoRecord(id = 10, derived_tests = [0.27, 6.93])
-    tests11 = DiscoRecord(id = 11, derived_tests = [0.58, 4.52])
-    tests12 = DiscoRecord(id = 12, derived_tests = [0.24, 8.54])
+    tests1 =  NSGAIIRecord(id = 1,  derived_tests = [0.31, 6.10])
+    tests2 =  NSGAIIRecord(id = 2,  derived_tests = [0.43, 6.79])
+    tests3 =  NSGAIIRecord(id = 3,  derived_tests = [0.22, 7.09])
+    tests4 =  NSGAIIRecord(id = 4,  derived_tests = [0.59, 7.85])
+    tests5 =  NSGAIIRecord(id = 5,  derived_tests = [0.66, 3.65])
+    tests6 =  NSGAIIRecord(id = 6,  derived_tests = [0.83, 4.23])
+    tests7 =  NSGAIIRecord(id = 7,  derived_tests = [0.21, 5.90])
+    tests8 =  NSGAIIRecord(id = 8,  derived_tests = [0.79, 3.97])
+    tests9 =  NSGAIIRecord(id = 9,  derived_tests = [0.51, 6.51])
+    tests10 = NSGAIIRecord(id = 10, derived_tests = [0.27, 6.93])
+    tests11 = NSGAIIRecord(id = 11, derived_tests = [0.58, 4.52])
+    tests12 = NSGAIIRecord(id = 12, derived_tests = [0.24, 8.54])
 
     alltests = [tests1, tests2, tests3, tests4, tests5,
                 tests6, tests7, tests8, tests9, tests10,
                 tests11, tests12]
     pop = alltests
 
-    sortedpop = nsga!(shuffle(pop), Min())
+    function_minimiums = [0.1, 0.0]
+    function_maximums = [1.0, 60.0]
 
+    sortedpop = nsga_sort!(shuffle(pop), Min(), function_minimiums, function_maximums)
+    println([(record.id, record.rank, record.crowding) for record in sortedpop])
     front1 = [1, 2, 3]
     front2 = [4, 5, 6, 7]
     front3 = [8, 9, 10, 11]
     front4 = [12]
 
     @test pop[1].rank == 2
-    @test pop[1].crowding != Inf16
+    @test round(pop[1].crowding, digits = 2) ≈ 0.63
     @test pop[1].crowding > pop[10].crowding
     @test findfirst(x -> x == pop[1], sortedpop) in front2
 
@@ -188,7 +197,7 @@ end
     @test findfirst(x -> x == pop[9], sortedpop) in front3
 
     @test pop[10].rank == 2
-    @test pop[10].crowding != Inf16
+    @test round(pop[10].crowding, digits = 2) ≈ 0.12
     @test findfirst(x -> x == pop[10], sortedpop) in front2
 
     @test pop[11].rank == 1
@@ -196,6 +205,8 @@ end
 
     @test pop[12].rank == 3
     @test findfirst(x -> x == pop[12], sortedpop) in front3
+
+end
 
 end
 
