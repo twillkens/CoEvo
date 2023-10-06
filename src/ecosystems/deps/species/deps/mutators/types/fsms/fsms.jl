@@ -10,6 +10,8 @@ using ....Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
 using ...Mutators.Abstract: Mutator
 using .....Ecosystems.Utilities.Counters: Counter, next!
 
+import ...Mutators.Interfaces: mutate
+
 
 function add_state(
     fsm::FiniteStateMachineGenotype{T}, 
@@ -19,8 +21,8 @@ function add_state(
     false_destination::T
 ) where T
     ones, zeros = label ? 
-        union(fsm.ones, Set([new_state]), fsm.zeros) : 
-        fsm.ones, union(fsm.zeros, Set([new_state]))
+        (union(fsm.ones, Set([new_state])), fsm.zeros) : 
+        (fsm.ones, union(fsm.zeros, Set([new_state])))
     new_links = Dict(
         (new_state, true) => true_destination, 
         (new_state, false) => false_destination
@@ -104,6 +106,7 @@ function mutate(
     gene_id_counter::Counter, 
     genotype::FiniteStateMachineGenotype
 ) 
+    genotype_before = genotype
     mutation_functions = collect(keys(mutator.mutation_probabilities))
     mutation_probabilities = Weights(collect(values(mutator.mutation_probabilities)))
     mutation_functions = sample(
@@ -112,21 +115,15 @@ function mutate(
     for mutation_function in mutation_functions
         genotype = mutation_function(rng, gene_id_counter, genotype)
     end
+    if length(union(genotype.ones, genotype.zeros)) != length(genotype.ones) + length(genotype.zeros)
+        println("mutation_function: $mutation_functions")
+        println("genotype_before: $genotype_before")
+        println("genotype_after: $genotype")
+        throw(ErrorException("Duplicate states in genotype"))
+    end
     return genotype
 end
 
-function get_random_state(
-    rng::AbstractRNG, fsm::FiniteStateMachineGenotype{T};
-    include::Set{T} = Set{T}(), 
-    exclude::Set{T} = Set{T}()
-) where T
-    nodes = union(fsm.ones, fsm.zeros, include)
-    nodes = setdiff(nodes, exclude)
-    random_state = rand(rng, nodes)
-    return random_state
-end
-
-# add state
 
 function new_state!(gene_id_counter::Counter, ::FiniteStateMachineGenotype{String})
     state = string(next!(gene_id_counter))
@@ -142,32 +139,46 @@ end
 function add_state(rng::AbstractRNG, gene_id_counter::Counter, fsm::FiniteStateMachineGenotype)
     label = rand(rng, Bool)
     new_state = new_state!(gene_id_counter, fsm)
-    true_destination = get_random_state(rng, fsm; include = Set([new_state]))
-    false_destination = get_random_state(rng, fsm, include = Set([new_state]))
+    available_destinations = union(fsm.ones, fsm.zeros, Set([new_state]))
+    true_destination = rand(rng, available_destinations)
+    false_destination = rand(rng, available_destinations)
     genotype = add_state(fsm, new_state, label, true_destination, false_destination)
     return genotype
 end
 
 function remove_state(rng::AbstractRNG, ::Counter, fsm::FiniteStateMachineGenotype)
-    if length(fsm) == 1 return fsm end
-    to_delete = get_random_state(rng, fsm)
+    fsm_size = length(fsm)
+    if fsm_size < 2 return deepcopy(fsm) end
+    to_delete = rand(rng, union(fsm.ones, fsm.zeros))
+    all_nodes = union(fsm.ones, fsm.zeros)
+    to_delete_set = Set([to_delete])
+    all_nodes_after_delete = setdiff(all_nodes, to_delete_set)
+    ones, zeros = to_delete in fsm.ones ? 
+        (setdiff(fsm.ones, to_delete_set), fsm.zeros) : 
+        (fsm.ones, setdiff(fsm.zeros, to_delete_set))
+    if to_delete == fsm.start
+        new_start = rand(rng, all_nodes_after_delete)
+        genotype = remove_state(fsm, to_delete, new_start)
+        return genotype
+    end
     new_start = to_delete == fsm.start ? 
-        get_random_state(rng, fsm; exclude = Set([to_delete])) : 
+        rand(rng, setdiff(union(fsm.ones, fsm.zeros), Set([to_delete]))) : 
         nothing
-    remove_state(fsm, to_delete, new_start)
+    genotype = remove_state(fsm, to_delete, new_start)
+    return genotype
 end
 
 
 function change_link(rng::AbstractRNG, ::Counter, fsm::FiniteStateMachineGenotype)
-    state = get_random_state(rng, fsm)
-    new_destination = get_random_state(rng, fsm)
+    state = rand(rng, union(fsm.ones, fsm.zeros))
+    new_destination = rand(rng, union(fsm.ones, fsm.zeros))
     bit = rand(rng, Bool)
     genotype = change_link(fsm, state, new_destination, bit)
     return genotype
 end
 
 function change_label(rng::AbstractRNG, ::Counter, fsm::FiniteStateMachineGenotype)
-    state = get_random_state(rng, fsm)
+    state = rand(rng, union(fsm.ones, fsm.zeros))
     genotype = change_label(fsm, state)
     return genotype
 end

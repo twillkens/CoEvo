@@ -142,7 +142,7 @@ basic_genotype2() = GnarlNetworkGenotype(
 end
 
 @testset "GNARL Methods" begin
-    using .GnarlMethods: get_neuron_positions, get_inputs, get_outputs, get_required_nodes, minimize
+    using .GnarlMethods: get_neuron_positions, get_inputs, get_outputs, get_required_nodes, minimize as gnarl_minimize
 
     @testset "get_required_nodes" begin
         in_pos = Set(Float32.([-2.0, -1.0, 0.0]))
@@ -184,7 +184,7 @@ end
             ]
         )
 
-        g2 = minimize(g)
+        g2 = gnarl_minimize(g)
 
         @test g2.hidden_nodes == [GnarlNetworkNodeGene(5, 0.2), GnarlNetworkNodeGene(6, 0.3)]
         @test length(g2.connections) == 5

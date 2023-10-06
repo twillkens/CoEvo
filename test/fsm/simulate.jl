@@ -37,7 +37,7 @@ phenotype_creator = DefaultPhenotypeCreator()
 
     domain = LinguisticPredictionGameDomain(:CooperativeMatching)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
-    environment = create_environment(environment_creator, [fsm1, fsm2])
+    environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
         next!(environment)
     end
@@ -81,7 +81,7 @@ end
 
     domain = LinguisticPredictionGameDomain(:CooperativeMatching)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
-    environment = create_environment(environment_creator, [fsm1, fsm2])
+    environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
         next!(environment)
     end
@@ -127,7 +127,7 @@ end
 
     domain = LinguisticPredictionGameDomain(:Competitive)  # Updated to reflect Mismatch Competition
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
-    environment = create_environment(environment_creator, [fsm1, fsm2])
+    environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
         next!(environment)
     end
@@ -177,7 +177,7 @@ end
 
     domain = LinguisticPredictionGameDomain(:CooperativeMatching)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
-    environment = create_environment(environment_creator, [fsm1, fsm2])
+    environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
         next!(environment)
     end
@@ -227,7 +227,11 @@ end
 
     domain = LinguisticPredictionGameDomain(:Competitive)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
-    environment = create_environment(environment_creator, [fsm1, fsm2])
+    println(fsm1)
+    println(typeof(fsm1))
+    println(fsm2)
+    println(typeof(fsm2))
+    environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
         next!(environment)
     end

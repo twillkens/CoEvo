@@ -13,5 +13,6 @@ include("sym_regress.jl")
 include("gnarl.jl")
 include("disco.jl")
 include("cont_pred.jl")
+include("fsm/fsm.jl")
 
 end

@@ -43,6 +43,7 @@ function create_genotype(
         (Set([id]), Set{Int}()) : (Set{Int}(), Set([id]))
     links = Dict(((id, true) => id, (id, false) => id))
     genotype = FiniteStateMachineGenotype(id, ones, zeros, links)
+    return genotype
 end
 
 function create_genotype(

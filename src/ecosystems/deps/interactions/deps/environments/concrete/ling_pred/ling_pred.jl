@@ -33,25 +33,27 @@ Base.@kwdef mutable struct LingusticPredictionGameEnvironment{D, P <: Phenotype,
     state_pair_log::Dict{Tuple{T, T}, Int} = Dict{Tuple{T, T}, Int}()
 end
 
+# TODO: fix hacky type manipulation
 function create_environment(
     environment_creator::LinguisticPredictionGameEnvironmentCreator{D},
-    phenotypes::Vector{FiniteStateMachinePhenotype{T}}
-) where {D <: Domain, T}
+    phenotypes::Vector{Phenotype}
+) where {D <: Domain}
     fsm_A, fsm_B = phenotypes
     state1, bit1 = fsm_A.start
     state2, bit2 = fsm_B.start
     state_pair_log = Dict((state1, state2) => 1)
+    datatype = typeof(phenotypes[1]).parameters[1]
     return LingusticPredictionGameEnvironment(
         domain = environment_creator.domain,
-        phenotypes = phenotypes,
+        phenotypes = [phenotype for phenotype in phenotypes],
         timestep = 1,
         loop_start = -1,
         state1 = state1,
         state2 = state2,
         bit1 = bit1,
         bit2 = bit2,
-        states1 = T[],
-        states2 = T[],
+        states1 = datatype[],
+        states2 = datatype[],
         bits1 = Bool[],
         bits2 = Bool[],
         state_pair_log = state_pair_log

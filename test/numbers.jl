@@ -25,7 +25,7 @@ confirms the outcomes when different phenotypes interact within the specified do
      phenoB = BasicVectorPhenotype([5])
      domain = NumbersGameDomain(:Gradient)
      env_creator = StatelessEnvironmentCreator(domain)
-     env = create_environment(env_creator, [phenoA, phenoB])
+     env = create_environment(env_creator, Phenotype[phenoA, phenoB])
      outcome_set = get_outcome_set(env)
  
      @test outcome_set[1] == 0.0  # Assuming the first value is for A
@@ -36,7 +36,7 @@ confirms the outcomes when different phenotypes interact within the specified do
  
      fitnessA = 0
      for other in Sₐ
-         env = create_environment(env_creator, [phenoA, other])
+         env = create_environment(env_creator, Phenotype[phenoA, other])
          outcome_set = get_outcome_set(env)
          fitnessA += outcome_set[1] == 1.0 ? 1 : 0
      end
@@ -44,7 +44,7 @@ confirms the outcomes when different phenotypes interact within the specified do
  
      fitnessB = 0
      for other in Sᵦ
-         env = create_environment(env_creator, [phenoB, other])
+         env = create_environment(env_creator, Phenotype[phenoB, other])
          outcome_set = get_outcome_set(env)
          fitnessB += outcome_set[1] == 1.0 ? 1 : 0
      end
@@ -56,18 +56,18 @@ confirms the outcomes when different phenotypes interact within the specified do
      phenoB = BasicVectorPhenotype([5, 14])
      domain = NumbersGameDomain(:Focusing)
      env_creator = StatelessEnvironmentCreator(domain)
-     env = create_environment(env_creator, [phenoA, phenoB])
+     env = create_environment(env_creator, Phenotype[phenoA, phenoB])
      outcome_set = get_outcome_set(env)
      @test outcome_set[1] == 1.0
  
      phenoB = BasicVectorPhenotype([5, 16])
-     env = create_environment(env_creator, [phenoA, phenoB])
+     env = create_environment(env_creator, Phenotype[phenoA, phenoB])
      outcome_set = get_outcome_set(env)
      @test outcome_set[1] == 0.0
  
      phenoA = BasicVectorPhenotype([5, 16, 8])
      phenoB = BasicVectorPhenotype([4, 16, 6])
-     env = create_environment(env_creator, [phenoA, phenoB])
+     env = create_environment(env_creator, Phenotype[phenoA, phenoB])
      outcome_set = get_outcome_set(env)
      @test outcome_set[1] == 1.0
  end
@@ -79,15 +79,15 @@ confirms the outcomes when different phenotypes interact within the specified do
      domain = NumbersGameDomain(:Relativism)
      env_creator = StatelessEnvironmentCreator(domain)
  
-     env = create_environment(env_creator, [a, b])
+     env = create_environment(env_creator, Phenotype[a, b])
      outcome_set = get_outcome_set(env)
      @test outcome_set[1] == 1.0
  
-     env = create_environment(env_creator, [b, c])
+     env = create_environment(env_creator, Phenotype[b, c])
      outcome_set = get_outcome_set(env)
      @test outcome_set[1] == 1.0
  
-     env = create_environment(env_creator, [c, a])
+     env = create_environment(env_creator, Phenotype[c, a])
      outcome_set = get_outcome_set(env)
      @test outcome_set[1] == 1.0
  end

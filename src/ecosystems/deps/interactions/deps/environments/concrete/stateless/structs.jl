@@ -20,8 +20,8 @@ end
 
 function create_environment(
     environment_creator::StatelessEnvironmentCreator{D},
-    phenotypes::Vector{P}
-) where {D <: Domain, P <: Phenotype}
+    phenotypes::Vector{Phenotype}
+) where {D <: Domain}
     return StatelessEnvironment(
         environment_creator.domain,
         phenotypes

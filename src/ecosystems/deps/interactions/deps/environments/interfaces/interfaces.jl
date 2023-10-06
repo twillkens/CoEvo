@@ -9,10 +9,10 @@ using ...Interactions.Observers.Abstract: Observer
 
 function create_environment(
     environment_creator::EnvironmentCreator, 
-    phenotypes::Vector{P},
-) where {P <: Phenotype}
+    phenotypes::Vector{Phenotype},
+) #where {P <: Phenotype}
     throw(ErrorException(
-        "`create_environment` not implemented for $environment_creator "
+        "`create_environment` not implemented for $environment_creator and $phenotypes"
         )
     )
 end

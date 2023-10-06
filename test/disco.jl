@@ -3,7 +3,7 @@
 using Random
 using StableRNGs: StableRNG
 using Test
-using DataStructures
+#using DataStructures
 
 using .NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
 using .NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!

@@ -228,7 +228,7 @@ outcome_metric = Control()
 domain = ContinuousPredictionGameDomain(outcome_metric)
 env_creator = TapeEnvironmentCreator(domain, 10)
 
-env = create_environment(env_creator, [pheno1, pheno2])
+env = create_environment(env_creator, Phenotype[pheno1, pheno2])
 
 # TODO: concrete test for env
 while is_active(env)

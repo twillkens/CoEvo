@@ -25,8 +25,8 @@ end
 
 function create_environment(
     environment_creator::TapeEnvironmentCreator{D},
-    phenotypes::Vector{P}
-) where {D <: Domain, P <: Phenotype}
+    phenotypes::Vector{Phenotype}
+) where {D <: Domain}
     return TapeEnvironment(
         domain = environment_creator.domain,
         phenotypes = phenotypes,
