@@ -12,7 +12,7 @@ include("concrete/concrete.jl")
 using .Concrete: Concrete
 
 using JLD2: Group
-using ...Ecosystems.Species.Individuals: Individual
+using ...CoEvo.Ecosystems.Species.Individuals: Individual
 using ..Loaders.Abstract: Loader
 
 function load_individual(loader::Loader, individual_group::Group)

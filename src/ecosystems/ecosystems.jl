@@ -35,9 +35,6 @@ using .Reporters: Reporters
 include("deps/archivers/archivers.jl")
 using .Archivers: Archivers
 
-include("deps/loaders/loaders.jl")
-using .Loaders: Loaders
-
 include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces
 

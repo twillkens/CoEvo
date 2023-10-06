@@ -71,9 +71,15 @@ export Ecosystem, EcosystemCreator,
        LinguisticPredictionGameDomain, LinguisticPredictionGameEnvironmentCreator,
        LinguisticPredictionGameEnvironment,
        CollisionGameOutcomeMetrics, CollisionGameDomain, CollisionGameEnvironment, 
-       CollisionGameEnvironmentCreator
+       CollisionGameEnvironmentCreator,
+       BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader,
+       GeneticProgramGenotypeLoader, GnarlNetworkGenotypeLoader, EcosystemLoader, load_ecosystem
 
 include("ecosystems/ecosystems.jl")
+using .Ecosystems: Ecosystems
+
+include("loaders/loaders.jl")
+using .Loaders: Loaders
 
 using .Ecosystems.Abstract: Ecosystem, EcosystemCreator
 using .Ecosystems.Basic: BasicEcosystem, BasicEcosystemCreator, evolve! 
@@ -231,5 +237,10 @@ using .Archivers.Abstract: Archiver
 using .Archivers.Interfaces: archive!
 using .Archivers.Concrete.Basic: BasicArchiver
 println("loaded archivers")
+
+using .Loaders
+using .Loaders.Concrete: BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader
+using .Loaders.Concrete: GeneticProgramGenotypeLoader, GnarlNetworkGenotypeLoader
+using .Loaders.Concrete: EcosystemLoader, load_ecosystem
 
 end

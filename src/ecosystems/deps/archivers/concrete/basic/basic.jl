@@ -116,15 +116,22 @@ using ....Reporters.Types.Basic: BasicReport
 function archive!(
     archiver::BasicArchiver, 
     gen::Int, 
-    report::BasicReport{AllSpeciesIdentity, AllSpeciesMeasurement}
+    report::BasicReport{<:AllSpeciesIdentity, <:AllSpeciesMeasurement}
 )
-    jld2_file = jldopen(archiver.jld2_path, "r+")
+    println("Archiving generation $gen")
+    jld2_file = jldopen(archiver.jld2_path, "a+")
     base_path = "indivs/$gen"
-    for (species_id, species) in report.species
+    println("base_path: $base_path")
+    for (species_id, species) in report.measurement.species
         individuals = gen == 1 ? species.pop : species.children
-        species_path = "$base_path/$species_id/"
-        for individual in individuals
-            individual_path = "$species_path/$(individual.id)"
+        species_path = "$base_path/$species_id"
+        species_group = get_or_make_group!(jld2_file, species_path)
+        species_group["population_ids"] = Set([individual_id for (individual_id, _) in species.pop])
+        println("species_path: $species_path")
+        for (individual_id, individual) in individuals
+            individual_id = string(individual_id)
+            individual_path = "$species_path/children/$individual_id"
+            println("individual_path: $individual_path")
             individual_group = get_or_make_group!(jld2_file, individual_path)
             save_individual!(archiver, individual_group, individual)
         end

@@ -1,7 +1,11 @@
-#include("../../src/CoEvo.jl")
+include("../../src/CoEvo.jl")
 using .CoEvo
 
 using Test
+
+if isfile("archive.jld2")
+    rm("archive.jld2")
+end
 
 using Random: AbstractRNG
 using StableRNGs: StableRNG
@@ -30,6 +34,8 @@ function generate_nested_dict(first_layer_size::Int, second_layer_size::Int)
     return my_dict
 end
 using .Metrics.Concrete.Common: AllSpeciesIdentity
+using .CoEvo.Loaders.Concrete: EcosystemLoader
+using .CoEvo.Loaders.Abstract: Loader
 
 @testset "Archivers" begin
 
@@ -38,8 +44,8 @@ using .Metrics.Concrete.Common: AllSpeciesIdentity
     rng = StableRNG(42)
     indiv_id_counter = Counter()
     gene_id_counter = Counter()
-    species_id = "subjects"
-    n_pop = 10
+    species_id = "Subjects"
+    n_pop = 2
 
     default_vector = collect(1:10)
 
@@ -64,7 +70,16 @@ using .Metrics.Concrete.Common: AllSpeciesIdentity
     species_evaluations = Dict(species => evaluation)
     measurement = measure(reporter, species_evaluations, Observation[])
     println(measurement)
-
+    report = create_report(reporter, gen, species_evaluations, Observation[])
+    println(report)
+    archiver = BasicArchiver()
+    archive!(archiver, gen, report)
+    #try
+        loaders = Dict("Subjects" => BasicVectorGenotypeLoader())
+        ecosystem_loader = EcosystemLoader("archive.jld2")
+    ecosystem = load_ecosystem(ecosystem_loader, loaders, gen)
+    @test length(ecosystem.species) == 1
+    @test length(ecosystem.species["Subjects"].pop) == 2
 end
 
 end
