@@ -190,5 +190,4 @@ end
 
 end
 
-println("Finished tests for Individual.")
 end

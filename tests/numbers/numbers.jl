@@ -7,8 +7,8 @@ This test suite focuses on validating and verifying the functionality of the `Co
 The `CoEvo` module provides tools and structures for co-evolutionary simulations.
 """
 
-@testset "Numbers" begin
-println("Starting tests for numbers...")
+@testset "NumbersGame" begin
+println("Starting tests for NumbersGame...")
 
 #include("../src/CoEvo.jl")
 #using .CoEvo
@@ -205,5 +205,5 @@ eco_creator = dummy_eco_creator(n_pop = 100)
 eco = evolve!(eco_creator, n_gen=10)
 end
 
-println("Finished tests for numbers...")
+println("Finished tests for NumbersGame.")
 end

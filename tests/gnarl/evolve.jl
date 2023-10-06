@@ -5,7 +5,6 @@ using StableRNGs: StableRNG
 using .CoEvo
 
 @testset "Evolve" begin
-println("Starting tests for evolve_gnarl...")
 
 @testset "CollisionGame: Roulette" begin
 
@@ -269,7 +268,5 @@ eco = evolve!(eco_creator, n_gen=5)
 @test length(eco.species) == 3
 
 end
-
-println("Finished tests for CollisionGame.")
 
 end

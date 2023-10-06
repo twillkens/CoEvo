@@ -6,7 +6,7 @@ using Test
 #using .CoEvo
 begin @testset "GeneticPrograms" begin
 
-println("Starting tests for GP...")
+println("Starting tests for GeneticPrograms...")
 
 using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtils
 using .Genotypes.GeneticPrograms.Methods: Manipulate, Traverse
@@ -241,7 +241,7 @@ outcomes = get_outcome_set(env)
 
 end
 
-println("Finished tests for GP...")
+println("Finished tests for GeneticPrograms.")
 
 end
 

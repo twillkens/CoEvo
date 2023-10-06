@@ -8,7 +8,6 @@ using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMismat
 using .FiniteStateMachineMutators: FiniteStateMachineMutator
 
 @testset "Evolve" begin
-println("Starting tests for evolve_fsm...")
 
 @testset "LinguisticPredictionGame: Roulette" begin
 
@@ -212,7 +211,5 @@ eco = evolve!(eco_creator, n_gen=5)
 @test length(eco.species) == 3
 
 end
-
-println("Finished tests for LinguisticPredictionGame.")
 
 end

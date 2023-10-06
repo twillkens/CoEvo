@@ -98,7 +98,7 @@ function load_species(
 end
 
 function load_ecosystem(loader::EcosystemLoader, species_loaders::Dict{String, <:Loader}, gen::Int)
-    println("Loading generation $gen")
+    #println("Loading generation $gen")
     
     jld2_file = jldopen(loader.jld2_filepath, "r")
     base_path = "indivs/$gen"

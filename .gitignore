@@ -13,6 +13,7 @@ modesdata
 data
 run/old
 .venv/
+doc
 
 python/gedlibpy/build
 

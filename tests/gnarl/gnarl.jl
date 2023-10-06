@@ -2,7 +2,7 @@
 using Test
 
 @testset "Gnarl" begin
-println("Starting tests for Gnarl...")
+println("Starting tests for GnarlNetworks and CollisionGame...")
 # include("../../src/CoEvo.jl")
 using .CoEvo
 using .Metrics.Concrete.Outcomes.CollisionGameOutcomeMetrics: Affinitive, Adversarial
@@ -14,6 +14,6 @@ include("individual.jl")
 include("collision_game.jl")
 include("evolve.jl")
 
-println("Finished tests for Gnarl.")
+println("Finished tests for GnarlNetworks and CollisionGame.")
 
 end

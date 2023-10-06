@@ -9,6 +9,7 @@ using .NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
 using .NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
 
 @testset "NSGA-II" begin
+println("Starting tests for NSGA-II and Disco...")
 
 function generate_nested_dict(first_layer_size::Int, second_layer_size::Int)
     # Initialize an empty dictionary
@@ -207,5 +208,6 @@ end
 end
 
 end
+println("Finished tests for NSGA-II and Disco.")
 
 end

@@ -23,11 +23,6 @@ Base.@kwdef struct BasicArchiver <: Archiver
     jld2_path::String = "archive.jld2"
 end
 
-
-#function archive!(archiver::BasicArchiver, gen::Int, report::Report)
-#    println("Archiving generation $gen")
-#    println("Report: $report")
-#end
 function archive!(
     ::BasicArchiver, 
     gen::Int, 
@@ -50,26 +45,28 @@ function archive!(
         println("----")
         println("Sum for species ", species_id)
         println("Mean: ", measurement.mean)
-        #println("Min: ", measurement.minimum)
-        #println("Max: ", measurement.maximum)
-        #println("Std: ", measurement.std)
     end
 end
 
 function archive!(
-    ::BasicArchiver, 
+    archiver::BasicArchiver, 
     gen::Int, 
     report::BasicReport{GenotypeSize, GroupStatisticalMeasurement}
 )
-    for (species_id, measurement) in report.measurement.measurements
-        println("----")
-        println("Root tree size for species ", species_id)
-        println("Mean: ", measurement.mean)
-        println("Min: ", measurement.minimum)
-        println("Max: ", measurement.maximum)
-        println("Std: ", measurement.std)
+    if report.to_print
+        for (species_id, measurement) in report.measurement.measurements
+            println("----")
+            println("Mean: ", measurement.mean)
+            println("Min: ", measurement.minimum)
+            println("Max: ", measurement.maximum)
+            println("Std: ", measurement.std)
+        end
+    end
+    if report.to_save
+        # finish me
     end
 end
+
 
 function archive!(
     ::BasicArchiver, 
@@ -118,20 +115,20 @@ function archive!(
     gen::Int, 
     report::BasicReport{<:AllSpeciesIdentity, <:AllSpeciesMeasurement}
 )
-    println("Archiving generation $gen")
+    #println("Archiving generation $gen")
     jld2_file = jldopen(archiver.jld2_path, "a+")
     base_path = "indivs/$gen"
-    println("base_path: $base_path")
+    #println("base_path: $base_path")
     for (species_id, species) in report.measurement.species
         individuals = gen == 1 ? species.pop : species.children
         species_path = "$base_path/$species_id"
         species_group = get_or_make_group!(jld2_file, species_path)
         species_group["population_ids"] = Set([individual_id for (individual_id, _) in species.pop])
-        println("species_path: $species_path")
+        #println("species_path: $species_path")
         for (individual_id, individual) in individuals
             individual_id = string(individual_id)
             individual_path = "$species_path/children/$individual_id"
-            println("individual_path: $individual_path")
+            #println("individual_path: $individual_path")
             individual_group = get_or_make_group!(jld2_file, individual_path)
             save_individual!(archiver, individual_group, individual)
         end
