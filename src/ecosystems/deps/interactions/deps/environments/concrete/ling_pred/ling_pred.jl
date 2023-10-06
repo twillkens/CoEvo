@@ -1,7 +1,7 @@
 module LinguisticPredictionGame
 
 export LinguisticPredictionGameEnvironmentCreator
-export LingusticPredictionGameEnvironment
+export LinguisticPredictionGameEnvironment
 
 using ....Domains.Abstract: Domain
 using ....Domains.Concrete: LinguisticPredictionGameDomain
@@ -17,7 +17,7 @@ Base.@kwdef struct LinguisticPredictionGameEnvironmentCreator{D <: Domain} <: En
     domain::D
 end
 
-Base.@kwdef mutable struct LingusticPredictionGameEnvironment{D, P <: Phenotype, T} <: Environment{D}
+Base.@kwdef mutable struct LinguisticPredictionGameEnvironment{D, P <: Phenotype, T} <: Environment{D}
     domain::D
     phenotypes::Vector{P}
     timestep::Int
@@ -43,7 +43,7 @@ function create_environment(
     state2, bit2 = fsm_B.start
     state_pair_log = Dict((state1, state2) => 1)
     datatype = typeof(phenotypes[1]).parameters[1]
-    return LingusticPredictionGameEnvironment(
+    return LinguisticPredictionGameEnvironment(
         domain = environment_creator.domain,
         phenotypes = [phenotype for phenotype in phenotypes],
         timestep = 1,
@@ -60,7 +60,7 @@ function create_environment(
     )
 end
 
-function is_active(environment::LingusticPredictionGameEnvironment)
+function is_active(environment::LinguisticPredictionGameEnvironment)
     if length(environment.states1) < 2
         return true
     end
@@ -73,7 +73,7 @@ function is_active(environment::LingusticPredictionGameEnvironment)
     return !loop_entered
 end
 
-function update_state_vectors!(environment::LingusticPredictionGameEnvironment)
+function update_state_vectors!(environment::LinguisticPredictionGameEnvironment)
     push!(environment.states1, environment.state1)
     push!(environment.states2, environment.state2)
     push!(environment.bits1, environment.bit1)
@@ -81,7 +81,7 @@ function update_state_vectors!(environment::LingusticPredictionGameEnvironment)
 end
 
 function next!(
-    environment::LingusticPredictionGameEnvironment{D, <:Phenotype}
+    environment::LinguisticPredictionGameEnvironment{D, <:Phenotype}
 ) where {D <: LinguisticPredictionGameDomain}
     fsm1, fsm2 = environment.phenotypes
     state1, state2 = environment.state1, environment.state2
@@ -96,7 +96,7 @@ end
 
 
 function get_outcome_set(
-    environment::LingusticPredictionGameEnvironment{D, <:Phenotype}
+    environment::LinguisticPredictionGameEnvironment{D, <:Phenotype}
 ) where {D <: LinguisticPredictionGameDomain}
     update_state_vectors!(environment)
     bits1 = environment.bits1[environment.loop_start:end - 1]

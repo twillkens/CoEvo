@@ -19,57 +19,6 @@ function get_outputs(genotype::GnarlNetworkGenotype)
     Set(Float32(i) for i in 1:genotype.n_output_nodes)
 end
 
-# ... (other methods remain unchanged)
-
-#function recursive_traversal(
-#    current_node::P, 
-#    connection_pairs::Set{Tuple{P, P}}, 
-#    visited::Set{P}, 
-#    from_inputs::Bool
-#) where {P <: Real}
-#    # Check if the current node has already been visited
-#    if current_node in visited
-#        return Set{P}()
-#    end
-#
-#    # Mark the current node as visited
-#    push!(visited, current_node)
-#    
-#    # Find next nodes to visit based on the direction
-#    next_nodes = from_inputs ? 
-#        Set(dest for (orig, dest) in connection_pairs if orig == current_node) : 
-#        Set(orig for (orig, dest) in connection_pairs if dest == current_node)
-#
-#    # Recursively visit the next nodes
-#    for node in next_nodes
-#        union!(visited, recursive_traversal(node, connection_pairs, visited, from_inputs))
-#    end
-#    
-#    return visited
-#end
-#
-#function get_required_nodes(
-#    input_nodes::Set{P},
-#    hidden_nodes::Set{P},
-#    output_nodes::Set{P},
-#    connection_pairs::Set{Tuple{P, P}},
-#    from_inputs::Bool
-#) where {P <: Real}
-#    visited = Set{P}()
-#    initial_nodes = from_inputs ? input_nodes : output_nodes
-#
-#    for node in initial_nodes
-#        recursive_traversal(node, connection_pairs, visited, from_inputs)
-#    end
-#
-#    # Filter out only the required hidden nodes
-#    return Set(hidden_node for hidden_node in hidden_nodes if hidden_node in visited)
-#end
-#
-## ... (rest of the methods remain unchanged)
-#
-#end
-
 
 function get_required_nodes(
     input_nodes::Set{Float32},
@@ -143,3 +92,53 @@ function minimize(genotype::GnarlNetworkGenotype)
 end
 
 end
+# ... (other methods remain unchanged)
+
+#function recursive_traversal(
+#    current_node::P, 
+#    connection_pairs::Set{Tuple{P, P}}, 
+#    visited::Set{P}, 
+#    from_inputs::Bool
+#) where {P <: Real}
+#    # Check if the current node has already been visited
+#    if current_node in visited
+#        return Set{P}()
+#    end
+#
+#    # Mark the current node as visited
+#    push!(visited, current_node)
+#    
+#    # Find next nodes to visit based on the direction
+#    next_nodes = from_inputs ? 
+#        Set(dest for (orig, dest) in connection_pairs if orig == current_node) : 
+#        Set(orig for (orig, dest) in connection_pairs if dest == current_node)
+#
+#    # Recursively visit the next nodes
+#    for node in next_nodes
+#        union!(visited, recursive_traversal(node, connection_pairs, visited, from_inputs))
+#    end
+#    
+#    return visited
+#end
+#
+#function get_required_nodes(
+#    input_nodes::Set{P},
+#    hidden_nodes::Set{P},
+#    output_nodes::Set{P},
+#    connection_pairs::Set{Tuple{P, P}},
+#    from_inputs::Bool
+#) where {P <: Real}
+#    visited = Set{P}()
+#    initial_nodes = from_inputs ? input_nodes : output_nodes
+#
+#    for node in initial_nodes
+#        recursive_traversal(node, connection_pairs, visited, from_inputs)
+#    end
+#
+#    # Filter out only the required hidden nodes
+#    return Set(hidden_node for hidden_node in hidden_nodes if hidden_node in visited)
+#end
+#
+## ... (rest of the methods remain unchanged)
+#
+#end

@@ -51,23 +51,6 @@ function add_node(rng::AbstractRNG, gene_id_counter::Counter, geno::GnarlNetwork
     return geno
 end
 
-function remove_node(geno::GnarlNetworkGenotype, node_to_remove::GnarlNetworkNodeGene)
-    remaining_nodes = filter(x -> x != node_to_remove, geno.hidden_nodes)
-    geno = GnarlNetworkGenotype(
-        geno.n_input_nodes, geno.n_output_nodes, remaining_nodes, geno.connections
-    )
-    return geno
-end
-
-function remove_node(rng::AbstractRNG, ::Counter, geno::GnarlNetworkGenotype)
-    if length(geno.hidden_nodes) == 0
-        return geno
-    end
-    node_to_remove = rand(rng, geno.hidden_nodes)
-    geno = remove_node(geno, node_to_remove)
-    return geno
-end
-
 function indexof(a::Array{Float32}, f::Float32)
     index = findall(x->x==f, a)[1]
     return index
@@ -103,6 +86,70 @@ function find_valid_connection_positions(geno::GnarlNetworkGenotype)
     # Filter invalid ones
     connections = findall(valid)
     return connections
+end
+
+function remove_node(
+    geno::GnarlNetworkGenotype, 
+    node_to_remove::GnarlNetworkNodeGene,
+    connections_to_remove::Vector{GnarlNetworkConnectionGene},
+    connections_to_add::Vector{GnarlNetworkConnectionGene}
+)
+    remaining_nodes = filter(x -> x != node_to_remove, geno.hidden_nodes)
+    pruned_connections = filter(x -> x ∉ connections_to_remove, geno.connections)
+    new_connections = [pruned_connections; connections_to_add]
+    geno = GnarlNetworkGenotype(
+        geno.n_input_nodes, geno.n_output_nodes, remaining_nodes, new_connections
+    )
+    return geno
+end
+
+function create_connection(
+    rng::AbstractRNG,
+    gene_id_counter::Counter,
+    geno::GnarlNetworkGenotype
+)
+    valid_connections = find_valid_connection_positions(geno)
+    if length(valid_connections) == 0
+        return
+    end
+    shuffle!(rng, valid_connections) # Pick random
+    neuron_positions = get_neuron_positions(geno)
+    origin = neuron_positions[valid_connections[1][1]]
+    destination = neuron_positions[valid_connections[1][2]]
+    if destination <= 0 # Catching error where destination is an input
+        throw("Invalid connection")
+    end
+    gene_id = next!(gene_id_counter)
+    new_connection = GnarlNetworkConnectionGene(gene_id, origin, destination, 0.0f0)
+    return new_connection
+end
+
+function remove_node(rng::AbstractRNG, gene_id_counter::Counter, geno::GnarlNetworkGenotype)
+    if length(geno.hidden_nodes) == 0
+        return geno
+    end
+    node_to_remove = rand(rng, geno.hidden_nodes)
+    connections_to_remove = filter(
+        x -> x.origin == node_to_remove.position || x.destination == node_to_remove.position, 
+        geno.connections
+    )
+    pruned_connections = filter(
+        x -> x ∉ connections_to_remove,  geno.connections
+    )
+    pruned_nodes = filter(x -> x != node_to_remove, geno.hidden_nodes)
+    pruned_genotype = GnarlNetworkGenotype(
+        geno.n_input_nodes, geno.n_output_nodes, pruned_nodes, pruned_connections
+    )
+    connections_to_add = GnarlNetworkConnectionGene[]
+    for i in 1:length(connections_to_remove)
+        result = create_connection(rng, gene_id_counter, pruned_genotype)
+        if result !== nothing
+            push!(connections_to_add, result)
+            
+        end
+    end
+    geno = remove_node(geno, node_to_remove, connections_to_remove, connections_to_add)
+    return geno
 end
 
 function add_connection(
@@ -168,16 +215,58 @@ Base.@kwdef struct GnarlNetworkMutator <: Mutator
 end
 
 function mutate(
-    mutator::GnarlNetworkMutator, rng::AbstractRNG, gene_id_counter::Counter, geno::Genotype
+    mutator::GnarlNetworkMutator, 
+    rng::AbstractRNG, 
+    gene_id_counter::Counter, 
+    geno::GnarlNetworkGenotype
 )
+    geno_before = geno
     geno = mutate_weights(rng, geno, mutator.weight_factor)
     functions = collect(keys(mutator.probs))
     function_weights = Weights(collect(values(mutator.probs)))
     mutation_functions = sample(rng, functions, function_weights, mutator.n_changes)
+    guilty = nothing
     for mutation_function in mutation_functions
         geno = mutation_function(rng, gene_id_counter, geno)
+        guilty = mutation_function
+    end
+    neuron_positions = get_neuron_positions(geno)
+    origin_nodes = [gene.origin for gene in geno.connections]
+    destination_nodes = [gene.destination for gene in geno.connections]
+    for node in union(origin_nodes, destination_nodes) 
+        if node ∉ neuron_positions
+            throw(ErrorException("Invalid mutation: $guilty, node removed but not from links"))
+        end
+        node_gene_ids = Set(gene.id for gene in geno.hidden_nodes)
+        if length(node_gene_ids) != length(geno.hidden_nodes)
+            throw(ErrorException("Invalid mutation: $guilty, duplicate node ids"))
+        end
+
+        connection_gene_ids = Set(gene.id for gene in geno.connections)
+        if length(connection_gene_ids) != length(geno.connections)
+            throw(ErrorException("Invalid mutation: $guilty, duplicate connection ids"))
+        end
     end
     return geno
 end
 
 end
+    # println("-------------REMOVE NODE----------")
+    # println("geno: $geno")
+    # println("node_to_remove: $node_to_remove")
+    # println("connections_to_remove: $connections_to_remove")
+    # println("pruned_connections: $pruned_connections")
+    # println("pruned_nodes: $pruned_nodes")
+    # println("pruned_genotype: $pruned_genotype")
+    # println("connections_to_add: $connections_to_add")
+    # println("remaining_nodes: $remaining_nodes")
+    # println("pruned_connections: $pruned_connections")
+    # println("new_connections: $new_connections")
+    # println("new geno: $geno")
+
+    # println("------------MUTATE----------")
+    # println("geno_before: $geno_before")
+    # println("neuron_positions: $neuron_positions")
+    # println("origin_nodes: $origin_nodes")
+    # println("destination_nodes: $destination_nodes")
+    # println("geno: $geno")

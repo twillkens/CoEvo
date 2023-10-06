@@ -116,9 +116,9 @@ function mutate(
         genotype = mutation_function(rng, gene_id_counter, genotype)
     end
     if length(union(genotype.ones, genotype.zeros)) != length(genotype.ones) + length(genotype.zeros)
-        println("mutation_function: $mutation_functions")
-        println("genotype_before: $genotype_before")
-        println("genotype_after: $genotype")
+        # println("mutation_function: $mutation_functions")
+        # println("genotype_before: $genotype_before")
+        # println("genotype_after: $genotype")
         throw(ErrorException("Duplicate states in genotype"))
     end
     return genotype

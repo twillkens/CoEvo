@@ -69,7 +69,9 @@ export Ecosystem, EcosystemCreator,
        GnarlMethods,
        FiniteStateMachineMinimizers,
        LinguisticPredictionGameDomain, LinguisticPredictionGameEnvironmentCreator,
-       LinguisticPredictionGameEnvironment
+       LinguisticPredictionGameEnvironment,
+       CollisionGameOutcomeMetrics, CollisionGameDomain, CollisionGameEnvironment, 
+       CollisionGameEnvironmentCreator
 
 include("ecosystems/ecosystems.jl")
 
@@ -157,6 +159,7 @@ using .Metrics.Concrete.Common: AbsoluteError, NullMetric, RuntimeMetric
 using .Metrics.Concrete.Evaluations: TestBasedFitness, AllSpeciesFitness
 using .Metrics.Concrete.Genotypes: GenotypeSum, GenotypeSize
 using .Metrics.Concrete.Outcomes: NumbersGameOutcomeMetrics, PredictionGameOutcomeMetrics
+using .Metrics.Concrete.Outcomes: CollisionGameOutcomeMetrics
 println("loaded metrics")
 
 using .Ecosystems: Interactions
@@ -168,7 +171,7 @@ println("loaded interactions")
 
 using .Interactions: Domains
 using .Domains.Abstract: Domain
-using .Domains.Concrete: NumbersGameDomain, SymbolicRegressionDomain
+using .Domains.Concrete: NumbersGameDomain, SymbolicRegressionDomain, CollisionGameDomain
 using .Domains.Concrete: ContinuousPredictionGameDomain, LinguisticPredictionGameDomain
  
 println("loaded domains")
@@ -195,7 +198,8 @@ using .Environments.Interfaces: create_environment, next!, get_outcome_set, is_a
 using .Environments.Concrete.Stateless: StatelessEnvironment, StatelessEnvironmentCreator #
 using .Environments.Concrete.Tape: TapeEnvironment, TapeEnvironmentCreator #
 using .Environments.Concrete.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
-using .Environments.Concrete.LinguisticPredictionGame: LingusticPredictionGameEnvironment
+using .Environments.Concrete.LinguisticPredictionGame: LinguisticPredictionGameEnvironment
+using .Environments.Concrete.CollisionGame: CollisionGameEnvironment, CollisionGameEnvironmentCreator
 println("loaded environments")
 
 using .Ecosystems: Jobs

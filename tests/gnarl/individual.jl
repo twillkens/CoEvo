@@ -1,14 +1,10 @@
 using Test
-#using Random
-#using StableRNGs: StableRNG
-#include("../src/CoEvo.jl")
-#using .CoEvo
+using Random
+using StableRNGs: StableRNG
+#include("../../src/CoEvo.jl")
+using .CoEvo
 
-@testset "Gnarl" begin
-println("Starting tests for Gnarl...")
-
-using .Mutators.Types.GnarlNetworks: mutate_weights, add_node, remove_node, add_connection
-using .Mutators.Types.GnarlNetworks: remove_connection, mutate
+@testset "Individual" begin
 
 
 # Mock the required external modules/functions for testing purposes
@@ -61,9 +57,11 @@ basic_genotype() = GnarlNetworkGenotype(
 
     @testset "mutate" begin
         geno = basic_genotype()
-        mutated_geno = mutate(mutator, rng, counter, geno)
-        @test mutated_geno ≠ geno
-        # Note: Depending on the random mutations, more specific checks might be added.
+        create_phenotype(DefaultPhenotypeCreator(), geno)
+        for i in 1:1000
+            geno = mutate(mutator, rng, counter, geno)
+            phenotype = create_phenotype(DefaultPhenotypeCreator(), geno)
+        end
     end
 
 end
@@ -192,5 +190,5 @@ end
 
 end
 
-println("Finished tests for Gnarl.")
+println("Finished tests for Individual.")
 end

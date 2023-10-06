@@ -36,25 +36,48 @@ struct GnarlNetworkPhenotypeNodeOperation
     output_node::GnarlNetworkPhenotypeNeuron
 end
 
-struct GnarlNetworkPhenotype
+struct GnarlNetworkPhenotype <: Phenotype
     n_input_nodes::Int
     n_output_nodes::Int
     neurons::Dict{Float32, GnarlNetworkPhenotypeNeuron}
     operations::Vector{GnarlNetworkPhenotypeNodeOperation}
 end
 
+function Base.show(io::IO, neuron::GnarlNetworkPhenotypeNeuron)
+    println(io, "Neuron(Position: $(neuron.position), Output: $(get_output(neuron)))")
+end
+
+function Base.show(io::IO, conn::GnarlNetworkPhenotypeInputConnection)
+    println(io, "Connection(InputNode Position: $(conn.input_node.position), Weight: $(conn.weight))")
+end
+
+function Base.show(io::IO, op::GnarlNetworkPhenotypeNodeOperation)
+    println(io, "Node Operation(OutputNode Position: $(op.output_node.position), #Connections: $(length(op.input_connections)))")
+end
+
+function Base.show(io::IO, phenotype::GnarlNetworkPhenotype)
+    println(io, "GnarlNetwork Phenotype(#Input Nodes: $(phenotype.n_input_nodes), #Output Nodes: $(phenotype.n_output_nodes), #Neurons: $(length(phenotype.neurons)), #Operations: $(length(phenotype.operations)))")
+end
+
+
 function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype)
+    #println("---------------------------")
+    #println("genotype: $genotype")
     neuron_positions = get_neuron_positions(genotype)
+    #println("neuron_positions: $neuron_positions")
     neurons = Dict(
         position => GnarlNetworkPhenotypeNeuron(position, 0.0f0)
         for position in neuron_positions
     )
+    # println("neurons: $neurons")
     connection_map = Dict(
         position => filter(
-            connection -> connection.destination == position, genotype.connections
+            connection -> connection.destination == position, 
+            genotype.connections
         ) 
         for position in neuron_positions
     )
+    #println("connection_map: $connection_map")
     operations = [
         GnarlNetworkPhenotypeNodeOperation(
             [
@@ -67,9 +90,11 @@ function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype)
         ) 
         for position in neuron_positions
     ]
-    GnarlNetworkPhenotype(
+    #println("operations: $operations")
+    phenotype = GnarlNetworkPhenotype(
         genotype.n_input_nodes, genotype.n_output_nodes, neurons, operations
     )
+    return phenotype
 end
 
 function reset!(phenotype::GnarlNetworkPhenotype)
