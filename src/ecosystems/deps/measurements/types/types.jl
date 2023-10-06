@@ -1,8 +1,11 @@
 module Types
 
-export BasicStatisticalMeasurement
+export BasicStatisticalMeasurement, GroupStatisticalMeasurement, AllSpeciesMeasurement
 
-include("basic_statistical.jl")
-using .BasicStatistical: BasicStatisticalMeasurement
+include("statistical.jl")
+using .Statistical: BasicStatisticalMeasurement, GroupStatisticalMeasurement
+
+include("common.jl")
+using .Common: AllSpeciesMeasurement
 
 end

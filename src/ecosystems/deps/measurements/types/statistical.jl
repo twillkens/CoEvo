@@ -1,11 +1,11 @@
-module BasicStatistical
+module Statistical
 
 export BasicStatisticalMeasurement, GroupStatisticalMeasurement, extract_stat_features
 
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
 using HypothesisTests: OneSampleTTest, confint
 
-using ..Abstract: Measurement
+using ...Measurements.Abstract: Measurement
 
 """
     StatisticalFeatureSet

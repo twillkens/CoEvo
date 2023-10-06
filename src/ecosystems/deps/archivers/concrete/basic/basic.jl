@@ -97,32 +97,39 @@ function archive!(
         #println("Std: ", measurement.std)
     end
 end
+
+using ...Archivers.Interfaces: save_genotype!
+using ....Species.Individuals: Individual
+using ...Archivers.Utilities: get_or_make_group!
 # # Save an individual to a JLD2.Group
-# function save_individual!(
-#     archiver::DefaultArchiver, indiv_group::Group, indiv::BasicIndividual
-# )
-#     indiv_group["parent_ids"] = indiv.parent_ids
-#     geno_group = Group(indiv_group, "geno")
-#     save_genotype!(archiver, geno_group, indiv.geno)
-# end
-# 
-# function save_individuals!(
-#     archiver::DefaultArchiver, 
-#     gen::Int, 
-#     jld2_file::JLDFile, 
-#     species_id_indiv_evals::OrderedDict{String, OrderedDict{<:Individual, <:Evaluation}}, 
-#     generational_type::String
-# )
-#     base_path = "indivs/$gen"
-#     for (species_id, indiv_evals) in species_id_indiv_evals
-#         species_path = "$base_path/$species_id/$generational_type"
-#         for indiv in keys(indiv_evals)
-#             indiv_path = "$species_path/$(indiv.id)"
-#             indiv_group = get_or_make_group!(jld2_file, indiv_path)
-#             save_individual!(archiver, indiv_group, indiv)
-#         end
-#     end
-#     close(jld2_file)
-# end
+function save_individual!(
+    archiver::BasicArchiver, indiv_group::Group, indiv::Individual
+)
+    indiv_group["parent_ids"] = indiv.parent_ids
+    geno_group = Group(indiv_group, "genotype")
+    save_genotype!(archiver, geno_group, indiv.geno)
+end
+using ....Metrics.Concrete.Common: AllSpeciesIdentity
+using ....Measurements.Types: AllSpeciesMeasurement
+using ....Reporters.Types.Basic: BasicReport
+
+function archive!(
+    archiver::BasicArchiver, 
+    gen::Int, 
+    report::BasicReport{AllSpeciesIdentity, AllSpeciesMeasurement}
+)
+    jld2_file = jldopen(archiver.jld2_path, "r+")
+    base_path = "indivs/$gen"
+    for (species_id, species) in report.species
+        individuals = gen == 1 ? species.pop : species.children
+        species_path = "$base_path/$species_id/"
+        for individual in individuals
+            individual_path = "$species_path/$(individual.id)"
+            individual_group = get_or_make_group!(jld2_file, individual_path)
+            save_individual!(archiver, individual_group, individual)
+        end
+    end
+    close(jld2_file)
+end
 
 end

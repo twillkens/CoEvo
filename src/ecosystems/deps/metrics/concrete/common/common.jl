@@ -1,6 +1,6 @@
 module Common
 
-export AbsoluteError, NullMetric, RuntimeMetric
+export AbsoluteError, NullMetric, RuntimeMetric, AllSpeciesIdentity
 
 using ...Metrics.Abstract: Metric
 
@@ -15,5 +15,11 @@ end
 Base.@kwdef struct RuntimeMetric <: Metric
     name::String = "Runtime"
 end
+
+Base.@kwdef struct AllSpeciesIdentity <: Metric
+    name::String = "AllSpeciesIdentity"
+    minimize_genotype::Bool = false
+end
+
 
 end

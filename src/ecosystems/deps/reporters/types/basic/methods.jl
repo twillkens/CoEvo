@@ -5,16 +5,19 @@ using .....Metrics.Concrete.Common: AbsoluteError
 using .....Metrics.Concrete.Evaluations: TestBasedFitness, AllSpeciesFitness
 using .....Metrics.Concrete.Genotypes: GenotypeSum, GenotypeSize
 using .....Measurements.Abstract: Measurement
-using .....Measurements: BasicStatisticalMeasurement, GroupStatisticalMeasurement
+using .....Ecosystems.Interactions.Observers.Abstract: Observation
+using .....Measurements.Types: BasicStatisticalMeasurement, GroupStatisticalMeasurement
 using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
 using .....Ecosystems.Species.Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
 using .....Ecosystems.Species.Abstract: AbstractSpecies
 using .....Ecosystems.Interactions.Abstract: Interaction
-using .....Ecosystems.Interactions.Observers.Abstract: Observation
 using ....Reporters.Abstract: Reporter
 using .....Species.Genotypes.GeneticPrograms: GeneticProgramGenotype, ExpressionNodeGene
 using .....Species.Genotypes.GeneticPrograms.Methods.Traverse: get_node, get_child_nodes
 using ...Basic: BasicReport, BasicReporter
+using .....Metrics.Concrete.Common: AllSpeciesIdentity
+using .....Measurements.Types: AllSpeciesMeasurement
+
 
 import ....Reporters.Interfaces: create_report, measure
 
@@ -87,24 +90,15 @@ function measure(
     return measurement
 end
 
-
-
-function create_report(
-    reporter::BasicReporter,
-    gen::Int,
+function measure(
+    ::Reporter{AllSpeciesIdentity},
     species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
-    observations::Vector{<:Observation}
+    ::Vector{<:Observation}
 )
-    to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
-    to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
-    measurement = measure(reporter, species_evaluations, observations)
-    report = BasicReport(
-        to_print,
-        to_save,
-        reporter.metric,
-        measurement
-    )
-    return report
+    species = Dict(species.id => species for species in keys(species_evaluations))
+    measurement = AllSpeciesMeasurement(species)
+    return measurement
 end
+
 
 end

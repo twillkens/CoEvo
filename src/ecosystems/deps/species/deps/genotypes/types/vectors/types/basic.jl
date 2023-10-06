@@ -1,5 +1,7 @@
 module Basic
 
+export BasicVectorGenotype, BasicVectorGenotypeCreator, ScalarRangeGenotypeCreator
+
 using Random: AbstractRNG
 using ......Ecosystems.Utilities.Counters: Counter
 using ..Vectors.Abstract: VectorGenotype, VectorGenotypeCreator

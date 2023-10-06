@@ -1,6 +1,6 @@
 module Measurements
 
-export Abstract, BasicStatisticalMeasurement
+export Abstract
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -8,7 +8,7 @@ using .Abstract: Abstract
 #include("types/individual_identity.jl")
 #using .IndividualIdentity: IndividualIdentityMeasureSet
 
-include("types/basic_statistical.jl")
-using .BasicStatistical: BasicStatisticalMeasurement, GroupStatisticalMeasurement
+include("types/types.jl")
+using .Types
 
 end
