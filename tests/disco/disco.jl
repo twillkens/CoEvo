@@ -1,13 +1,13 @@
-include("../../src/CoEvo.jl")
+#include("../../src/CoEvo.jl")
 using .CoEvo
 using Random
 using StableRNGs: StableRNG
 using Test
 #using DataStructures
 
-using .NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
-using .NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
-using .Disco: Disco, get_derived_tests
+using .CoEvo.NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
+using .CoEvo.NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
+using .CoEvo.Disco: Disco, get_derived_tests
 
 @testset "NSGA-II" begin
 println("Starting tests for NSGA-II and Disco...")
@@ -39,10 +39,10 @@ end
 @testset "Disco" begin
     
 @testset "fast_non_dominated_sort!" begin
-    tests1 = NSGAIIRecord(id = 1, derived_tests = [1.0, 1.0, 1.0, 1.0])
-    tests2 = NSGAIIRecord(id = 2, derived_tests = [1.0, 1.0, 1.0, 0.0])
-    tests3 = NSGAIIRecord(id = 3, derived_tests = [1.0, 1.0, 0.0, 0.0])
-    tests4 = NSGAIIRecord(id = 4, derived_tests = [1.0, 0.0, 0.0, 0.0])
+    tests1 = NSGAIIRecord(id = 1, tests = [1.0, 1.0, 1.0, 1.0])
+    tests2 = NSGAIIRecord(id = 2, tests = [1.0, 1.0, 1.0, 0.0])
+    tests3 = NSGAIIRecord(id = 3, tests = [1.0, 1.0, 0.0, 0.0])
+    tests4 = NSGAIIRecord(id = 4, tests = [1.0, 0.0, 0.0, 0.0])
     alltests = [tests1, tests2, tests3, tests4]
     records = [tests3, tests4, tests2, tests1]
 
@@ -57,16 +57,16 @@ end
 
 @testset "nsga!-1" begin
     # source: https://www.ntnu.no/wiki/download/attachments/195538363/lecture%205.pdf?version=1&modificationDate=1598695184000&api=v2
-    tests1 =  NSGAIIRecord(id = 1, derived_tests = [0.1710, 5.8290])
-    tests2 =  NSGAIIRecord(id = 2, derived_tests = [0.2180, 2.3470])
-    tests3 =  NSGAIIRecord(id = 3, derived_tests = [0.6690, 1.3960])
-    tests4 =  NSGAIIRecord(id = 4, derived_tests = [3.0110, 0.0700])
-    tests5 =  NSGAIIRecord(id = 5, derived_tests = [10.308, 1.4650])
-    tests6 =  NSGAIIRecord(id = 6, derived_tests = [1.6180, 10.708])
-    tests7 =  NSGAIIRecord(id = 7, derived_tests = [2.2750, 12.308])
-    tests8 =  NSGAIIRecord(id = 8, derived_tests = [3.3550, 14.682])
-    tests9 =  NSGAIIRecord(id = 9, derived_tests = [4.6710, 17.317])
-    tests10 = NSGAIIRecord(id = 10,derived_tests =  [16.854, 37.275])
+    tests1 =  NSGAIIRecord(id = 1, tests = [0.1710, 5.8290])
+    tests2 =  NSGAIIRecord(id = 2, tests = [0.2180, 2.3470])
+    tests3 =  NSGAIIRecord(id = 3, tests = [0.6690, 1.3960])
+    tests4 =  NSGAIIRecord(id = 4, tests = [3.0110, 0.0700])
+    tests5 =  NSGAIIRecord(id = 5, tests = [10.308, 1.4650])
+    tests6 =  NSGAIIRecord(id = 6, tests = [1.6180, 10.708])
+    tests7 =  NSGAIIRecord(id = 7, tests = [2.2750, 12.308])
+    tests8 =  NSGAIIRecord(id = 8, tests = [3.3550, 14.682])
+    tests9 =  NSGAIIRecord(id = 9, tests = [4.6710, 17.317])
+    tests10 = NSGAIIRecord(id = 10,tests =  [16.854, 37.275])
 
     alltests = [tests1, tests2, tests3, tests4, tests5,
                 tests6, tests7, tests8, tests9, tests10]
@@ -138,18 +138,18 @@ end
 
 @testset "nsga!-2" begin
     # source: https://www.ntnu.no/wiki/download/attachments/195538363/lecture%205.pdf?version=1&modificationDate=1598695184000&api=v2
-    tests1 =  NSGAIIRecord(id = 1,  derived_tests = [0.31, 6.10])
-    tests2 =  NSGAIIRecord(id = 2,  derived_tests = [0.43, 6.79])
-    tests3 =  NSGAIIRecord(id = 3,  derived_tests = [0.22, 7.09])
-    tests4 =  NSGAIIRecord(id = 4,  derived_tests = [0.59, 7.85])
-    tests5 =  NSGAIIRecord(id = 5,  derived_tests = [0.66, 3.65])
-    tests6 =  NSGAIIRecord(id = 6,  derived_tests = [0.83, 4.23])
-    tests7 =  NSGAIIRecord(id = 7,  derived_tests = [0.21, 5.90])
-    tests8 =  NSGAIIRecord(id = 8,  derived_tests = [0.79, 3.97])
-    tests9 =  NSGAIIRecord(id = 9,  derived_tests = [0.51, 6.51])
-    tests10 = NSGAIIRecord(id = 10, derived_tests = [0.27, 6.93])
-    tests11 = NSGAIIRecord(id = 11, derived_tests = [0.58, 4.52])
-    tests12 = NSGAIIRecord(id = 12, derived_tests = [0.24, 8.54])
+    tests1 =  NSGAIIRecord(id = 1,  tests = [0.31, 6.10])
+    tests2 =  NSGAIIRecord(id = 2,  tests = [0.43, 6.79])
+    tests3 =  NSGAIIRecord(id = 3,  tests = [0.22, 7.09])
+    tests4 =  NSGAIIRecord(id = 4,  tests = [0.59, 7.85])
+    tests5 =  NSGAIIRecord(id = 5,  tests = [0.66, 3.65])
+    tests6 =  NSGAIIRecord(id = 6,  tests = [0.83, 4.23])
+    tests7 =  NSGAIIRecord(id = 7,  tests = [0.21, 5.90])
+    tests8 =  NSGAIIRecord(id = 8,  tests = [0.79, 3.97])
+    tests9 =  NSGAIIRecord(id = 9,  tests = [0.51, 6.51])
+    tests10 = NSGAIIRecord(id = 10, tests = [0.27, 6.93])
+    tests11 = NSGAIIRecord(id = 11, tests = [0.58, 4.52])
+    tests12 = NSGAIIRecord(id = 12, tests = [0.24, 8.54])
 
     alltests = [tests1, tests2, tests3, tests4, tests5,
                 tests6, tests7, tests8, tests9, tests10,
@@ -264,7 +264,7 @@ individual_tests = SortedDict{Int, Vector{Float64}}(
     for id in keys(ids)
 )
 
-println(individual_tests)
-derived_tests = get_derived_tests(individual_tests, UInt32(32))
-println(derived_tests)
+# println(individual_tests)
+# tests = get_derived_tests(individual_tests, UInt32(32))
+# println(tests)
 end

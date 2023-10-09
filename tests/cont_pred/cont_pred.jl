@@ -84,7 +84,8 @@ function cont_pred_eco_creator(;
                         domain = ContinuousPredictionGameDomain(
                             Competitive()
                         ),
-                        episode_length = episode_length
+                        episode_length = episode_length,
+                        communication_dimension = 0
                     ),
                     species_ids = [species_id1, species_id3],
                     matchmaker = AllvsAllMatchMaker(type = :plus),
@@ -102,7 +103,7 @@ function cont_pred_eco_creator(;
 end
 
 
-eco_creator = cont_pred_eco_creator(n_pop = 20, n_workers = 1)
+eco_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
 eco = evolve!(eco_creator, n_gen=5)
 @test length(eco.species) == 3
 
@@ -134,7 +135,7 @@ function cont_pred_eco_creator(;
                 geno_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
-                replacer = TruncationReplacer(:plus),
+                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
                 selector = TournamentSelector(
                     μ = n_pop, tournament_size = 3, selection_func=argmin
                 ),
@@ -147,7 +148,7 @@ function cont_pred_eco_creator(;
                 geno_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
-                replacer = TruncationReplacer(:plus),
+                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
                 selector = TournamentSelector(
                     μ = n_pop, tournament_size = 3, selection_func=argmin
                 ),
@@ -160,7 +161,7 @@ function cont_pred_eco_creator(;
                 geno_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
-                replacer = TruncationReplacer(:plus),
+                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
                 selector = TournamentSelector(μ = n_pop, tournament_size = 3),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
@@ -175,7 +176,7 @@ function cont_pred_eco_creator(;
                         ContinuousPredictionGameDomain(
                             CooperativeMismatching()
                         ),
-                        16
+                        16, 0
                     ),
                     species_ids = [species_id1, species_id2],
                     matchmaker = AllvsAllMatchMaker(type = :plus),
@@ -186,7 +187,7 @@ function cont_pred_eco_creator(;
                         ContinuousPredictionGameDomain(
                             Competitive()
                         ),
-                        16
+                        16, 0
                     ),
                     species_ids = [species_id1, species_id3],
                     matchmaker = AllvsAllMatchMaker(type = :plus),
@@ -205,7 +206,7 @@ function cont_pred_eco_creator(;
 end
 
 
-eco_creator = cont_pred_eco_creator(n_pop = 20, n_workers = 1)
+eco_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
 eco = evolve!(eco_creator, n_gen=5)
 @test length(eco.species) == 3
 

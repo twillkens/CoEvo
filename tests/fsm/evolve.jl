@@ -134,7 +134,7 @@ function cont_pred_eco_creator(;
                     maximize = true,
                     perform_disco = true
                 ),
-                replacer = TruncationReplacer(:plus),
+                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
                 selector = TournamentSelector(
                     μ = n_pop, tournament_size = 3, selection_func=argmin
                 ),
@@ -150,7 +150,7 @@ function cont_pred_eco_creator(;
                     maximize = true,
                     perform_disco = true
                 ),
-                replacer = TruncationReplacer(:plus),
+                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
                 selector = TournamentSelector(
                     μ = n_pop, tournament_size = 3, selection_func=argmin
                 ),
@@ -163,7 +163,7 @@ function cont_pred_eco_creator(;
                 geno_creator = FiniteStateMachineGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
-                replacer = TruncationReplacer(:plus),
+                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
                 selector = TournamentSelector(μ = n_pop, tournament_size = 3),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
@@ -206,7 +206,7 @@ function cont_pred_eco_creator(;
 end
 
 
-eco_creator = cont_pred_eco_creator(n_pop = 20, n_workers = 1)
+eco_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
 eco = evolve!(eco_creator, n_gen=5)
 @test length(eco.species) == 3
 

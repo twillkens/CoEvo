@@ -71,8 +71,8 @@ function replace_connection(
     old_conn::GnarlNetworkConnectionGene, 
     new_conn::GnarlNetworkConnectionGene
 )
-    println("old_conn: $old_conn")
-    println("new_conn: $new_conn")
+    #println("old_conn: $old_conn")
+    #println("new_conn: $new_conn")
     new_connections = deepcopy(geno.connections)
     new_connections[findfirst(x -> x.id == old_conn.id, new_connections)] = new_conn
     return GnarlNetworkGenotype(geno.n_input_nodes, geno.n_output_nodes, geno.hidden_nodes, new_connections)
@@ -85,7 +85,7 @@ function fallback_random_connection(
     geno::GnarlNetworkGenotype,
     node_to_remove_position::Float32,
 )
-    println("------------FALLBACK RANDOM CONNECTION------------")
+    #println("------------FALLBACK RANDOM CONNECTION------------")
     # Get possible origins: only input and hidden nodes (excluding output nodes and node_to_remove_position)
     possible_origins = filter(n -> n < 1.0, get_neuron_positions(geno))
     available_origins = setdiff(possible_origins, [node_to_remove_position])
@@ -170,24 +170,24 @@ function remove_node_from_genotype(geno::GnarlNetworkGenotype, node_to_remove::G
 end
 
 function remove_node_2(rng::AbstractRNG, geno::GnarlNetworkGenotype, node_to_remove::GnarlNetworkNodeGene)
-    println("------------REMOVE NODE 2------------")
-    println("node_to_remove: $node_to_remove")
+    #println("------------REMOVE NODE 2------------")
+    #println("node_to_remove: $node_to_remove")
     incoming_connections = filter(conn -> conn.destination == node_to_remove.position && conn.destination != conn.origin, geno.connections)
     outgoing_connections = filter(conn -> conn.origin == node_to_remove.position && conn.origin != conn.destination, geno.connections)
     self_connections = filter(conn -> conn.origin == node_to_remove.position && conn.origin == conn.destination, geno.connections)
     
     updated_geno = deepcopy(geno)
     if length(self_connections) > 0
-        println("connection.destination == connection.origin")
+        #println("connection.destination == connection.origin")
         updated_geno = remove_connection(updated_geno, self_connections[1])
     end
     for conn in incoming_connections
         new_conn = redirect_or_replace_connection(rng, updated_geno, node_to_remove.position, conn, :incoming)
         if new_conn === nothing
-            println("new_conn is nothing for incoming")
+            #println("new_conn is nothing for incoming")
             updated_geno = remove_connection(updated_geno, conn)
         else
-            println("new_conn is not nothing for incoming")
+            #println("new_conn is not nothing for incoming")
             updated_geno = replace_connection(updated_geno, conn, new_conn)
         end
     end
@@ -195,10 +195,10 @@ function remove_node_2(rng::AbstractRNG, geno::GnarlNetworkGenotype, node_to_rem
     for conn in outgoing_connections
         new_conn = redirect_or_replace_connection(rng, updated_geno, node_to_remove.position, conn, :outgoing)
         if new_conn === nothing
-            println("new_conn is nothing for outgoing")
+            #println("new_conn is nothing for outgoing")
             updated_geno = remove_connection(updated_geno, conn)
         else
-            println("new_conn is not nothing for outgoing")
+            #println("new_conn is not nothing for outgoing")
             updated_geno = replace_connection(updated_geno, conn, new_conn)
         end
     end
@@ -495,9 +495,9 @@ function mutate(
     mutation_functions = sample(rng, functions, function_weights, mutator.n_changes)
     guilty = nothing
     for mutation_function in mutation_functions
-        println("------------------------------------MUTATAEEEE-------------------------------")
-        println("mutation_function: $mutation_function")
-        println("geno: $geno")
+        #println("------------------------------------MUTATAEEEE-------------------------------")
+        #println("mutation_function: $mutation_function")
+        #println("geno: $geno")
         geno = mutation_function(rng, gene_id_counter, geno)
         guilty = mutation_function
     end
@@ -508,7 +508,6 @@ function mutate(
         if node ∉ neuron_positions
             println("geno before: $geno_before")
             println("geno after: $geno")
-
             throw(ErrorException("Invalid mutation: $guilty, node removed but not from links"))
         end
         node_gene_ids = Set(gene.id for gene in geno.hidden_nodes)

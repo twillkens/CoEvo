@@ -226,7 +226,7 @@ pheno1 = create_phenotype(DefaultPhenotypeCreator(), geno1)
 pheno2 = create_phenotype(DefaultPhenotypeCreator(), geno2)
 outcome_metric = Control()
 domain = ContinuousPredictionGameDomain(outcome_metric)
-env_creator = TapeEnvironmentCreator(domain, 10)
+env_creator = TapeEnvironmentCreator(domain, 10, 0)
 
 env = create_environment(env_creator, Phenotype[pheno1, pheno2])
 

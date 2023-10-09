@@ -29,7 +29,13 @@ function nsga_tournament(rng::AbstractRNG, parents::Array{<:NSGAIIRecord}, tourn
             elseif d2.crowding > d1.crowding
                 return d2
             else
-                return rand(rng, (d1, d2))
+                if d1.fitness > d2.fitness
+                    return d1
+                elseif d2.fitness > d1.fitness
+                    return d2
+                else
+                    return rand(rng, (d1, d2))
+                end
             end
         end
     end

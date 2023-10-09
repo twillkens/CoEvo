@@ -99,8 +99,8 @@ rng = StableRNG(42)
 # 
 # indiv_ids = merge(indiv_ids_1, indiv_ids_2)
 # 
-# derived_tests = get_derived_tests(rng, indiv_ids)
-# println("derived_tests: $derived_tests")
+# tests = get_derived_tests(rng, indiv_ids)
+# println("tests: $tests")
 
 
 tests_1 = Dict(
