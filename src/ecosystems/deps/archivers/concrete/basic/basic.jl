@@ -11,6 +11,7 @@ using ...Archivers.Abstract: Archiver
 using ....Reporters.Abstract: Report
 using ....Reporters.Types.Basic: BasicReport
 using ....Reporters.Types.Runtime: RuntimeReport
+using ....Metrics.Abstract: Metric
 using ....Metrics.Concrete.Evaluations: AllSpeciesFitness
 using ....Metrics.Concrete.Genotypes: GenotypeSum, GenotypeSize
 using ....Metrics.Concrete.Common: AbsoluteError
@@ -36,34 +37,60 @@ function archive!(
     end
 end
 
-function archive!(
-    ::BasicArchiver, 
-    gen::Int, 
-    report::BasicReport{GenotypeSum, GroupStatisticalMeasurement}
-)
-    for (species_id, measurement) in report.measurement.measurements
-        println("----")
-        println("Sum for species ", species_id)
-        println("Mean: ", measurement.mean)
-    end
+# function archive!(
+#     ::BasicArchiver, 
+#     gen::Int, 
+#     report::BasicReport{GenotypeSum, GroupStatisticalMeasurement}
+# )
+#     for (species_id, measurement) in report.measurement.measurements
+#         println("----")
+#         println("Sum for species ", species_id)
+#         println("Mean: ", measurement.mean)
+#     end
+# end
+
+function save_measurement!(group::Group, measurement::BasicStatisticalMeasurement)
+    group["sum"] = measurement.sum
+    group["upper_confidence"] = measurement.upper_confidence
+    group["mean"] = measurement.mean
+    group["lower_confidence"] = measurement.lower_confidence
+    group["variance"] = measurement.variance
+    group["std"] = measurement.std
+    group["minimum"] = measurement.minimum
+    group["lower_quartile"] = measurement.lower_quartile
+    group["median"] = measurement.median
+    group["upper_quartile"] = measurement.upper_quartile
+    group["maximum"] = measurement.maximum
+    group["skew"] = measurement.skew
+    group["kurt"] = measurement.kurt
+    group["mode"] = measurement.mode
 end
 
 function archive!(
     archiver::BasicArchiver, 
     gen::Int, 
-    report::BasicReport{GenotypeSize, GroupStatisticalMeasurement}
+    report::BasicReport{<:Metric, GroupStatisticalMeasurement}
 )
-    if report.to_print
-        for (species_id, measurement) in report.measurement.measurements
-            println("----")
-            println("Mean: ", measurement.mean)
-            println("Min: ", measurement.minimum)
-            println("Max: ", measurement.maximum)
-            println("Std: ", measurement.std)
-        end
+    for (species_id, measurement) in sort(collect(report.measurement.measurements), by = x -> x[1])
+        println("---$(report.metric.name): $species_id---")
+        println("Mean: ", measurement.mean)
+        println("Min: ", measurement.minimum)
+        println("Max: ", measurement.maximum)
+        println("Std: ", measurement.std)
     end
     if report.to_save
-        # finish me
+        jld2_file = jldopen(archiver.jld2_path, "a+")
+        base_path = "measurements/$gen/$(report.metric.name)"
+        
+        # Create or access the group for the generation
+        gen_group = get_or_make_group!(jld2_file, base_path)
+        
+        for (species_id, measurement) in report.measurement.measurements
+            species_group = get_or_make_group!(gen_group, species_id)
+            save_measurement!(species_group, measurement)
+        end
+        
+        close(jld2_file)
     end
 end
 
@@ -80,20 +107,20 @@ function archive!(
     println("Mean: ", measurement.mean)
     println("Max: ", measurement.maximum)
 end
-function archive!(
-    ::BasicArchiver, 
-    gen::Int, 
-    report::BasicReport{AllSpeciesFitness, GroupStatisticalMeasurement}
-)
-    for (species_id, measurement) in report.measurement.measurements
-        println("----")
-        println("Fitness for species ", species_id)
-        println("Mean: ", measurement.mean)
-        #println("Min: ", measurement.minimum)
-        #println("Max: ", measurement.maximum)
-        #println("Std: ", measurement.std)
-    end
-end
+#function archive!(
+#    ::BasicArchiver, 
+#    gen::Int, 
+#    report::BasicReport{AllSpeciesFitness, GroupStatisticalMeasurement}
+#)
+#    for (species_id, measurement) in report.measurement.measurements
+#        println("----")
+#        println("Fitness for species ", species_id)
+#        println("Mean: ", measurement.mean)
+#        println("Min: ", measurement.minimum)
+#        println("Max: ", measurement.maximum)
+#        println("Std: ", measurement.std)
+#    end
+#end
 
 using ...Archivers.Interfaces: save_genotype!
 using ....Species.Individuals: Individual

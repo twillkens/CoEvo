@@ -7,6 +7,7 @@ using DataStructures: OrderedDict
 using ....Species.Abstract: AbstractSpecies
 using ....Species.Individuals: Individual
 using ...Evaluators.Abstract: Evaluation, Evaluator
+using StatsBase: mean
 
 import ...Evaluators.Interfaces: create_evaluation, get_ranked_ids
 
@@ -31,12 +32,12 @@ function create_evaluation(
         indiv.id for indiv in values(merge(species.pop, species.children)) 
         if indiv.id in keys(outcomes)
     ]
-    outcome_sums = [
-        sum(outcomes[indiv_id][partner_id] 
+    outcome_means = [
+        mean(outcomes[indiv_id][partner_id] 
         for partner_id in keys(outcomes[indiv_id]))
         for indiv_id in indiv_ids 
     ]
-    fitnesses = evaluator.maximize ? outcome_sums : -outcome_sums
+    fitnesses = evaluator.maximize ? outcome_means : -outcome_means
     min_fitness = minimum(fitnesses)
     shift_value = (min_fitness <= 0) ? abs(min_fitness) + evaluator.epsilon : 0
     fitnesses .+= shift_value
@@ -45,7 +46,7 @@ function create_evaluation(
         indiv_ids[i] => fitnesses[i] for i in eachindex(indiv_ids)
     )
     indiv_fitnesses = OrderedDict(sort(collect(indiv_fitnesses), by = x-> x[2], rev=true))
-    evaluation = ScalarFitnessEvaluation(species.id, indiv_fitnesses, outcome_sums)
+    evaluation = ScalarFitnessEvaluation(species.id, indiv_fitnesses, outcome_means)
     return evaluation
 end
 

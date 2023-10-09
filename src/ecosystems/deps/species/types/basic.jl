@@ -124,7 +124,15 @@ function create_species(
         indiv_id => Individual(indiv_id, geno, Int[]) 
         for (indiv_id, geno) in zip(indiv_ids, genos)
     )
-    return BasicSpecies(species_creator.id, pop)
+    genos = create_genotypes(
+        species_creator.geno_creator, rng, gene_id_counter, species_creator.n_pop
+    ) 
+    indiv_ids = next!(indiv_id_counter, species_creator.n_pop)
+    children = Dict(
+        indiv_id => Individual(indiv_id, geno, Int[]) 
+        for (indiv_id, geno) in zip(indiv_ids, genos)
+    )
+    return BasicSpecies(species_creator.id, pop, children)
 end
 
 """

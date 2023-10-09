@@ -10,17 +10,21 @@ import ....Environments.Interfaces: create_environment, is_active
 
 Base.@kwdef struct TapeEnvironmentCreator{D <: Domain} <: EnvironmentCreator{D}
     domain::D
-    max_length::Int
+    episode_length::Int
+    communication_dimension::Int = 0
 end
 
-Base.@kwdef mutable struct TapeEnvironment{D, P <: Phenotype} <: Environment{D}
+Base.@kwdef mutable struct TapeEnvironment{D, P1 <: Phenotype, P2 <: Phenotype} <: Environment{D}
     domain::D
-    phenotypes::Vector{P}
-    max_length::Int
-    pos1::Float64 = 0.0
-    pos2::Float64 = 0.0
-    tape1::Vector{Float64} = [0.0]
-    tape2::Vector{Float64} = [0.0]
+    entity_1::P1
+    entity_2::P2
+    episode_length::Int
+    position_1::Float32 = Float32(π)
+    position_2::Float32 = 0.0f0
+    movement_scale::Float32 = Float32(π / 16)
+    distances::Vector{Float32} = Float32[]
+    communication_1::Vector{Float32} = Float32[]
+    communication_2::Vector{Float32} = Float32[]
 end
 
 function create_environment(
@@ -29,13 +33,16 @@ function create_environment(
 ) where {D <: Domain}
     return TapeEnvironment(
         domain = environment_creator.domain,
-        phenotypes = phenotypes,
-        max_length = environment_creator.max_length,
+        entity_1 = phenotypes[1],
+        entity_2 = phenotypes[2],
+        episode_length = environment_creator.episode_length,
+        communication_1 = zeros(Float32, environment_creator.communication_dimension),
+        communication_2 = zeros(Float32, environment_creator.communication_dimension)
     )
 end
 
 function is_active(environment::TapeEnvironment)
-    return length(environment.tape1) - 1 < environment.max_length
+    return length(environment.distances) - 1 < environment.episode_length
 end
 
 end

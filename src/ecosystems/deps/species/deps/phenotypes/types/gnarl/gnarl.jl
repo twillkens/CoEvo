@@ -132,4 +132,8 @@ function act!(
     return outputs
 end
 
+act!(phenotype::GnarlNetworkPhenotype, inputs::Vector{Float64}) = act!(phenotype, Float32.(inputs))
+
+act!(phenotype::GnarlNetworkPhenotype, input::Real) = act!(phenotype, [input])
+
 end

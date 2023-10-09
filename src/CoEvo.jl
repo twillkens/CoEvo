@@ -62,7 +62,7 @@ export Ecosystem, EcosystemCreator,
        Archivers, Archiver, archive!, BasicArchiver,
        ContinuousPredictionGameDomain,
        NumbersGameOutcomeMetrics, PredictionGameOutcomeMetrics,
-       TapeEnvironment, TapeEnvironmentCreator,
+       TapeEnvironment, TapeEnvironmentCreator, TapeMethods,
        GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
        GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
        GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
@@ -73,7 +73,8 @@ export Ecosystem, EcosystemCreator,
        CollisionGameOutcomeMetrics, CollisionGameDomain, CollisionGameEnvironment, 
        CollisionGameEnvironmentCreator,
        BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader,
-       GeneticProgramGenotypeLoader, GnarlNetworkGenotypeLoader, EcosystemLoader, load_ecosystem
+       GeneticProgramGenotypeLoader, GnarlNetworkGenotypeLoader, EcosystemLoader, load_ecosystem,
+       FastGlobalKMeans
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
@@ -139,6 +140,7 @@ using .Evaluators.Abstract: Evaluation, Evaluator
 using .Evaluators.Types.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
 using .Evaluators.Types.Null: NullEvaluator, NullEvaluation
 using .Evaluators.Types.NSGAII: NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods, Disco
+using .Evaluators.Types.NSGAII: FastGlobalKMeans
 println("loaded evaluators")
 
 using .Species: Replacers
@@ -179,7 +181,6 @@ using .Interactions: Domains
 using .Domains.Abstract: Domain
 using .Domains.Concrete: NumbersGameDomain, SymbolicRegressionDomain, CollisionGameDomain
 using .Domains.Concrete: ContinuousPredictionGameDomain, LinguisticPredictionGameDomain
- 
 println("loaded domains")
 
 using .Interactions: MatchMakers
@@ -202,7 +203,7 @@ using .Interactions: Environments
 using .Environments.Abstract: Environment, EnvironmentCreator
 using .Environments.Interfaces: create_environment, next!, get_outcome_set, is_active, observe! #
 using .Environments.Concrete.Stateless: StatelessEnvironment, StatelessEnvironmentCreator #
-using .Environments.Concrete.Tape: TapeEnvironment, TapeEnvironmentCreator #
+using .Environments.Concrete.Tape: TapeEnvironment, TapeEnvironmentCreator, TapeMethods #
 using .Environments.Concrete.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
 using .Environments.Concrete.LinguisticPredictionGame: LinguisticPredictionGameEnvironment
 using .Environments.Concrete.CollisionGame: CollisionGameEnvironment, CollisionGameEnvironmentCreator

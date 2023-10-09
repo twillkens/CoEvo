@@ -232,7 +232,7 @@ env = create_environment(env_creator, Phenotype[pheno1, pheno2])
 
 # TODO: concrete test for env
 while is_active(env)
-    #println("pos1: ", env.pos1, " pos2: ", env.pos2)
+    #println("position_1: ", env.position_1, " position_2: ", env.position_2)
     next!(env)
 end
 #println("tape1: $(env.tape1), tape2: $(env.tape2)")

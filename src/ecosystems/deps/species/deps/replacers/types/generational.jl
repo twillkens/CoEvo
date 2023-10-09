@@ -10,7 +10,7 @@ using ....Species.Individuals: Individual
 using ....Species.Abstract: AbstractSpecies
 using ....Species.Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
 
-import ...Interfaces: replace
+import ...Replacers.Interfaces: replace
 
 
 Base.@kwdef struct GenerationalReplacer <: Replacer

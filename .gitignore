@@ -14,6 +14,8 @@ data
 run/old
 .venv/
 doc
+scratch
+todo
 
 python/gedlibpy/build
 

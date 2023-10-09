@@ -73,7 +73,7 @@ function cont_pred_eco_creator(;
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMatching()
                         ),
-                        max_length = episode_length
+                        episode_length = episode_length
                     ),
                     species_ids = [species_id1, species_id2],
                     matchmaker = AllvsAllMatchMaker(type = :plus),
@@ -84,7 +84,7 @@ function cont_pred_eco_creator(;
                         domain = ContinuousPredictionGameDomain(
                             Competitive()
                         ),
-                        max_length = episode_length
+                        episode_length = episode_length
                     ),
                     species_ids = [species_id1, species_id3],
                     matchmaker = AllvsAllMatchMaker(type = :plus),

@@ -11,7 +11,6 @@ abstract type Sense end
 struct Max <: Sense end
 struct Min <: Sense end
 
-
 Base.@kwdef mutable struct NSGAIIRecord
     id::Int = 0
     fitness::Float64 = 0
@@ -20,22 +19,22 @@ Base.@kwdef mutable struct NSGAIIRecord
     crowding::Float64 = 0.0
     dom_count::Int = 0
     dom_list::Vector{Int} = Int[]
-    derived_tests::Vector{Float64} = Float64[]
 end
+
 function dominates(::Max, a::NSGAIIRecord, b::NSGAIIRecord)
     res = false
-    for i in eachindex(a.derived_tests)
-        @inbounds a.derived_tests[i] < b.derived_tests[i] && return false
-        @inbounds a.derived_tests[i] > b.derived_tests[i] && (res = true)
+    for i in eachindex(a.tests)
+        @inbounds a.tests[i] < b.tests[i] && return false
+        @inbounds a.tests[i] > b.tests[i] && (res = true)
     end
     res
 end
 
 function dominates(::Min, a::NSGAIIRecord, b::NSGAIIRecord)
     res = false
-    for i in eachindex(a.derived_tests)
-        @inbounds a.derived_tests[i] > b.derived_tests[i] && return false
-        @inbounds a.derived_tests[i] < b.derived_tests[i] && (res = true)
+    for i in eachindex(a.tests)
+        @inbounds a.tests[i] > b.tests[i] && return false
+        @inbounds a.tests[i] < b.tests[i] && (res = true)
     end
     res
 end
@@ -86,20 +85,20 @@ function crowding_distance_assignment!(
     function_minimums::Union{Nothing, Vector{Float64}} = nothing,
     function_maximums::Union{Nothing, Vector{Float64}} = nothing
 )
-    @inbounds for j = 1:length(first(indivs).derived_tests) # Foreach objective
+    @inbounds for j = 1:length(first(indivs).tests) # Foreach objective
         let j = j #https://github.com/JuliaLang/julia/issues/15276
-            sort!(indivs, by = x -> x.derived_tests[j]) #sort by the objective value
+            sort!(indivs, by = x -> x.tests[j]) #sort by the objective value
         end
         indivs[1].crowding = indivs[end].crowding = Inf #Assign infinite value to extremas
-        if indivs[1].derived_tests[j] != indivs[end].derived_tests[j]
+        if indivs[1].tests[j] != indivs[end].tests[j]
             for i = 2:length(indivs) - 1
-                greater_neighbor_value = indivs[i + 1].derived_tests[j] 
-                lesser_neighbor_value = indivs[i - 1].derived_tests[j]
+                greater_neighbor_value = indivs[i + 1].tests[j] 
+                lesser_neighbor_value = indivs[i - 1].tests[j]
                 minimum_value = function_minimums === nothing ? 
-                    indivs[1].derived_tests[j] :
+                    indivs[1].tests[j] :
                     function_minimums[j]
                 maximum_value = function_maximums === nothing ? 
-                    indivs[end].derived_tests[j] :
+                    indivs[end].tests[j] :
                     function_maximums[j]
                 crowding = (greater_neighbor_value - lesser_neighbor_value) / 
                            (maximum_value - minimum_value)
@@ -152,12 +151,19 @@ function nsga_tournament(rng::AbstractRNG, parents::Array{<:NSGAIIRecord}, tourn
             elseif d2.crowding > d1.crowding
                 return d2
             else
-                return rand(rng, (d1, d2))
+                if d1.fitness > d2.fitness
+                    return d1
+                elseif d2.fitness > d1.fitness
+                    return d2
+                else
+                    return rand(rng, (d1, d2))
+                end
             end
         end
     end
     contenders = rand(rng, parents, tourn_size)
-    reduce(get_winner, contenders)
+    winner = reduce(get_winner, contenders)
+    return winner
 end
 
 

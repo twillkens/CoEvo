@@ -8,6 +8,7 @@ using ....Species.Genotypes.Abstract: Genotype
 
 Base.@kwdef struct GenotypeSize <: Metric 
     name::String = "GenotypeSize"
+    minimize::Bool = false
 end
 
 function measure(::GenotypeSize, genotype::Genotype)

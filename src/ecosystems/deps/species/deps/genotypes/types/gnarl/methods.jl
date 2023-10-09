@@ -3,7 +3,7 @@ module GnarlMethods
 using Random: AbstractRNG
 using .....Ecosystems.Utilities.Counters: Counter
 using ..GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkConnectionGene, GnarlNetworkNodeGene
-import ...Genotypes.Interfaces: create_genotypes
+import ...Genotypes.Interfaces: create_genotypes, minimize
 
 function get_neuron_positions(geno::GnarlNetworkGenotype)
     fixed_positions = Float32.(-geno.n_input_nodes:geno.n_output_nodes)

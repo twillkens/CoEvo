@@ -9,6 +9,7 @@ using .....Ecosystems.Interactions.Observers.Abstract: Observation
 using .....Measurements.Types: BasicStatisticalMeasurement, GroupStatisticalMeasurement
 using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
 using .....Ecosystems.Species.Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
+using .....Ecosystems.Species.Evaluators.Types.NSGAII: NSGAIIEvaluation
 using .....Ecosystems.Species.Abstract: AbstractSpecies
 using .....Ecosystems.Interactions.Abstract: Interaction
 using ....Reporters.Abstract: Reporter
@@ -20,22 +21,24 @@ using .....Measurements.Types: AllSpeciesMeasurement
 
 
 import ....Reporters.Interfaces: create_report, measure
+using .....Species.Genotypes.Interfaces: get_size, minimize
 
-function get_size(genotype::GeneticProgramGenotype)
-    root = get_node(genotype, genotype.root_id)
-    children = get_child_nodes(genotype, root)
-    return length(children) + 1
-end
+#function get_size(genotype::GeneticProgramGenotype)
+#    root = get_node(genotype, genotype.root_id)
+#    children = get_child_nodes(genotype, root)
+#    return length(children) + 1
+#end
 
 
 function measure(
-    ::Reporter{GenotypeSize},
+    reporter::Reporter{GenotypeSize},
     species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
     ::Vector{<:Observation}
 )
     species_measurements = Dict(
         species.id => BasicStatisticalMeasurement(
-            [get_size(individual.geno) for individual in values(species.pop)]
+            [reporter.metric.minimize ? get_size(minimize(individual.geno)) : get_size(individual.geno) 
+            for individual in values(species.pop)]
         ) 
         for species in keys(species_evaluations)
     )
@@ -70,6 +73,22 @@ function measure(
         collect(species_evaluations)
     )[1][2]
     measurement = BasicStatisticalMeasurement(evaluation.outcome_sums)
+    return measurement
+end
+
+function measure(
+    ::Reporter{AllSpeciesFitness},
+    species_evaluations::Dict{<:AbstractSpecies, NSGAIIEvaluation},
+    ::Vector{<:Observation}
+)
+    species_measurements = Dict(
+        species.id => BasicStatisticalMeasurement(
+            [record.fitness for record in evaluation.disco_records]
+        ) 
+        for (species, evaluation) in species_evaluations
+    )
+        
+    measurement = GroupStatisticalMeasurement(species_measurements)
     return measurement
 end
 

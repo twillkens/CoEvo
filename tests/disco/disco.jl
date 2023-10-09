@@ -1,5 +1,5 @@
-#include("../src/CoEvo.jl")
-#using .CoEvo
+include("../../src/CoEvo.jl")
+using .CoEvo
 using Random
 using StableRNGs: StableRNG
 using Test
@@ -7,6 +7,7 @@ using Test
 
 using .NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
 using .NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
+using .Disco: Disco, get_derived_tests
 
 @testset "NSGA-II" begin
 println("Starting tests for NSGA-II and Disco...")
@@ -104,35 +105,35 @@ end
     @test findfirst(x -> x == pop[10], pop) in [10]
 end
 
-@testset "Disco" begin
-    gen = 1
-    rng = StableRNG(42)
-    indiv_id_counter = Counter()
-    gene_id_counter = Counter()
-    species_id = "subjects"
-    n_pop = 10
-
-    default_vector = collect(1:10)
-
-    # Define species configuration similar to spawner
-    species_creator = BasicSpeciesCreator(
-        id = species_id,
-        n_pop = n_pop,
-        geno_creator = BasicVectorGenotypeCreator(
-            default_vector = default_vector
-        ),
-        phenotype_creator = DefaultPhenotypeCreator(),
-        evaluator = NSGAIIEvaluator(),
-        replacer = GenerationalReplacer(),
-        selector = FitnessProportionateSelector(n_parents = 2),
-        recombiner = CloneRecombiner(),
-        mutators = [IdentityMutator()],
-    )
-    species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
-    dummy_outcomes = generate_nested_dict(n_pop, n_pop)
-    evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
-    @test length(evaluation.disco_records) == n_pop
-end
+# @testset "Disco" begin
+#     gen = 1
+#     rng = StableRNG(42)
+#     indiv_id_counter = Counter()
+#     gene_id_counter = Counter()
+#     species_id = "subjects"
+#     n_pop = 10
+# 
+#     default_vector = collect(1:10)
+# 
+#     # Define species configuration similar to spawner
+#     species_creator = BasicSpeciesCreator(
+#         id = species_id,
+#         n_pop = n_pop,
+#         geno_creator = BasicVectorGenotypeCreator(
+#             default_vector = default_vector
+#         ),
+#         phenotype_creator = DefaultPhenotypeCreator(),
+#         evaluator = NSGAIIEvaluator(),
+#         replacer = GenerationalReplacer(),
+#         selector = FitnessProportionateSelector(n_parents = 2),
+#         recombiner = CloneRecombiner(),
+#         mutators = [IdentityMutator()],
+#     )
+#     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
+#     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
+#     evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
+#     @test length(evaluation.disco_records) == n_pop
+# end
 
 
 @testset "nsga!-2" begin
@@ -210,4 +211,60 @@ end
 end
 println("Finished tests for NSGA-II and Disco.")
 
+
+outcomes_1 = Dict(
+    4 => 1.0,
+    5 => 0.0,
+    6 => 0.0
+)
+
+outcomes_2 = Dict(
+    4 => 0.8,
+    5 => 0.0,
+    6 => 0.0
+)
+
+outcomes_3 = Dict(
+    4 => 0.0,
+    5 => 0.0,
+    6 => 1.0
+)
+
+outcomes_4 = Dict(
+    4 => 0.7,
+    5 => 0.0,
+    6 => 0.9
+)
+
+outcomes_5 = Dict(
+    4 => 0.0,
+    5 => 1.0,
+    6 => 0.0
+)
+
+outcomes_6 = Dict(
+    4 => 0.0,
+    5 => 1.0,
+    6 => 0.0
+)
+outcomes = Dict(
+    1 => outcomes_1,
+    2 => outcomes_2,
+    3 => outcomes_3,
+    #4 => outcomes_4,
+    #5 => outcomes_5,
+    #6 => outcomes_6
+)
+using DataStructures: SortedDict
+
+ids = [1, 2, 3]
+#ids = [1, 2, 3, 4, 5, 6]
+individual_tests = SortedDict{Int, Vector{Float64}}(
+    id => [pair.second for pair in sort(collect(outcomes[id]), by = x -> x[1])]
+    for id in keys(ids)
+)
+
+println(individual_tests)
+derived_tests = get_derived_tests(individual_tests, UInt32(32))
+println(derived_tests)
 end

@@ -1,6 +1,6 @@
 module Interfaces
 
-export create_genotypes, minimize
+export create_genotypes, minimize, get_size
 
 using Random: AbstractRNG
 
@@ -21,6 +21,12 @@ end
 function minimize(geno::Genotype)::Genotype
     throw(ErrorException(
         "Default genotype minimization for $geno, not implemented."
+    ))
+end
+
+function get_size(geno::Genotype)::Int
+    throw(ErrorException(
+        "Default genotype size for $geno, not implemented."
     ))
 end
 

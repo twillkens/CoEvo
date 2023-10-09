@@ -7,13 +7,17 @@ using .....Ecosystems.Utilities.Counters: Counter
 using ..Genes: GnarlNetworkNodeGene, GnarlNetworkConnectionGene
 using ...Genotypes.Abstract: Genotype, GenotypeCreator
 
-import ....Genotypes.Interfaces: create_genotypes
+import ....Genotypes.Interfaces: create_genotypes, get_size
 
 Base.@kwdef struct GnarlNetworkGenotype <: Genotype
     n_input_nodes::Int
     n_output_nodes::Int
     hidden_nodes::Vector{GnarlNetworkNodeGene}
     connections::Vector{GnarlNetworkConnectionGene}
+end
+
+function get_size(genotype::GnarlNetworkGenotype)
+    return length(genotype.connections)
 end
 
 function Base.show(io::IO, genotype::GnarlNetworkGenotype)

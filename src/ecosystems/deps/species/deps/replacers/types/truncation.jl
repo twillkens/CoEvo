@@ -11,7 +11,8 @@ import ...Replacers.Interfaces: replace
 
 # Returns the best npop individuals from both the population and children
 Base.@kwdef struct TruncationReplacer <: Replacer
-    type::Symbol = :plus
+    type::Symbol = :comma
+    n_truncate::Int = 50
 end
 
 
@@ -30,10 +31,29 @@ function replace(
     else
         throw(ErrorException("Invalid TruncationReplacer type: $(replacer.type)"))
     end
-    ranked_ids = get_ranked_ids(evaluation, collect(keys(candidates)))
+    ids = [record.id for record in evaluation.disco_records]
+    if replacer.n_truncate > 0
+        ids = ids[1:replacer.n_truncate]
+    end
+
     new_pop = Dict(
-        id => indiv for (id, indiv) in candidates if id in ranked_ids[1:length(species.pop)]
+        id => indiv for (id, indiv) in candidates if id in ids
     )
+
+    #fitnesses = [disco_record.fitness for disco_record in evaluation.disco_records]
+    #discos = [disco_record.rank for disco_record in evaluation.disco_records]
+    #fit_discos = [(round(fitnesses[i], digits=2), discos[i]) for i in 1:replacer.n_truncate]
+
+    #println("discos: ", fit_discos)
+    println("--------")
+    println([record.rank for record in evaluation.disco_records])
+    println([round(record.crowding, digits=2) for record in evaluation.disco_records])
+    println([round(record.fitness, digits=2) for record in evaluation.disco_records])
+    println(length(evaluation.disco_records[1].tests))
+    #println("fitnesses: ", fitnesses)
+    # new_pop = Dict(
+    #     id => indiv for (id, indiv) in candidates if id in ranked_ids[1:replacer.n_truncate]
+    # )
     return new_pop
 end
 

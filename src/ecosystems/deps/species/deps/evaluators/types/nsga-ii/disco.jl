@@ -26,7 +26,7 @@ function get_derived_tests(indiv_tests::SortedDict{Int, Vector{Float64}}, seed::
         test_matrix, 2, random_state=seed
     ).initialize()
     xmeans_instance = xmeans.xmeans(
-        test_matrix, centers, div(length(indiv_tests), 2), random_state=seed
+        test_matrix, centers, length(indiv_tests), random_state=seed
     )
     xmeans_instance.process()
     centers = xmeans_instance.get_centers()
