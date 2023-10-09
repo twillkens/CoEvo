@@ -18,395 +18,242 @@ import ...Mutators.Interfaces: mutate
 
 
 
+# Utility functions
 function get_next_layer(geno::GnarlNetworkGenotype, nodes::Vector{Float32})
-    downstream_nodes = Set{Float32}()
-    for conn in geno.connections
-        if conn.origin in nodes
-            push!(downstream_nodes, conn.destination)
-        end
-    end
-    return collect(downstream_nodes)
+    return [conn.destination for conn in geno.connections if conn.origin in nodes && conn.destination != conn.origin]
 end
 
 function get_previous_layer(geno::GnarlNetworkGenotype, nodes::Vector{Float32})
-    upstream_nodes = Set{Float32}()
-    for conn in geno.connections
-        if conn.destination in nodes
-            push!(upstream_nodes, conn.origin)
-        end
-    end
-    return collect(upstream_nodes)
+    return [conn.origin for conn in geno.connections if conn.destination in nodes && conn.destination != conn.origin]
 end
 
 function exists_connection(geno::GnarlNetworkGenotype, origin::Float32, destination::Float32)
     return any(conn -> conn.origin == origin && conn.destination == destination, geno.connections)
 end
 
-function is_valid_new_connection(geno, node_to_remove_position, ongoing_connections, origin, destination)
-    
-    # Check for duplicates
-    if exists_connection(geno, origin, destination) || 
-       any(conn -> conn.origin == origin && conn.destination == destination, ongoing_connections)
+function is_valid_new_connection(geno, node_to_remove_position, origin, destination)
+    if exists_connection(geno, origin, destination)
         return false
     end
 
-    if origin == node_to_remove_position || destination == node_to_remove_position
+    if origin == node_to_remove_position || 
+            destination == node_to_remove_position || 
+            destination <= 0.0 || 
+            origin >= 1.0
         return false
     end
-    if destination <= 0.0
-        return false
-    end
-    if origin >= 1.0
-        return false
-    end
-
-    # Any other connection-related checks
-    # ...
-
     return true
 end
 
+function remove_connection(geno::GnarlNetworkGenotype, conn::GnarlNetworkConnectionGene)
+    return GnarlNetworkGenotype(
+        geno.n_input_nodes, geno.n_output_nodes, geno.hidden_nodes, 
+        filter(x -> x.id != conn.id, geno.connections)
+    )
+end
+
+# Core functions
+function redirect_connection(rng, geno, node_to_remove_position, connection)
+    available_destinations = setdiff(get_neuron_positions(geno), [connection.origin])
+    valid_destinations = filter(dest -> is_valid_new_connection(geno, node_to_remove_position, connection.origin, dest), available_destinations)
+    
+    if isempty(valid_destinations)
+        throw(ErrorException("Redirect failed: no available nodes found."))
+    end
+
+    return rand(rng, valid_destinations)
+end
+
+function redirect_incoming_connection(
+    rng, 
+    geno::GnarlNetworkGenotype, 
+    node_to_remove_position, 
+    connection, 
+    
+)
+    current_nodes = [connection.destination]
+    source_node = connection.origin
+
+    tries = 0
+    
+    while !isempty(current_nodes)
+        println("current_nodes: $current_nodes")
+        next_nodes = filter(n -> n > 0.0, get_next_layer(geno, current_nodes))
+        if isempty(next_nodes) || tries > 100
+            break
+        end
+        println("next_nodes: $next_nodes")
+        valid_nodes = filter(
+            n -> is_valid_new_connection(geno, node_to_remove_position, source_node, n),
+            next_nodes
+        )
+        println("valid_nodes: $valid_nodes")
+        
+        # Redirect if we find available nodes
+        if !isempty(valid_nodes)
+            return rand(rng, valid_nodes)
+        end
+
+        current_nodes = next_nodes
+        tries += 1
+    end
+    valid_nodes = filter(n -> n > 0.0 && n != connection.origin, get_neuron_positions(geno))
+    valid_nodes = filter(
+        n -> is_valid_new_connection(geno, node_to_remove_position, n, source_node),
+        valid_nodes
+    )
+    if isempty(valid_nodes)
+        return connection.destination
+    end
+    destination = rand(rng, valid_nodes)
+    return destination
+end
+
+
+function redirect_outgoing_connection(
+    rng, 
+    geno::GnarlNetworkGenotype, 
+    node_to_remove_position, 
+    connection, 
+)
+    current_nodes = [connection.origin]
+    source_node = connection.destination
+
+    tries = 0
+    
+    while !isempty(current_nodes)
+        println("current_nodes: $current_nodes")
+        next_nodes = filter(n -> n < 1.0, get_previous_layer(geno, current_nodes))
+        if isempty(next_nodes) || tries > 100
+            break
+        end
+        println("next_nodes: $next_nodes")
+        valid_nodes = filter(
+            n -> is_valid_new_connection(geno, node_to_remove_position, n, source_node),
+            next_nodes
+        )
+        println("valid_nodes: $valid_nodes")
+        
+        # Redirect if we find available nodes
+        if !isempty(valid_nodes)
+            return rand(rng, valid_nodes)
+        end
+
+        current_nodes = next_nodes
+        tries += 1
+    end
+    valid_nodes = filter(n -> n < 1.0 && n != connection.origin, get_neuron_positions(geno))
+    valid_nodes = filter(
+        n -> is_valid_new_connection(geno, node_to_remove_position, n, source_node),
+        valid_nodes
+    )
+    if isempty(valid_nodes)
+        return connection.origin
+    end
+    origin = rand(rng, valid_nodes)
+    return origin
+end
 
 function replace_connection(
     geno::GnarlNetworkGenotype, 
     old_conn::GnarlNetworkConnectionGene, 
     new_conn::GnarlNetworkConnectionGene
 )
-    println("-----------------REPLACE CONNECTION-----------------")
-    new_connections = deepcopy(geno.connections)
     println("old_conn: $old_conn")
     println("new_conn: $new_conn")
-    println("geno: $geno")
+    new_connections = deepcopy(geno.connections)
     new_connections[findfirst(x -> x.id == old_conn.id, new_connections)] = new_conn
     return GnarlNetworkGenotype(geno.n_input_nodes, geno.n_output_nodes, geno.hidden_nodes, new_connections)
 end
 
 
-# Redirect for incoming cascade
-function redirect_incoming_connection(rng, geno, node_to_remove_position, connection, ongoing_connections)
-    println("-----------------REDIRECT INCOMING CONNECTION-----------------")
-    println("connection: $connection")
-    current_nodes = [connection.destination]
-    source_node = connection.origin
-    println("current_nodes: $current_nodes")
-    println("source_node: $source_node")
-    
-    while !isempty(current_nodes)
-        next_nodes = filter(n -> n > 0.0, get_next_layer(geno, current_nodes))
-        println("next_nodes: $next_nodes")
-        
-        # Filter nodes not already connected
-        next_nodes = filter(
-            n -> is_valid_new_connection(geno, node_to_remove_position, ongoing_connections, source_node, n),
-            next_nodes
-        )
-        println("next_nodes: $next_nodes")
-        
-        # Redirect if we find available nodes
-        if !isempty(next_nodes)
-            found_node = rand(rng, next_nodes)
-            println("found_node: $found_node")
-            if !is_valid_new_connection(geno, node_to_remove_position, ongoing_connections, source_node, found_node)
-                println("INVALID CONNECTION")
-                throw(ErrorException("Invalid connection"))
-            end
-            return found_node
-        end
-
-        current_nodes = next_nodes
-        println("current_nodes: $current_nodes")
-    end
-    return connection.destination # if not redirected, it remains same
-end
-
-# Redirect for outgoing cascade
-function redirect_outgoing_connection(rng, geno, node_to_remove_position, connection, ongoing_connections)
-    println("-----------------REDIRECT OUTGOING CONNECTION-----------------")
-    println("connection: $connection")
-    current_nodes = [connection.origin]
-    source_node = connection.destination
-    println("current_nodes: $current_nodes")
-    println("source_node: $source_node")
-    
-    while !isempty(current_nodes)
-        next_nodes = filter(n -> n < 1.0, get_previous_layer(geno, current_nodes))
-        println("next_nodes: $next_nodes")
-        
-        # Filter nodes not already connected
-        next_nodes = filter(
-            n -> is_valid_new_connection(
-                geno, node_to_remove_position, ongoing_connections, n, source_node
-            ), 
-            next_nodes
-        )
-        println("next_nodes: $next_nodes")
-        
-        # Redirect if we find available nodes
-        if !isempty(next_nodes)
-            found_node = rand(rng, next_nodes)
-            println("found_node: $found_node")
-            if !is_valid_new_connection(geno, node_to_remove_position, ongoing_connections, found_node, source_node)
-                println("INVALID CONNECTION")
-                throw(ErrorException("Invalid connection"))
-            end
-            return found_node
-        end
-
-        current_nodes = next_nodes
-        println("current_nodes: $current_nodes")
-    end
-    return connection.origin # if not redirected, it remains same
-end
-
-function fallback_incoming_connection(
-    rng::AbstractRNG,
-    geno::GnarlNetworkGenotype,
-    node_to_remove_position::Float32,
-    source_node::Float32,
-    ongoing_connections::Vector{GnarlNetworkConnectionGene}
-)
-    # Start by getting all nodes except the source node
-    available_nodes = setdiff(get_neuron_positions(geno), [source_node])
-    
-    # Exclude nodes which already have a connection with the source node
-    available_nodes = filter(
-        position -> is_valid_new_connection(
-            geno, node_to_remove_position, ongoing_connections, source_node, position
-        ) && position > 0.0,
-        available_nodes
-    )
-    
-    # Safety check
-    if isempty(available_nodes)
-        return nothing
-        throw(ErrorException("Fallback failed: no available nodes found for incoming connection."))
-    end
-
-    return rand(rng, available_nodes)
-end
-
-function fallback_outgoing_connection(
-    rng::AbstractRNG,
-    geno::GnarlNetworkGenotype,
-    node_to_remove_position::Float32,
-    source_node::Float32,
-    ongoing_connections::Vector{GnarlNetworkConnectionGene}
-)
-    # Start by getting all nodes except the source node
-    available_nodes = setdiff(get_neuron_positions(geno), [source_node])
-    
-    # Exclude nodes which already have a connection with the source node
-    available_nodes = filter(
-        position -> is_valid_new_connection(
-            geno, node_to_remove_position, ongoing_connections, source_node, position
-        ) && position < 1.0,
-        available_nodes
-    )
-    
-    # Safety check
-    if isempty(available_nodes)
-        println("genotype: $geno")
-        println("node_to_remove_position: $node_to_remove_position")
-        println("source_node: $source_node")
-        println("ongoing_connections: $ongoing_connections")
-        return nothing
-    end
-
-    return rand(rng, available_nodes)
-end
-
-
-function handle_incoming_cascade(
-    rng::AbstractRNG,
-    geno::GnarlNetworkGenotype,
-    node_to_remove_position::Float32,
-    connection::GnarlNetworkConnectionGene,
-    ongoing_connections::Vector{GnarlNetworkConnectionGene}
-)
-    println("-----------------HANDLE INCOMING CASCADE-----------------")
-    println("connection: $connection")
-    new_destination = redirect_incoming_connection(rng, geno, node_to_remove_position, connection, ongoing_connections)
-
-    if new_destination == connection.destination
-        source_node = connection.origin
-        if is_valid_new_connection(geno, node_to_remove_position, ongoing_connections, source_node, source_node)
-            new_destination = source_node
-        else
-            new_destination = fallback_incoming_connection(rng, geno, node_to_remove_position, source_node, ongoing_connections)
-        end
-    end
-
-    return new_destination
-end
-
-function handle_outgoing_cascade(
-    rng::AbstractRNG,
-    geno::GnarlNetworkGenotype,
-    node_to_remove_position::Float32,
-    connection::GnarlNetworkConnectionGene,
-    ongoing_connections::Vector{GnarlNetworkConnectionGene}
-)
-    println("-----------------HANDLE OUTGOING CASCADE-----------------")
-    println("connection: $connection")
-    new_origin = redirect_outgoing_connection(rng, geno, node_to_remove_position, connection, ongoing_connections)
-
-    if new_origin == connection.origin
-        source_node = connection.destination
-        if is_valid_new_connection(geno, node_to_remove_position, ongoing_connections, source_node, source_node)
-            new_origin = source_node
-        else
-            new_origin = fallback_outgoing_connection(rng, geno, node_to_remove_position, source_node, ongoing_connections)
-        end
-    end
-
-    return new_origin
-end
-
-function redirect_or_replace_connection(
-    rng::AbstractRNG,
-    geno::GnarlNetworkGenotype,
-    node_to_remove_position::Float32,
-    connection::GnarlNetworkConnectionGene,
-    direction::Symbol,
-    ongoing_connections::Vector{GnarlNetworkConnectionGene} = GnarlNetworkConnectionGene[]
-)
-    println("-----------------REDIRECT OR REPLACE CONNECTION-----------------")
-    println("connection: $connection")
-
+function handle_cascade(rng, geno, node_to_remove_position, connection, direction)
     if direction == :incoming
-        new_destination = handle_incoming_cascade(rng, geno, node_to_remove_position, connection, ongoing_connections)
-        if new_destination === nothing
-            return nothing
-        end
-        return GnarlNetworkConnectionGene(
-            id = connection.id, 
-            origin = connection.origin, 
-            destination = new_destination, 
-            weight = connection.weight
-        )
+        return redirect_incoming_connection(rng, geno, node_to_remove_position, connection)
     else
-        new_origin = handle_outgoing_cascade(rng, geno, node_to_remove_position, connection, ongoing_connections)
-        if new_origin === nothing
-            return nothing
-        end
-        return GnarlNetworkConnectionGene(
-            id = connection.id, 
-            origin = new_origin, 
-            destination = connection.destination, 
-            weight = connection.weight
-        )
+        return redirect_outgoing_connection(rng, geno, node_to_remove_position, connection)
     end
 end
 
-
-
-
-
-# Updated based on the immutability of GnarlNetworkGenotype
-function remove_node_from_genotype(
-    geno::GnarlNetworkGenotype, 
-    node_to_remove::GnarlNetworkNodeGene
-)
-    new_hidden_nodes = filter(node -> node != node_to_remove, geno.hidden_nodes)
-    genotype = GnarlNetworkGenotype(
-        geno.n_input_nodes, geno.n_output_nodes, new_hidden_nodes, geno.connections
-    )
-    return genotype
-end
-
-function remove_node_2(
+function fallback_random_connection(
     rng::AbstractRNG,
     geno::GnarlNetworkGenotype,
-    node_to_remove::GnarlNetworkNodeGene
+    node_to_remove_position::Float32,
 )
-    println("-----------------REMOVE NODE-----------------")
-    println("geno: $geno")
-    println("node_to_remove: $node_to_remove")
-    incoming_connections = filter(
-        x -> x.destination == node_to_remove.position &&
-        x.destination != x.origin, 
-        geno.connections
-    )
-    outgoing_connections = filter(
-        x -> x.origin == node_to_remove.position &&
-        x.origin != x.destination, geno.connections
-    )
+    println("------------FALLBACK RANDOM CONNECTION------------")
+    # Get possible origins: only input and hidden nodes (excluding output nodes and node_to_remove_position)
+    possible_origins = filter(n -> n < 1.0, get_neuron_positions(geno))
+    available_origins = setdiff(possible_origins, [node_to_remove_position])
 
-    self_connections = filter(
-        x -> x.origin == node_to_remove.position &&
-        x.destination == node_to_remove.position, geno.connections
-    )
-    println("incoming_connections: $incoming_connections")
-    println("outgoing_connections: $outgoing_connections")
-    println("self_connections: $self_connections")
+    # Get possible destinations: only hidden and output nodes (excluding input nodes and node_to_remove_position)
+    possible_destinations = filter(n -> n > 0.0, get_neuron_positions(geno))
+    available_destinations = setdiff(possible_destinations, [node_to_remove_position])
+
+    # Filter to only valid connection pairs
+    valid_pairs = [
+        (o, d) for o in available_origins for d in available_destinations 
+        if is_valid_new_connection(geno, node_to_remove_position, o, d)
+    ]
+
+    if isempty(valid_pairs)
+        println("geno: $geno")
+        throw(ErrorException("No valid connection pairs found."))
+    end
+
+    return rand(rng, valid_pairs)
+end
+
+
+function redirect_or_replace_connection(rng, geno, node_to_remove_position, connection, direction)
+    if direction == :incoming
+        new_destination = handle_cascade(rng, geno, node_to_remove_position, connection, direction)
+        if new_destination == connection.destination
+            origin, destination = fallback_random_connection(rng, geno, node_to_remove_position)
+        else
+            origin, destination = connection.origin, new_destination
+        end
+    else
+        new_origin = handle_cascade(rng, geno, node_to_remove_position, connection, direction)
+        if new_origin == connection.origin
+            origin, destination = fallback_random_connection(rng, geno, node_to_remove_position)
+        else
+            origin, destination = new_origin, connection.destination
+        end
+    end
+    return GnarlNetworkConnectionGene(connection.id, origin, destination, connection.weight)
+end
+
+function remove_node_from_genotype(geno::GnarlNetworkGenotype, node_to_remove::GnarlNetworkNodeGene)
+    return GnarlNetworkGenotype(geno.n_input_nodes, geno.n_output_nodes, filter(node -> node != node_to_remove, geno.hidden_nodes), geno.connections)
+end
+
+function remove_node_2(rng::AbstractRNG, geno::GnarlNetworkGenotype, node_to_remove::GnarlNetworkNodeGene)
+    incoming_connections = filter(conn -> conn.destination == node_to_remove.position && conn.destination != conn.origin, geno.connections)
+    outgoing_connections = filter(conn -> conn.origin == node_to_remove.position && conn.origin != conn.destination, geno.connections)
     
-    new_geno = deepcopy(geno)
-    
-    new_incoming_connections = []
+    updated_geno = deepcopy(geno)
     for conn in incoming_connections
-        new_conn = redirect_or_replace_connection(
-            rng, new_geno, node_to_remove.position, conn, :incoming, GnarlNetworkConnectionGene[x for x in new_incoming_connections if x !== nothing]
-        )
-        push!(new_incoming_connections, new_conn)
-        #new_geno = replace_connection(new_geno, conn, new_conn)
+        new_conn = redirect_or_replace_connection(rng, updated_geno, node_to_remove.position, conn, :incoming)
+        updated_geno = replace_connection(updated_geno, conn, new_conn)
     end
-    println("new_incoming_connections: $new_incoming_connections")
-    
-    new_outgoing_connections = []
+
     for conn in outgoing_connections
-        all_conns = GnarlNetworkConnectionGene[x for x in [new_incoming_connections ; new_outgoing_connections] if x !== nothing]
-        new_conn = redirect_or_replace_connection(
-            rng, new_geno, node_to_remove.position, conn, :outgoing, all_conns
-        )
-        push!(new_outgoing_connections, new_conn)
-        # new_geno = replace_connection(new_geno, conn, new_conn)
+        new_conn = redirect_or_replace_connection(rng, updated_geno, node_to_remove.position, conn, :outgoing)
+        updated_geno = replace_connection(updated_geno, conn, new_conn)
     end
 
-    println("new_outgoing_connections: $new_outgoing_connections")
-    for (old_conn, new_conn) in zip(incoming_connections, new_incoming_connections)
-        if new_conn === nothing
-            new_geno = remove_connection(new_geno, old_conn)
-        else
-            new_geno = replace_connection(new_geno, old_conn, new_conn)
-        end
-    end
-
-    for (old_conn, new_conn) in zip(outgoing_connections, new_outgoing_connections)
-        if new_conn === nothing
-            new_geno = remove_connection(new_geno, old_conn)
-        else
-            new_geno = replace_connection(new_geno, old_conn, new_conn)
-        end
-    end
-
-    if !isempty(self_connections)
-        new_geno = remove_connection(new_geno, self_connections[1])
-    end
-
-    println("new_geno: $new_geno")
-    
-    # Now, remove the target node
-    return remove_node_from_genotype(new_geno, node_to_remove)
+    return remove_node_from_genotype(updated_geno, node_to_remove)
 end
 
-function remove_node_2(
-    rng::AbstractRNG,
-    ::Counter,
-    geno::GnarlNetworkGenotype,
-)
-    if length(geno.hidden_nodes) == 0
-        return deepcopy(geno)
-    end
-    node_to_remove = rand(rng, geno.hidden_nodes)
-    genotype = remove_node_2(rng, geno, node_to_remove)
-    return genotype
+function remove_node_2(rng::AbstractRNG, ::Counter, geno::GnarlNetworkGenotype)
+    return length(geno.hidden_nodes) == 0 ? deepcopy(geno) : remove_node_2(rng, geno, rand(rng, geno.hidden_nodes))
 end
+
 
 function redirect_connection(
     rng::AbstractRNG,
     geno::GnarlNetworkGenotype,
     connection::GnarlNetworkConnectionGene,
-    ongoing_connections::Vector{GnarlNetworkConnectionGene} = GnarlNetworkConnectionGene[]
 )
     # Fetch all neuron positions except the current connection's origin
     available_destinations = setdiff(get_neuron_positions(geno), [connection.origin])
@@ -414,7 +261,7 @@ function redirect_connection(
     # Exclude destinations which already have a connection from the source node
     available_destinations = filter(
         destination -> is_valid_new_connection(
-            geno, -999f0, ongoing_connections, connection.origin, destination
+            geno, -999f0, connection.origin, destination
         ),
         available_destinations
     )
@@ -689,6 +536,7 @@ function mutate(
     for mutation_function in mutation_functions
         println("------------------------------------MUTATAEEEE-------------------------------")
         println("mutation_function: $mutation_function")
+        println("geno: $geno")
         geno = mutation_function(rng, gene_id_counter, geno)
         guilty = mutation_function
     end
@@ -697,15 +545,22 @@ function mutate(
     destination_nodes = [gene.destination for gene in geno.connections]
     for node in union(origin_nodes, destination_nodes) 
         if node ∉ neuron_positions
+            println("geno before: $geno_before")
+            println("geno after: $geno")
+
             throw(ErrorException("Invalid mutation: $guilty, node removed but not from links"))
         end
         node_gene_ids = Set(gene.id for gene in geno.hidden_nodes)
         if length(node_gene_ids) != length(geno.hidden_nodes)
+            println("geno before: $geno_before")
+            println("geno after: $geno")
             throw(ErrorException("Invalid mutation: $guilty, duplicate node ids"))
         end
 
         connection_gene_ids = Set(gene.id for gene in geno.connections)
         if length(connection_gene_ids) != length(geno.connections)
+            println("geno before: $geno_before")
+            println("geno after: $geno")
             throw(ErrorException("Invalid mutation: $guilty, duplicate connection ids"))
         end
     end
