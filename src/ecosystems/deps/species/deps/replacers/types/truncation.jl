@@ -45,15 +45,19 @@ function replace(
     #fit_discos = [(round(fitnesses[i], digits=2), discos[i]) for i in 1:replacer.n_truncate]
 
     #println("discos: ", fit_discos)
-    #println("--------")
+    println("----------------------")
+
+    info = [(record.rank, round(record.fitness, digits = 2), round(record.crowding, digits=2)) for record in evaluation.disco_records]
+    println("info for $(species.id): ", info)
     #println([record.rank for record in evaluation.disco_records])
     #println([round(record.crowding, digits=2) for record in evaluation.disco_records])
     #println([round(record.fitness, digits=2) for record in evaluation.disco_records])
-    #println(length(evaluation.disco_records[1].tests))
-    #println("fitnesses: ", fitnesses)
-    # new_pop = Dict(
-    #     id => indiv for (id, indiv) in candidates if id in ranked_ids[1:replacer.n_truncate]
-    # )
+    println("num clusters: ", length(evaluation.disco_records[1].tests))
+    ids = [record.id for record in evaluation.disco_records]
+    new_pop = Dict(
+        id => indiv for (id, indiv) in candidates if id in ids[1:replacer.n_truncate]
+    )
+    println("new_pop: ", length(new_pop))
     return new_pop
 end
 

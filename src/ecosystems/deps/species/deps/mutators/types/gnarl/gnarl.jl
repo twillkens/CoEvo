@@ -2,7 +2,7 @@ module GnarlNetworks
 
 export mutate_weight, GnarlNetworkMutator, mutate_weights, add_node, remove_node
 export add_connection, remove_connection, get_neuron_positions, find_valid_connection_positions
-export find_available_nodes, get_next_layer, get_previous_layer, create_unique_random_connection
+export get_next_layer, get_previous_layer
 export replace_connection, redirect_or_replace_connection, remove_node_from_genotype
 export remove_node_2, redirect_connection
 
@@ -53,7 +53,12 @@ function remove_connection(geno::GnarlNetworkGenotype, conn::GnarlNetworkConnect
 end
 
 # Core functions
-function redirect_connection(rng, geno, node_to_remove_position, connection)
+function redirect_connection(
+    rng::AbstractRNG, 
+    geno::GnarlNetworkGenotype, 
+    node_to_remove_position::Float32,
+    connection::GnarlNetworkConnectionGene
+)
     available_destinations = setdiff(get_neuron_positions(geno), [connection.origin])
     valid_destinations = filter(dest -> is_valid_new_connection(geno, node_to_remove_position, connection.origin, dest), available_destinations)
     
@@ -120,7 +125,12 @@ function get_valid_next_step(
     end
 end
 
-function attempt_cascade(geno, node_to_remove_position, connection, direction)
+function attempt_cascade(
+    geno::GnarlNetworkGenotype, 
+    node_to_remove_position::Float32, 
+    connection::GnarlNetworkConnectionGene, 
+    direction::Symbol
+)
     current_nodes = direction == :incoming ? [connection.destination] : [connection.origin]
     next_nodes = get_valid_next_step(geno, current_nodes, direction)
     next_nodes = filter(
@@ -473,11 +483,12 @@ end
 Base.@kwdef struct GnarlNetworkMutator <: Mutator
     n_changes::Int = 1
     probs::Dict{Function, Float64} = Dict(
-        add_node => 1 / 5,
-        remove_node_2 => 1 / 5,
-        add_connection => 1 / 5,
-        remove_connection => 1 / 5,
-        redirect_connection => 1 / 5
+
+        add_node => 1 / 4,
+        remove_node => 1 / 4,
+        add_connection => 1 / 4,
+        remove_connection => 1 / 4,
+        #redirect_connection => 1 / 5
     )
     weight_factor::Float64 = 0.1
 end

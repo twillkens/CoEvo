@@ -4,12 +4,12 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using .CoEvo
 using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMatching, Competitive
-using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMismatching
+using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMismatching, Control
 
 function cont_pred_eco_creator(;
     id::String = "ContinuousPredictionGame",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
+    rng::AbstractRNG = StableRNG(69),
     n_pop::Int = 100,
     host::String = "Host",
     mutualist::String = "Mutualist",
@@ -18,7 +18,7 @@ function cont_pred_eco_creator(;
     interaction_id2::String = "Host-Parasite-Competitive",
     n_elite::Int = 0,
     n_workers::Int = 1,
-    episode_length::Int = 16,
+    episode_length::Int = 32,
     matchmaking_type::Symbol = :comma,
     communication_dimension::Int = 1,
     n_input_nodes::Int = communication_dimension + 2,
@@ -37,7 +37,12 @@ function cont_pred_eco_creator(;
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
-                evaluator = NSGAIIEvaluator(maximize = true, perform_disco = true, include_parents = false),
+                evaluator = NSGAIIEvaluator(
+                    max_clusters = 5, 
+                    maximize = true, 
+                    perform_disco = true, 
+                    include_parents = false
+                ),
                 replacer = TruncationReplacer(type = :comma, n_truncate = n_truncate),
                 selector = TournamentSelector(μ = n_pop, tournament_size = 3),
                 recombiner = CloneRecombiner(),
@@ -50,7 +55,12 @@ function cont_pred_eco_creator(;
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
-                evaluator = NSGAIIEvaluator(maximize = true, perform_disco = true, include_parents = false),
+                evaluator = NSGAIIEvaluator(
+                    max_clusters = 5, 
+                    maximize = true, 
+                    perform_disco = true, 
+                    include_parents = false
+                ),
                 replacer = TruncationReplacer(type = :comma, n_truncate = n_truncate),
                 selector = TournamentSelector(μ = n_pop, tournament_size = 3),
                 recombiner = CloneRecombiner(),
@@ -63,7 +73,12 @@ function cont_pred_eco_creator(;
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
-                evaluator = NSGAIIEvaluator(maximize = true, perform_disco = true, include_parents = false),
+                evaluator = NSGAIIEvaluator(
+                    max_clusters = 5, 
+                    maximize = true, 
+                    perform_disco = true, 
+                    include_parents = false
+                ),
                 replacer = TruncationReplacer(type = :comma, n_truncate = n_truncate),
                 selector = TournamentSelector(μ = n_pop, tournament_size = 3),
                 recombiner = CloneRecombiner(),
@@ -95,6 +110,18 @@ function cont_pred_eco_creator(;
                         communication_dimension = communication_dimension
                     ),
                     species_ids = [parasite, host],
+                    matchmaker = AllvsAllMatchMaker(type = matchmaking_type),
+                ),
+                "c" => BasicInteraction(
+                    id = "c",
+                    environment_creator = TapeEnvironmentCreator(
+                        domain = ContinuousPredictionGameDomain(
+                            CooperativeMismatching()
+                        ),
+                        episode_length = episode_length,
+                        communication_dimension = communication_dimension
+                    ),
+                    species_ids = [parasite, mutualist],
                     matchmaker = AllvsAllMatchMaker(type = matchmaking_type),
                 ),
             ),

@@ -5,6 +5,7 @@ export TapeEnvironment, TapeEnvironmentCreator
 using .....Interactions.Domains.Abstract: Domain
 using ....Environments.Abstract: Environment, EnvironmentCreator
 using ......Species.Phenotypes.Abstract: Phenotype
+using ......Species.Phenotypes.Interfaces: reset!
 
 import ....Environments.Interfaces: create_environment, is_active
 
@@ -31,6 +32,8 @@ function create_environment(
     environment_creator::TapeEnvironmentCreator{D},
     phenotypes::Vector{Phenotype}
 ) where {D <: Domain}
+    reset!(phenotypes[1])
+    reset!(phenotypes[2])
     return TapeEnvironment(
         domain = environment_creator.domain,
         entity_1 = phenotypes[1],

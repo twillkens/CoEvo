@@ -61,15 +61,11 @@ end
 
 
 function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype)
-    #println("---------------------------")
-    #println("genotype: $genotype")
     neuron_positions = get_neuron_positions(genotype)
-    #println("neuron_positions: $neuron_positions")
     neurons = Dict(
         position => GnarlNetworkPhenotypeNeuron(position, 0.0f0)
         for position in neuron_positions
     )
-    # println("neurons: $neurons")
     connection_map = Dict(
         position => filter(
             connection -> connection.destination == position, 
@@ -77,7 +73,6 @@ function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype)
         ) 
         for position in neuron_positions
     )
-    #println("connection_map: $connection_map")
     operations = [
         GnarlNetworkPhenotypeNodeOperation(
             [
@@ -90,7 +85,6 @@ function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype)
         ) 
         for position in neuron_positions
     ]
-    #println("operations: $operations")
     phenotype = GnarlNetworkPhenotype(
         genotype.n_input_nodes, genotype.n_output_nodes, neurons, operations
     )
