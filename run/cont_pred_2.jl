@@ -10,7 +10,7 @@ function cont_pred_eco_creator(;
     id::String = "ContinuousPredictionGame",
     trial::Int = 1,
     rng::AbstractRNG = StableRNG(69),
-    n_pop::Int = 100,
+    n_pop::Int = 50,
     host::String = "Host",
     mutualist::String = "Mutualist",
     parasite::String = "Parasite",
@@ -19,11 +19,19 @@ function cont_pred_eco_creator(;
     n_elite::Int = 0,
     n_workers::Int = 1,
     episode_length::Int = 32,
-    matchmaking_type::Symbol = :comma,
+    matchmaking_type::Symbol = :plus,
     communication_dimension::Int = 1,
     n_input_nodes::Int = communication_dimension + 2,
     n_output_nodes::Int = communication_dimension + 1,
-    n_truncate = 50
+    n_truncate = 50,
+    tournament_size::Int = 3,
+    max_clusters::Int = 5,
+    mutator::GnarlNetworkMutator = GnarlNetworkMutator(probs = Dict(
+        :add_node => 0.25,
+        :add_connection => 0.25,
+        :remove_node => 0.25,
+        :remove_connection => 0.25
+    ))
 )
     eco_creator = BasicEcosystemCreator(
         id = id,
@@ -38,15 +46,15 @@ function cont_pred_eco_creator(;
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(
-                    max_clusters = 5, 
+                    max_clusters = max_clusters, 
                     maximize = true, 
                     perform_disco = true, 
-                    include_parents = false
+                    include_parents = true
                 ),
-                replacer = TruncationReplacer(type = :comma, n_truncate = n_truncate),
-                selector = TournamentSelector(μ = n_pop, tournament_size = 3),
+                replacer = TruncationReplacer(type = matchmaking_type, n_truncate = n_truncate),
+                selector = TournamentSelector(μ = n_pop, tournament_size = tournament_size),
                 recombiner = CloneRecombiner(),
-                mutators = [GnarlNetworkMutator()]
+                mutators = [mutator]
             ),
             mutualist => BasicSpeciesCreator(
                 id = mutualist,
@@ -56,15 +64,15 @@ function cont_pred_eco_creator(;
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(
-                    max_clusters = 5, 
+                    max_clusters = max_clusters, 
                     maximize = true, 
                     perform_disco = true, 
-                    include_parents = false
+                    include_parents = true
                 ),
-                replacer = TruncationReplacer(type = :comma, n_truncate = n_truncate),
-                selector = TournamentSelector(μ = n_pop, tournament_size = 3),
+                replacer = TruncationReplacer(type = matchmaking_type, n_truncate = n_truncate),
+                selector = TournamentSelector(μ = n_pop, tournament_size = tournament_size),
                 recombiner = CloneRecombiner(),
-                mutators = [GnarlNetworkMutator()]
+                mutators = [mutator]
             ),
             parasite => BasicSpeciesCreator(
                 id = parasite,
@@ -74,15 +82,15 @@ function cont_pred_eco_creator(;
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(
-                    max_clusters = 5, 
+                    max_clusters = max_clusters, 
                     maximize = true, 
                     perform_disco = true, 
-                    include_parents = false
+                    include_parents = true
                 ),
-                replacer = TruncationReplacer(type = :comma, n_truncate = n_truncate),
-                selector = TournamentSelector(μ = n_pop, tournament_size = 3),
+                replacer = TruncationReplacer(type = matchmaking_type, n_truncate = n_truncate),
+                selector = TournamentSelector(μ = n_pop, tournament_size = tournament_size),
                 recombiner = CloneRecombiner(),
-                mutators = [GnarlNetworkMutator()]
+                mutators = [mutator]
             ),
         ),
         job_creator = BasicJobCreator(
@@ -126,7 +134,7 @@ function cont_pred_eco_creator(;
                 ),
             ),
         ),
-        performer = BasicPerformer(n_workers = n_workers),
+        performer = CachePerformer(n_workers = n_workers),
         reporters = Reporter[
             BasicReporter(metric = GenotypeSize()),
             BasicReporter(metric = GenotypeSize(name = "MinimizedGenotypeSize", minimize = true)),
@@ -139,8 +147,12 @@ function cont_pred_eco_creator(;
 end
 
 
-eco_creator = cont_pred_eco_creator()
-eco = evolve!(eco_creator, n_gen=10_000)
+function run(n_gen::Int = 5_000) 
+    eco_creator = cont_pred_eco_creator()
+    eco = evolve!(eco_creator, n_gen=n_gen)
+end
+
+run()
 
 
 

@@ -74,7 +74,7 @@ export Ecosystem, EcosystemCreator,
        CollisionGameEnvironmentCreator,
        BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader,
        GeneticProgramGenotypeLoader, GnarlNetworkGenotypeLoader, EcosystemLoader, load_ecosystem,
-       FastGlobalKMeans
+       FastGlobalKMeans, CachePerformer
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
@@ -219,6 +219,8 @@ using .Ecosystems.Performers: Performers
 using .Performers.Abstract: Performer
 using .Performers.Interfaces: perform
 using .Performers.Concrete.Basic: BasicPerformer
+using .Performers.Concrete.Cache: CachePerformer
+
 println("loaded performers")
 
 using .Ecosystems: Measurements

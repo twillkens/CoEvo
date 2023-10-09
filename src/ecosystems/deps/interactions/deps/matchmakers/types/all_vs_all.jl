@@ -73,6 +73,8 @@ function make_matches(
     species1 = all_species[species_ids[1]]
     species2 = all_species[species_ids[2]]
     matches = make_matches(matchmaker, interaction_id, species1, species2)
+    #println("Created $(length(matches)) matches for interaction $interaction_id between species $(species_ids[1]) and $(species_ids[2])")
+
     return matches
 end
 

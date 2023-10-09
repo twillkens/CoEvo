@@ -56,6 +56,26 @@ end
     @test environment_mock.communication_2 == Float32[2.0, 3.0]
 end
 
+
+@testset "next!" begin
+    domain_mock = ContinuousPredictionGameDomain(:Control)
+    entity1_mock = MockPhenotype()
+    entity2_mock = MockPhenotype()
+    environment_mock = TapeEnvironment(
+        domain = domain_mock,
+        entity_1 = entity1_mock, 
+        entity_2 = entity2_mock, 
+        episode_length = 10
+    )
+    next!(environment_mock)
+    @test environment_mock.position_1 ≠ environment_mock.position_2
+    @test length(environment_mock.distances) == 1
+    @test environment_mock.communication_1 == Float32[2.0, 3.0]
+    @test environment_mock.communication_2 == Float32[2.0, 3.0]
+end
+
+
+
 # @testset "get_outcome_set" begin
 #     domain_mock = ContinuousPredictionGameDomain(:Control)
 #     entity1_mock = MockPhenotype()

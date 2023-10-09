@@ -11,6 +11,7 @@ struct Result{O <: Observation}
     observations::Vector{O}
 end
 
+
 """
     get_outcomes(observations::Vector{<:Observation})
 

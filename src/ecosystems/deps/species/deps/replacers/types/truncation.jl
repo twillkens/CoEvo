@@ -31,33 +31,17 @@ function replace(
     else
         throw(ErrorException("Invalid TruncationReplacer type: $(replacer.type)"))
     end
-    ids = [record.id for record in evaluation.disco_records]
-    if replacer.n_truncate > 0
-        ids = ids[1:replacer.n_truncate]
-    end
+    #println("----------------------")
 
-    new_pop = Dict(
-        id => indiv for (id, indiv) in candidates if id in ids
-    )
-
-    #fitnesses = [disco_record.fitness for disco_record in evaluation.disco_records]
-    #discos = [disco_record.rank for disco_record in evaluation.disco_records]
-    #fit_discos = [(round(fitnesses[i], digits=2), discos[i]) for i in 1:replacer.n_truncate]
-
-    #println("discos: ", fit_discos)
-    println("----------------------")
-
-    info = [(record.rank, round(record.fitness, digits = 2), round(record.crowding, digits=2)) for record in evaluation.disco_records]
-    println("info for $(species.id): ", info)
-    #println([record.rank for record in evaluation.disco_records])
-    #println([round(record.crowding, digits=2) for record in evaluation.disco_records])
-    #println([round(record.fitness, digits=2) for record in evaluation.disco_records])
-    println("num clusters: ", length(evaluation.disco_records[1].tests))
+    #info = [(record.rank, round(record.fitness, digits = 2), round(record.crowding, digits=2)) for record in evaluation.disco_records]
+    #println("info for $(species.id): ", info)
+    #println("num clusters: ", length(evaluation.disco_records[1].tests))
+    #println("num records: ", length(evaluation.disco_records))
     ids = [record.id for record in evaluation.disco_records]
     new_pop = Dict(
         id => indiv for (id, indiv) in candidates if id in ids[1:replacer.n_truncate]
     )
-    println("new_pop: ", length(new_pop))
+    #println("new_pop: ", length(new_pop))
     return new_pop
 end
 

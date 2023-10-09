@@ -66,7 +66,7 @@ function next!(
         environment.movement_scale
     )
     environment.position_1 = apply_movement(environment.position_1, movement_1)
-    environment.position_2 = apply_movement(environment.position_2, -movement_2)
+    environment.position_2 = apply_movement(environment.position_2, movement_2)
 
     closest_distance = min(clockwise_distance, counterclockwise_distance)
     push!(environment.distances, closest_distance)

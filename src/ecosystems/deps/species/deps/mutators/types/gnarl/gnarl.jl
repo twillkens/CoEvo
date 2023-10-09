@@ -482,13 +482,20 @@ end
 
 Base.@kwdef struct GnarlNetworkMutator <: Mutator
     n_changes::Int = 1
-    probs::Dict{Function, Float64} = Dict(
-
-        add_node => 1 / 4,
-        remove_node => 1 / 4,
-        add_connection => 1 / 4,
-        remove_connection => 1 / 4,
+    probs::Dict{Symbol, Float64} = Dict(
+        :add_node => 1 / 4,
+        :remove_node => 1 / 4,
+        :add_connection => 1 / 4,
+        :remove_connection => 1 / 4,
         #redirect_connection => 1 / 5
+    )
+    symbol_to_function_dict = Dict(
+        :add_node => add_node,
+        :remove_node => remove_node,
+        :remove_node_2 => remove_node_2,
+        :add_connection => add_connection,
+        :remove_connection => remove_connection,
+        :redirect_connection => redirect_connection
     )
     weight_factor::Float64 = 0.1
 end
@@ -509,7 +516,8 @@ function mutate(
         #println("------------------------------------MUTATAEEEE-------------------------------")
         #println("mutation_function: $mutation_function")
         #println("geno: $geno")
-        geno = mutation_function(rng, gene_id_counter, geno)
+
+        geno = mutator.symbol_to_function_dict[mutation_function](rng, gene_id_counter, geno)
         guilty = mutation_function
     end
     neuron_positions = get_neuron_positions(geno)

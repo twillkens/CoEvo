@@ -5,7 +5,7 @@ export GeneticProgramPhenotype
 using ....Genotypes.GeneticPrograms: GeneticProgramGenotype
 using ...Abstract: PhenotypeCreator, Phenotype
 
-import ...Phenotypes.Interfaces: act!, create_phenotype
+import ...Phenotypes.Interfaces: act!, create_phenotype, reset!
 using ..Nodes: linearize, LinearNode, FUNCTION, TERMINAL, CONDITIONAL, ELSEJUMP, NodeType
 
 
@@ -25,6 +25,11 @@ end
 
 function create_phenotype(::PhenotypeCreator, geno::GeneticProgramGenotype)
     GeneticProgramPhenotype(geno)
+end
+
+function reset!(phenotype::GeneticProgramPhenotype)
+    phenotype.head = length(phenotype.tape)
+    
 end
 
 
