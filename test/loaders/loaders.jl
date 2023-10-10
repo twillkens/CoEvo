@@ -1,7 +1,8 @@
 using JLD2
-
+using DataFrames
+using CSV
+using Plots
 using CoEvo.Ecosystems.Measurements: BasicStatisticalMeasurement
-
 
 function load_submetric_value(
     file::JLD2.JLDFile, gen::Int, species_id::String, metric::String, submetric::String
@@ -71,14 +72,13 @@ function extract_measurements(
 
         trial_id += 1
     end
-    println("measurements_per_trial: ", measurements_per_trial)
+    # println("measurements_per_trial: ", measurements_per_trial)
     measurements_per_gen = process_measurements(measurements_per_trial)
 
     # Convert to a vector of BasicStatisticalMeasurements
     return measurements_per_gen
 end
 
-using Plots
 
 function plot_measurements(
     ecosystem_id::String, species_ids::Vector{String}, metric::String, submetric::String,
@@ -150,8 +150,6 @@ function measurements_to_dataframe(
     return df
 end
 
-using CSV
-
 function dispatch_measurements_to_dataframe(
     ecosystem_id::String,
     generations::UnitRange{Int},
@@ -193,5 +191,5 @@ gen = 10
 
 #plot_measurements(ecosystem_id, ["Host", "Mutualist", "Parasite"], "GenotypeSize", "mean", 1:10)
 #plot_measurements(ecosystem_id, ["Host", "Mutualist", "Parasite"], "GenotypeSize", "mean", 1:10)
-df = measurements_to_dataframe(ecosystem_id, ["Host", "Mutualist", "Parasite"], "GenotypeSize", "mean", 1:10)
-println(df)
+# df = measurements_to_dataframe(ecosystem_id, ["Host", "Mutualist", "Parasite"], "GenotypeSize", "mean", 1:10)
+# println(df)
