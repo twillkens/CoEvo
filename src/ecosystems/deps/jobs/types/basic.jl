@@ -80,6 +80,17 @@ function create_phenotypes(
     return phenotypes
 end
 
+function filter_phenotypes_by_matches(
+    phenotypes::Dict{Int, <:Phenotype}, matches::Vector{<:Match}, 
+)
+    filtered_phenotypes = Dict(
+        indiv_id => phenotypes[indiv_id]
+        for match in matches
+        for indiv_id in match.indiv_ids
+    )
+    return filtered_phenotypes
+end
+
 function create_jobs(
     job_creator::BasicJobCreator, 
     rng::AbstractRNG,
@@ -101,7 +112,11 @@ function create_jobs(
     match_partitions = make_partitions(matches, job_creator.n_workers)
     phenotypes = create_phenotypes(species_creators, all_species)
     jobs = [
-        BasicJob(job_creator.interactions, phenotypes, match_partition)
+        BasicJob(
+            job_creator.interactions, 
+            filter_phenotypes_by_matches(phenotypes, match_partition), 
+            match_partition
+        )
         for match_partition in match_partitions
     ]
     return jobs

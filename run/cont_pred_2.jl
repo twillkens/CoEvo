@@ -18,7 +18,7 @@ function cont_pred_eco_creator(;
     interaction_id1::String = "Host-Mutualist-CooperativeMatching",
     interaction_id2::String = "Host-Parasite-Competitive",
     n_elite::Int = 0,
-    n_workers::Int = 1,
+    n_workers::Int = 5,
     episode_length::Int = 32,
     matchmaking_type::Symbol = :plus,
     communication_dimension::Int = 1,

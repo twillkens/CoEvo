@@ -2,7 +2,7 @@ module Cache
 
 export CachePerformer
 
-using Distributed: remotecall, fetch
+using Distributed: remotecall, fetch, workers
 
 using ....Species.Phenotypes.Abstract: Phenotype
 using ....Interactions.Results: Result
@@ -11,8 +11,11 @@ using ....Interactions.Observers.Abstract: Observer
 using ....Interactions.Environments.Interfaces: create_environment
 using ....Interactions.Interfaces: interact
 using ....Jobs.Basic: BasicJob
+using ....Jobs.Abstract: Job
 using ....Performers.Abstract: Performer
+using ....Performers.Concrete.Basic: BasicPerformer
 using ....Interactions.MatchMakers.Matches.Abstract: Match
+using ....Interactions.MatchMakers.Matches.Basic: BasicMatch
 
 import ...Performers.Interfaces: perform
 
@@ -40,71 +43,19 @@ function filter_cached_matches(performer::CachePerformer, job::BasicJob)
 end
 
 
-function perform(performer::CachePerformer, job::BasicJob)
-    results = Result[]
-    cache_pairs = Pair{Match, Result}[]
-    for match in job.matches
-        if haskey(performer.cache, match)
-            # Use cached result
-            push!(results, performer.cache[match])
-        else
-            interaction = job.interactions[match.interaction_id]
-            phenotypes = Phenotype[job.phenotypes[indiv_id] for indiv_id in match.indiv_ids]
-            result = interact(
-                interaction,
-                match.indiv_ids,
-                phenotypes
-            )
-            # Cache the result
-            push!(results, result)
-            push!(cache_pairs, match => result)
-        end
-    end
-
+function perform(performer::CachePerformer, jobs::Vector{J}) where {J <: Job}
+    filtered_jobs_cached_results = [filter_cached_matches(performer, job) for job in jobs]
+    filtered_jobs = [item[1] for item in filtered_jobs_cached_results]
+    cached_results = vcat([item[2] for item in filtered_jobs_cached_results]...)
+    println("Cached results: ", length(cached_results))
+    basic_performer = BasicPerformer(performer.n_workers)
+    new_results = perform(basic_performer, filtered_jobs)
     empty!(performer.cache)
-    for (match, result) in cache_pairs
-        performer.cache[match] = result
-    end
-    println("Cache size: ", length(performer.cache))
-    return results
-end
-
-function perform_parallel(performer::CachePerformer, job::BasicJob, worker_id::Int)
-    # Temporarily detach the cache
-    cache = performer.cache
-    performer.cache = Dict{Match, Any}()
-    
-    # Use remotecall without sending the cache
-    future = remotecall(perform, worker_id, performer, job)
-
-    # Re-attach the cache
-    performer.cache = cache
-
-    return future
-end
-
-function perform(performer::CachePerformer, jobs::Vector{<:BasicJob})
-    if length(jobs) == 1
-        return perform(performer, jobs[1])
-    end
-    
-    all_results = []
-    workers_list = workers()
-    for (idx, job) in enumerate(jobs)
-        # Assuming we have as many jobs as workers, dispatch job[idx] to worker[idx]
-        worker_id = workers_list[idx]
-        
-        # Filter out matches that are already cached
-        new_job, cached_results = filter_cached_matches(performer, job)
-        append!(all_results, cached_results)
-        
-        # Dispatch only jobs with uncached matches
-        if !isempty(new_job.matches)
-            results = perform_parallel(performer, new_job, worker_id)
-            append!(all_results, results)
-        end
-    end
-    
+    [
+        push!(performer.cache, BasicMatch(result.interaction_id, result.indiv_ids) => result)
+        for result in new_results
+    ]
+    all_results = [cached_results ; new_results]
     return all_results
 end
 
