@@ -22,7 +22,7 @@ export Ecosystem, EcosystemCreator,
        Evaluators, create_evaluation, get_ranked_ids, Evaluation, Evaluator,
        ScalarFitnessEvaluator, ScalarFitnessEvaluation,
        NullEvaluator, NullEvaluation,
-       NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods, Disco,
+       NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods,
        Replacers, Replacer, replace,
        IdentityReplacer, GenerationalReplacer, TruncationReplacer,
        Selectors, Selector, select,
@@ -139,7 +139,7 @@ using .Evaluators.Interfaces: create_evaluation, get_ranked_ids
 using .Evaluators.Abstract: Evaluation, Evaluator
 using .Evaluators.Types.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
 using .Evaluators.Types.Null: NullEvaluator, NullEvaluation
-using .Evaluators.Types.NSGAII: NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods, Disco
+using .Evaluators.Types.NSGAII: NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods
 using .Evaluators.Types.NSGAII: FastGlobalKMeans
 println("loaded evaluators")
 

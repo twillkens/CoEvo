@@ -16,6 +16,12 @@ using ....Metrics.Concrete.Evaluations: AllSpeciesFitness
 using ....Metrics.Concrete.Genotypes: GenotypeSum, GenotypeSize
 using ....Metrics.Concrete.Common: AbsoluteError
 using ....Measurements: GroupStatisticalMeasurement, BasicStatisticalMeasurement
+using ...Archivers.Interfaces: save_genotype!
+using ....Species.Individuals: Individual
+using ...Archivers.Utilities: get_or_make_group!
+using ....Metrics.Concrete.Common: AllSpeciesIdentity
+using ....Measurements.Types: AllSpeciesMeasurement
+using ....Reporters.Types.Basic: BasicReport
 
 import ...Archivers.Interfaces: archive!
 
@@ -122,9 +128,6 @@ end
 #    end
 #end
 
-using ...Archivers.Interfaces: save_genotype!
-using ....Species.Individuals: Individual
-using ...Archivers.Utilities: get_or_make_group!
 # # Save an individual to a JLD2.Group
 function save_individual!(
     archiver::BasicArchiver, indiv_group::Group, indiv::Individual
@@ -133,16 +136,13 @@ function save_individual!(
     geno_group = Group(indiv_group, "genotype")
     save_genotype!(archiver, geno_group, indiv.geno)
 end
-using ....Metrics.Concrete.Common: AllSpeciesIdentity
-using ....Measurements.Types: AllSpeciesMeasurement
-using ....Reporters.Types.Basic: BasicReport
 
 function archive!(
     archiver::BasicArchiver, 
     gen::Int, 
     report::BasicReport{<:AllSpeciesIdentity, <:AllSpeciesMeasurement}
 )
-    #println("Archiving generation $gen")
+    println("Archiving generation $gen")
     jld2_file = jldopen(archiver.jld2_path, "a+")
     base_path = "indivs/$gen"
     #println("base_path: $base_path")

@@ -1,6 +1,6 @@
 module NSGAII
 
-export NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods, Disco, NSGAIIRecord, FastGlobalKMeans
+export NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods, NSGAIIRecord, FastGlobalKMeans
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
@@ -9,9 +9,6 @@ using ....Species.Individuals: Individual
 using ...Evaluators.Abstract: Evaluation, Evaluator
 
 import ...Evaluators.Interfaces: create_evaluation, get_ranked_ids
-
-include("disco.jl")
-using .Disco: Disco
 
 include("fast_global_kmeans.jl")
 using .FastGlobalKMeans: FastGlobalKMeans, get_derived_tests

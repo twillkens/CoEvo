@@ -7,7 +7,6 @@ using Test
 
 using .CoEvo.NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
 using .CoEvo.NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
-using .CoEvo.Disco: Disco, get_derived_tests
 
 @testset "NSGA-II" begin
 println("Starting tests for NSGA-II and Disco...")

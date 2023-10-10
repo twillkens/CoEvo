@@ -5,6 +5,7 @@ using StableRNGs: StableRNG
 using .CoEvo
 using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMatching, Competitive
 using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMismatching, Control
+using .Metrics.Concrete.Common: AllSpeciesIdentity
 
 function cont_pred_eco_creator(;
     id::String = "ContinuousPredictionGame",
@@ -136,11 +137,15 @@ function cont_pred_eco_creator(;
         ),
         performer = CachePerformer(n_workers = n_workers),
         reporters = Reporter[
-            BasicReporter(metric = GenotypeSize()),
-            BasicReporter(metric = GenotypeSize(name = "MinimizedGenotypeSize", minimize = true)),
-            BasicReporter(metric = AllSpeciesFitness()),
+            BasicReporter(metric = GenotypeSize(), save_interval = 1),
+            BasicReporter(
+                metric = GenotypeSize(name = "MinimizedGenotypeSize", minimize = true),
+                save_interval = 1
+            ),
+            BasicReporter(metric = AllSpeciesFitness(), save_interval = 1),
+            BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1)
         ],
-        archiver = BasicArchiver(jld2_path = "archive.jld2"),
+        archiver = BasicArchiver(jld2_path = "archive_cont_pred.jld2"),
         runtime_reporter = RuntimeReporter(print_interval = 1),
     )
     return eco_creator
