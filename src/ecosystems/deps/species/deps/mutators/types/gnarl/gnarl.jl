@@ -479,15 +479,22 @@ function remove_connection(rng::AbstractRNG, ::Counter, geno::GnarlNetworkGenoty
     return geno
 end
 
+function identity_mutation(
+    rng::AbstractRNG, 
+    gene_id_counter::Counter, 
+    geno::GnarlNetworkGenotype
+)
+    return geno
+end
 
 Base.@kwdef struct GnarlNetworkMutator <: Mutator
     n_changes::Int = 1
     probs::Dict{Symbol, Float64} = Dict(
-        :add_node => 1 / 4,
-        :remove_node => 1 / 4,
-        :add_connection => 1 / 4,
-        :remove_connection => 1 / 4,
-        #redirect_connection => 1 / 5
+        :add_node => 1 / 8,
+        :remove_node => 1 / 8,
+        :add_connection => 1 / 8,
+        :remove_connection => 1 / 8,
+        :identity_mutation => 1 / 2
     )
     symbol_to_function_dict = Dict(
         :add_node => add_node,
@@ -495,10 +502,12 @@ Base.@kwdef struct GnarlNetworkMutator <: Mutator
         :remove_node_2 => remove_node_2,
         :add_connection => add_connection,
         :remove_connection => remove_connection,
-        :redirect_connection => redirect_connection
+        :redirect_connection => redirect_connection,
+        :identity_mutation => identity_mutation
     )
     weight_factor::Float64 = 0.1
 end
+
 
 function mutate(
     mutator::GnarlNetworkMutator, 

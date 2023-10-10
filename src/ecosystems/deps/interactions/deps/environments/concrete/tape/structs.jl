@@ -22,7 +22,7 @@ Base.@kwdef mutable struct TapeEnvironment{D, P1 <: Phenotype, P2 <: Phenotype} 
     episode_length::Int
     position_1::Float32 = Float32(π)
     position_2::Float32 = 0.0f0
-    movement_scale::Float32 = 1.0f0
+    movement_scale::Float32 = 2.0f0
     distances::Vector{Float32} = Float32[]
     communication_1::Vector{Float32} = Float32[]
     communication_2::Vector{Float32} = Float32[]

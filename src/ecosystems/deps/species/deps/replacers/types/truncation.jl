@@ -6,7 +6,8 @@ using ...Replacers.Abstract: Replacer
 using ....Species.Abstract: AbstractSpecies
 using ....Evaluators.Abstract: Evaluation
 using ....Evaluators.Interfaces: get_ranked_ids
-
+using ....Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
+using ....Evaluators.Types.NSGAII: NSGAIIEvaluation
 import ...Replacers.Interfaces: replace
 
 # Returns the best npop individuals from both the population and children
@@ -15,12 +16,25 @@ Base.@kwdef struct TruncationReplacer <: Replacer
     n_truncate::Int = 50
 end
 
+function replace(
+    replacer::TruncationReplacer,
+    ::AbstractRNG,
+    species::AbstractSpecies,
+    evaluation::ScalarFitnessEvaluation
+)
+    evaluation_ids = collect(keys(evaluation.fitnesses))[1:replacer.n_truncate]
+    new_pop = Dict(
+        id => indiv for (id, indiv) in merge(species.pop, species.children) 
+        if id in Set(evaluation_ids)
+    )
+    return new_pop
+end
 
 function replace(
     replacer::TruncationReplacer,
     ::AbstractRNG,
     species::AbstractSpecies,
-    evaluation::Evaluation
+    evaluation::NSGAIIEvaluation
 )
     if length(species.children) == 0
         candidates = species.pop

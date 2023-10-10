@@ -27,6 +27,9 @@ function get_action!(
     input = [clockwise_distance ; counterclockwise_distance ; communication]
     action = act!(entity, input)
     movement_output = -scaled_arctangent(action[1], movement_scale)
+    #if rand() < 0.0001
+    #    println("action: ", action)
+    #end
     communication_output = length(action) < 2 ? Float32[] : action[2:end]
     return movement_output, communication_output
 end
@@ -116,6 +119,7 @@ function get_outcome_set(
     # where the entities never move.
     maximum_distance_score = π * environment.episode_length
     distance_score = sum(distances) / maximum_distance_score
+    distance_score = distance_score > 0.5 ? 1.0 : 0.0
     outcome_set = measure(environment.domain, distance_score)
     return outcome_set
 end

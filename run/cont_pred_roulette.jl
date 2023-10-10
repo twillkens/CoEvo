@@ -4,12 +4,13 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using .CoEvo
 using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMatching, Competitive
-using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMismatching
+using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMismatching, Control
+using .Metrics.Concrete.Common: AllSpeciesIdentity
 
 function cont_pred_eco_creator(;
     id::String = "ContinuousPredictionGame",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
+    rng::AbstractRNG = StableRNG(69),
     n_pop::Int = 50,
     host::String = "Host",
     mutualist::String = "Mutualist",
@@ -18,10 +19,21 @@ function cont_pred_eco_creator(;
     interaction_id2::String = "Host-Parasite-Competitive",
     n_elite::Int = 0,
     n_workers::Int = 1,
-    episode_length::Int = 64,
-    matchmaking_type::Symbol = :comma,
-    n_input_nodes::Int = 2,
-    n_output_nodes::Int = 1,
+    episode_length::Int = 32,
+    matchmaking_type::Symbol = :plus,
+    communication_dimension::Int = 1,
+    n_input_nodes::Int = communication_dimension + 2,
+    n_output_nodes::Int = communication_dimension + 1,
+    n_truncate = 50,
+    tournament_size::Int = 3,
+    max_clusters::Int = 5,
+    mutator::GnarlNetworkMutator = GnarlNetworkMutator(probs = Dict(
+        :add_node => 1/8,
+        :add_connection => 1/8,
+        :remove_node_2 => 1/8,
+        :remove_connection => 1/8,
+        :identity_mutation => 1/2
+    ))
 )
     eco_creator = BasicEcosystemCreator(
         id = id,
@@ -35,11 +47,15 @@ function cont_pred_eco_creator(;
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
-                evaluator = ScalarFitnessEvaluator(maximize = true),
-                replacer = GenerationalReplacer(n_elite = n_elite),
+                evaluator = ScalarFitnessEvaluator(
+                    maximize = true, 
+                ),
+                replacer = TruncationReplacer(
+                    type = :plus, n_truncate = n_truncate
+                ),
                 selector = FitnessProportionateSelector(n_parents = n_pop),
                 recombiner = CloneRecombiner(),
-                mutators = [GnarlNetworkMutator()]
+                mutators = [mutator]
             ),
             mutualist => BasicSpeciesCreator(
                 id = mutualist,
@@ -48,11 +64,15 @@ function cont_pred_eco_creator(;
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
-                evaluator = ScalarFitnessEvaluator(maximize = true),
-                replacer = GenerationalReplacer(n_elite = n_elite),
+                evaluator = ScalarFitnessEvaluator(
+                    maximize = true, 
+                ),
+                replacer = TruncationReplacer(
+                    type = :plus, n_truncate = n_truncate
+                ),
                 selector = FitnessProportionateSelector(n_parents = n_pop),
                 recombiner = CloneRecombiner(),
-                mutators = [GnarlNetworkMutator()]
+                mutators = [mutator]
             ),
             parasite => BasicSpeciesCreator(
                 id = parasite,
@@ -61,11 +81,15 @@ function cont_pred_eco_creator(;
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
-                evaluator = ScalarFitnessEvaluator(maximize = true),
-                replacer = GenerationalReplacer(n_elite = n_elite),
+                evaluator = ScalarFitnessEvaluator(
+                    maximize = true, 
+                ),
+                replacer = TruncationReplacer(
+                    type = :plus, n_truncate = n_truncate
+                ),
                 selector = FitnessProportionateSelector(n_parents = n_pop),
                 recombiner = CloneRecombiner(),
-                mutators = [GnarlNetworkMutator()]
+                mutators = [mutator]
             ),
         ),
         job_creator = BasicJobCreator(
@@ -77,7 +101,8 @@ function cont_pred_eco_creator(;
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMatching()
                         ),
-                        episode_length = episode_length
+                        episode_length = episode_length,
+                        communication_dimension = communication_dimension
                     ),
                     species_ids = [host, mutualist],
                     matchmaker = AllvsAllMatchMaker(type = matchmaking_type),
@@ -88,28 +113,49 @@ function cont_pred_eco_creator(;
                         domain = ContinuousPredictionGameDomain(
                             Competitive()
                         ),
-                        episode_length = episode_length
+                        episode_length = episode_length,
+                        communication_dimension = communication_dimension
                     ),
                     species_ids = [parasite, host],
                     matchmaker = AllvsAllMatchMaker(type = matchmaking_type),
                 ),
+                "c" => BasicInteraction(
+                    id = "c",
+                    environment_creator = TapeEnvironmentCreator(
+                        domain = ContinuousPredictionGameDomain(
+                            CooperativeMismatching()
+                        ),
+                        episode_length = episode_length,
+                        communication_dimension = communication_dimension
+                    ),
+                    species_ids = [parasite, mutualist],
+                    matchmaker = AllvsAllMatchMaker(type = matchmaking_type),
+                ),
             ),
         ),
-        performer = BasicPerformer(n_workers = n_workers),
+        performer = CachePerformer(n_workers = n_workers),
         reporters = Reporter[
-            BasicReporter(metric = GenotypeSize()),
-            BasicReporter(metric = GenotypeSize(name = "MinimizedGenotypeSize", minimize = true)),
-            BasicReporter(metric = AllSpeciesFitness()),
+            BasicReporter(metric = GenotypeSize(), save_interval = 1),
+            BasicReporter(
+                metric = GenotypeSize(name = "MinimizedGenotypeSize", minimize = true),
+                save_interval = 1
+            ),
+            BasicReporter(metric = AllSpeciesFitness(), save_interval = 1),
+            BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1)
         ],
-        archiver = BasicArchiver(jld2_path = "archive.jld2"),
+        archiver = BasicArchiver(jld2_path = "archive_cont_pred.jld2"),
         runtime_reporter = RuntimeReporter(print_interval = 1),
     )
     return eco_creator
 end
 
 
-eco_creator = cont_pred_eco_creator()
-eco = evolve!(eco_creator, n_gen=10_000)
+function run(n_gen::Int = 5_000) 
+    eco_creator = cont_pred_eco_creator()
+    eco = evolve!(eco_creator, n_gen=n_gen)
+end
+
+run()
 
 
 
