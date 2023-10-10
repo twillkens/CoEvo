@@ -29,7 +29,7 @@ function cont_pred_eco_creator(;
     mutator::GnarlNetworkMutator = GnarlNetworkMutator(probs = Dict(
         :add_node => 0.25,
         :add_connection => 0.25,
-        :remove_node => 0.25,
+        :remove_node_2 => 0.25,
         :remove_connection => 0.25
     ))
 )
