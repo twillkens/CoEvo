@@ -19,7 +19,7 @@ function cont_pred_eco_creator(;
     interaction_id2::String = "Host-Parasite-Competitive",
     n_elite::Int = 0,
     n_workers::Int = 1,
-    episode_length::Int = 32,
+    episode_length::Int = 64,
     matchmaking_type::Symbol = :plus,
     communication_dimension::Int = 2,
     n_input_nodes::Int = communication_dimension + 2,
@@ -30,8 +30,8 @@ function cont_pred_eco_creator(;
     mutator::GnarlNetworkMutator = GnarlNetworkMutator(probs = Dict(
         :add_node => 1/8,
         :add_connection => 1/8,
-        :remove_node => 1/16,
-        :remove_node_2 => 1/16,
+        :remove_node => 1/8,
+        # :remove_node_2 => 1/16,
         :remove_connection => 1/8,
         :identity_mutation => 1/2
     ))

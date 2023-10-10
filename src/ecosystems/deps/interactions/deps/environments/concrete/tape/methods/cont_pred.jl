@@ -119,7 +119,6 @@ function get_outcome_set(
     # where the entities never move.
     maximum_distance_score = π * environment.episode_length
     distance_score = sum(distances) / maximum_distance_score
-    distance_score = distance_score > 0.5 ? 1.0 : 0.0
     outcome_set = measure(environment.domain, distance_score)
     return outcome_set
 end
