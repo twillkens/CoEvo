@@ -47,7 +47,6 @@ function perform(performer::CachePerformer, jobs::Vector{J}) where {J <: Job}
     filtered_jobs_cached_results = [filter_cached_matches(performer, job) for job in jobs]
     filtered_jobs = [item[1] for item in filtered_jobs_cached_results]
     cached_results = vcat([item[2] for item in filtered_jobs_cached_results]...)
-    println("Cached results: ", length(cached_results))
     basic_performer = BasicPerformer(performer.n_workers)
     new_results = perform(basic_performer, filtered_jobs)
     empty!(performer.cache)

@@ -22,6 +22,7 @@ using ...Ecosystems.Species.Basic: BasicSpecies
 using ...Ecosystems.Species.Individuals: Individual
 using ..Loaders.Abstract: Loader
 using ..Loaders.Interfaces: load_genotype
+using ...Ecosystems.Basic: BasicEcosystem
 
 struct EcosystemLoader <: Loader
     jld2_filepath::String
@@ -65,7 +66,6 @@ function load_population(
     end
 end
 
-using ...Ecosystems.Basic: BasicEcosystem
 
 function load_species(
     species_loader::Loader, 
@@ -118,6 +118,45 @@ function load_ecosystem(loader::EcosystemLoader, species_loaders::Dict{String, <
     
     return BasicEcosystem("gen_$gen", species_dict)
 end
+
+
+struct TrialLoader <: Loader
+    trial::Int
+    action::String
+end
+
+function extract_measurements(ecosystem_id::String, metric::String, submetric::String)
+           measurements_per_gen = Dict{Int, Vector{Float64}}()
+
+           # Assuming trial naming is sequential like "ecosystem_id-1.jld2", "ecosystem_id-2.jld2", ...
+           trial_id = 1
+           while true
+               jld2_file_path = "$ecosystem_id-$trial_id.jld2"
+               
+               # Stop when we can't find more trials
+               if !isfile(jld2_file_path)
+                   break
+               end
+               
+               gen = 1
+               while true
+                   species_values = load_submetric_value(jld2_file_path, gen, metric, submetric)
+                   
+                   if isempty(species_values)
+                       break  # No more generations
+                   end
+
+                   # Accumulate values for each generation
+                   measurements_per_gen[gen] = get!(measurements_per_gen, gen, Float64[]) .|> append!(species_values)
+                   gen += 1
+               end
+
+               trial_id += 1
+           end
+
+           # Convert to a vector of BasicStatisticalMeasurements
+           return [BasicStatisticalMeasurement(values) for (gen, values) in sort(measurements_per_gen)]
+       end
 
 
 end

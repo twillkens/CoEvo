@@ -45,12 +45,12 @@ function is_valid_new_connection(geno, node_to_remove_position, origin, destinat
     return true
 end
 
-function remove_connection(geno::GnarlNetworkGenotype, conn::GnarlNetworkConnectionGene)
-    return GnarlNetworkGenotype(
-        geno.n_input_nodes, geno.n_output_nodes, geno.hidden_nodes, 
-        filter(x -> x.id != conn.id, geno.connections)
-    )
-end
+#function remove_connection(geno::GnarlNetworkGenotype, conn::GnarlNetworkConnectionGene)
+#    return GnarlNetworkGenotype(
+#        geno.n_input_nodes, geno.n_output_nodes, geno.hidden_nodes, 
+#        filter(x -> x.id != conn.id, geno.connections)
+#    )
+#end
 
 # Core functions
 function redirect_connection(

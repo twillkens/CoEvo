@@ -77,9 +77,11 @@ function archive!(
     gen::Int, 
     report::BasicReport{<:Metric, GroupStatisticalMeasurement}
 )
-    for (species_id, measurement) in sort(collect(report.measurement.measurements), by = x -> x[1])
-        println("---$(report.metric.name): $species_id---")
-        println("Mean: $(measurement.mean), Min: $(measurement.minimum), Max: $(measurement.maximum), Std: $(measurement.std)", )
+    if report.to_print
+        for (species_id, measurement) in sort(collect(report.measurement.measurements), by = x -> x[1])
+            println("---$(report.metric.name): $species_id---")
+            println("Mean: $(measurement.mean), Min: $(measurement.minimum), Max: $(measurement.maximum), Std: $(measurement.std)", )
+        end
     end
     if report.to_save
         jld2_file = jldopen(archiver.jld2_path, "a+")
@@ -139,7 +141,6 @@ function archive!(
     gen::Int, 
     report::BasicReport{<:AllSpeciesIdentity, <:AllSpeciesMeasurement}
 )
-    println("Archiving generation $gen")
     jld2_file = jldopen(archiver.jld2_path, "a+")
     base_path = "indivs/$gen"
     #println("base_path: $base_path")

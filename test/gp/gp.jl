@@ -9,9 +9,9 @@ begin @testset "GeneticPrograms" begin
 println("Starting tests for GeneticPrograms...")
 
 using .Genotypes.GeneticPrograms.Utilities: Utilities as GPUtils
-using .Genotypes.GeneticPrograms.Methods: Manipulate, Traverse
-using .Manipulate: add_function, remove_function, splice_function, swap_node, inject_noise
+using .Genotypes.GeneticPrograms.Methods: Traverse
 using .Traverse: get_node
+using .Mutators.Types.GeneticPrograms.Methods: add_function, remove_function, splice_function, swap_node, inject_noise
 using .CoEvo.Ecosystems.Species.Genotypes.GeneticPrograms.Utilities: Utilities as GPUtils 
 using .GPUtils: protected_division, Terminal, FuncAlias, protected_sine, if_less_then_else
 using .Phenotypes.Interfaces: act!

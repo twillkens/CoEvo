@@ -16,6 +16,7 @@ run/old
 doc
 scratch
 todo
+trials/*
 
 python/gedlibpy/build
 

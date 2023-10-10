@@ -7,24 +7,15 @@ using StatsBase: sample, Weights
 
 using ......Ecosystems.Utilities.Counters: Counter, next!
 using .....Genotypes.GeneticPrograms: GeneticProgramGenotype
-using .....Genotypes.GeneticPrograms.Methods: Manipulate
-using .Manipulate: add_function, remove_function, swap_node, splice_function, inject_noise
+using ..Methods: add_function, remove_function, swap_node, splice_function, inject_noise
 using .....Genotypes.GeneticPrograms.Methods.Traverse: all_nodes 
 using .....Genotypes.GeneticPrograms.Utilities: Utilities
 using .....Genotypes.Abstract: Genotype
 using .Utilities: FuncAlias, Terminal, protected_sine, if_less_then_else, protected_cosine, protected_division
 using ....Mutators.Abstract: Mutator
-
+using ..Methods: add_function, remove_function, swap_node, splice_function, inject_noise, identity
 import ....Mutators.Interfaces: mutate
 
-function identity(
-    rng::AbstractRNG, 
-    gene_id_counter::Counter, 
-    mutator::Mutator, 
-    geno::Genotype
-)
-    return geno
-end
 
 Base.@kwdef struct GeneticProgramMutator <: Mutator
     # Number of structural changes to perform per generation
@@ -60,9 +51,6 @@ Base.@kwdef struct GeneticProgramMutator <: Mutator
         "iflt" => if_less_then_else)
 end
 
-include("methods.jl")
-
-using .Methods: add_function, remove_function, swap_node, splice_function, inject_noise
 
 function mutate(
     mutator::GeneticProgramMutator,
@@ -77,12 +65,14 @@ function mutate(
         mutator.n_mutations
     )
     for mutation in mutations
-        geno = mutation(rng, gene_id_counter, mutator, geno)
+        geno = mutation(
+            rng, gene_id_counter, geno, mutator.functions, mutator.terminals, mutator.noise_std
+        )
     end
     if geno.root_id ∉ keys(all_nodes(geno))
         throw(ErrorException("Root node not in genotype"))
     end
-    geno = inject_noise(rng, gene_id_counter, mutator, geno)
+    geno = inject_noise(rng, gene_id_counter, geno, mutator.functions, mutator.terminals, mutator.noise_std)
     if geno.root_id ∉ keys(all_nodes(geno))
         throw(ErrorException("Root node not in genotype after noise"))
     end
