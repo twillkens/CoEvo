@@ -79,10 +79,7 @@ function archive!(
 )
     for (species_id, measurement) in sort(collect(report.measurement.measurements), by = x -> x[1])
         println("---$(report.metric.name): $species_id---")
-        println("Mean: ", measurement.mean)
-        println("Min: ", measurement.minimum)
-        println("Max: ", measurement.maximum)
-        println("Std: ", measurement.std)
+        println("Mean: $(measurement.mean), Min: $(measurement.minimum), Max: $(measurement.maximum), Std: $(measurement.std)", )
     end
     if report.to_save
         jld2_file = jldopen(archiver.jld2_path, "a+")
