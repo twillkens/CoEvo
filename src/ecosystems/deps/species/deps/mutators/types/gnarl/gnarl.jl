@@ -522,10 +522,6 @@ function mutate(
     mutation_functions = sample(rng, functions, function_weights, mutator.n_changes)
     guilty = nothing
     for mutation_function in mutation_functions
-        #println("------------------------------------MUTATAEEEE-------------------------------")
-        #println("mutation_function: $mutation_function")
-        #println("geno: $geno")
-
         geno = mutator.symbol_to_function_dict[mutation_function](rng, gene_id_counter, geno)
         guilty = mutation_function
     end

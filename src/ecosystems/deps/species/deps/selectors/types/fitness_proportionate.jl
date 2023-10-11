@@ -62,6 +62,8 @@ function select(
     evaluation::ScalarFitnessEvaluation
 )
     new_pop = collect(values(new_pop))
+    sort(new_pop, by = ind -> ind.id, alg = Base.Sort.QuickSort)
+    pop_ids = [indiv.id for indiv in new_pop]
     fitnesses = [evaluation.fitnesses[indiv.id] for indiv in new_pop]
     parent_indices = roulette(rng, selector.n_parents, fitnesses)
     parents = [new_pop[i] for i in parent_indices]

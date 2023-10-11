@@ -1,6 +1,6 @@
 using Test
-include("../../src/CoEvo.jl")
-using .CoEvo
+#include("../../src/CoEvo.jl")
+#using .CoEvo
 using .Mutators.Types.GnarlNetworks: remove_node_2, redirect_or_replace_connection
 using .Mutators.Types.GnarlNetworks: get_next_layer, get_previous_layer
 using .Mutators.Types.GnarlNetworks: replace_connection

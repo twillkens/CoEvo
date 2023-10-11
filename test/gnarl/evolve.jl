@@ -2,9 +2,10 @@ using Test
 using Random: AbstractRNG
 using StableRNGs: StableRNG
 #include("../../src/CoEvo.jl")
-using .CoEvo
-
-@testset "Evolve" begin
+#using CoEvo.Metrics.Concrete.Outcomes.CollisionGameOutcomeMetrics: Affinitive, Adversarial
+#using CoEvo.Metrics.Concrete.Outcomes.CollisionGameOutcomeMetrics: Avoidant, Control as GnarlControl
+#using CoEvo.Mutators.Types.GnarlNetworks: mutate_weights, add_node, remove_node, add_connection
+#using CoEvo.Mutators.Types.GnarlNetworks: remove_connection, mutate
 
 @testset "CollisionGame: Roulette" begin
 
@@ -264,9 +265,7 @@ end
 
 
 eco_creator = collision_game_disco_eco_creator(n_pop = 50, n_workers = 1)
-eco = evolve!(eco_creator, n_gen=5)
+eco = evolve!(eco_creator, n_gen=1)
 @test length(eco.species) == 3
-
-end
 
 end

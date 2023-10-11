@@ -1,6 +1,6 @@
 
 #include("../src/CoEvo.jl")
-using .CoEvo
+#using .CoEvo
 
 @testset "CollisionGame" begin
 # Mock the necessary parts

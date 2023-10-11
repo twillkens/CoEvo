@@ -1,9 +1,8 @@
 using Test
-include("../../src/CoEvo.jl")
-using .CoEvo
-using .TapeMethods.ContinuousPredictionGame: scaled_arctangent, apply_movement, get_action!
-using .TapeMethods.ContinuousPredictionGame: get_outcome_set, get_clockwise_distance, get_counterclockwise_distance
-import .Phenotypes.Interfaces: act!, reset!
+#include("../../src/CoEvo.jl")
+using CoEvo.TapeMethods.ContinuousPredictionGame: scaled_arctangent, apply_movement, get_action!
+using CoEvo.TapeMethods.ContinuousPredictionGame: get_outcome_set, get_clockwise_distance, get_counterclockwise_distance
+import CoEvo.Phenotypes.Interfaces: act!, reset!
 # Assuming necessary modules and structs have been imported...
 
 # Test scaled_arctangent function

@@ -2,7 +2,7 @@ using Test
 using Random
 using StableRNGs: StableRNG
 #include("../../src/CoEvo.jl")
-using .CoEvo
+#using CoEvo
 
 @testset "Individual" begin
 

@@ -1,7 +1,8 @@
 using JLD2
 using DataFrames
 using CSV
-using Plots
+using Plots: plot
+using CoEvo
 using CoEvo.Ecosystems.Measurements: BasicStatisticalMeasurement
 
 function load_submetric_value(
@@ -174,22 +175,66 @@ function dispatch_measurements_to_dataframe(
     end
 end
 
+
+function plot_csv_results(
+    species_ids::Vector{String} = ["Host", "Parasite", "Mutualist"],
+    metrics::Vector{String} = ["GenotypeSize", "MinimizedGenotypeSize", "AllSpeciesFitness"],
+    submetric::String = "mean"
+)
+    for metric in metrics
+        p = plot(legend=true, title="Metric: $(metric)")
+
+        for species in species_ids
+            filename = "results_$(species)_$(metric)_$(submetric).csv"
+
+            if isfile(filename)
+                df = CSV.read(filename, DataFrame)
+                
+                # Extract generations, means, lower_confidence, and upper_confidence for plotting
+                generations = df[:, :generation]
+                means = df[:, :mean]
+                lower = df[:, :lower_confidence]
+                upper = df[:, :upper_confidence]
+
+                ribbon_below = means .- lower
+                ribbon_above = upper .- means
+
+                # Plot data with ribbon
+                plot!(
+                    p, 
+                    generations, 
+                    means, 
+                    ribbon=(ribbon_below, ribbon_above), 
+                    label=species, 
+                    fillalpha=0.3, 
+                    color=:auto, 
+                    linewidth=3
+                )
+            else
+                println("File $filename not found!")
+            end
+        end
+
+        # Set labels and save the plot
+        xlabel!(p, "Generation")
+        ylabel!(p, "Value")
+        savefig(p, "plot_$(metric).png")
+    end
+end
 # Example usage:
 #dispatch_measurements_to_dataframe(ecosystem_id, 1:10)
 
-
-archive_path = "trials/test/1.jld2"
-ecosystem_id = "test"
-species_id = "Host"
-metric = "GenotypeSize"
-submetric = "mean"
-gen = 10
+# archive_path = "trials/test/1.jld2"
+# ecosystem_id = "test"
+# species_id = "Host"
+# metric = "GenotypeSize"
+# submetric = "mean"
+# gen = 10
 
 #measurements = extract_measurements(ecosystem_id, species_id, metric, submetric, 1:gen)
 # println(measurements)
 # load_submetric_value(archive_path, gen, species_id, metric, submetric)
 
-#plot_measurements(ecosystem_id, ["Host", "Mutualist", "Parasite"], "GenotypeSize", "mean", 1:10)
 #plot_measurements(ecosystem_id, ["Host", "Mutualist", "Parasite"], "GenotypeSize", "mean", 1:10)
 # df = measurements_to_dataframe(ecosystem_id, ["Host", "Mutualist", "Parasite"], "GenotypeSize", "mean", 1:10)
 # println(df)

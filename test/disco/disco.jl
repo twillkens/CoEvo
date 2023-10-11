@@ -1,12 +1,11 @@
 #include("../../src/CoEvo.jl")
-using .CoEvo
 using Random
 using StableRNGs: StableRNG
 using Test
 #using DataStructures
 
-using .CoEvo.NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
-using .CoEvo.NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
+using CoEvo.NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
+using CoEvo.NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
 
 @testset "NSGA-II" begin
 println("Starting tests for NSGA-II and Disco...")

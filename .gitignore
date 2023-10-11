@@ -17,6 +17,7 @@ doc
 scratch
 todo
 trials/*
+results/*
 
 python/gedlibpy/build
 
