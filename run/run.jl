@@ -44,6 +44,7 @@ end
 @everywhere using CoEvo.Runners: evolve_trial
 # Check number of available workers
 n_workers = nprocs()
+trials = collect(1:n_trials)
 seeds = [rand(UInt32) for _ in 1:n_workers]
 seed_file_path = joinpath(trials_dir_path, "seeds.txt")
 open(seed_file_path, "w") do io
@@ -52,9 +53,14 @@ open(seed_file_path, "w") do io
     end
 end
 if n_workers == 1
-    evolve_trial(1, eco_id, n_generations, seeds[1])
+    evolve_trial(1, seeds[1], eco_id, n_generations)
 else
-    pmap((trial, seed) -> evolve_trial(trial, seed, eco_id, n_generations), enumerate(seeds))
+    futures = [
+        remotecall(evolve_trial, worker, trial, seed, eco_id, n_generations) 
+        for (worker, trial, seed) in zip(workers(), trials, seeds)
+    ]
+    [fetch(f) for f in futures]
+    #pmap((trial, seed) -> evolve_trial(trial, seed, eco_id, n_generations), enumerate(seeds))
 end
 
 println("All trials completed!")

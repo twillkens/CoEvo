@@ -42,8 +42,9 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
     host::String = "Host",
     mutualist::String = "Mutualist",
     parasite::String = "Parasite",
-    interaction_id1::String = "Host-Mutualist-CooperativeMatching",
-    interaction_id2::String = "Host-Parasite-Competitive",
+    interaction_id_1::String = "Host-Mutualist-CooperativeMatching",
+    interaction_id_2::String = "Host-Parasite-Competitive",
+    interaction_id_3::String = "Parasite-Mutualist-CooperativeMismatching",
     n_elite::Int = 0,
     n_workers::Int = 1,
     episode_length::Int = 32,
@@ -110,8 +111,8 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
         job_creator = BasicJobCreator(
             n_workers = 1,
             interactions = Dict(
-                interaction_id1 => BasicInteraction(
-                    id = interaction_id1,
+                interaction_id_1 => BasicInteraction(
+                    id = interaction_id_1,
                     environment_creator = TapeEnvironmentCreator(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMatching()
@@ -122,8 +123,8 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
                     species_ids = [host, mutualist],
                     matchmaker = AllvsAllMatchMaker(type = matchmaking_type),
                 ),
-                interaction_id2 => BasicInteraction(
-                    id = interaction_id2,
+                interaction_id_2 => BasicInteraction(
+                    id = interaction_id_2,
                     environment_creator = TapeEnvironmentCreator(
                         domain = ContinuousPredictionGameDomain(
                             Competitive()
@@ -134,8 +135,8 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
                     species_ids = [parasite, host],
                     matchmaker = AllvsAllMatchMaker(type = matchmaking_type),
                 ),
-                "c" => BasicInteraction(
-                    id = "c",
+                interaction_id_3 => BasicInteraction(
+                    id = interaction_id_3,
                     environment_creator = TapeEnvironmentCreator(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMismatching()
@@ -150,16 +151,16 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
         ),
         performer = CachePerformer(n_workers = n_workers),
         reporters = Reporter[
-            BasicReporter(metric = GenotypeSize(), save_interval = 1, print_interval = 50),
+            BasicReporter(metric = GenotypeSize(), save_interval = 1, print_interval = 25),
             BasicReporter(
                 metric = GenotypeSize(name = "MinimizedGenotypeSize", minimize = true),
-                save_interval = 1, print_interval = 50
+                save_interval = 1, print_interval = 25
             ),
-            BasicReporter(metric = AllSpeciesFitness(), save_interval = 1, print_interval = 50),
-            BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1, print_interval = 50),
+            BasicReporter(metric = AllSpeciesFitness(), save_interval = 1, print_interval = 25),
+            BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1, print_interval = 25),
         ],
         archiver = BasicArchiver(jld2_path = "trials/$id/$trial.jld2"),
-        runtime_reporter = RuntimeReporter(print_interval = 50),
+        runtime_reporter = RuntimeReporter(print_interval = 25),
     )
     return eco_creator
 end

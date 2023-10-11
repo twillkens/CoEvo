@@ -19,14 +19,16 @@ end
 # The evolve function with added print statements
 function evolve_trial(
     trial::Int, 
-    seed::Int = 777,
+    seed::UInt32 = UInt32(777),
     id::String = "ContinuousPredictionGameThreeMixGnarlRoulette", 
     n_gen::Int = 5_000
 )
     load_interface(trial, "Starting")
     eco_creator_dict = Dict(
-        "ContinuousPredictionGameThreeMixGnarlDisco" => cont_pred_threemix_gnarl_disco_eco_creator,
-        "ContinuousPredictionGameThreeMixGnarlRoulette" => cont_pred_threemix_gnarl_roulette_eco_creator
+        "ContinuousPredictionGameThreeMixGnarlDisco" => 
+            cont_pred_threemix_gnarl_disco_eco_creator,
+        "ContinuousPredictionGameThreeMixGnarlRoulette" => 
+            cont_pred_threemix_gnarl_roulette_eco_creator
     )
     eco_creator = eco_creator_dict[id]
     rng = StableRNG(seed)
