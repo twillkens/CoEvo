@@ -1,19 +1,15 @@
 module GeneticPrograms
 
-export ExpressionNodeGene, GeneticProgramGenotype, GeneticProgramGenotypeCreator
-export Utilities, Methods
+export Abstract, Utilities, Concrete, Methods
 
-include("genes.jl")
-using .Genes: ExpressionNodeGene
-
-include("genotypes.jl")
-using .Genotypes: GeneticProgramGenotype
-
-include("creators.jl")
-using .Creators: GeneticProgramGenotypeCreator
+include("abstract/abstract.jl")
+using .Abstract: Abstract
 
 include("utilities.jl")
 using .Utilities: Utilities
+
+include("concrete/concrete.jl")
+using .Concrete: Concrete
 
 include("methods/methods.jl")
 using .Methods: Methods

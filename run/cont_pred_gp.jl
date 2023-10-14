@@ -19,7 +19,7 @@ using .Mutators.Types: GnarlNetworkMutator, GeneticProgramMutator
 function cont_pred_eco_creator(;
     id::String = "ContinuousPredictionGame",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(69),
+    rng::AbstractRNG = StableRNG(777),
     n_pop::Int = 50,
     host::String = "Host",
     mutualist::String = "Mutualist",

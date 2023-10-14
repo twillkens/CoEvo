@@ -1,6 +1,7 @@
 module Genotypes
 
-export Abstract, Interfaces, Vectors, GeneticPrograms, GnarlNetworks, FiniteStateMachines
+export Abstract, Interfaces, Vectors, GnarlNetworks, FiniteStateMachines
+# export GeneticPrograms
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -11,8 +12,8 @@ using .Interfaces: Interfaces
 include("types/vectors/vectors.jl")
 using .Vectors: Vectors
 
-include("types/genetic_programs/genetic_programs.jl")
-using .GeneticPrograms: GeneticPrograms
+#include("types/genetic_programs/genetic_programs.jl")
+#using .GeneticPrograms: GeneticPrograms
 
 include("types/gnarl/gnarl.jl")
 using .GnarlNetworks: GnarlNetworks

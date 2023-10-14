@@ -8,7 +8,7 @@ using ......Domains.Concrete: ContinuousPredictionGameDomain
 using ......Domains.Interfaces: measure
 using .......Species.Phenotypes.Abstract: Phenotype
 using .......Species.Phenotypes.Interfaces: act!
-using .......Species.Phenotypes.GeneticPrograms: GeneticProgramPhenotype
+#using .......Species.Phenotypes.GeneticPrograms: GeneticProgramPhenotype
 using .......Species.Phenotypes.GnarlNetworks: GnarlNetworkPhenotype
 
 import .....Environments.Interfaces: get_outcome_set, next!, is_active

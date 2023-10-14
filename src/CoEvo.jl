@@ -7,7 +7,7 @@ export Ecosystem, EcosystemCreator,
        AbstractSpecies,
        create_species,
        BasicSpecies, BasicSpeciesCreator,
-       Genotypes, Genotype, create_genotypes,
+       Genotypes, Genotype, create_genotypes, GenotypeCreator,
        VectorGenotype, VectorGenotypeCreator,
        ScalarRangeGenotypeCreator,
        BasicVectorGenotype, BasicVectorGenotypeCreator,
@@ -94,13 +94,13 @@ using .Species.Basic: BasicSpecies, BasicSpeciesCreator
 println("loaded species")
 
 using .Species: Genotypes
-using .Genotypes.Abstract: Genotype
+using .Genotypes.Abstract: Genotype, GenotypeCreator
 using .Genotypes.Interfaces: create_genotypes
 using .Genotypes.Vectors.Abstract: VectorGenotype, VectorGenotypeCreator
 using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  
 using .Genotypes.Vectors.Basic: ScalarRangeGenotypeCreator
-using .Genotypes.GeneticPrograms.Genes: ExpressionNodeGene 
-using .Genotypes.GeneticPrograms: GeneticProgramGenotype, GeneticProgramGenotypeCreator 
+#using .Genotypes.GeneticPrograms.Genes: ExpressionNodeGene 
+#using .Genotypes.GeneticPrograms: GeneticProgramGenotype, GeneticProgramGenotypeCreator 
 using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
 using .Genotypes.GnarlNetworks: GnarlNetworkConnectionGene, GnarlNetworkNodeGene
 using .Genotypes.GnarlNetworks.GnarlMethods: GnarlMethods
@@ -114,7 +114,7 @@ using .Phenotypes.Abstract: Phenotype, PhenotypeCreator
 using .Phenotypes.Interfaces: create_phenotype, act!
 using .Phenotypes.Defaults: DefaultPhenotypeCreator 
 using .Phenotypes.Vectors.Basic: BasicVectorPhenotype
-using .Phenotypes.GeneticPrograms.Phenotypes: GeneticProgramPhenotype
+#using .Phenotypes.GeneticPrograms.Phenotypes: GeneticProgramPhenotype
 using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron
 using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotypeInputConnection
 using .Phenotypes.FiniteStateMachines: FiniteStateMachinePhenotype
@@ -128,7 +128,7 @@ using .Species: Mutators
 using .Mutators.Abstract: Mutator
 using .Mutators.Interfaces: mutate
 using .Mutators.Types.Identity: IdentityMutator 
-using .Mutators.Types.GeneticPrograms: GeneticProgramMutator 
+#using .Mutators.Types.GeneticPrograms: GeneticProgramMutator 
 using .Mutators.Types.NoiseInjection: NoiseInjectionMutator 
 using .Mutators.Types.GnarlNetworks: GnarlNetworkMutator
 using .Mutators.Types.FiniteStateMachineMutators: FiniteStateMachineMutators
@@ -243,7 +243,8 @@ println("loaded archivers")
 
 using .Loaders
 using .Loaders.Concrete: BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader
-using .Loaders.Concrete: GeneticProgramGenotypeLoader, GnarlNetworkGenotypeLoader
+using .Loaders.Concrete: GnarlNetworkGenotypeLoader
+#using .Loaders.Concrete: GeneticProgramGenotypeLoader, 
 using .Loaders.Concrete: EcosystemLoader, load_ecosystem
 
 include("runners/runners.jl")

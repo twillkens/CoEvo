@@ -3,8 +3,8 @@ module Nodes
 export LinearNode, linearize, NodeType, FUNCTION, TERMINAL, CONDITIONAL, ELSEJUMP
 
 using ....Genotypes.GeneticPrograms.Utilities: if_less_then_else 
-using ....Genotypes.GeneticPrograms: GeneticProgramGenotype, Methods
-using .Methods.Traverse: get_node
+using ....Genotypes.GeneticPrograms.Concrete: BasicGeneticProgramGenotype
+using ....Genotypes.GeneticPrograms.Methods: get_node
 
 # Enum to distinguish between node types
 @enum NodeType FUNCTION TERMINAL CONDITIONAL ELSEJUMP
@@ -27,7 +27,7 @@ function Base.show(io::IO, nodes::Vector{LinearNode})
     end
 end
 
-function linearize(genotype::GeneticProgramGenotype, node_id::Int = genotype.root_id)
+function linearize(genotype::BasicGeneticProgramGenotype, node_id::Int = genotype.root_id)
     nodes = LinearNode[]
 
     function traverse(node_id)

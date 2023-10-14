@@ -13,8 +13,6 @@ using .....Ecosystems.Species.Evaluators.Types.NSGAII: NSGAIIEvaluation
 using .....Ecosystems.Species.Abstract: AbstractSpecies
 using .....Ecosystems.Interactions.Abstract: Interaction
 using ....Reporters.Abstract: Reporter
-using .....Species.Genotypes.GeneticPrograms: GeneticProgramGenotype, ExpressionNodeGene
-using .....Species.Genotypes.GeneticPrograms.Methods.Traverse: get_node, get_child_nodes
 using ...Basic: BasicReport, BasicReporter
 using .....Metrics.Concrete.Common: AllSpeciesIdentity
 using .....Measurements.Types: AllSpeciesMeasurement

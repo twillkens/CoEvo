@@ -1,7 +1,7 @@
 using JLD2
 using DataFrames
 using CSV
-using Plots: plot
+using Plots: plot, plot!, title!, xlabel!, ylabel!, savefig
 using CoEvo
 using CoEvo.Ecosystems.Measurements: BasicStatisticalMeasurement
 
@@ -177,15 +177,25 @@ end
 
 
 function plot_csv_results(
+    data_dir_path::String;
     species_ids::Vector{String} = ["Host", "Parasite", "Mutualist"],
     metrics::Vector{String} = ["GenotypeSize", "MinimizedGenotypeSize", "AllSpeciesFitness"],
-    submetric::String = "mean"
+    submetric::String = "mean",
+    x_labels::Vector{String} = fill("Generation", length(metrics)),
+    y_labels::Vector{String} = fill("Value", length(metrics)),
+    legend::Bool = true,
+    plot_title_prefix::String = "Metric:",
+    y_limits = [(0, 45), (0, 25), (0, 1)],
+    file_prefix::String = "plot_",
+    colors::Vector{Symbol} = fill(:auto, length(species_ids)),
+    linewidth::Int = 3
 )
-    for metric in metrics
-        p = plot(legend=true, title="Metric: $(metric)")
+    for (i, metric) in enumerate(metrics)
+        p = plot(ylim=y_limits[i], 
+                 legend=legend, title="$(plot_title_prefix) $(metric)")
 
-        for species in species_ids
-            filename = "results_$(species)_$(metric)_$(submetric).csv"
+        for (idx, species) in enumerate(species_ids)
+            filename = "$data_dir_path/results_$(species)_$(metric)_$(submetric).csv"
 
             if isfile(filename)
                 df = CSV.read(filename, DataFrame)
@@ -199,16 +209,19 @@ function plot_csv_results(
                 ribbon_below = means .- lower
                 ribbon_above = upper .- means
 
+                color_choice = idx <= length(colors) ? colors[idx] : :auto
+
                 # Plot data with ribbon
                 plot!(
                     p, 
                     generations, 
                     means, 
                     ribbon=(ribbon_below, ribbon_above), 
-                    label=species, 
-                    fillalpha=0.3, 
-                    color=:auto, 
-                    linewidth=3
+                    label = species, 
+                    fillalpha = 0.3, 
+                    color = color_choice, 
+                    linewidth = linewidth,
+                    legend = :topleft
                 )
             else
                 println("File $filename not found!")
@@ -216,9 +229,9 @@ function plot_csv_results(
         end
 
         # Set labels and save the plot
-        xlabel!(p, "Generation")
-        ylabel!(p, "Value")
-        savefig(p, "plot_$(metric).png")
+        xlabel!(p, x_labels[i])
+        ylabel!(p, y_labels[i])
+        savefig(p, "$(file_prefix)$(metric).png")
     end
 end
 # Example usage:

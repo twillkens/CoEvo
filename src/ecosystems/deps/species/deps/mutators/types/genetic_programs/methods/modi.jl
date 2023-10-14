@@ -1,36 +1,17 @@
-module Methods
+module Modi
 
 export add_function, remove_function, swap_node, splice_function, inject_noise, identity
 
 using Random: AbstractRNG, rand
 
 using .......Ecosystems.Utilities.Counters: Counter, next!
-using .......Ecosystems.Species.Genotypes.GeneticPrograms: GeneticProgramGenotype
-using .......Ecosystems.Species.Genotypes.GeneticPrograms.Utilities: Terminal, FuncAlias
-using .......Ecosystems.Species.Genotypes.GeneticPrograms: GeneticProgramGenotype, ExpressionNodeGene
-using .......Ecosystems.Species.Genotypes.GeneticPrograms.Methods: Traverse
-using .Traverse: all_nodes, get_ancestors, get_descendents, get_node, get_child_index
+using ......Species.Genotypes.GeneticPrograms: GeneticPrograms
+using .GeneticPrograms.Utilities: Terminal, FuncAlias
+using .GeneticPrograms.Methods: all_nodes, get_ancestors, get_descendents
+using .GeneticPrograms.Methods: get_node, get_child_index, replace_child!
+using .GeneticPrograms.Concrete: ModiExpressionNodeGene, ModiGeneticProgramGenotype
 
 
-function replace_child!(
-    parent_node::ExpressionNodeGene, 
-    old_child_node::ExpressionNodeGene, 
-    new_child_node::ExpressionNodeGene
-)
-    child_idx = get_child_index(parent_node, old_child_node)
-    parent_node.child_ids[child_idx] = new_child_node.id
-end
-
-function identity(
-    rng::AbstractRNG, 
-    gene_id_counter::Counter, 
-    geno::GeneticProgramGenotype,
-    functions::Dict{FuncAlias, Int},
-    terminals::Dict{Terminal, Int},
-    ::Float64,
-)
-    return geno
-end
 """
 - A modified genotype with the new function node and its terminals added.
 
@@ -38,23 +19,27 @@ Throws:
 - Error if the new node's ID already exists in the genotype.
 """
 function add_function(
-    geno::GeneticProgramGenotype, 
-    newnode_id::Real, 
-    newnode_val::Union{FuncAlias},
-    newnode_child_ids::Vector{<:Real},
+    geno::ModiGeneticProgramGenotype, 
+    newnode_id::Int, 
+    newnode_val::String,
+    newnode_child_ids::Vector{Int},
     newnode_child_vals::Vector{<:Terminal},
+    modi_id::Int
 )
     geno = deepcopy(geno)
     new_child_nodes = [
-        ExpressionNodeGene(
+        ModiExpressionNodeGene(
             newnode_child_ids[i], 
             newnode_id, 
             newnode_child_vals[i], 
-            ExpressionNodeGene[]
+            Int[],
+            -1
         ) 
         for i in 1:length(newnode_child_ids)
     ]
-    new_node = ExpressionNodeGene(newnode_id, nothing, newnode_val, newnode_child_ids)
+    new_node = ModiExpressionNodeGene(
+        newnode_id, nothing, newnode_val, newnode_child_ids, modi_id
+    )
     push!(geno.functions, new_node.id => new_node)
     [push!(geno.terminals, child.id => child) for child in new_child_nodes]
     return geno
@@ -78,17 +63,20 @@ of the genotype.
 function add_function(
     rng::AbstractRNG, 
     gene_id_counter::Counter, 
-    geno::GeneticProgramGenotype,
+    geno::ModiGeneticProgramGenotype,
     functions::Dict{FuncAlias, Int},
     terminals::Dict{Terminal, Int},
-    ::Float64,
+    n_modi_dimensions::Int,
 )
     newnode_id = next!(gene_id_counter) # Increment spawn counter to find unique gene id
     newnode_val, n_arguments = rand(rng, functions) # Choose a random function and number of args
     new_child_ids = next!(gene_id_counter, n_arguments)
     new_child_vals = Terminal[rand(rng, keys(terminals)) for _ in 1:n_arguments] # Choose random terminals
-    # The new node is added to the genotype without a parent
-    add_function(geno, newnode_id, newnode_val, new_child_ids, new_child_vals)
+    modi_id = rand(rng, 0:n_modi_dimensions)
+    genotype = add_function(
+        geno, newnode_id, newnode_val, new_child_ids, new_child_vals, modi_id
+    )
+    return genotype
 end
 
 """
@@ -104,7 +92,7 @@ Throws:
 - Error if the `substitute_child_id` is not a child of `target_id`.
 """
 function remove_function(
-    geno::GeneticProgramGenotype, 
+    geno::ModiGeneticProgramGenotype, 
     target_id::Int,
     substitute_child_id::Int,
 )
@@ -127,22 +115,24 @@ function remove_function(
                 target_child_idx = get_child_index(target_parent_node, target_node)
                 target_parent_node.child_ids[target_child_idx] = substitute_child_id
                 substitute_child_node.parent_id = target_parent_node.id
+            elseif substitute_child_id in keys(geno.terminals)
+                delete!(geno.terminals, substitute_child_id)
             else
                 # Remove parent of substitute_child
                 substitute_child_node.parent_id = nothing
                 # If target is the root of the execution tree, then substitute_child becomes 
                 # the new root.
-                if geno.root_id == target_id
-                    geno.root_id = substitute_child_id
+                root_idx = findfirst(root_id -> root_id == target_id, geno.root_ids)
+                if root_idx !== nothing
+                    geno.root_ids[root_idx] = substitute_child_id
+                end
                 # Otherwise, if the substitute is a terminal and is not the new root of the 
                 # execution tree, remove it
-                elseif substitute_child_id in keys(geno.terminals)
-                    delete!(geno.terminals, substitute_child_id)
-                end
             end
         # If the child is a function and not the substitute, disconnect the child from the target. 
         elseif child_id in keys(geno.functions)
             child_node.parent_id = nothing
+            push!(geno.root_ids, child_id)
         # If the child is a terminal, remove it from the set of terminals.
         else
             delete!(geno.terminals, child_id)
@@ -167,10 +157,9 @@ Randomly select and remove a function node from the genotype. If the genotype ha
 function remove_function(
     rng::AbstractRNG, 
     ::Counter, 
-    geno::GeneticProgramGenotype,
+    geno::ModiGeneticProgramGenotype,
     functions::Dict{FuncAlias, Int},
     terminals::Dict{Terminal, Int},
-    ::Float64,
 )
     if length(geno.functions) == 0
         return deepcopy(geno)
@@ -201,7 +190,7 @@ number of free terminals from increasing excessively during evolutionary process
 # Returns:
 - A new `GeneticProgramGenotype` with the specified nodes swapped.
 """
-function swap_node(geno::GeneticProgramGenotype, node_id1::Int, node_id2::Int)
+function swap_node(geno::ModiGeneticProgramGenotype, node_id1::Int, node_id2::Int)
     geno = deepcopy(geno)
 
     # Return the genotype unchanged if nodes are the same.
@@ -232,19 +221,22 @@ function swap_node(geno::GeneticProgramGenotype, node_id1::Int, node_id2::Int)
         parent_node1.child_ids[child_idx] = node2.id
     end
 
-    # Update root ID if either node is the root.
-    if node_id1 == geno.root_id
-        geno.root_id = node_id2
-    elseif node_id2 == geno.root_id
-        geno.root_id = node_id1
+    # Update root ID if either node is a root.
+    node_root_index_1 = findfirst(root_id -> root_id == node_id1, geno.root_ids)
+    if node_root_index_1 !== nothing
+        geno.root_ids[node_root_index_1] = node_id2
+    end
+    node_root_index_2 = findfirst(root_id -> root_id == node_id2, geno.root_ids)
+    if node_root_index_2 !== nothing
+        geno.root_ids[node_root_index_2] = node_id1
     end
 
     # Delete non-root terminal nodes with no parents from the set of terminals.
-    if node_id1 in keys(geno.terminals) && node1.parent_id === nothing && node_id1 !== geno.root_id
+    if node_id1 in keys(geno.terminals) && node1.parent_id === nothing
         delete!(geno.terminals, node_id1)
     end
 
-    if node_id2 in keys(geno.terminals) && node2.parent_id === nothing && node_id2 !== geno.root_id
+    if node_id2 in keys(geno.terminals) && node2.parent_id === nothing
         delete!(geno.terminals, node_id2)
     end
 
@@ -267,10 +259,9 @@ Swap two randomly selected nodes in the genotype tree. Nodes that belong to the 
 function swap_node(
     rng::AbstractRNG, 
     ::Counter, 
-    geno::GeneticProgramGenotype,
+    geno::ModiGeneticProgramGenotype,
     functions::Dict{FuncAlias, Int},
     terminals::Dict{Terminal, Int},
-    ::Float64,
 )
     # Select a node at random.
     node1 = rand(rng, all_nodes(geno)).second
@@ -304,7 +295,7 @@ Throws:
 - Error if any of the node IDs are invalid or if the splicing operation cannot be completed.
 """
 function splice_function(
-    geno::GeneticProgramGenotype, 
+    geno::ModiGeneticProgramGenotype, 
     segment_top_id::Int, 
     segment_bottom_child_id::Int,
     target_id::Int,
@@ -346,15 +337,24 @@ function splice_function(
     end
 
     # If the target was the root, then the segment top becomes the new execution root.
-    if target_id == geno.root_id
-        geno.root_id = segment_top.id
+    target_root_index = findfirst(root_id -> root_id == target_id, geno.root_ids)
+    if target_root_index !== nothing
+        geno.root_ids[target_root_index] = segment_top.id
     # If the segment top was the root, then ownership of the execution root is passed to the 
     # root of the target's subtree.
-    elseif segment_top.id == geno.root_id
+    end
+    segment_top_root_index = findfirst(root_id -> root_id == segment_top.id, geno.root_ids)
+    if segment_top_root_index !== nothing
         ancestors = get_ancestors(geno, segment_top)
         if length(ancestors) > 0
             target_subtree_root = ancestors[end]
-            geno.root_id = target_subtree_root.id
+            target_subtree_root_index = findfirst(
+                root_id -> root_id == target_subtree_root.id, geno.root_ids
+            )
+            if target_subtree_root_index === nothing
+                throw(ErrorException("Cannot splice function: target subtree root is not a root"))
+            end
+            geno.root_ids[target_subtree_root_index] = target_subtree_root.id
         end
     end
     # If the segment bottom's child is a terminal, remove it.
@@ -382,7 +382,7 @@ Randomly splice a function node's subtree into another part of the genotype tree
 function splice_function(
     rng::AbstractRNG, 
     ::Counter,
-    geno::GeneticProgramGenotype,
+    geno::ModiGeneticProgramGenotype,
     functions::Dict{FuncAlias, Int},
     terminals::Dict{Terminal, Int},
     ::Float64,
@@ -414,7 +414,7 @@ function splice_function(
     return splice_function(geno, splicer_top.id, splicer_tail.id, splicee_id)
 end
 
-function inject_noise(geno::GeneticProgramGenotype, noisedict::Dict{Int, Float64})
+function inject_noise(geno::ModiGeneticProgramGenotype, noisedict::Dict{Int, Float64})
     geno = deepcopy(geno)
     for (id, noise) in noisedict
         if !haskey(geno.terminals, id)
@@ -445,7 +445,7 @@ Inject noise into a copy of the genotype for each real-valued terminal, using th
 function inject_noise(
     rng::AbstractRNG, 
     ::Counter, 
-    geno::GeneticProgramGenotype,
+    geno::ModiGeneticProgramGenotype,
     functions::Dict{FuncAlias, Int},
     terminals::Dict{Terminal, Int},
     noise_std::Float64,

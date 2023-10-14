@@ -1,6 +1,7 @@
 module Phenotypes
 
-export Abstract, Vectors, Defaults, GeneticPrograms, GnarlNetworks, FiniteStateMachines
+export Abstract, Vectors, Defaults, GnarlNetworks, FiniteStateMachines
+# export GeneticPrograms
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -14,8 +15,8 @@ using .Defaults: Defaults
 include("types/vectors/vectors.jl")
 using .Vectors: Vectors
 
-include("types/genetic_programs/genetic_programs.jl")
-using .GeneticPrograms: GeneticPrograms
+#include("types/genetic_programs/genetic_programs.jl")
+#using .GeneticPrograms: GeneticPrograms
 
 include("types/gnarl/gnarl.jl")
 using .GnarlNetworks: GnarlNetworks

@@ -2,7 +2,7 @@ module Phenotypes
 
 export GeneticProgramPhenotype
 
-using ....Genotypes.GeneticPrograms: GeneticProgramGenotype
+using ....Genotypes.GeneticPrograms.Concrete: BasicGeneticProgramGenotype
 using ...Abstract: PhenotypeCreator, Phenotype
 
 import ...Phenotypes.Interfaces: act!, create_phenotype, reset!
@@ -16,14 +16,14 @@ mutable struct GeneticProgramPhenotype <: Phenotype
 end
 
 function GeneticProgramPhenotype(
-    genotype::GeneticProgramGenotype, tape::Vector{<:Real} = [0.0]
+    genotype::BasicGeneticProgramGenotype, tape::Vector{<:Real} = [0.0]
 )
     linear_nodes = linearize(genotype)
     head = length(tape)
     GeneticProgramPhenotype(tape, head, linear_nodes)
 end
 
-function create_phenotype(::PhenotypeCreator, geno::GeneticProgramGenotype)
+function create_phenotype(::PhenotypeCreator, geno::BasicGeneticProgramGenotype)
     GeneticProgramPhenotype(geno)
 end
 

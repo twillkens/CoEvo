@@ -4,7 +4,7 @@ using JLD2: Group
 
 using .....Ecosystems.Species.Genotypes.GnarlNetworks: GnarlNetworkNodeGene, GnarlNetworkConnectionGene
 using .....Ecosystems.Species.Genotypes.GnarlNetworks: GnarlNetworkGenotype
-using .....Ecosystems.Species.Genotypes.GeneticPrograms: GeneticProgramGenotype, ExpressionNodeGene
+#using .....Ecosystems.Species.Genotypes.GeneticPrograms: GeneticProgramGenotype, ExpressionNodeGene
 using ...Basic: BasicArchiver
 
 import ....Archivers.Interfaces: save_genotype!

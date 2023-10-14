@@ -1,13 +1,14 @@
 module Concrete
 
 export FiniteStateMachineGenotypeLoader, GnarlNetworkGenotypeLoader, load_ecosystem
-export BasicVectorGenotypeLoader, GeneticProgramGenotypeLoader, EcosystemLoader
+export BasicVectorGenotypeLoader, EcosystemLoader
+# export GeneticProgramGenotypeLoader
 
 include("fsms/fsms.jl")
 using .FiniteStateMachines: FiniteStateMachineGenotypeLoader
 
-include("genetic_programs/genetic_programs.jl")
-using .GeneticPrograms: GeneticProgramGenotypeLoader
+#include("genetic_programs/genetic_programs.jl")
+#using .GeneticPrograms: GeneticProgramGenotypeLoader
 #
 include("gnarl_networks/gnarl_networks.jl")
 using .GnarlNetworks: GnarlNetworkGenotypeLoader
