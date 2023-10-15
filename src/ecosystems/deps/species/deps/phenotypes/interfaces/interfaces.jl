@@ -11,7 +11,7 @@ function create_phenotype(phenotype_creator::PhenotypeCreator, geno::Genotype)::
 end
 
 function act!(phenotype::Phenotype, args...)
-    throw(ErrorException("act! not implemented for $phenotype"))
+    throw(ErrorException("act! not implemented for $phenotype with args $args"))
 end
 
 function act!(phenotype::Phenotype)

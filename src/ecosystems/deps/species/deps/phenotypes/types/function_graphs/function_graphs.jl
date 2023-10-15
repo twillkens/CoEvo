@@ -124,8 +124,9 @@ function get_output!(node::FunctionGraphStatefulNode, is_recurrent_edge::Bool)
     return output_value
 end
 
-function act!(phenotype::FunctionGraphPhenotype, input_values::Vector{Float64})
+function act!(phenotype::FunctionGraphPhenotype, input_values::Vector{T}) where T<:Real
     # Update previous_values before the new round of computation
+    input_values = Float64.(input_values)
     for node in values(phenotype.nodes)
         node.previous_value = node.current_value === nothing ? 
             node.previous_value : node.current_value
@@ -144,7 +145,7 @@ function act!(phenotype::FunctionGraphPhenotype, input_values::Vector{Float64})
         output_value = get_output!(output_node, false)
         push!(output_values, output_value)
     end
-    return output_values
+    return T.(output_values)
 end
 
 function reset!(phenotype::FunctionGraphPhenotype)

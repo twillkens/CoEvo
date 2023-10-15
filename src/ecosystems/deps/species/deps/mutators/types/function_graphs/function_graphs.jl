@@ -10,7 +10,7 @@ using ....Genotypes.FunctionGraphs: FunctionGraphConnection, GraphFunction, FUNC
 using .....Ecosystems.Utilities.Counters: Counter, next!
 using ...Mutators.Abstract: Mutator
 
-import ...Mutators.Interfaces: mutate
+import ....Species.Mutators.Interfaces: mutate
 import Base: identity
 
 @kwdef struct ConnectionRedirectionSpecification

@@ -89,9 +89,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
             mutualist => BasicSpeciesCreator(
                 id = mutualist,
                 n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
-                    n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
-                ),
+                geno_creator = geno_creator,
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(
                     max_clusters = max_clusters, 
@@ -107,9 +105,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
             parasite => BasicSpeciesCreator(
                 id = parasite,
                 n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
-                    n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
-                ),
+                geno_creator = geno_creator,
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(
                     max_clusters = max_clusters, 

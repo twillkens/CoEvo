@@ -16,7 +16,7 @@ function mutate(
     gene_id_counter::Counter,
     genotype::Genotype
 )::Genotype
-    throw(ErrorException("Default mutation for $mutator not implemented."))
+    throw(ErrorException("Default mutation for $mutator not implemented for $genotype."))
 end
 
 end
