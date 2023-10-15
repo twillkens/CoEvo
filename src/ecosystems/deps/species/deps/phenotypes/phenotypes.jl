@@ -1,6 +1,6 @@
 module Phenotypes
 
-export Abstract, Vectors, Defaults, GnarlNetworks, FiniteStateMachines
+export Abstract, Vectors, Defaults, GnarlNetworks, FiniteStateMachines, FunctionGraphs
 # export GeneticPrograms
 
 include("abstract/abstract.jl")
@@ -23,5 +23,8 @@ using .GnarlNetworks: GnarlNetworks
 
 include("types/fsms/fsms.jl")
 using .FiniteStateMachines: FiniteStateMachines
+
+include("types/function_graphs/function_graphs.jl")
+using .FunctionGraphs: FunctionGraphs
 
 end

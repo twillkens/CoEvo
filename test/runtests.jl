@@ -4,8 +4,9 @@ using Test
 
 using Random: AbstractRNG
 using StableRNGs: StableRNG
-include("../src/CoEvo.jl")
-using .CoEvo
+#include("../src/CoEvo.jl")
+#using .CoEvo
+using CoEvo
 
 include("utils/utils.jl")
 include("numbers/numbers.jl")
@@ -15,6 +16,7 @@ include("gnarl/gnarl.jl")
 include("disco/disco.jl")
 # include("cont_pred/cont_pred.jl")
 include("fsm/fsm.jl")
+include("evolving_graphs/evolving_graphs.jl")
 include("archivers/archivers.jl")
 
 end

@@ -1,543 +1,791 @@
 using Test
 using Base: @kwdef
-using CoEvo
+#using CoEvo
 using Random: AbstractRNG
+using StableRNGs: StableRNG
+using StatsBase: sample, Weights
 
 import Base: ==
 # Define a map for function symbols to actual functions
+using Random  # For StableRNG
 
-struct GraphFunction
-    name::Symbol
-    func::Function
-    arity::Int
-end
+using .FunctionGraphMutators: add_function, remove_function, swap_function, redirect_connection
+using .FunctionGraphMutators: inject_noise!
+using .FunctionGraphMutators: select_function_with_same_arity, get_genotype_after_swapping_functions
+using .FunctionGraphMutators: get_all_substitutions, ConnectionRedirectionSpecification
+using .Phenotypes.Interfaces: create_phenotype, act!, reset!
 
-function(graph_function::GraphFunction)(args...)
-    output = graph_function.func(args...)
-    return output
-end
+println("Starting tests for FunctionGraphs...")
 
-# function ==(gf1::GraphFunction, gf2::GraphFunction)
-#     return gf1.name == gf2.name
-# end
-# 
-# function ==(gf1::Symbol, gf2::GraphFunction)
-#     return gf1 == gf2.name
-# end
-# 
-# function ==(gf1::GraphFunction, gf2::Symbol)
-#     return gf1 == gf2.name
-# end
-
-const FUNCTION_MAP = Dict(
-    :INPUT => GraphFunction(:INPUT, identity, 1),
-    :OUTPUT => GraphFunction(:OUTPUT, identity, 1),
-
-    :IDENTITY => GraphFunction(:IDENTITY, identity, 1),
-
-    :ADD => GraphFunction(:ADD, (+), 2),
-    :SUBTRACT => GraphFunction(:SUBTRACT, (-), 2),
-    :MULTIPLY => GraphFunction(:MULTIPLY, (*), 2),
-    :DIVIDE => GraphFunction(:DIVIDE, ((x, y) -> y == 0 ? 1.0 : x / y), 2),
-
-    :MAXIMUM => GraphFunction(:MAXIMUM, max, 2),
-    :MINIMUM => GraphFunction(:MINIMUM, min, 2),
-
-    :SIN => GraphFunction(:SIN, sin, 1),
-    :COSINE => GraphFunction(:COSINE, cos, 1),
-    :SIGMOID => GraphFunction(:SIGMOID, (x -> 1 / (1 + exp(-x))), 2),
-    :TANH => GraphFunction(:TANH, tanh, 1),
-    :RELU => GraphFunction(:RELU, (x -> x < 0 ? 0 : x), 1),
-
-    :AND => GraphFunction(:AND, ((x, y) -> Bool(x) && Bool(y)), 2),
-    :OR => GraphFunction(:OR, ((x, y) -> Bool(x) || Bool(y)), 2),
-    :NAND => GraphFunction(:NAND, ((x, y) -> !(Bool(x) && Bool(y))), 2),
-    :XOR => GraphFunction(:XOR, ((x, y) -> Bool(x) ⊻ Bool(y)), 2),
-)
-
-@kwdef struct FunctionGraphConnection
-    input_id::Int
-    weight::Float64
-    is_recurrent::Bool
-end
-
-@kwdef struct FunctionGraphNode
-    id::Int
-    func::Symbol
-    input_ids::Vector{Tuple{Int, Bool}}
-end
-
-
-@kwdef struct FunctionGraphGenotype <: Genotype
-    input_node_ids::Vector{Int}
-    output_node_ids::Vector{Int}
-    hidden_node_ids::Vector{Int}
-    nodes::Dict{Int, FunctionGraphNode}
-    # Add more fields if needed
-end
-
-@kwdef struct FunctionGraphGenotypeCreator <: GenotypeCreator
-    n_input_nodes::Int
-    n_output_nodes::Int
-end
-
-using CoEvo.Ecosystems.Utilities.Counters: Counter, next!
-
-function create_genotypes(
-    genotype_creator::FunctionGraphGenotypeCreator, 
-    rng::AbstractRNG,
-    gene_id_counter::Counter,
-    n_pop::Int
-)
-    genotypes = FunctionGraphGenotype[]
-    for _ in 1:n_pop
-        input_node_ids = next!(gene_id_counter, genotype_creator.n_input_nodes)
-        output_node_ids = next!(gene_id_counter, genotype_creator.n_output_nodes)
-        input_nodes = Dict(
-            id => FunctionGraphNode(
-                id = id, 
-                func = :INPUT, 
-                input_ids = Tuple{Int, Bool}[]
-            ) for id in input_node_ids
-        )
-        output_nodes = Dict(
-            id => FunctionGraphNode(
-                id = id, 
-                func = :OUTPUT, 
-                input_ids = [(rand(rng, input_node_ids), false)]
-            ) for id in output_node_ids
-        )
-        nodes = merge(input_nodes, output_nodes)
-        genotype = FunctionGraphGenotype(input_node_ids, output_node_ids, Int[], nodes)
-        push!(genotypes, genotype)
-    end
-
-    return genotypes
-end
-
-
-using StatsBase: sample
-
-function add_node(
-    rng::AbstractRNG, 
-    gene_id_counter::Counter, 
-    graph::FunctionGraphGenotype, 
-    function_map::Dict{Symbol, GraphFunction} = FUNCTION_MAP
-)
-    graph = deepcopy(graph)
-    new_id = next!(gene_id_counter)
-    func_symbol = sample(rng, collect(keys(FUNCTION_MAP)))
-    available_inputs = [graph.input_node_ids; graph.hidden_node_ids ; new_id]
-    arity = function_map[func_symbol].arity
-    input_ids = [(rand(rng, available_inputs), true) for _ in 1:arity]
-    
-    new_node = FunctionGraphNode(
-        id = new_id,
-        func = func_symbol,
-        input_ids = input_ids
-    )
-    
-    graph.nodes[new_id] = new_node
-    
-    return graph
-end
-
-gene_id_counter = Counter()
-using StableRNGs: StableRNG
-rng = StableRNG(1234)
-
-genotype_creator = FunctionGraphGenotypeCreator(1, 1)
-genotype = create_genotypes(genotype_creator, rng, gene_id_counter, 1)[1]
-mutant = add_node(rng, gene_id_counter, genotype)
-@test length(keys(mutant.nodes)) == 3
-
-
-function get_nodes_with_redirected_links(
-    graph::FunctionGraphGenotype, 
-    todelete::Int
-)
-    # Create a new nodes dictionary to avoid changing the original during iteration
-    new_nodes = deepcopy(graph.nodes)
-
-    # Identify the nodes which link to the deleted node
-    for (id, node) in graph.nodes
-        if id == todelete
-            continue # skip the node to be deleted
-        end
-
-        # Check if node points to the deleted node
-        new_input_ids = map(node.input_ids) do (input_id, _)
-            if input_id == todelete
-                # Choose a replacement link from deleted node's inputs, or self-link if not possible
-                possible_redirects = filter(x -> x[1] != todelete, graph.nodes[todelete].input_ids)
-                if isempty(possible_redirects)
-                    new_link = (id, true)  # self-link if no other options
-                else
-                    new_link = rand(possible_redirects)  # randomly select an alternative link
-                end
-            else
-                new_link = (input_id, true)
-            end
-            new_link
-        end
-        
-        # Update links for the node
-        new_nodes[id] = FunctionGraphNode(id, node.func, new_input_ids)
-    end
-    
-    return new_nodes
-end
-
-function remove_node(genotype::FunctionGraphGenotype, todelete::Int)
-    # Ensure the node to delete is not an input or output node
-    if (todelete in genotype.input_node_ids) || (todelete in genotype.output_node_ids)
-        throw(ErrorException("Cannot remove input or output node"))
-    end
-    
-    # Filter the links
-    new_nodes = get_nodes_with_redirected_links(genotype, todelete)
-
-    # Remove the node
-    delete!(new_nodes, todelete)
-    hidden_node_ids = filter(x -> x != todelete, genotype.hidden_node_ids)
+@testset "Add Node Tests" begin
+    rng = StableRNG(42)
+    gene_id_counter = Counter(6)
 
     genotype = FunctionGraphGenotype(
-        genotype.input_node_ids, 
-        genotype.output_node_ids, 
-        hidden_node_ids,
-        new_nodes
+        input_node_ids = [1],
+        bias_node_ids = [2],
+        hidden_node_ids = [3, 4],
+        output_node_ids = [5],
+        nodes = Dict(
+            1 => FunctionGraphNode(1, :INPUT, []),
+            2 => FunctionGraphNode(2, :BIAS, []),
+            3 => FunctionGraphNode(3, :ADD, [
+                FunctionGraphConnection(1, 0.5, false),
+                FunctionGraphConnection(2, 0.5, false)
+            ]),
+            4 => FunctionGraphNode(4, :MULTIPLY, [
+                FunctionGraphConnection(3, 0.5, true),
+                FunctionGraphConnection(2, 0.5, false)
+            ]),
+            5 => FunctionGraphNode(5, :OUTPUT, [
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+        )
     )
+    # Create an initial `genotype` object here for testing.
 
-    return genotype
-end
-
-function remove_node(
-    rng::AbstractRNG, 
-    ::Counter, 
-    genotype::FunctionGraphGenotype, 
-    ::Dict{Symbol, GraphFunction} = FUNCTION_MAP
-)
-    # Ensure the node to delete is not an input or output node
-    to_delete = rand(rng, graph.hidden_node_ids)
-    remove_node(genotype, to_delete)
-end
-
-
-geno = FunctionGraphGenotype(
-    input_node_ids = [0],
-    output_node_ids = [6],
-    hidden_node_ids = [1, 2, 3, 4, 5],
-    nodes = Dict(
-        6 => FunctionGraphNode(6, :OUTPUT, [(5, false)]),
-        5 => FunctionGraphNode(5, :ADD, [(3, false), (4, false)]),
-        4 => FunctionGraphNode(4, :MULTIPLY, [(2, true), (3, true)]),
-        3 => FunctionGraphNode(3, :MAXIMUM, [(5, true), (1, false)]),
-        2 => FunctionGraphNode(2, :IDENTITY, [(1, true)]),
-        1 => FunctionGraphNode(1, :IDENTITY, [(0, false)]),
-        0 => FunctionGraphNode(0, :INPUT, []),
-    )
-)
-
-mutant = remove_node(geno, 2)
-println(mutant.nodes)
-
-@test length(keys(mutant.nodes)) == 6
-@test mutant.nodes[4].input_ids == [(1, true), (3, true)]
-
-mutant = remove_node(mutant, 1)
-@test length(keys(mutant.nodes)) == 5
-@test mutant.nodes[4].input_ids == [(0, true), (3, true)]
-@test mutant.nodes[3].input_ids == [(5, true), (0, true)]
-
-mutant = remove_node(mutant, 3)
-@test length(keys(mutant.nodes)) == 4
-
-mutant = remove_node(mutant, 4)
-@test length(keys(mutant.nodes)) == 3
-
-mutant = remove_node(mutant, 5)
-@test length(keys(mutant.nodes)) == 2
-
-@test_throws ErrorException remove_node(mutant, 0)
-@test_throws ErrorException remove_node(mutant, 6)
-
-
-function swap_function(
-
-)
-
-end
-
-function swap_function(
-    rng::AbstractRNG, 
-    ::Counter, 
-    genotype::FunctionGraphGenotype, 
-    ::Dict{Symbol, GraphFunction} = FUNCTION_MAP
-)
-    node_id = rand(rng, collect(keys(graph.nodes)))
-    curr_arity = FUNCTION_MAP[graph.nodes[node_id].func].arity
+    @testset "Node addition" begin
+        new_genotype = add_function(rng, gene_id_counter, genotype)
+        @test length(new_genotype.nodes) == length(genotype.nodes) + 1
+        @test length(new_genotype.hidden_node_ids) == length(genotype.hidden_node_ids) + 1
+    end
     
-    # Select a new function maintaining the same arity.
-    new_func = sample(rng, [f for f in values(FUNCTION_MAP) if f.arity == curr_arity])
-    graph.nodes[node_id].func = new_func.name
-    
-    return graph
+    @testset "Function selection" begin
+        new_genotype = add_function(rng, gene_id_counter, genotype)
+        new_id = maximum(keys(new_genotype.nodes))  # Assuming monotonic ids
+        new_func = new_genotype.nodes[new_id].func
+        @test new_func ∉ [:INPUT, :BIAS, :OUTPUT]
+    end
 
-end
-
-
-return
-
-
-
-
-#function create_genotypes()
-
-@kwdef mutable struct FunctionGraphStatefulNode
-    id::Int
-    func::Symbol
-    current_value::Union{Float64, Nothing} = nothing
-    previous_value::Float64 = 0.0
-    input_nodes::Vector{Pair{FunctionGraphStatefulNode, Bool}}
-    seeking_output::Bool = false
-end
-
-function FunctionGraphStatefulNode(stateless_node::FunctionGraphNode)
-    stateful_node = FunctionGraphStatefulNode(
-        id = stateless_node.id,
-        func = stateless_node.func,
-        current_value = nothing,
-        previous_value = 0.0,
-        input_nodes = Pair{FunctionGraphStatefulNode, Bool}[],
-        seeking_output = false
-    )
-    return stateful_node
-end
-
-@kwdef mutable struct FunctionGraphPhenotype <: Phenotype
-    input_node_ids::Vector{Int}
-    output_node_ids::Vector{Int}
-    nodes::Dict{Int, FunctionGraphStatefulNode}
-end
-
-function print_phenotype_state(phenotype::FunctionGraphPhenotype)
-    # Extracting nodes from phenotype and sorting them by id.
-    sorted_nodes = sort(collect(values(phenotype.nodes)), by = node -> node.id)
-    # Printing the nodes' state
-    println("IDENTITY\tPrevious Value\tCurrent Value")
-    for node in sorted_nodes
-        println("$(node.id)\t$(node.previous_value)\t$(node.current_value)")
+    @testset "Input connections" begin
+        new_genotype = add_function(rng, gene_id_counter, genotype)
+        new_id = maximum(keys(new_genotype.nodes))
+        new_node = new_genotype.nodes[new_id]
+        # Test that connections are valid
+        for conn in new_node.input_connections
+            @test conn.input_node_id in [new_genotype.input_node_ids; new_genotype.bias_node_ids; new_genotype.hidden_node_ids]
+            @test conn.weight == 0.0  # If you modify weight initialization, adjust accordingly
+            @test conn.is_recurrent == true
+        end
     end
 end
 
-function create_phenotype(::PhenotypeCreator, geno::FunctionGraphGenotype)::FunctionGraphPhenotype
-    # Initialize node values with zeros for simplicity
-    all_nodes = Dict(id => FunctionGraphStatefulNode(node) for (id, node) in geno.nodes)
-    for (id, node) in all_nodes
-        node.input_nodes = [
-            all_nodes[input_id] => is_recurrent
-            for (input_id, is_recurrent) in geno.nodes[id].input_ids
+
+@testset "Test Node Removal" begin
+    rng = StableRNG(42)
+    gene_id_counter = Counter()
+
+    genotype = FunctionGraphGenotype(
+        input_node_ids = [1, 2], 
+        bias_node_ids = [3],
+        hidden_node_ids = [4, 5],
+        output_node_ids = [6],
+        nodes = Dict(
+            1 => FunctionGraphNode(1, :INPUT, []),
+            2 => FunctionGraphNode(2, :INPUT, []),
+            3 => FunctionGraphNode(3, :BIAS, []),
+            4 => FunctionGraphNode(4, :ADD, [
+                FunctionGraphConnection(1, 1.0, false), 
+                FunctionGraphConnection(3, 1.0, false)
+            ]),
+            5 => FunctionGraphNode(5, :ADD, [
+                FunctionGraphConnection(2, 1.0, false), 
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+            6 => FunctionGraphNode(6, :OUTPUT, [
+                FunctionGraphConnection(5, 1.0, false)
+            ])
+        )
+    )
+
+    @testset "Test Deterministic Removal" begin
+        # Test deterministic removal
+        substitutions = [
+            ConnectionRedirectionSpecification(5, 2, 2)
         ]
+        new_genotype = remove_function(genotype, 4, substitutions)
+
+        @test !haskey(new_genotype.nodes, 4) # node 4 should be removed
+        @test new_genotype.hidden_node_ids == [5] # Only node 5 should be left
+        @test new_genotype.nodes[5].input_connections[2].input_node_id == 2 # node 5 should now connect to node 2, not 4
     end
 
-    phenotype = FunctionGraphPhenotype(
-        geno.input_node_ids, 
-        geno.output_node_ids, 
-        all_nodes
+    @testset "Test Illegal Node Removal" begin
+        # Trying to remove an input node should throw an error
+        @test_throws ErrorException remove_function(genotype, 1, ConnectionRedirectionSpecification[])
+    end
+
+    @testset "Test Self-loop Handling" begin
+        # Removing node 4 without available redirection options should create a self-loop
+        substitutions = [
+            ConnectionRedirectionSpecification(5, 2, 5)
+        ]
+        new_genotype = remove_function(genotype, 4, substitutions)
+        
+        @test new_genotype.nodes[5].input_connections[end].input_node_id == 5 # self-loop should be created
+    end
+
+    @testset "Test Stochastic Removal with Known RNG" begin
+        new_genotype = remove_function(rng, gene_id_counter, genotype, FUNCTION_MAP)
+    
+        # Add specific tests depending on predictable random behavior from the seed
+        # Note: You will need to determine the expected behavior based on the RNG seed
+        @test !haskey(new_genotype.nodes, 4) || !haskey(new_genotype.nodes, 5)
+    end
+end
+
+@testset "Test Node Removal" begin
+    rng = StableRNG(42)
+    gene_id_counter = Counter()
+    geno = FunctionGraphGenotype(
+        input_node_ids = [0],
+        bias_node_ids = Int[],
+        hidden_node_ids = [1, 2, 3, 4, 5],
+        output_node_ids = [6],
+        nodes = Dict(
+            0 => FunctionGraphNode(0, :INPUT, []),
+            1 => FunctionGraphNode(1, :IDENTITY, [
+                FunctionGraphConnection(0, 1.0, false)
+            ]),
+            2 => FunctionGraphNode(2, :IDENTITY, [
+                FunctionGraphConnection(1, 1.0, true)
+            ]),
+            3 => FunctionGraphNode(3, :MAXIMUM, [
+                FunctionGraphConnection(1, 1.0, false),
+                FunctionGraphConnection(5, 1.0, true), 
+            ]),
+            4 => FunctionGraphNode(4, :MULTIPLY, [
+                FunctionGraphConnection(2, 1.0, true), 
+                FunctionGraphConnection(3, 1.0, true)
+            ]),
+            5 => FunctionGraphNode(5, :ADD, [
+                FunctionGraphConnection(3, 1.0, false), 
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+            6 => FunctionGraphNode(6, :OUTPUT, [
+                FunctionGraphConnection(5, 1.0, false)
+            ]),
+        )
     )
 
-    return phenotype
-end
+    @test length(keys(geno.nodes)) == 7
 
-function get_output!(node::FunctionGraphStatefulNode, is_recurrent_edge::Bool)
-    if node.func == :INPUT
-        return node.current_value
-    elseif node.seeking_output
-        return is_recurrent_edge ? node.previous_value : node.current_value
-    end
-    node.seeking_output = true
-    if node.current_value === nothing
-        input_values = [
-            get_output!(input_node, is_recurrent_edge) 
-            for (input_node, is_recurrent_edge) in node.input_nodes
-        ]
-        node_function = FUNCTION_MAP[node.func]
-        output_value = node_function(input_values...)
-        node.current_value = output_value
-    end
-    output_value = is_recurrent_edge ? node.previous_value : node.current_value
-    node.seeking_output = false
-    return output_value
-end
+    @testset "Removing Nodes and Validating Connections" begin
+        # Assuming remove_function is the refactored function to remove a node deterministically
+        # and it uses ConnectionRedirectionSpecification for reconnection logic
+        
+        # Removing Node 2
+        # You need to determine what happens to connections of node 2, and create appropriate ConnectionRedirectionSpecification
+        node_to_remove_id = 2
 
-# Additional Helper Functions
+        link_sub_spec_2 = [
+            ConnectionRedirectionSpecification(
+                node_id = 4, 
+                input_connection_index = 1, 
+                new_input_node_id = 1
+            ),
+        ]  # Example: redirect the connection from 2 to 3
+        substitutions = get_all_substitutions(geno, node_to_remove_id, rng)
 
-function act!(phenotype::FunctionGraphPhenotype, input_values::Vector{Float64})
-    # Update previous_values before the new round of computation
+        @test Set(substitutions) == Set(link_sub_spec_2)
+        mutant = remove_function(geno, node_to_remove_id, link_sub_spec_2)
+        
+        @test length(keys(mutant.nodes)) == 6
+        @test all(connection.input_node_id != node_to_remove_id for connection in mutant.nodes[4].input_connections)
+        @test mutant.nodes[4].input_connections[1].input_node_id == 1 # node 4 should now connect to node 1, not 2
 
-    for node in values(phenotype.nodes)
-        node.previous_value = node.current_value === nothing ? 
-            node.previous_value : node.current_value
-        node.current_value = nothing
-    end
+        node_to_remove_id = 1
+        link_sub_spec_1 = [
+            ConnectionRedirectionSpecification(
+                node_id = 3, 
+                input_connection_index = 1, 
+                new_input_node_id = 0
+            ),
+            ConnectionRedirectionSpecification(
+                node_id = 4, 
+                input_connection_index = 1, 
+                new_input_node_id = 0
+            ),
+        ]  # Example: redirect the connection from 1 to 0
 
-    for (index, input_value) in enumerate(input_values)
-        input_node = phenotype.nodes[phenotype.input_node_ids[index]]
-        input_node.current_value = input_value
-    end
+        substitutions = get_all_substitutions(mutant, node_to_remove_id, rng)
 
-    output_values = Float64[]
+        @test Set(substitutions) == Set(link_sub_spec_1)
 
-    for output_node_id in phenotype.output_node_ids
-        output_node = phenotype.nodes[output_node_id]
-        output_value = get_output!(output_node, false)
-        push!(output_values, output_value)
+
+        mutant = remove_function(mutant, node_to_remove_id, link_sub_spec_1)
+        @test length(keys(mutant.nodes)) == 5
+
+        @test all(
+            connection.input_node_id != node_to_remove_id 
+            for connection in mutant.nodes[3].input_connections
+        )
+        @test mutant.nodes[3].input_connections[1].input_node_id == 0 # node 3 should now connect to node 0, not 1
+        @test all(
+            connection.input_node_id != node_to_remove_id 
+            for connection in mutant.nodes[4].input_connections
+        )
+        @test mutant.nodes[4].input_connections[1].input_node_id == 0 # node 4 should now connect to node 0, not 1
+        
+        # Similar steps for nodes 1, 3, 4, and 5 with appropriate ConnectionRedirectionSpecification objects
+        # ...
+
+
+        node_to_remove_id = 3
+        possible_link_substitution_specifications = [
+            ConnectionRedirectionSpecification(
+                node_id = 5, 
+                input_connection_index = 1, 
+                new_input_node_id = 0,
+            ),
+            ConnectionRedirectionSpecification(
+                node_id = 5, 
+                input_connection_index = 1, 
+                new_input_node_id = 5,
+            ),
+            ConnectionRedirectionSpecification(
+                node_id = 4, 
+                input_connection_index = 2, 
+                new_input_node_id = 0,
+            ),
+            ConnectionRedirectionSpecification(
+                node_id = 4, 
+                input_connection_index = 2, 
+                new_input_node_id = 5,
+            ),
+        ]  # Example: redirect the connection from 3 to 0
+        for _ in 1:10
+            actual_substitutions = get_all_substitutions(mutant, node_to_remove_id, rng)
+            @test issubset(Set(actual_substitutions), Set(possible_link_substitution_specifications), )
+        end
     end
     
-    return output_values
-end
-
-function reset!(phenotype::FunctionGraphPhenotype)
-    for node in phenotype.nodes
-        node.current_value = nothing
-        node.previous_value = 0.0
+    @testset "Error Handling for Invalid Node Removal" begin
+        # Attempting to remove input and output nodes - should throw an error
+        @test_throws ErrorException remove_function(geno, 0, ConnectionRedirectionSpecification[])
+        @test_throws ErrorException remove_function(geno, 6, ConnectionRedirectionSpecification[])
     end
 end
 
-# Example FunctionGraphGenotype
-geno = FunctionGraphGenotype(
-    input_node_ids = [0],
-    output_node_ids = [6],
-    hidden_node_ids = [1, 2, 3, 4, 5],
-    nodes = Dict(
-        6 => FunctionGraphNode(6, :OUTPUT, [(5, false)]),
-        5 => FunctionGraphNode(5, :ADD, [(3, false), (4, false)]),
-        4 => FunctionGraphNode(4, :MULTIPLY, [(2, true), (3, true)]),
-        3 => FunctionGraphNode(3, :MAXIMUM, [(5, true), (1, false)]),
-        2 => FunctionGraphNode(2, :IDENTITY, [(1, true)]),
-        1 => FunctionGraphNode(1, :IDENTITY, [(0, false)]),
-        0 => FunctionGraphNode(0, :INPUT, []),
+
+@testset "Swap Function Tests" begin
+    rng = StableRNG(42)
+    gene_id_counter = Counter()
+
+    genotype_example = FunctionGraphGenotype(
+        [1], 
+        [2], 
+        [3, 4],
+        [5],
+        Dict(
+            1 => FunctionGraphNode(1, :INPUT, []),
+            2 => FunctionGraphNode(2, :BIAS, []),
+            3 => FunctionGraphNode(3, :ADD, [FunctionGraphConnection(1, 1.0, false)]),
+            4 => FunctionGraphNode(4, :SUBTRACT, [FunctionGraphConnection(2, 1.0, false)]),
+            5 => FunctionGraphNode(5, :OUTPUT, [FunctionGraphConnection(3, 1.0, false)])
+        )
     )
-)
+    
+    @testset "select_function_with_same_arity" begin
+        old_function = :ADD  # Assume ADD exists in FUNCTION_MAP and its arity is known
+        new_function = select_function_with_same_arity(rng, old_function, FUNCTION_MAP)
+        @test new_function != old_function  # The function should be different from the original
+        @test FUNCTION_MAP[new_function].arity == FUNCTION_MAP[old_function].arity  # Arity should be the same
+    end
+    
+    @testset "get_genotype_after_swapping_functions" begin
+        new_func = :MULTIPLY  # Assume MULTIPLY is a valid function
+        swapped_genotype = get_genotype_after_swapping_functions(genotype_example, 3, new_func)
+        
+        # Check function swap
+        @test swapped_genotype.nodes[3].func == new_func  # Function should be updated
+        
+        # Check the other nodes remain unaffected
+        @test swapped_genotype.nodes[4] == genotype_example.nodes[4]
+        @test swapped_genotype.nodes[5] == genotype_example.nodes[5]
+    end
+    
+    @testset "swap_function" begin
+        swapped_genotype = swap_function(rng, gene_id_counter, genotype_example, FUNCTION_MAP)
+        
+        # Check a function was swapped (assuming swap will always change the function)
+        swapped_funcs = [node.func for node in values(swapped_genotype.nodes)]
+        original_funcs = [node.func for node in values(genotype_example.nodes)]
+        @test any(swapped_funcs .!= original_funcs)
+        
+        # Check node topology remains the same
+        swapped_connections = [node.input_connections for node in values(swapped_genotype.nodes)]
+        original_connections = [node.input_connections for node in values(genotype_example.nodes)]
+        @test swapped_connections == original_connections
+    end
+end
 
-# FunctionGraphPhenotype Creation and Evaluation
-phenotype_creator = DefaultPhenotypeCreator()
-phenotype = create_phenotype(phenotype_creator, geno)
-input_values = [1.0]
-output = act!(phenotype, input_values)
-@test output == [1.0]
-output = act!(phenotype, input_values)
-@test output == [1.0]
-output = act!(phenotype, input_values)
-@test output == [2.0]
-output = act!(phenotype, input_values)
-@test output == [3.0]
-output = act!(phenotype, input_values)
-@test output == [5.0]
-output = act!(phenotype, input_values)
-@test output == [8.0]
-output = act!(phenotype, input_values)
-@test output == [13.0]
 
-geno = FunctionGraphGenotype(
-    input_node_ids = [1, 2],
-    output_node_ids = [6],
-    hidden_node_ids = [3, 4, 5],
-    nodes = Dict(
-        6 => FunctionGraphNode(6, :OUTPUT, [(5, false)]),
-        5 => FunctionGraphNode(5, :AND, [(3, false), (4, false)]),
-        4 => FunctionGraphNode(4, :OR, [(1, false), (2, false)]),
-        3 => FunctionGraphNode(3, :NAND, [(1, false), (2, false)]),
-        2 => FunctionGraphNode(2, :INPUT, []),
-        1 => FunctionGraphNode(1, :INPUT, []),
+@testset "Test Connection Redirection" begin
+    genotype = FunctionGraphGenotype(
+        input_node_ids = [1],
+        bias_node_ids = [2],
+        hidden_node_ids = [3],
+        output_node_ids = [4],
+        nodes = Dict(
+            1 => FunctionGraphNode(1, :INPUT, []),
+            2 => FunctionGraphNode(2, :BIAS, []),
+            3 => FunctionGraphNode(3, :ADD, [
+                FunctionGraphConnection(1, 1.0, false),
+                FunctionGraphConnection(2, 1.0, false)
+            ]),
+            4 => FunctionGraphNode(4, :OUTPUT, [
+                FunctionGraphConnection(3, 1.0, false)
+            ])
+        )
     )
-)
 
-phenotype_creator = DefaultPhenotypeCreator()
-phenotype = create_phenotype(phenotype_creator, geno)
-input_values = [1.0, 1.0]
-output = act!(phenotype, input_values)
-@test output == [0.0]
-input_values = [0.0, 1.0]
-output = act!(phenotype, input_values)
-@test output == [1.0]
-input_values = [1.0, 0.0]
-output = act!(phenotype, input_values)
-@test output == [1.0]
-input_values = [0.0, 0.0]
-output = act!(phenotype, input_values)
-@test output == [0.0]
+    # Seed to make stochastic tests reproducible
+    rng = StableRNG(42)
+    gene_id_counter = Counter(5)
 
-geno = FunctionGraphGenotype(
-    input_node_ids = [1, 2, 3],
-    output_node_ids = [10, 11],
-    hidden_node_ids = [4, 5, 6, 7, 8, 9],
-    nodes = Dict(
-        11 => FunctionGraphNode(11, :OUTPUT, [(8, false)]),
-        10 => FunctionGraphNode(10, :OUTPUT, [(9, false)]),
-        9 => FunctionGraphNode(9, :OR, [(5, false), (6, false)]),
-        8 => FunctionGraphNode(8, :XOR, [(3, false), (4, false)]),
-        7 => FunctionGraphNode(7, :AND, [(3, false), (4, false)]),
-        6 => FunctionGraphNode(6, :AND, [(1, false), (2, false)]),
-        5 => FunctionGraphNode(5, :AND, [(3, false), (4, false)]),
-        4 => FunctionGraphNode(4, :XOR, [(1, false), (2, false)]),
-        3 => FunctionGraphNode(3, :INPUT, []),
-        2 => FunctionGraphNode(2, :INPUT, []),
-        1 => FunctionGraphNode(1, :INPUT, []),
+    @testset "Deterministic Redirection" begin
+        new_input_node_id = 2  # redirect to bias node for simplicity
+        
+        # redirect the first input of node 3 to new_input_node_id
+        redirection_spec = ConnectionRedirectionSpecification(
+            node_id = 3, 
+            input_connection_index = 1, 
+            new_input_node_id = new_input_node_id
+        )
+        new_genotype = redirect_connection(genotype, redirection_spec)
+        
+        @test new_genotype.nodes[3].input_connections[1].input_node_id == new_input_node_id
+        @test new_genotype.nodes[3].input_connections[1].weight == 1.0  # Weight should be unchanged
+        @test !new_genotype.nodes[3].input_connections[1].is_recurrent  # Recurrent status should be unchanged
+    end
+    
+    @testset "Stochastic Redirection" begin
+        new_genotype = redirect_connection(rng, gene_id_counter, genotype, FUNCTION_MAP)
+
+        # Due to the random nature, we perform a basic check
+        # Here, making sure something was redirected while maintaining weights and recurrent status
+        is_changed = false
+        for (nid, node) in new_genotype.nodes
+            for (old_conn, new_conn) in zip(genotype.nodes[nid].input_connections, node.input_connections)
+                if old_conn.input_node_id != new_conn.input_node_id
+                    is_changed = true
+                end
+                @test old_conn.weight == new_conn.weight
+                @test old_conn.is_recurrent == new_conn.is_recurrent
+            end
+        end
+        @test is_changed
+    end
+end
+
+
+
+using Test
+
+@testset "Function Graph Phenotype Tests" begin
+    genotype = FunctionGraphGenotype(
+        input_node_ids  = [1], 
+        bias_node_ids   = [2],
+        hidden_node_ids = [3], 
+        output_node_ids = [4],
+        nodes = Dict(
+            1 => FunctionGraphNode(1, :INPUT, FunctionGraphConnection[]),
+            2 => FunctionGraphNode(2, :BIAS, FunctionGraphConnection[]),
+            3 => FunctionGraphNode(3, :ADD, [
+                FunctionGraphConnection(1, 1.0, true),
+                FunctionGraphConnection(2, 1.0, true),
+            ]),
+            4 => FunctionGraphNode(4, :OUTPUT, [
+                FunctionGraphConnection(3, 1.0, false),
+            ])
+        )
     )
-)
-phenotype_creator = DefaultPhenotypeCreator()
-phenotype = create_phenotype(phenotype_creator, geno)
+    
+    # Test 1: Initialization of a stateful node from a stateless node
+    @testset "Stateful Node Initialization" begin
+        stateless_node = FunctionGraphNode(1, :add, [FunctionGraphConnection(2, 0.5, false)])
+        stateful_node = FunctionGraphStatefulNode(stateless_node)
+        @test stateful_node.id == stateless_node.id
+        @test stateful_node.func == stateless_node.func
+        @test stateful_node.input_nodes == []
+        @test stateful_node.current_value === nothing
+        @test stateful_node.previous_value == 0.0
+        @test stateful_node.seeking_output == false
+    end
+    
+    # Test 2: Creation of phenotype from genotype
+    @testset "Phenotype Creation" begin
+        phenotype = create_phenotype(DefaultPhenotypeCreator(), genotype)
+        @test length(phenotype.nodes) == length(genotype.nodes)
+        @test phenotype.input_node_ids == genotype.input_node_ids
+        @test phenotype.output_node_ids == genotype.output_node_ids
+    end
+    
+end
 
-input_values = [
-    [0.0, 0.0, 0.0],
-    [0.0, 0.0, 1.0],
-    [0.0, 1.0, 0.0],
-    [0.0, 1.0, 1.0],
-    [1.0, 0.0, 0.0],
-    [1.0, 0.0, 1.0],
-    [1.0, 1.0, 0.0],
-    [1.0, 1.0, 1.0],
-]
 
-expected_values = [
-    [0.0, 0.0],
-    [0.0, 1.0],
-    [0.0, 1.0],
-    [1.0, 0.0],
-    [0.0, 1.0],
-    [1.0, 0.0],
-    [1.0, 0.0],
-    [1.0, 1.0],
-]
-@test all([
-    act!(phenotype, input_values[i]) == expected_values[i] 
-    for i in eachindex(input_values)]
-)
 
-geno = FunctionGraphGenotype(
-    input_node_ids = [1, 2, 3, 4],
-    output_node_ids = [9],
-    hidden_node_ids = [5, 6, 7, 8],
-    nodes = Dict(
-        9 => FunctionGraphNode(9, :OUTPUT, [(8, false)]),
-        8 => FunctionGraphNode(8, :MULTIPLY, [(1, false), (7, false)]),
-        7 => FunctionGraphNode(7, :DIVIDE, [(5, false), (6, false)]),
-        6 => FunctionGraphNode(6, :MULTIPLY, [(4, false), (4, false)]),
-        5 => FunctionGraphNode(5, :MULTIPLY, [(2, false), (3, false)]),
-        4 => FunctionGraphNode(4, :INPUT, []),
-        3 => FunctionGraphNode(3, :INPUT, []),
-        2 => FunctionGraphNode(2, :INPUT, []),
-        1 => FunctionGraphNode(1, :INPUT, []),
+@testset "Fibonacci Phenotype" begin
+    geno = FunctionGraphGenotype(
+        input_node_ids = [0],
+        bias_node_ids = Int[],
+        hidden_node_ids = [1, 2, 3, 4, 5],
+        output_node_ids = [6],
+        nodes = Dict(
+            6 => FunctionGraphNode(6, :OUTPUT, [
+                FunctionGraphConnection(5, 1.0, false)
+            ]),
+            5 => FunctionGraphNode(5, :ADD, [
+                FunctionGraphConnection(3, 1.0, false), 
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+            4 => FunctionGraphNode(4, :MULTIPLY, [
+                FunctionGraphConnection(2, 1.0, true), 
+                FunctionGraphConnection(3, 1.0, true)
+            ]),
+            3 => FunctionGraphNode(3, :MAXIMUM, [
+                FunctionGraphConnection(5, 1.0, true), 
+                FunctionGraphConnection(1, 1.0, false)
+            ]),
+            2 => FunctionGraphNode(2, :IDENTITY, [
+                FunctionGraphConnection(1, 1.0, true)
+            ]),
+            1 => FunctionGraphNode(1, :IDENTITY, [
+                FunctionGraphConnection(0, 1.0, false)
+            ]),
+            0 => FunctionGraphNode(0, :INPUT, [])
+        )
     )
-)
-newtons_law_of_gravitation = (g, m1, m2, r) -> (g * m1 * m2) / (r^2)
 
-phenotype_creator = DefaultPhenotypeCreator()
-phenotype = create_phenotype(phenotype_creator, geno)
+    phenotype_creator = DefaultPhenotypeCreator()
+    phenotype = create_phenotype(phenotype_creator, geno)
+    input_values = [1.0]
+    output = act!(phenotype, input_values)
+    @test output == [1.0]
+    output = act!(phenotype, input_values)
+    @test output == [1.0]
+    output = act!(phenotype, input_values)
+    @test output == [2.0]
+    output = act!(phenotype, input_values)
+    @test output == [3.0]
+    output = act!(phenotype, input_values)
+    @test output == [5.0]
+    output = act!(phenotype, input_values)
+    @test output == [8.0]
+    output = act!(phenotype, input_values)
+    @test output == [13.0]
+end
 
-input_values = [6.674e-11, 5.972e24, 7.348e22, 3.844e8]
 
-output = act!(phenotype, input_values)
-expected = [newtons_law_of_gravitation(input_values...)]
-@test output[1] ≈ expected[1]
+
+@testset "Logic Gate Phenotype" begin
+    geno = FunctionGraphGenotype(
+        input_node_ids = [1, 2],
+        bias_node_ids = Int[],
+        hidden_node_ids = [3, 4, 5],
+        output_node_ids = [6],
+        nodes = Dict(
+            6 => FunctionGraphNode(6, :OUTPUT, [
+                FunctionGraphConnection(5, 1.0, false)
+            ]),
+            5 => FunctionGraphNode(5, :AND, [
+                FunctionGraphConnection(3, 1.0, false), 
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+            4 => FunctionGraphNode(4, :OR, [
+                FunctionGraphConnection(1, 1.0, false), 
+                FunctionGraphConnection(2, 1.0, false)
+            ]),
+            3 => FunctionGraphNode(3, :NAND, [
+                FunctionGraphConnection(1, 1.0, false), 
+                FunctionGraphConnection(2, 1.0, false)
+            ]),
+            2 => FunctionGraphNode(2, :INPUT, []),
+            1 => FunctionGraphNode(1, :INPUT, [])
+        )
+    )
+
+    phenotype_creator = DefaultPhenotypeCreator()
+    phenotype = create_phenotype(phenotype_creator, geno)
+
+    input_outputs = [
+        ([1.0, 1.0], [0.0]),
+        ([0.0, 1.0], [1.0]),
+        ([1.0, 0.0], [1.0]),
+        ([0.0, 0.0], [0.0])
+    ]
+
+    for (input_values, expected_output) in input_outputs
+        output = act!(phenotype, input_values)
+        @test output == expected_output
+    end
+end
+
+@testset "Complex Logic Phenotype" begin
+    geno = FunctionGraphGenotype(
+        input_node_ids = [1, 2, 3],
+        bias_node_ids = Int[],
+        hidden_node_ids = [4, 5, 6, 7, 8, 9],
+        output_node_ids = [10, 11],
+        nodes = Dict(
+            11 => FunctionGraphNode(11, :OUTPUT, [
+                FunctionGraphConnection(8, 1.0, false)
+            ]),
+            10 => FunctionGraphNode(10, :OUTPUT, [
+                FunctionGraphConnection(9, 1.0, false)
+            ]),
+            9 => FunctionGraphNode(9, :OR, [
+                FunctionGraphConnection(5, 1.0, false), 
+                FunctionGraphConnection(6, 1.0, false)
+            ]),
+            8 => FunctionGraphNode(8, :XOR, [
+                FunctionGraphConnection(3, 1.0, false), 
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+            7 => FunctionGraphNode(7, :AND, [
+                FunctionGraphConnection(3, 1.0, false), 
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+            6 => FunctionGraphNode(6, :AND, [
+                FunctionGraphConnection(1, 1.0, false), 
+                FunctionGraphConnection(2, 1.0, false)
+            ]),
+            5 => FunctionGraphNode(5, :AND, [
+                FunctionGraphConnection(3, 1.0, false), 
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+            4 => FunctionGraphNode(4, :XOR, [
+                FunctionGraphConnection(1, 1.0, false), 
+                FunctionGraphConnection(2, 1.0, false)
+            ]),
+            3 => FunctionGraphNode(3, :INPUT, []),
+            2 => FunctionGraphNode(2, :INPUT, []),
+            1 => FunctionGraphNode(1, :INPUT, [])
+        )
+    )
+
+    phenotype_creator = DefaultPhenotypeCreator()
+    phenotype = create_phenotype(phenotype_creator, geno)
+
+    input_outputs = [
+        ([0.0, 0.0, 0.0], [0.0, 0.0]),
+        ([0.0, 0.0, 1.0], [0.0, 1.0]),
+        ([0.0, 1.0, 0.0], [0.0, 1.0]),
+        ([0.0, 1.0, 1.0], [1.0, 0.0]),
+        ([1.0, 0.0, 0.0], [0.0, 1.0]),
+        ([1.0, 0.0, 1.0], [1.0, 0.0]),
+        ([1.0, 1.0, 0.0], [1.0, 0.0]),
+        ([1.0, 1.0, 1.0], [1.0, 1.0])
+    ]
+
+    for (input_values, expected_output) in input_outputs
+        output = act!(phenotype, input_values)
+        @test output == expected_output
+    end
+end
+
+@testset "Physics Phenotype" begin
+    geno = FunctionGraphGenotype(
+        input_node_ids = [1, 2, 3, 4],
+        bias_node_ids = Int[],
+        hidden_node_ids = [5, 6, 7, 8],
+        output_node_ids = [9],
+        nodes = Dict(
+            9 => FunctionGraphNode(9, :OUTPUT, [
+                FunctionGraphConnection(8, 1.0, false)
+            ]),
+            8 => FunctionGraphNode(8, :MULTIPLY, [
+                FunctionGraphConnection(1, 1.0, false), 
+                FunctionGraphConnection(7, 1.0, false)
+            ]),
+            7 => FunctionGraphNode(7, :DIVIDE, [
+                FunctionGraphConnection(5, 1.0, false), 
+                FunctionGraphConnection(6, 1.0, false)
+            ]),
+            6 => FunctionGraphNode(6, :MULTIPLY, [
+                FunctionGraphConnection(4, 1.0, false), 
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+            5 => FunctionGraphNode(5, :MULTIPLY, [
+                FunctionGraphConnection(2, 1.0, false), 
+                FunctionGraphConnection(3, 1.0, false)
+            ]),
+            4 => FunctionGraphNode(4, :INPUT, []),
+            3 => FunctionGraphNode(3, :INPUT, []),
+            2 => FunctionGraphNode(2, :INPUT, []),
+            1 => FunctionGraphNode(1, :INPUT, [])
+        )
+    )
+
+    newtons_law_of_gravitation = (g, m1, m2, r) -> (g * m1 * m2) / r^2
+
+    phenotype_creator = DefaultPhenotypeCreator()
+    phenotype = create_phenotype(phenotype_creator, geno)
+
+    input_outputs = [
+        ([(6.674 * 10^-11), 5.972 * 10^24, 1.989 * 10^30, 1.496 * 10^11], [newtons_law_of_gravitation(6.674 * 10^-11, 5.972 * 10^24, 1.989 * 10^30, 1.496 * 10^11)]),
+        ([6.674 * 10^-11, 7.342 * 10^22, 1.989 * 10^30, 3.844 * 10^8], [newtons_law_of_gravitation(6.674 * 10^-11, 7.342 * 10^22, 1.989 * 10^30, 3.844 * 10^8)])
+    ]
+
+    for (input_values, expected_output) in input_outputs
+        output = act!(phenotype, input_values)
+        @test isapprox(output[1], expected_output[1]; atol=1e-5)
+    end
+end
+
+using Test
+
+@testset "Inject Noise" begin
+    # Create a simple genotype as test case
+    rng = StableRNG(42)
+    genotype = FunctionGraphGenotype(
+        input_node_ids = [1, 2],
+        bias_node_ids = [],
+        hidden_node_ids = [3, 4],
+        output_node_ids = [5],
+        nodes = Dict(
+            1 => FunctionGraphNode(1, :INPUT, []),
+            2 => FunctionGraphNode(2, :INPUT, []),
+            3 => FunctionGraphNode(3, :IDENTITY, [FunctionGraphConnection(1, 0.5, false)]),
+            4 => FunctionGraphNode(4, :ADD, [
+                FunctionGraphConnection(1, 0.3, false),
+                FunctionGraphConnection(2, 0.6, false)
+            ]),
+            5 => FunctionGraphNode(5, :OUTPUT, [FunctionGraphConnection(3, 0.2, false), FunctionGraphConnection(4, 0.7, false)])
+        )
+    )
+
+    # [Your inject_noise! implementations here]
+
+    # Testing deterministic noise injection
+    @testset "Deterministic Noise Injection" begin
+        noise_map = Dict(3 => [0.1], 4 => [-0.1, 0.1], 5 => [0.05, -0.05])
+        inject_noise!(genotype, noise_map)
+
+        @test genotype.nodes[3].input_connections[1].weight ≈ 0.6
+        @test genotype.nodes[4].input_connections[1].weight ≈ 0.2
+        @test genotype.nodes[4].input_connections[2].weight ≈ 0.7
+        @test genotype.nodes[5].input_connections[1].weight ≈ 0.25
+        @test genotype.nodes[5].input_connections[2].weight ≈ 0.65
+    end
+
+    # Testing stochastic noise injection
+    @testset "Stochastic Noise Injection" begin
+        # Storing original weights to compare after noise injection
+        original_weights = Dict(
+            3 => copy([conn.weight for conn in genotype.nodes[3].input_connections]),
+            4 => copy([conn.weight for conn in genotype.nodes[4].input_connections]),
+            5 => copy([conn.weight for conn in genotype.nodes[5].input_connections])
+        )
+
+        # Injecting stochastic noise
+        inject_noise!(rng, genotype, std_dev=0.2)
+
+        # Verifying that weights have changed after noise injection
+        @test any(original_weights[3] .!= [conn.weight for conn in genotype.nodes[3].input_connections])
+        @test any(original_weights[4] .!= [conn.weight for conn in genotype.nodes[4].input_connections])
+        @test any(original_weights[5] .!= [conn.weight for conn in genotype.nodes[5].input_connections])
+    end
+
+end
+
+
+function validate_genotype(geno::FunctionGraphGenotype, function_map::Dict{Symbol, GraphFunction})
+    # 1. Ensure Unique IDs
+    function_map = FUNCTION_MAP
+    ids = Set{Int}()
+    for (id, node) in geno.nodes
+        @assert id == node.id "ID mismatch in node dictionary and node struct"
+        @assert !(id in ids) "Duplicate node ID: $id"
+        push!(ids, id)
+    end
+    
+    # 2. Output Node Constraints & 3. Input Constraints
+    for (id, node) in geno.nodes
+        is_output_node = id in geno.output_node_ids
+        for conn in node.input_connections
+            if is_output_node
+                @assert !conn.is_recurrent "Output nodes must have nonrecurrent inputs"
+            else
+                @assert conn.is_recurrent "Non-output nodes must have recurrent inputs"
+            end
+        end
+    end
+    
+    # 4. Avoid Output as Input
+    for (id, node) in geno.nodes
+        if id in geno.output_node_ids
+            continue  # Skip the output nodes
+        end
+        for conn in node.input_connections
+            @assert !(conn.input_node_id in geno.output_node_ids) "Output node serving as input"
+        end
+    end
+    
+    # 5. Ensure Proper Arity
+    for (_, node) in geno.nodes
+        expected_arity = function_map[node.func].arity
+        @assert length(node.input_connections) == expected_arity "Incorrect arity for function $(node.func)"
+    end
+        # 6. Validate input connection ids
+    for (_, node) in geno.nodes
+        for conn in node.input_connections
+            @assert haskey(geno.nodes, conn.input_node_id) "Input node id $(conn.input_node_id) does not exist in the network"
+        end
+    end
+end
+
+
+function apply_mutation_storm(mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, n_storms::Int)
+    # Use the mutate function, applying n_storms mutations
+    rng = Random.MersenneTwister(1234)
+    gene_id_counter = Counter(7)  # Assume some counter
+    phenotype_creator = DefaultPhenotypeCreator()
+    output_length_equals_expected = Bool[]
+    
+    for _ in 1:n_storms
+        genotype = mutate(mutator, rng, gene_id_counter, genotype)
+        #println("---------------------")
+        #pretty_print(genotype)
+        validate_genotype(genotype, mutator.function_map)
+        phenotype = create_phenotype(phenotype_creator, genotype)
+        reset!(phenotype)
+        input_values = [1.0, -1.0]
+        outputs = [round(act!(phenotype, input_values)[1], digits=3) for _ in 1:10]
+        #println(outputs)
+        push!(output_length_equals_expected, length(outputs) == 10)
+    end
+    @test all(output_length_equals_expected)
+end
+
+@testset "Mutation Storm" begin
+    genotype = FunctionGraphGenotype(
+        input_node_ids = [1, 2], 
+        bias_node_ids = [3],
+        hidden_node_ids = [4, 5],
+        output_node_ids = [6],
+        nodes = Dict(
+            1 => FunctionGraphNode(1, :INPUT, []),
+            2 => FunctionGraphNode(2, :INPUT, []),
+            3 => FunctionGraphNode(3, :BIAS, []),
+            4 => FunctionGraphNode(4, :ADD, [
+                FunctionGraphConnection(1, 1.0, true), 
+                FunctionGraphConnection(3, 1.0, true)
+            ]),
+            5 => FunctionGraphNode(5, :ADD, [
+                FunctionGraphConnection(2, 1.0, true), 
+                FunctionGraphConnection(4, 1.0, true)
+            ]),
+            6 => FunctionGraphNode(6, :OUTPUT, [
+                FunctionGraphConnection(5, 1.0, false)
+            ])
+        )
+    )
+    mutator = FunctionGraphMutator()  # You may customize this
+    
+    n_storms = 100_000  # Number of mutation storms
+    apply_mutation_storm(mutator, genotype, n_storms)
+end
+
+println("Finished tests for FunctionGraphs.")

@@ -11,8 +11,8 @@ export Ecosystem, EcosystemCreator,
        VectorGenotype, VectorGenotypeCreator,
        ScalarRangeGenotypeCreator,
        BasicVectorGenotype, BasicVectorGenotypeCreator,
-       GeneticProgramGenotype, GeneticProgramGenotypeCreator,
-       ExpressionNodeGene,
+       #GeneticProgramGenotype, GeneticProgramGenotypeCreator,
+       #ExpressionNodeGene,
        FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator,
        Phenotypes, Phenotype, PhenotypeCreator, create_phenotype, act!,
        DefaultPhenotypeCreator,
@@ -30,7 +30,8 @@ export Ecosystem, EcosystemCreator,
        Recombiners, Recombiner, recombine,
        CloneRecombiner, IdentityRecombiner,
        Mutators, Mutator, mutate,
-       IdentityMutator, GeneticProgramMutator, NoiseInjectionMutator, FiniteStateMachineMutators,
+        #GeneticProgramMutator, 
+       IdentityMutator, NoiseInjectionMutator, FiniteStateMachineMutators,
        Metrics, Metric,
        GenotypeSize, GenotypeSum,
        TestBasedFitness, AllSpeciesFitness,
@@ -73,8 +74,12 @@ export Ecosystem, EcosystemCreator,
        CollisionGameOutcomeMetrics, CollisionGameDomain, CollisionGameEnvironment, 
        CollisionGameEnvironmentCreator,
        BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader,
-       GeneticProgramGenotypeLoader, GnarlNetworkGenotypeLoader, EcosystemLoader, load_ecosystem,
-       FastGlobalKMeans, CachePerformer, Runners
+       #GeneticProgramGenotypeLoader, 
+       GnarlNetworkGenotypeLoader, EcosystemLoader, load_ecosystem,
+       FastGlobalKMeans, CachePerformer, Runners,
+       FunctionGraphGenotype, FunctionGraphGenotypeCreator, GraphFunction,
+       FunctionGraphPhenotype, FunctionGraphStatefulNode, FUNCTION_MAP,
+       FunctionGraphConnection, FunctionGraphMutator, FunctionGraphNode, FunctionGraphMutators
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
@@ -99,6 +104,8 @@ using .Genotypes.Interfaces: create_genotypes
 using .Genotypes.Vectors.Abstract: VectorGenotype, VectorGenotypeCreator
 using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  
 using .Genotypes.Vectors.Basic: ScalarRangeGenotypeCreator
+using .Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
+using .Genotypes.FunctionGraphs: FUNCTION_MAP, FunctionGraphConnection, FunctionGraphGenotypeCreator
 #using .Genotypes.GeneticPrograms.Genes: ExpressionNodeGene 
 #using .Genotypes.GeneticPrograms: GeneticProgramGenotype, GeneticProgramGenotypeCreator 
 using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
@@ -115,6 +122,7 @@ using .Phenotypes.Interfaces: create_phenotype, act!
 using .Phenotypes.Defaults: DefaultPhenotypeCreator 
 using .Phenotypes.Vectors.Basic: BasicVectorPhenotype
 #using .Phenotypes.GeneticPrograms.Phenotypes: GeneticProgramPhenotype
+using .Phenotypes.FunctionGraphs: FunctionGraphPhenotype, FunctionGraphStatefulNode
 using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron
 using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotypeInputConnection
 using .Phenotypes.FiniteStateMachines: FiniteStateMachinePhenotype
@@ -129,6 +137,7 @@ using .Mutators.Abstract: Mutator
 using .Mutators.Interfaces: mutate
 using .Mutators.Types.Identity: IdentityMutator 
 #using .Mutators.Types.GeneticPrograms: GeneticProgramMutator 
+using .Mutators.Types.FunctionGraphMutators: FunctionGraphMutator, FunctionGraphMutators
 using .Mutators.Types.NoiseInjection: NoiseInjectionMutator 
 using .Mutators.Types.GnarlNetworks: GnarlNetworkMutator
 using .Mutators.Types.FiniteStateMachineMutators: FiniteStateMachineMutators

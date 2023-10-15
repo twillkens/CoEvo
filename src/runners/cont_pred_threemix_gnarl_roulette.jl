@@ -1,6 +1,6 @@
 module ContinuousPredictionGameThreeMixGnarlRoulette
 
-export evolve_trial, load_interface, cont_pred_eco_creator
+export cont_pred_threemix_gnarl_roulette_eco_creator
 
 using Distributed
 using Random: AbstractRNG
