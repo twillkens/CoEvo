@@ -6,6 +6,7 @@ println("Please choose an experiment to run:")
 experiments = OrderedDict(
     "1" => "ContinuousPredictionGameThreeMixGnarlDisco",
     "2" => "ContinuousPredictionGameThreeMixGnarlRoulette"
+    "3" => "ContinuousPredictionGameThreeMixFunctionGraphsDisco"
 )
 for (key, value) in experiments
     println("$key: $value")

@@ -1,7 +1,7 @@
 module Concrete
 
 export FiniteStateMachineGenotypeLoader, GnarlNetworkGenotypeLoader, load_ecosystem
-export BasicVectorGenotypeLoader, EcosystemLoader
+export BasicVectorGenotypeLoader, EcosystemLoader, FunctionGraphGenotypeLoader
 # export GeneticProgramGenotypeLoader
 
 include("fsms/fsms.jl")
@@ -15,6 +15,9 @@ using .GnarlNetworks: GnarlNetworkGenotypeLoader
 #
 include("vectors/vectors.jl")
 using .Vectors: BasicVectorGenotypeLoader    
+
+include("function_graphs/function_graphs.jl")
+using .FunctionGraphs: FunctionGraphGenotypeLoader
 
 
 using JLD2: JLDFile, Group, jldopen

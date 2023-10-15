@@ -15,4 +15,7 @@ using .GnarlNetworks: GnarlNetworks
 include("vectors/vectors.jl")
 using .Vectors: Vectors
 
+include("function_graphs/function_graphs.jl")
+using .FunctionGraphs: FunctionGraphs
+
 end

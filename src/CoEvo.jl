@@ -79,7 +79,8 @@ export Ecosystem, EcosystemCreator,
        FastGlobalKMeans, CachePerformer, Runners,
        FunctionGraphGenotype, FunctionGraphGenotypeCreator, GraphFunction,
        FunctionGraphPhenotype, FunctionGraphStatefulNode, FUNCTION_MAP,
-       FunctionGraphConnection, FunctionGraphMutator, FunctionGraphNode, FunctionGraphMutators
+       FunctionGraphConnection, FunctionGraphMutator, FunctionGraphNode, FunctionGraphMutators,
+       FunctionGraphGenotypeLoader, Loaders, get_or_make_group!
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
@@ -248,11 +249,12 @@ using .Ecosystems: Archivers
 using .Archivers.Abstract: Archiver
 using .Archivers.Interfaces: archive!
 using .Archivers.Concrete.Basic: BasicArchiver
+using .Archivers.Utilities: get_or_make_group!
 println("loaded archivers")
 
-using .Loaders
+using .Loaders: Loaders
 using .Loaders.Concrete: BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader
-using .Loaders.Concrete: GnarlNetworkGenotypeLoader
+using .Loaders.Concrete: GnarlNetworkGenotypeLoader, FunctionGraphGenotypeLoader
 #using .Loaders.Concrete: GeneticProgramGenotypeLoader, 
 using .Loaders.Concrete: EcosystemLoader, load_ecosystem
 

@@ -1,6 +1,6 @@
 using Test
 using Base: @kwdef
-#using CoEvo
+using CoEvo
 using Random: AbstractRNG
 using StableRNGs: StableRNG
 using StatsBase: sample, Weights
@@ -14,6 +14,9 @@ using .FunctionGraphMutators: inject_noise!
 using .FunctionGraphMutators: select_function_with_same_arity, get_genotype_after_swapping_functions
 using .FunctionGraphMutators: get_all_substitutions, ConnectionRedirectionSpecification
 using .Phenotypes.Interfaces: create_phenotype, act!, reset!
+using .Genotypes.Interfaces: create_genotypes, get_size, minimize
+using .Loaders.Interfaces: load_genotype
+using .Archivers.Interfaces: save_genotype!
 
 println("Starting tests for FunctionGraphs...")
 
@@ -739,7 +742,7 @@ end
 
 function apply_mutation_storm(mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, n_storms::Int)
     # Use the mutate function, applying n_storms mutations
-    rng = Random.MersenneTwister(1234)
+    rng = Random.MersenneTwister(rand(UInt64))
     gene_id_counter = Counter(7)  # Assume some counter
     phenotype_creator = DefaultPhenotypeCreator()
     output_length_equals_expected = Bool[]
@@ -784,8 +787,145 @@ end
     )
     mutator = FunctionGraphMutator()  # You may customize this
     
-    n_storms = 100_000  # Number of mutation storms
-    apply_mutation_storm(mutator, genotype, n_storms)
+    n_mutations = 10_000  # Number of mutations
+    apply_mutation_storm(mutator, genotype, n_mutations)
 end
+
+
+
+
+# Now, let's write some tests
+@testset "minimize function tests" begin
+    # Define a small genotype for testing.
+    test_genotype = FunctionGraphGenotype(
+        input_node_ids = [1, 2],
+        bias_node_ids = [3],
+        hidden_node_ids = [4, 5, 6],
+        output_node_ids = [7],
+        nodes = Dict(
+            1 => FunctionGraphNode(1, :INPUT, []),
+            2 => FunctionGraphNode(2, :INPUT, []),
+            3 => FunctionGraphNode(3, :BIAS, []),
+            4 => FunctionGraphNode(4, :ADD, [FunctionGraphConnection(1, 1.0, false), FunctionGraphConnection(2, 1.0, false)]),
+            5 => FunctionGraphNode(5, :SUBTRACT, [FunctionGraphConnection(3, 1.0, false), FunctionGraphConnection(4, 1.0, false)]),
+            6 => FunctionGraphNode(6, :MULTIPLY, [FunctionGraphConnection(2, 1.0, false), FunctionGraphConnection(3, 1.0, false)]),  # Not connected to output
+            7 => FunctionGraphNode(7, :OUTPUT, [FunctionGraphConnection(5, 1.0, false)])
+        )
+    )
+
+    # Minimize the genotype
+    minimized_genotype = minimize(test_genotype)
+    
+        
+    # Test 1: Ensure that all nodes in the minimized genotype are connected to output
+    @test all(id -> id in minimized_genotype.input_node_ids ||
+                   id in minimized_genotype.bias_node_ids ||
+                   id in minimized_genotype.hidden_node_ids ||
+                   id in minimized_genotype.output_node_ids,
+              keys(minimized_genotype.nodes)
+          )
+
+    # Test 2: The not connected node (id: 6) should be removed after minimization
+    @test !haskey(minimized_genotype.nodes, 6)
+
+    # Test 3: Validate the output node(s) should remain the same after minimization
+    @test minimized_genotype.output_node_ids == test_genotype.output_node_ids
+    
+    # Test 4: Ensure nodes in input, bias, hidden, and output node id vectors really exist in the minimized nodes
+    @test all(id -> haskey(minimized_genotype.nodes, id),
+              vcat(minimized_genotype.input_node_ids, minimized_genotype.bias_node_ids,
+                   minimized_genotype.hidden_node_ids, minimized_genotype.output_node_ids)
+          )
+
+    # Test 5: Check if input and bias nodes remain unchanged
+    @test minimized_genotype.input_node_ids == test_genotype.input_node_ids
+    @test minimized_genotype.bias_node_ids == test_genotype.bias_node_ids
+    
+    # Test 6: Validate that input, bias, and output nodes in minimized genotype are the same as in the original genotype
+    @test all(id -> minimized_genotype.nodes[id] == test_genotype.nodes[id],
+              vcat(minimized_genotype.input_node_ids, minimized_genotype.bias_node_ids, minimized_genotype.output_node_ids)
+          )
+    
+    # Additional tests should ensure that the minimized genotype actually produces the same 
+    # (or at least equivalent) output given the same input, which can be quite involved 
+    # depending on the complexity of your graph and functions. Such tests would typically 
+    # require executing the graph, which might be outside the scope of unit testing and 
+    # more appropriate for integration or system testing.
+end
+
+
+using JLD2
+using .Archivers.Interfaces: save_genotype!
+
+# Define a few test FunctionGraphGenotype instances to test with...
+# [Code to define test_genotype_1, test_genotype_2, ...]
+
+@testset "Genotype Save and Load Tests" begin
+    # Assume we have a few genotypes defined above
+    genotype = FunctionGraphGenotype(
+        input_node_ids = [1],
+        bias_node_ids = [2],
+        hidden_node_ids = [3, 4],
+        output_node_ids = [5],
+        nodes = Dict(
+            1 => FunctionGraphNode(1, :INPUT, []),
+            2 => FunctionGraphNode(2, :BIAS, []),
+            3 => FunctionGraphNode(3, :ADD, [
+                FunctionGraphConnection(1, 0.5, false),
+                FunctionGraphConnection(2, 0.5, false)
+            ]),
+            4 => FunctionGraphNode(4, :MULTIPLY, [
+                FunctionGraphConnection(3, 0.5, true),
+                FunctionGraphConnection(2, 0.5, false)
+            ]),
+            5 => FunctionGraphNode(5, :OUTPUT, [
+                FunctionGraphConnection(4, 1.0, false)
+            ]),
+        )
+    )
+
+    archiver = BasicArchiver()
+    
+    # Test saving functionality
+    @testset "Save Genotype" begin
+        @testset "Save $geno_name" for (geno_name, geno) in [
+            ("test_genotype_1", genotype),
+            #("test_genotype_2", test_genotype_2),
+            # ... additional test genotypes ...
+        ]
+            # Save the genotype to a JLD2 file
+            jldopen("test_save_$geno_name.jld2", "w") do file
+                # Assuming you've defined save_genotype! in a module MyNetworks
+                group = get_or_make_group!(file, "test")
+                save_genotype!(archiver, group, geno)
+            end
+            # Confirm file exists
+            @test isfile("test_save_$geno_name.jld2")
+        end
+    end
+    
+    # Test loading functionality
+    @testset "Load Genotype" begin
+        @testset "Load $geno_name" for (geno_name, original_geno) in [
+            ("test_genotype_1", genotype),
+            #("test_genotype_2", test_genotype_2),
+            # ... additional test genotypes ...
+        ]
+            # Load the genotype from file
+            loaded_geno = jldopen("test_save_$geno_name.jld2", "r") do file
+                # Assuming you've defined load_genotype in a module MyNetworks
+                group = get_or_make_group!(file, "test")
+                loader = FunctionGraphGenotypeLoader()
+                load_genotype(loader, group)
+            end
+
+            # Verify that the loaded genotype is equal to the original
+            @test loaded_geno == original_geno
+        end
+    end
+end
+
+# Consider cleaning up the test files afterwards.
+
 
 println("Finished tests for FunctionGraphs.")

@@ -7,6 +7,9 @@ using .ContinuousPredictionGameThreeMixGnarlDisco: cont_pred_threemix_gnarl_disc
 include("cont_pred_threemix_gnarl_roulette.jl")
 using .ContinuousPredictionGameThreeMixGnarlRoulette: cont_pred_threemix_gnarl_roulette_eco_creator
 
+include("cont_pred_threemix_fg_disco.jl")
+using .ContinuousPredictionGameThreeMixFunctionGraphsDisco: cont_pred_threemix_function_graphs_disco_eco_creator
+
 using StableRNGs: StableRNG
 using ..Ecosystems.Interfaces: evolve!
 
@@ -28,7 +31,9 @@ function evolve_trial(
         "ContinuousPredictionGameThreeMixGnarlDisco" => 
             cont_pred_threemix_gnarl_disco_eco_creator,
         "ContinuousPredictionGameThreeMixGnarlRoulette" => 
-            cont_pred_threemix_gnarl_roulette_eco_creator
+            cont_pred_threemix_gnarl_roulette_eco_creator,
+        "ContinuousPredictionGameThreeMixFunctionGraphsDisco" => 
+            cont_pred_threemix_function_graphs_disco_eco_creator
     )
     eco_creator = eco_creator_dict[id]
     rng = StableRNG(seed)

@@ -1,6 +1,6 @@
-module ContinuousPredictionGameThreeMixGnarlDisco
+module ContinuousPredictionGameThreeMixFunctionGraphsDisco
 
-export cont_pred_threemix_gnarl_disco_eco_creator
+export cont_pred_threemix_function_graphs_disco_eco_creator
 
 using Distributed
 using Random: AbstractRNG
@@ -9,8 +9,9 @@ using ...Metrics.Concrete.Outcomes: PredictionGameOutcomeMetrics
 using .PredictionGameOutcomeMetrics: CooperativeMatching, Competitive
 using .PredictionGameOutcomeMetrics: CooperativeMismatching, Control
 using ...Metrics.Concrete.Common: AllSpeciesIdentity
-using ...Species.Mutators.Types: GnarlNetworkMutator
+using ...Species.Mutators.Types: FunctionGraphMutator
 using ...Species.Genotypes.GnarlNetworks: GnarlNetworkGenotypeCreator
+using ...Species.Genotypes.FunctionGraphs: FunctionGraphGenotypeCreator
 using ...Species.Phenotypes.Defaults: DefaultPhenotypeCreator
 using ...Evaluators.Types.NSGAII: NSGAIIEvaluator
 using ...Replacers.Types.Truncation: TruncationReplacer
@@ -34,33 +35,35 @@ using ...Metrics.Concrete.Evaluations: AllSpeciesFitness
 using ...Archivers.Concrete.Basic: BasicArchiver
 using ...Ecosystems.Interfaces: evolve!
 
-function cont_pred_threemix_gnarl_disco_eco_creator(;
+function cont_pred_threemix_function_graphs_disco_eco_creator(;
     id::String = "ContinuousPredictionGame",
     trial::Int = 1,
     rng::AbstractRNG = StableRNG(777),
-    n_pop::Int = 100,
+    n_pop::Int = 50,
     host::String = "Host",
     mutualist::String = "Mutualist",
     parasite::String = "Parasite",
-    interaction_id1::String = "Host-Mutualist-CooperativeMatching",
-    interaction_id2::String = "Host-Parasite-Competitive",
-    n_elite::Int = 0,
+    interaction_id1::String = "Host-Mutualist-Affinitive",
+    interaction_id2::String = "Host-Parasite-Adversarial",
+    interaction_id3::String = "Mutualist-Parasite-Avoidant",
     n_workers::Int = 1,
     episode_length::Int = 32,
     matchmaking_type::Symbol = :plus,
     communication_dimension::Int = 2,
     n_input_nodes::Int = communication_dimension + 2,
+    n_bias_nodes::Int = 1,
     n_output_nodes::Int = communication_dimension + 1,
-    n_truncate = 100,
+    n_truncate = 50,
     tournament_size::Int = 3,
-    max_clusters::Int = 10,
-    mutator::GnarlNetworkMutator = GnarlNetworkMutator(probs = Dict(
-        :add_node => 1/8,
-        :add_connection => 1/8,
-        :remove_node => 1/8,
-        :remove_connection => 1/8,
-        :identity_mutation => 1/2
-    ))
+    max_clusters::Int = -1,
+    geno_creator::FunctionGraphGenotypeCreator = FunctionGraphGenotypeCreator(
+        n_input_nodes = n_input_nodes, 
+        n_bias_nodes = n_bias_nodes,
+        n_output_nodes = n_output_nodes
+    ),
+    mutator::FunctionGraphMutator = FunctionGraphMutator(),
+    print_interval::Int = 1,
+    save_interval::Int = 0,
 )
     eco_creator = BasicEcosystemCreator(
         id = id,
@@ -70,9 +73,7 @@ function cont_pred_threemix_gnarl_disco_eco_creator(;
             host => BasicSpeciesCreator(
                 id = host,
                 n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
-                    n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
-                ),
+                geno_creator = geno_creator,
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(
                     max_clusters = max_clusters, 
@@ -149,8 +150,8 @@ function cont_pred_threemix_gnarl_disco_eco_creator(;
                     species_ids = [parasite, host],
                     matchmaker = AllvsAllMatchMaker(type = matchmaking_type),
                 ),
-                "c" => BasicInteraction(
-                    id = "c",
+                interaction_id3 => BasicInteraction(
+                    id = interaction_id3, 
                     environment_creator = TapeEnvironmentCreator(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMismatching()
@@ -165,16 +166,25 @@ function cont_pred_threemix_gnarl_disco_eco_creator(;
         ),
         performer = CachePerformer(n_workers = n_workers),
         reporters = Reporter[
-            BasicReporter(metric = GenotypeSize(), save_interval = 1, print_interval = 50),
+            BasicReporter(
+                metric = GenotypeSize(), 
+                save_interval = save_interval, 
+                print_interval = print_interval
+            ),
             BasicReporter(
                 metric = GenotypeSize(name = "MinimizedGenotypeSize", minimize = true),
-                save_interval = 1, print_interval = 50
+                save_interval = save_interval,
+                print_interval = print_interval
             ),
-            BasicReporter(metric = AllSpeciesFitness(), save_interval = 1, print_interval = 50),
-            BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1, print_interval = 50),
+            BasicReporter(
+                metric = AllSpeciesFitness(), 
+                save_interval = save_interval, 
+                print_interval = print_interval
+            ),
+            #BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1, print_interval = 50),
         ],
         archiver = BasicArchiver(jld2_path = "trials/$id/$trial.jld2"),
-        runtime_reporter = RuntimeReporter(print_interval = 50),
+        runtime_reporter = RuntimeReporter(print_interval = print_interval),
     )
     return eco_creator
 end
