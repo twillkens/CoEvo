@@ -7,7 +7,7 @@ using DataStructures: SortedDict
 using ....Species.Abstract: AbstractSpecies
 using ....Species.Individuals: Individual
 using ...Evaluators.Abstract: Evaluation, Evaluator
-
+using Serialization
 import ...Evaluators.Interfaces: create_evaluation, get_ranked_ids
 
 include("fast_global_kmeans.jl")
@@ -52,14 +52,44 @@ function create_evaluation(
         id => [pair.second for pair in sort(collect(outcomes[id]), by = x -> x[1])]
         for id in ids
     )
+    fitnesses = [sum(tests) / length(tests) for tests in values(individual_tests)]
+    if any(isnan, fitnesses)
+        #println("individual_tests: ", individual_tests)
+        println("fitnesses: ", fitnesses)
+        serialize("outcomes.jls", outcomes)
+        serialize("individual_tests.jls", individual_tests)
+        serialize("fitnesses.jls", fitnesses)
+        throw(ErrorException("NaN in fitnesses"))
+    end
+
     if evaluator.perform_disco
         individual_tests = get_derived_tests(rng, individual_tests, evaluator.max_clusters)
     end
 
-    records = [
-        NSGAIIRecord(id = id, fitness = sum(tests) / length(tests), tests = tests)
-        for (id, tests) in individual_tests
-    ]
+    disco_fitnesses = [sum(tests) / length(tests) for tests in values(individual_tests)]
+    if any(isnan, disco_fitnesses)
+        #println("individual_tests: ", individual_tests)
+        println("disco_fitnesses: ", disco_fitnesses)
+        serialize("outcomes.jls", outcomes)
+        serialize("individual_tests.jls", individual_tests)
+        serialize("disco_fitnesses.jls", disco_fitnesses)
+
+        throw(ErrorException("NaN in disco fitnesses"))
+    end
+
+    records = NSGAIIRecord[]
+
+    for (index, id_tests) in enumerate(individual_tests)
+        id, tests = id_tests
+        record = NSGAIIRecord(
+            id = id, 
+            fitness = fitnesses[index], 
+            disco_fitness = disco_fitnesses[index],
+            tests = tests
+        )
+        push!(records, record)
+    end
+
     sense = evaluator.maximize ? Max() : Min()
     sorted_records = nsga_sort!(
         records, sense, evaluator.function_minimums, evaluator.function_maximums

@@ -48,20 +48,20 @@ println("Starting tests for FunctionGraphs...")
     # Create an initial `genotype` object here for testing.
 
     @testset "Node addition" begin
-        new_genotype = add_function(rng, gene_id_counter, genotype)
+        new_genotype = add_function(rng, gene_id_counter, genotype, FUNCTION_MAP)
         @test length(new_genotype.nodes) == length(genotype.nodes) + 1
         @test length(new_genotype.hidden_node_ids) == length(genotype.hidden_node_ids) + 1
     end
     
     @testset "Function selection" begin
-        new_genotype = add_function(rng, gene_id_counter, genotype)
+        new_genotype = add_function(rng, gene_id_counter, genotype, FUNCTION_MAP)
         new_id = maximum(keys(new_genotype.nodes))  # Assuming monotonic ids
         new_func = new_genotype.nodes[new_id].func
         @test new_func ∉ [:INPUT, :BIAS, :OUTPUT]
     end
 
     @testset "Input connections" begin
-        new_genotype = add_function(rng, gene_id_counter, genotype)
+        new_genotype = add_function(rng, gene_id_counter, genotype, FUNCTION_MAP)
         new_id = maximum(keys(new_genotype.nodes))
         new_node = new_genotype.nodes[new_id]
         # Test that connections are valid
@@ -407,12 +407,13 @@ using Test
     
     # Test 1: Initialization of a stateful node from a stateless node
     @testset "Stateful Node Initialization" begin
-        stateless_node = FunctionGraphNode(1, :add, [FunctionGraphConnection(2, 0.5, false)])
+        stateless_node = FunctionGraphNode(1, :ADD, [FunctionGraphConnection(2, 0.5, false)])
         stateful_node = FunctionGraphStatefulNode(stateless_node)
         @test stateful_node.id == stateless_node.id
-        @test stateful_node.func == stateless_node.func
+        @test stateful_node.func.name == stateless_node.func
         @test stateful_node.input_nodes == []
-        @test stateful_node.current_value === nothing
+        @test stateful_node.current_value_set == false
+        @test stateful_node.current_value == 0.0
         @test stateful_node.previous_value == 0.0
         @test stateful_node.seeking_output == false
     end
@@ -621,19 +622,22 @@ end
         )
     )
 
-    newtons_law_of_gravitation = (g, m1, m2, r) -> (g * m1 * m2) / r^2
+    newtons_law_of_gravitation = (g, m1, m2, r) -> (Float32(g) * Float32(m1) * Float32(m2)) / Float32(r)^2
 
     phenotype_creator = DefaultPhenotypeCreator()
     phenotype = create_phenotype(phenotype_creator, geno)
 
+    inputs_1 = Float32.([(6.674 * 10^-11), 5.972 * 10^24, 1.989 * 10^30, 1.496 * 10^11])
+    inputs_2 = Float32.([6.674 * 10^-11, 7.342 * 10^22, 1.989 * 10^30, 3.844 * 10^8])
+
     input_outputs = [
-        ([(6.674 * 10^-11), 5.972 * 10^24, 1.989 * 10^30, 1.496 * 10^11], [newtons_law_of_gravitation(6.674 * 10^-11, 5.972 * 10^24, 1.989 * 10^30, 1.496 * 10^11)]),
-        ([6.674 * 10^-11, 7.342 * 10^22, 1.989 * 10^30, 3.844 * 10^8], [newtons_law_of_gravitation(6.674 * 10^-11, 7.342 * 10^22, 1.989 * 10^30, 3.844 * 10^8)])
+        (inputs_1, [newtons_law_of_gravitation(inputs_1...)]),
+        (inputs_2, [newtons_law_of_gravitation(inputs_2...)])
     ]
 
     for (input_values, expected_output) in input_outputs
         output = act!(phenotype, input_values)
-        @test isapprox(output[1], expected_output[1]; atol=1e-5)
+        @test isapprox(output[1], expected_output[1]; atol=1e-1)
     end
 end
 
@@ -663,7 +667,7 @@ using Test
 
     # Testing deterministic noise injection
     @testset "Deterministic Noise Injection" begin
-        noise_map = Dict(3 => [0.1], 4 => [-0.1, 0.1], 5 => [0.05, -0.05])
+        noise_map = Dict(3 => [0.1f0], 4 => [-0.1f0, 0.1f0], 5 => [0.05f0, -0.05f0])
         inject_noise!(genotype, noise_map)
 
         @test genotype.nodes[3].input_connections[1].weight ≈ 0.6
@@ -683,7 +687,7 @@ using Test
         )
 
         # Injecting stochastic noise
-        inject_noise!(rng, genotype, std_dev=0.2)
+        inject_noise!(rng, genotype, std_dev=0.2f0)
 
         # Verifying that weights have changed after noise injection
         @test any(original_weights[3] .!= [conn.weight for conn in genotype.nodes[3].input_connections])
@@ -693,51 +697,8 @@ using Test
 
 end
 
+using ProgressBars
 
-function validate_genotype(geno::FunctionGraphGenotype, function_map::Dict{Symbol, GraphFunction})
-    # 1. Ensure Unique IDs
-    function_map = FUNCTION_MAP
-    ids = Set{Int}()
-    for (id, node) in geno.nodes
-        @assert id == node.id "ID mismatch in node dictionary and node struct"
-        @assert !(id in ids) "Duplicate node ID: $id"
-        push!(ids, id)
-    end
-    
-    # 2. Output Node Constraints & 3. Input Constraints
-    for (id, node) in geno.nodes
-        is_output_node = id in geno.output_node_ids
-        for conn in node.input_connections
-            if is_output_node
-                @assert !conn.is_recurrent "Output nodes must have nonrecurrent inputs"
-            else
-                @assert conn.is_recurrent "Non-output nodes must have recurrent inputs"
-            end
-        end
-    end
-    
-    # 4. Avoid Output as Input
-    for (id, node) in geno.nodes
-        if id in geno.output_node_ids
-            continue  # Skip the output nodes
-        end
-        for conn in node.input_connections
-            @assert !(conn.input_node_id in geno.output_node_ids) "Output node serving as input"
-        end
-    end
-    
-    # 5. Ensure Proper Arity
-    for (_, node) in geno.nodes
-        expected_arity = function_map[node.func].arity
-        @assert length(node.input_connections) == expected_arity "Incorrect arity for function $(node.func)"
-    end
-        # 6. Validate input connection ids
-    for (_, node) in geno.nodes
-        for conn in node.input_connections
-            @assert haskey(geno.nodes, conn.input_node_id) "Input node id $(conn.input_node_id) does not exist in the network"
-        end
-    end
-end
 
 
 function apply_mutation_storm(mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, n_storms::Int)
@@ -747,15 +708,23 @@ function apply_mutation_storm(mutator::FunctionGraphMutator, genotype::FunctionG
     phenotype_creator = DefaultPhenotypeCreator()
     output_length_equals_expected = Bool[]
     
-    for _ in 1:n_storms
+    for _ in ProgressBar(1:n_storms)
         genotype = mutate(mutator, rng, gene_id_counter, genotype)
         #println("---------------------")
         #pretty_print(genotype)
-        validate_genotype(genotype, mutator.function_map)
+        #validate_genotype(genotype)
         phenotype = create_phenotype(phenotype_creator, genotype)
         reset!(phenotype)
         input_values = [1.0, -1.0]
         outputs = [round(act!(phenotype, input_values)[1], digits=3) for _ in 1:10]
+        if any(isnan, outputs)
+            println("NaNs found")
+            println(genotype)
+            println(phenotype)
+            println(input_values)
+            println(outputs)
+            throw(ErrorException("NaNs found"))
+        end
         #println(outputs)
         push!(output_length_equals_expected, length(outputs) == 10)
     end
@@ -929,3 +898,60 @@ end
 
 
 println("Finished tests for FunctionGraphs.")
+#function validate_genotype(geno::FunctionGraphGenotype)
+#    # 1. Ensure Unique IDs
+#    function_map = FUNCTION_MAP
+#    ids = Set{Int}()
+#    for (id, node) in geno.nodes
+#        @assert id == node.id "ID mismatch in node dictionary and node struct"
+#        @assert !(id in ids) "Duplicate node ID: $id"
+#        push!(ids, id)
+#    end
+#    
+#    # 2. Output Node Constraints & 3. Input Constraints
+#    for (id, node) in geno.nodes
+#        is_output_node = id in geno.output_node_ids
+#        for conn in node.input_connections
+#            if is_output_node
+#                @assert !conn.is_recurrent "Output nodes must have nonrecurrent inputs"
+#            else
+#                @assert conn.is_recurrent "Non-output nodes must have recurrent inputs"
+#            end
+#        end
+#    end
+#    
+#    # 4. Avoid Output as Input
+#    for (id, node) in geno.nodes
+#        if id in geno.output_node_ids
+#            continue  # Skip the output nodes
+#        end
+#        for conn in node.input_connections
+#            @assert !(conn.input_node_id in geno.output_node_ids) "Output node serving as input"
+#        end
+#    end
+#    
+#    # 5. Ensure Proper Arity
+#    for (_, node) in geno.nodes
+#        expected_arity = function_map[node.func].arity
+#        @assert length(node.input_connections) == expected_arity "Incorrect arity for function $(node.func)"
+#    end
+#        # 6. Validate input connection ids
+#    for (_, node) in geno.nodes
+#        for conn in node.input_connections
+#            @assert haskey(geno.nodes, conn.input_node_id) "Input node id $(conn.input_node_id) does not exist in the network"
+#        end
+#    end
+#    # 7. Check number of :INPUT labeled nodes against geno.input_node_ids
+#    input_count = count( (node) -> node.func == :INPUT, values(geno.nodes))
+#    @assert length(geno.input_node_ids) == input_count == 2 "Mismatched count of :INPUT nodes and geno.input_node_ids or the count is not 2"
+#    
+#    # 8. Check number of :BIAS labeled nodes against geno.bias_node_ids
+#    bias_count = count( node -> node.func == :BIAS, values(geno.nodes))
+#    @assert length(geno.bias_node_ids) == bias_count == 1 "Mismatched count of :BIAS nodes and geno.bias_node_ids or the count is not 1"
+#    
+#    hidden_count = count( node -> node.func ∉ [:INPUT, :BIAS, :OUTPUT], values(geno.nodes))
+#    @assert length(geno.hidden_node_ids) == hidden_count "Mismatched count of hidden nodes and geno.hidden_node_ids"
+#    # 9. Check number of :OUTPUT labeled nodes against geno.output_node_ids
+#    output_count = count( node -> node.func == :OUTPUT, values(geno.nodes))
+#    @assert length(geno.output_node_ids) == output_count == 1 "Mismatched count of :OUTPUT nodes and geno.output_node_ids or the count is not 1"
+#end

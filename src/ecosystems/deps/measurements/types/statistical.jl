@@ -32,6 +32,7 @@ A structured type that captures a broad range of statistical features from a giv
 This type can be constructed from both vector and tuple data inputs.
 """
 Base.@kwdef struct BasicStatisticalMeasurement <: Measurement
+    n_sampes::Int = 0
     sum::Float64 = 0.0
     upper_confidence::Float64 = 0.0
     mean::Float64 = 0.0
@@ -62,6 +63,7 @@ function BasicStatisticalMeasurement(vec::Vector{<:Real}, n_round::Int=2)
 
     # Use the round function on each feature to round to the specified number of digits
     return BasicStatisticalMeasurement(
+        n_sampes = length(vec),
         sum = round(sum(vec), digits = n_round),
         lower_confidence = round(loconf, digits = n_round),
         mean = round(mean(vec), digits = n_round),

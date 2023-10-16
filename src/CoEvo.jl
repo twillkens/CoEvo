@@ -80,7 +80,8 @@ export Ecosystem, EcosystemCreator,
        FunctionGraphGenotype, FunctionGraphGenotypeCreator, GraphFunction,
        FunctionGraphPhenotype, FunctionGraphStatefulNode, FUNCTION_MAP,
        FunctionGraphConnection, FunctionGraphMutator, FunctionGraphNode, FunctionGraphMutators,
-       FunctionGraphGenotypeLoader, Loaders, get_or_make_group!
+       FunctionGraphGenotypeLoader, Loaders, get_or_make_group!,
+       load_genotype, get_size, minimize
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
@@ -101,7 +102,7 @@ println("loaded species")
 
 using .Species: Genotypes
 using .Genotypes.Abstract: Genotype, GenotypeCreator
-using .Genotypes.Interfaces: create_genotypes
+using .Genotypes.Interfaces: create_genotypes, get_size, minimize
 using .Genotypes.Vectors.Abstract: VectorGenotype, VectorGenotypeCreator
 using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  
 using .Genotypes.Vectors.Basic: ScalarRangeGenotypeCreator
@@ -257,6 +258,7 @@ using .Loaders.Concrete: BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLo
 using .Loaders.Concrete: GnarlNetworkGenotypeLoader, FunctionGraphGenotypeLoader
 #using .Loaders.Concrete: GeneticProgramGenotypeLoader, 
 using .Loaders.Concrete: EcosystemLoader, load_ecosystem
+using .Loaders.Interfaces: load_genotype
 
 include("runners/runners.jl")
 using .Runners: Runners

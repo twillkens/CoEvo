@@ -35,11 +35,15 @@ function measure(
 )
     species_measurements = Dict(
         species.id => BasicStatisticalMeasurement(
-            [reporter.metric.minimize ? get_size(minimize(individual.geno)) : get_size(individual.geno) 
-            for individual in values(species.pop)]
+            [
+                reporter.metric.minimize ? 
+                    get_size(minimize(individual.geno)) : get_size(individual.geno) 
+                for individual in values(species.pop)
+            ]
         ) 
         for species in keys(species_evaluations)
     )
+    #geno = collect(keys(species_evaluations))[1].pop[1].geno
         
     measurement = GroupStatisticalMeasurement(species_measurements)
     return measurement

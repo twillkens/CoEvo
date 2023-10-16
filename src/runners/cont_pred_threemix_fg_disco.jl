@@ -36,10 +36,10 @@ using ...Archivers.Concrete.Basic: BasicArchiver
 using ...Ecosystems.Interfaces: evolve!
 
 function cont_pred_threemix_function_graphs_disco_eco_creator(;
-    id::String = "ContinuousPredictionGame",
+    id::String = "ContinuousPredictionGameThreeMixFunctionGraphsDisco",
     trial::Int = 1,
     rng::AbstractRNG = StableRNG(777),
-    n_pop::Int = 50,
+    n_pop::Int = 100,
     host::String = "Host",
     mutualist::String = "Mutualist",
     parasite::String = "Parasite",
@@ -53,17 +53,17 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
     n_input_nodes::Int = communication_dimension + 2,
     n_bias_nodes::Int = 1,
     n_output_nodes::Int = communication_dimension + 1,
-    n_truncate = 50,
+    n_truncate = n_pop,
     tournament_size::Int = 3,
-    max_clusters::Int = -1,
+    max_clusters::Int = 10,
     geno_creator::FunctionGraphGenotypeCreator = FunctionGraphGenotypeCreator(
         n_input_nodes = n_input_nodes, 
         n_bias_nodes = n_bias_nodes,
         n_output_nodes = n_output_nodes
     ),
     mutator::FunctionGraphMutator = FunctionGraphMutator(),
-    print_interval::Int = 1,
-    save_interval::Int = 0,
+    print_interval::Int = 25,
+    save_interval::Int = 1,
 )
     eco_creator = BasicEcosystemCreator(
         id = id,
@@ -127,6 +127,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                     environment_creator = TapeEnvironmentCreator(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMatching()
+                            #Control()
                         ),
                         episode_length = episode_length,
                         communication_dimension = communication_dimension
@@ -139,6 +140,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                     environment_creator = TapeEnvironmentCreator(
                         domain = ContinuousPredictionGameDomain(
                             Competitive()
+                            #Control()
                         ),
                         episode_length = episode_length,
                         communication_dimension = communication_dimension
@@ -151,6 +153,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                     environment_creator = TapeEnvironmentCreator(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMismatching()
+                            #Control()
                         ),
                         episode_length = episode_length,
                         communication_dimension = communication_dimension
@@ -177,7 +180,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                 save_interval = save_interval, 
                 print_interval = print_interval
             ),
-            #BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1, print_interval = 50),
+            BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1, print_interval = 0),
         ],
         archiver = BasicArchiver(jld2_path = "trials/$id/$trial.jld2"),
         runtime_reporter = RuntimeReporter(print_interval = print_interval),

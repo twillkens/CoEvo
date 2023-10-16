@@ -22,15 +22,41 @@ function get_action!(
     clockwise_distance::Float32, 
     counterclockwise_distance::Float32, 
     communication::Vector{Float32}, 
-    movement_scale::Float32
+    movement_scale::Float32,
+    input_vector::Vector{Float32}
 )
-    input = [clockwise_distance ; counterclockwise_distance ; communication]
-    action = act!(entity, input)
-    movement_output = -scaled_arctangent(action[1], movement_scale)
+    #input = [clockwise_distance ; counterclockwise_distance ; communication]
+    input_vector[1] = clockwise_distance
+    input_vector[2] = counterclockwise_distance
+    input_vector[3:end] .= communication
+
+    if any(isnan, input_vector)
+        println("NaN input vector: ", input_vector)
+        println("clockwise_distance: ", clockwise_distance)
+        println("counterclockwise_distance: ", counterclockwise_distance)
+        println("communication: ", communication)
+        throw(ErrorException("NaN input vector"))
+    end
+
+    action = act!(entity, input_vector)
+    if any(isnan, action)
+        println("NaN action: ", action)
+        println("input_vector: ", input_vector)
+        println("entity: ", entity)
+        throw(ErrorException("NaN action"))
+    end
+    #action = act!(entity, input)
+    movement_output = -atan(action[1])
+    if isnan(movement_output)
+        println("NaN movement_output: ", movement_output)
+        println("action: ", action)
+        println("entity: ", entity)
+        throw(ErrorException("NaN movement_output"))
+    end
     #if rand() < 0.0001
     #    println("action: ", action)
     #end
-    communication_output = length(action) < 2 ? Float32[] : action[2:end]
+    communication_output = length(action) < 2 ? Float32[] : atan.(action[2:end])
     return movement_output, communication_output
 end
 
@@ -91,14 +117,16 @@ function next!(
         clockwise_distance, 
         counterclockwise_distance,
         environment.communication_2, 
-        environment.movement_scale
+        environment.movement_scale,
+        environment.input_vector
     )
     movement_2, environment.communication_2 = get_action!(
         environment.entity_2, 
         counterclockwise_distance,
         clockwise_distance, 
         environment.communication_1, 
-        environment.movement_scale
+        environment.movement_scale,
+        environment.input_vector
     )
     environment.position_1 = apply_movement(environment.position_1, movement_1)
     environment.position_2 = apply_movement(environment.position_2, movement_2)

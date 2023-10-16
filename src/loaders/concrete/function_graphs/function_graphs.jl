@@ -23,33 +23,17 @@ function load_genotype(::FunctionGraphGenotypeLoader, geno_group::Group)
     node_ids = geno_group["node_ids"]
     node_functions = geno_group["node_functions"]
     
-    # Load connection-related data.
-    connection_input_ids = geno_group["connection_input_ids"]
-    connection_weights = geno_group["connection_weights"]
-    connection_recurrency = geno_group["connection_recurrency"]
-    
-    # Construct FunctionGraphConnection and FunctionGraphNode objects.
+    # Initialize an empty nodes dictionary.
     nodes = Dict{Int, FunctionGraphNode}()
-    start_idx = 1
     for (id, func) in zip(node_ids, node_functions)
-        # Determine the number of connections based on the function's arity.
-        arity = FUNCTION_MAP[func].arity
-        
-        # Extract the relevant connections.
-        conns = [
-            FunctionGraphConnection(
-                connection_input_ids[idx],
-                connection_weights[idx],
-                connection_recurrency[idx]
-            )
-            for idx in start_idx:(start_idx + arity - 1)
-        ]
-        
-        # Construct the node and add it to the dict.
-        nodes[id] = FunctionGraphNode(id, func, conns)
-        
-        # Update the starting index for the next node.
-        start_idx += arity
+        nodes[id] = FunctionGraphNode(id, func, FunctionGraphConnection[])
+    end
+    
+    # Load connection data and establish connections.
+    connection_data = geno_group["connection_data"]
+    for (node_id, input_id, weight, is_recurrent) in connection_data
+        conn = FunctionGraphConnection(input_id, weight, is_recurrent)
+        push!(nodes[node_id].input_connections, conn)
     end
     
     # Construct and return the FunctionGraphGenotype.
@@ -62,5 +46,6 @@ function load_genotype(::FunctionGraphGenotypeLoader, geno_group::Group)
     )
     return genotype
 end
+
 
 end

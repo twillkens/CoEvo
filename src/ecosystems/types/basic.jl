@@ -162,7 +162,9 @@ function create_ecosystem(
     generation_reports = create_all_reports(gen, eco_creator, species_evaluations, observations)
     append!(reports, generation_reports)
     archive_reports!(eco_creator.archiver, gen, reports)
-    Base.GC.gc()
+    if gen % 50 == 0
+        Base.GC.gc()
+    end
     all_new_species = construct_new_species(eco_creator, species_evaluations)
     new_eco = BasicEcosystem(eco_creator.id, all_new_species)
     

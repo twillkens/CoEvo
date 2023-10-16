@@ -17,25 +17,24 @@ function save_genotype!(::BasicArchiver, geno_group::Group, geno::FunctionGraphG
     geno_group["hidden_node_ids"] = geno.hidden_node_ids
     geno_group["output_node_ids"] = geno.output_node_ids
     
-    # Saving node-related data.
-    geno_group["node_ids"] = keys(geno.nodes)
-    geno_group["node_functions"] = [node.func for node in values(geno.nodes)]
+    # Ensure ordered saving of node-related data.
+    ordered_node_ids = sort(collect(keys(geno.nodes)))
+    ordered_nodes = [geno.nodes[id] for id in ordered_node_ids]
     
-    # Collecting connection-related data.
-    connection_input_ids = Int[]
-    connection_weights = Float64[]
-    connection_recurrency = Bool[]
-    for node in values(geno.nodes)
-        append!(connection_input_ids, [conn.input_node_id for conn in node.input_connections])
-        append!(connection_weights, [conn.weight for conn in node.input_connections])
-        append!(connection_recurrency, [conn.is_recurrent for conn in node.input_connections])
+    geno_group["node_ids"] = ordered_node_ids
+    geno_group["node_functions"] = [node.func for node in ordered_nodes]
+    
+    # Collecting and saving connection-related data in a structured way.
+    connection_data = []
+    for node in ordered_nodes
+        for conn in node.input_connections
+            push!(connection_data, (node.id, conn.input_node_id, conn.weight, conn.is_recurrent))
+        end
     end
     
-    # Saving connection-related data.
-    geno_group["connection_input_ids"] = connection_input_ids
-    geno_group["connection_weights"] = connection_weights
-    geno_group["connection_recurrency"] = connection_recurrency
+    geno_group["connection_data"] = connection_data
 end
+
 
 
 end

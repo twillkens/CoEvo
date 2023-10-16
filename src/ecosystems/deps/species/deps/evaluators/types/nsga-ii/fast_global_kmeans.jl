@@ -39,7 +39,7 @@ function get_kmeans_clustering_result(
     cluster_count::Int, 
     tolerance::Float64, 
     centroids::Vector{Vector{Float64}},
-    maximum_iterations::Int = 1_000
+    maximum_iterations::Int = 500
 )
     # Initializing the sum of squared error
     previous_error = 0.0
@@ -206,7 +206,9 @@ compute_b_values(
     for potential_centroid in potential_centroids
 ]
 
-compute_b_values(potential_centroids::Vector{Vector{Float64}}, result::KMeansClusteringResult) = [
+compute_b_values(
+    potential_centroids::Vector{Vector{Float64}}, result::KMeansClusteringResult
+) = [
     compute_b_value(potential_centroid, result.clusters, result.centroids) 
     for potential_centroid in potential_centroids
 ]
@@ -253,6 +255,13 @@ function get_derived_tests(
     indiv_tests::SortedDict{Int, Vector{Float64}},
     max_clusters::Int = -1
 )
+    for (id, test_vector) in indiv_tests
+        if any(isnan, test_vector)
+            println("id: ", id)
+            println("test_vector: ", test_vector)
+            throw(ErrorException("NaN in test_vector"))
+        end
+    end
     test_vectors = collect(values(indiv_tests))
     test_columns = [collect(row) for row in eachrow(hcat(test_vectors...))]
     result = get_fast_global_clustering_result(rng, test_columns, max_clusters)

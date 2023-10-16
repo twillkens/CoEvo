@@ -42,7 +42,7 @@ function create_input_connections(rng, potential_input_node_ids, arity)
     return [
         FunctionGraphConnection(
             input_node_id = rand(rng, potential_input_node_ids),
-            weight = 0.0,  # or another desired method for initializing weights
+            weight = 0.0,  
             is_recurrent = true 
         ) 
         for _ in 1:arity
@@ -53,16 +53,18 @@ function add_function(
     rng::AbstractRNG, 
     gene_id_counter::Counter, 
     graph::FunctionGraphGenotype, 
-    function_map::Dict{Symbol, GraphFunction} = FUNCTION_MAP
+    function_map::Dict{Symbol, GraphFunction} # = FUNCTION_MAP
 )
     graph = deepcopy(graph)
     new_id = next!(gene_id_counter)
     func_symbol = select_function(rng, function_map)
+    #println("NEW FUNCTION: ", func_symbol)
 
     potential_input_node_ids = [
         graph.input_node_ids; graph.bias_node_ids; graph.hidden_node_ids
     ]
     arity = function_map[func_symbol].arity
+    #println("ARITY: ", arity)
 
     input_connections = create_input_connections(rng, potential_input_node_ids, arity)
     
@@ -290,16 +292,16 @@ function get_genotype_after_swapping_functions(
 )
     new_nodes = deepcopy(genotype.nodes)
     new_nodes[node_id] = FunctionGraphNode(
-        node_id, 
-        new_function, 
-        new_nodes[node_id].input_connections
+        id = node_id, 
+        func = new_function, 
+        input_connections = new_nodes[node_id].input_connections
     )
     genotype = FunctionGraphGenotype(
-        genotype.input_node_ids, 
-        genotype.bias_node_ids, 
-        genotype.hidden_node_ids, 
-        genotype.output_node_ids, 
-        new_nodes
+        input_node_ids = genotype.input_node_ids, 
+        bias_node_ids = genotype.bias_node_ids, 
+        hidden_node_ids = genotype.hidden_node_ids, 
+        output_node_ids = genotype.output_node_ids, 
+        nodes = new_nodes
     )
     return genotype
 end
@@ -381,7 +383,7 @@ function identity(
     return deepcopy(geno)
 end
 
-function inject_noise!(genotype::FunctionGraphGenotype, noise_map::Dict{Int, Vector{Float64}})
+function inject_noise!(genotype::FunctionGraphGenotype, noise_map::Dict{Int, Vector{Float32}})
     for (node_id, node) in genotype.nodes
         if haskey(noise_map, node_id)
             noise_values = noise_map[node_id]
@@ -394,8 +396,8 @@ function inject_noise!(genotype::FunctionGraphGenotype, noise_map::Dict{Int, Vec
     end
 end
 
-function inject_noise!(rng::AbstractRNG, genotype::FunctionGraphGenotype; std_dev::Float64=0.1)
-    noise_map = Dict{Int, Vector{Float64}}()
+function inject_noise!(rng::AbstractRNG, genotype::FunctionGraphGenotype; std_dev::Float32=0.1f0)
+    noise_map = Dict{Int, Vector{Float32}}()
     
     # Generating the noise_map
     for (node_id, node) in genotype.nodes
@@ -409,6 +411,13 @@ function inject_noise!(rng::AbstractRNG, genotype::FunctionGraphGenotype; std_de
     inject_noise!(genotype, noise_map)
 end
 
+    #mutation_probabilities::Dict{Function, Float64} = Dict(
+    #    add_function => 1 / 8,
+    #    remove_function => 1 / 8,
+    #    swap_function => 1 / 8,
+    #    redirect_connection => 1 / 8,
+    #    identity => 2 / 4
+    #)
 Base.@kwdef struct FunctionGraphMutator <: Mutator
     # Number of structural changes to perform per generation
     n_mutations::Int = 1
@@ -418,73 +427,96 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
         remove_function => 1 / 8,
         swap_function => 1 / 8,
         redirect_connection => 1 / 8,
-        identity => 2 / 4
+        identity => 1 /2
     )
-    noise_std::Float64 = 0.1
+    noise_std::Float32 = 0.1
     function_map::Dict{Symbol, GraphFunction} = Dict(
-        :IDENTITY => GraphFunction(
-            name = :IDENTITY, 
-            func = identity, 
-            arity = 1
-        ),
-        :ADD => GraphFunction(
-            name = :ADD, 
-            func = (+), 
-            arity = 2
-        ),
-        :SUBTRACT => GraphFunction(
-            name = :SUBTRACT, 
-            func = (-), 
-            arity = 2
-        ),
-        :MULTIPLY => GraphFunction(
-            name = :MULTIPLY, 
-            func = (*), 
-            arity = 2
-        ),
-        :DIVIDE => GraphFunction(
-            name = :DIVIDE, 
-            func = ((x, y) -> y == 0 ? 1.0 : x / y), 
-            arity = 2
-        ),
-        :MAXIMUM => GraphFunction(
-            name = :MAXIMUM, 
-            func = max, 
-            arity = 2
-        ),
-        :MINIMUM => GraphFunction(
-            name = :MINIMUM, 
-            func = min, 
-            arity = 2
-        ),
-        :SIN => GraphFunction(
-            name = :SIN, 
-            func = (x) -> isinf(x) ? π : sin(x),
-            arity = 1
-        ),
-        :COSINE => GraphFunction(
-            name = :COSINE, 
-            func = (x) -> isinf(x) ? π : cos(x),
-            arity = 1
-        ),
-        :SIGMOID => GraphFunction(
-            name = :SIGMOID, 
-            func = (x -> 1 / (1 + exp(-x))), 
-            arity = 1
-        ),
-        :TANH => GraphFunction(
-            name = :TANH, 
-            func = tanh, 
-            arity = 1
-        ),
-        :RELU => GraphFunction(
-            name = :RELU, 
-            func = (x -> x < 0 ? 0 : x), 
-            arity = 1
-        )
+        :IDENTITY => FUNCTION_MAP[:IDENTITY],
+        :ADD => FUNCTION_MAP[:ADD],
+        :SUBTRACT => FUNCTION_MAP[:SUBTRACT],
+        :MULTIPLY => FUNCTION_MAP[:MULTIPLY],
+        :DIVIDE => FUNCTION_MAP[:DIVIDE],
+        :MAXIMUM => FUNCTION_MAP[:MAXIMUM],
+        :MINIMUM => FUNCTION_MAP[:MINIMUM],
+        :SIN => FUNCTION_MAP[:SIN],
+        :COSINE => FUNCTION_MAP[:COSINE],
+        :SIGMOID => FUNCTION_MAP[:SIGMOID],
+        :TANH => FUNCTION_MAP[:TANH],
+        :RELU => FUNCTION_MAP[:RELU]
     )
 end
 
+function validate_genotype(
+    geno::FunctionGraphGenotype,
+    n_input_nodes::Int,
+    n_bias_nodes::Int,
+    n_hidden_nodes::Int,
+    n_output_nodes::Int
+)
+    # 1. Ensure Unique IDs
+    function_map = FUNCTION_MAP
+    ids = Set{Int}()
+    for (id, node) in geno.nodes
+        @assert id == node.id "ID mismatch in node dictionary and node struct"
+        @assert !(id in ids) "Duplicate node ID: $id"
+        push!(ids, id)
+    end
+    
+    # 2. Output Node Constraints & 3. Input Constraints
+    for (id, node) in geno.nodes
+        is_output_node = id in geno.output_node_ids
+        for conn in node.input_connections
+            if is_output_node
+                @assert !conn.is_recurrent "Output nodes must have nonrecurrent inputs"
+            else
+                @assert conn.is_recurrent "Non-output nodes must have recurrent inputs"
+            end
+        end
+    end
+    
+    # 4. Avoid Output as Input
+    for (id, node) in geno.nodes
+        if id in geno.output_node_ids
+            continue  # Skip the output nodes
+        end
+        for conn in node.input_connections
+            @assert !(conn.input_node_id in geno.output_node_ids) "Output node serving as input"
+        end
+    end
+    
+    # 5. Ensure Proper Arity
+    for (_, node) in geno.nodes
+        expected_arity = function_map[node.func].arity
+        @assert length(node.input_connections) == expected_arity "Incorrect arity for function $(node.func)"
+    end
+        # 6. Validate input connection ids
+    for (_, node) in geno.nodes
+        for conn in node.input_connections
+            @assert haskey(geno.nodes, conn.input_node_id) "Input node id $(conn.input_node_id) does not exist in the network"
+        end
+    end
+        # 7. Check number and IDs of :INPUT labeled nodes against geno.input_node_ids
+    input_node_ids_check = Set([id for (id, node) in geno.nodes if node.func == :INPUT])
+    @assert Set(geno.input_node_ids) == input_node_ids_check "Mismatched set of IDs for :INPUT nodes"
+    @assert length(geno.input_node_ids) == n_input_nodes "Mismatched number of :INPUT nodes"
+
+    # 8. Check number and IDs of :BIAS labeled nodes against geno.bias_node_ids
+    bias_node_ids_check = Set([id for (id, node) in geno.nodes if node.func == :BIAS])
+    @assert Set(geno.bias_node_ids) == bias_node_ids_check "Mismatched set of IDs for :BIAS nodes"
+    @assert length(geno.bias_node_ids) == n_bias_nodes "Mismatched number of :BIAS nodes"
+
+    # 10. Check number and IDs of hidden nodes against geno.hidden_node_ids
+    hidden_node_ids_check = Set([id for (id, node) in geno.nodes if node.func ∉ [:INPUT, :BIAS, :OUTPUT]])
+    @assert Set(geno.hidden_node_ids) == hidden_node_ids_check "Mismatched set of IDs for hidden nodes"
+    @assert length(geno.hidden_node_ids) in [n_hidden_nodes, n_hidden_nodes + 1, n_hidden_nodes - 1 ] "Mismatched number of hidden nodes"
+
+    # 9. Check number and IDs of :OUTPUT labeled nodes against geno.output_node_ids
+    output_node_ids_check = Set([id for (id, node) in geno.nodes if node.func == :OUTPUT])
+    @assert Set(geno.output_node_ids) == output_node_ids_check "Mismatched set of IDs for :OUTPUT nodes"
+    @assert length(geno.output_node_ids) == n_output_nodes "Mismatched number of :OUTPUT nodes"
+
+
+end
 
 function mutate(
     mutator::FunctionGraphMutator,
@@ -498,11 +530,18 @@ function mutate(
         Weights(collect(values(mutator.mutation_probabilities))), 
         mutator.n_mutations
     )
+    n_input_nodes = length(geno.input_node_ids)
+    n_bias_nodes = length(geno.bias_node_ids)
+    n_hidden_nodes = length(geno.hidden_node_ids)
+    n_output_nodes = length(geno.output_node_ids)
+    #println("GENOTYPE BEFORE: ", geno)
     for mutation in mutations
         #println("MUTATION TYPE: ", mutation)
         geno = mutation(rng, gene_id_counter, geno, mutator.function_map)
     end
     inject_noise!(rng, geno, std_dev = mutator.noise_std)
+    #println("GENOTYPE AFTER: ", geno)
+    validate_genotype(geno, n_input_nodes, n_bias_nodes, n_hidden_nodes, n_output_nodes)
     return geno
 end
 

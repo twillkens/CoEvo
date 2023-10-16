@@ -14,6 +14,7 @@ struct Min <: Sense end
 Base.@kwdef mutable struct NSGAIIRecord
     id::Int = 0
     fitness::Float64 = 0
+    disco_fitness::Float64 = 0
     tests::Vector{Float64} = Float64[]
     rank::Int = 0
     crowding::Float64 = 0.0

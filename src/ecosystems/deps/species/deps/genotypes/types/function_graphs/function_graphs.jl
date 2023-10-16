@@ -10,44 +10,8 @@ using CoEvo.Ecosystems.Utilities.Counters: Counter, next!
 
 import ...Genotypes.Interfaces: create_genotypes, get_size, minimize
 
+include("function_map.jl")
 
-@kwdef struct GraphFunction
-    name::Symbol
-    func::Function
-    arity::Int
-end
-
-const FUNCTION_MAP = Dict(
-    :INPUT => GraphFunction(:INPUT, identity, 0),
-    :BIAS => GraphFunction(:BIAS, (args...) -> 1.0, 0),
-    :OUTPUT => GraphFunction(:OUTPUT, identity, 1),
-
-    :IDENTITY => GraphFunction(:IDENTITY, identity, 1),
-
-    :ADD => GraphFunction(:ADD, (+), 2),
-    :SUBTRACT => GraphFunction(:SUBTRACT, (-), 2),
-    :MULTIPLY => GraphFunction(:MULTIPLY, (*), 2),
-    :DIVIDE => GraphFunction(:DIVIDE, ((x, y) -> y == 0 ? 1.0 : x / y), 2),
-
-    :MAXIMUM => GraphFunction(:MAXIMUM, max, 2),
-    :MINIMUM => GraphFunction(:MINIMUM, min, 2),
-
-    :SIN => GraphFunction(:SIN, (x) -> isinf(x) ? π : sin(x), 1),
-    :COSINE => GraphFunction(:COSINE, (x) -> isinf(x) ? π : cos(x), 1),
-    :SIGMOID => GraphFunction(:SIGMOID, (x -> 1 / (1 + exp(-x))), 1),
-    :TANH => GraphFunction(:TANH, tanh, 1),
-    :RELU => GraphFunction(:RELU, (x -> x < 0 ? 0 : x), 1),
-
-    :AND => GraphFunction(:AND, ((x, y) -> Bool(x) && Bool(y)), 2),
-    :OR => GraphFunction(:OR, ((x, y) -> Bool(x) || Bool(y)), 2),
-    :NAND => GraphFunction(:NAND, ((x, y) -> !(Bool(x) && Bool(y))), 2),
-    :XOR => GraphFunction(:XOR, ((x, y) -> Bool(x) ⊻ Bool(y)), 2),
-)
-
-function(graph_function::GraphFunction)(args...)
-    output = graph_function.func(args...)
-    return output
-end
 
 
 @kwdef mutable struct FunctionGraphConnection
@@ -135,19 +99,19 @@ end
 
 
 function create_ids_and_nodes(
-    genotype_creator::FunctionGraphGenotypeCreator, 
     gene_id_counter::Counter,
     function_symbol::Symbol,
+    n_nodes::Int
 )
-    input_node_ids = next!(gene_id_counter, genotype_creator.n_input_nodes)
-    input_nodes = Dict(
+    node_ids = next!(gene_id_counter, n_nodes)
+    nodes = Dict(
         id => FunctionGraphNode(
             id = id, 
             func = function_symbol, 
             input_connections = FunctionGraphConnection[]
-        ) for id in input_node_ids
+        ) for id in node_ids
     )
-    return input_node_ids, input_nodes
+    return node_ids, nodes
 end
 
 function create_output_ids_and_nodes(
@@ -185,10 +149,10 @@ function create_genotypes(
     genotypes = FunctionGraphGenotype[]
     for _ in 1:n_pop
         input_node_ids, input_nodes = create_ids_and_nodes(
-            genotype_creator, gene_id_counter, :INPUT
+            gene_id_counter, :INPUT, genotype_creator.n_input_nodes
         )
         bias_node_ids, bias_nodes = create_ids_and_nodes(
-            genotype_creator, gene_id_counter, :BIAS
+            gene_id_counter, :BIAS, genotype_creator.n_bias_nodes
         )
         available_input_ids = [input_node_ids; bias_node_ids]
         output_node_ids, output_nodes = create_output_ids_and_nodes(
