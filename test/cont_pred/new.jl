@@ -1,5 +1,6 @@
 using Test
 #include("../../src/CoEvo.jl")
+using CoEvo
 using CoEvo.TapeMethods.ContinuousPredictionGame: scaled_arctangent, apply_movement, get_action!
 using CoEvo.TapeMethods.ContinuousPredictionGame: get_outcome_set, get_clockwise_distance, get_counterclockwise_distance
 import CoEvo.Phenotypes.Interfaces: act!, reset!
@@ -51,8 +52,8 @@ end
     next!(environment_mock)
     @test environment_mock.position_1 ≠ environment_mock.position_2
     @test length(environment_mock.distances) == 1
-    @test environment_mock.communication_1 == Float32[2.0, 3.0]
-    @test environment_mock.communication_2 == Float32[2.0, 3.0]
+    @test environment_mock.communication_1 == Float32[atan(2.0), atan(3.0)]
+    @test environment_mock.communication_2 == Float32[atan(2.0), atan(3.0)]
 end
 
 
@@ -69,8 +70,8 @@ end
     next!(environment_mock)
     @test environment_mock.position_1 ≠ environment_mock.position_2
     @test length(environment_mock.distances) == 1
-    @test environment_mock.communication_1 == Float32[2.0, 3.0]
-    @test environment_mock.communication_2 == Float32[2.0, 3.0]
+    @test environment_mock.communication_1 == atan.([2.0f0, 3.0f0])
+    @test environment_mock.communication_2 == atan.([2.0f0, 3.0f0])
 end
 
 abstract type FakePhenotype <: Phenotype end
@@ -171,15 +172,17 @@ end
         Phenotype[entity1_mock, entity2_mock]
     )
 
-    expected_positions_1 = vcat([[π, 3π/4, π/2, π/4, 0.0, 7π/4, 3π/2, 5π/4,] for _ in 1:2]...)
-    expected_positions_2 = vcat([[0.0, π/4, π/2, 3π/4, π, 5π/4, 3π/2, 7π/4,] for _ in 1:2]...)
+    expected_positions_1 = round.(Float32.(vcat([[π, 3π/4, π/2, π/4, 0.0, 7π/4, 3π/2, 5π/4,] for _ in 1:2]...)), digits=2)
+    expected_positions_2 = round.(Float32.(vcat([[0.0, π/4, π/2, 3π/4, π, 5π/4, 3π/2, 7π/4,] for _ in 1:2]...)), digits=2)
 
-    expected_clockwise_distances = round.(vcat([[π, π/2, 0.0, 3π/2] for _ in 1:4]...), digits=2)
-    expected_counterclockwise_distances = round.(vcat([[π, 3π/2, 0, π/2] for _ in 1:4]...), digits=2)
+    expected_clockwise_distances = Float32.(
+        round.(vcat([[π, π/2, 0.0, 3π/2] for _ in 1:4]...), digits=2)
+    )
+    expected_counterclockwise_distances = Float32.(
+        round.(vcat([[π, 3π/2, 0, π/2] for _ in 1:4]...), digits=2)
+    )
 
     for i in 1:16
-        # @test circle_distance(environment_mock.position_1, expected_positions_1[i]) < 0.1
-        # @test circle_distance(environment_mock.position_2, expected_positions_2[i]) < 0.1
         
         actual_clockwise_distance = round(get_clockwise_distance(
             environment_mock.position_1, environment_mock.position_2,
@@ -188,15 +191,13 @@ end
             environment_mock.position_1, environment_mock.position_2,
         ), digits = 2)
 
-        println("-----Timestep: $i-----")
         position_1 = round(environment_mock.position_1, digits=2)
         position_2 = round(environment_mock.position_2, digits=2)
-        println("position_1: $position_1, position_2: $position_2")
-        println("expected_clockwise_distance: $(expected_clockwise_distances[i]), actual: $actual_clockwise_distance")
-        println("expected_counterclockwise_distance: $(expected_counterclockwise_distances[i]), actual: $actual_counterclockwise_distance")
+        @test circle_distance(position_1, expected_positions_1[i]) < 0.1
+        @test circle_distance(position_2, expected_positions_2[i]) < 0.1
 
-        # @test isapprox(actual_clockwise_distance, expected_clockwise_distances[i]; atol=0.1)
-        # @test isapprox(actual_counterclockwise_distance, expected_counterclockwise_distances[i]; atol=0.1)
+        @test expected_clockwise_distances[i] == actual_clockwise_distance
+        @test expected_counterclockwise_distances[i] == actual_counterclockwise_distance
 
         next!(environment_mock)
     end

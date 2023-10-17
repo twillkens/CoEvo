@@ -28,7 +28,9 @@ function get_action!(
     #input = [clockwise_distance ; counterclockwise_distance ; communication]
     input_vector[1] = clockwise_distance
     input_vector[2] = counterclockwise_distance
-    input_vector[3:end] .= communication
+    if length(input_vector) > 2
+        input_vector[3:end] .= communication
+    end
 
     if any(isnan, input_vector)
         println("NaN input vector: ", input_vector)

@@ -81,7 +81,9 @@ export Ecosystem, EcosystemCreator,
        FunctionGraphPhenotype, FunctionGraphStatefulNode, FUNCTION_MAP,
        FunctionGraphConnection, FunctionGraphMutator, FunctionGraphNode, FunctionGraphMutators,
        FunctionGraphGenotypeLoader, Loaders, get_or_make_group!,
-       load_genotype, get_size, minimize
+       load_genotype, get_size, minimize,
+       LinearizedFunctionGraphPhenotype, LinearizedFunctionGraphNode, LinearizedFunctionGraphConnection,
+        LinearizedFunctionGraphPhenotypeCreator
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
@@ -125,6 +127,9 @@ using .Phenotypes.Defaults: DefaultPhenotypeCreator
 using .Phenotypes.Vectors.Basic: BasicVectorPhenotype
 #using .Phenotypes.GeneticPrograms.Phenotypes: GeneticProgramPhenotype
 using .Phenotypes.FunctionGraphs: FunctionGraphPhenotype, FunctionGraphStatefulNode
+using .Phenotypes.LinearizedFunctionGraphs: LinearizedFunctionGraphPhenotype
+using .Phenotypes.LinearizedFunctionGraphs: LinearizedFunctionGraphNode, LinearizedFunctionGraphConnection
+using .Phenotypes.LinearizedFunctionGraphs: LinearizedFunctionGraphPhenotypeCreator
 using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron
 using .Phenotypes.GnarlNetworks: GnarlNetworkPhenotypeInputConnection
 using .Phenotypes.FiniteStateMachines: FiniteStateMachinePhenotype

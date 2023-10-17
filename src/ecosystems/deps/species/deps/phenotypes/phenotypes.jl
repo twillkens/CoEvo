@@ -1,6 +1,7 @@
 module Phenotypes
 
 export Abstract, Vectors, Defaults, GnarlNetworks, FiniteStateMachines, FunctionGraphs
+export LinearizedFunctionGraphs
 # export GeneticPrograms
 
 include("abstract/abstract.jl")
@@ -26,5 +27,8 @@ using .FiniteStateMachines: FiniteStateMachines
 
 include("types/function_graphs/function_graphs.jl")
 using .FunctionGraphs: FunctionGraphs
+
+include("types/function_graphs/linearized.jl")
+using .LinearizedFunctionGraphs: LinearizedFunctionGraphs
 
 end

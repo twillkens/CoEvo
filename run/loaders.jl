@@ -185,7 +185,7 @@ function plot_csv_results(
     y_labels::Vector{String} = fill("Value", length(metrics)),
     legend::Bool = true,
     plot_title_prefix::String = "Metric:",
-    y_limits = [(0, 45), (0, 25), (0, 1)],
+    y_limits = [(0, 100), (0, 25), (0, 1)],
     file_prefix::String = "plot_",
     colors::Vector{Symbol} = fill(:auto, length(species_ids)),
     linewidth::Int = 3

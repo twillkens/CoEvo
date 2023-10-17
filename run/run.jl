@@ -7,6 +7,7 @@ experiments = OrderedDict(
     "1" => "ContinuousPredictionGameThreeMixGnarlDisco",
     "2" => "ContinuousPredictionGameThreeMixGnarlRoulette",
     "3" => "ContinuousPredictionGameThreeMixFunctionGraphsDisco",
+    "4" => "ContinuousPredictionGameThreeMixFunctionGraphsRoulette",
 )
 for (key, value) in experiments
     println("$key: $value")

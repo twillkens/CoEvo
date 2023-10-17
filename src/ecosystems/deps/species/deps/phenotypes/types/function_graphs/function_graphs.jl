@@ -109,13 +109,6 @@ function print_phenotype_state(phenotype::FunctionGraphPhenotype)
     end
 end
 
-        #input_values = [
-        #    get_output!(input_node, conn.is_recurrent) * conn.weight
-        #    for (input_node, conn) in node.input_nodes
-        #]
-        #node_function = FUNCTION_MAP[node.func]  # Ensure FUNCTION_MAP is defined elsewhere
-        #output_value = node_function(input_values...)
-        #output_value = node.func(input_values...)
 function apply_func(node_func::GraphFunction, input_values::Vector{Float32})::Float32
     # Specific function applications for known arities
     if node_func.arity == 1

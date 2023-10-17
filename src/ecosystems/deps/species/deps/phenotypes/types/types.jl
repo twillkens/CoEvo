@@ -5,3 +5,4 @@ include("defaults/defaults.jl")
 include("vectors/vectors.jl")
 
 include("function_graphs/function_graphs.jl")
+include("function_graphs/linearized.jl")
