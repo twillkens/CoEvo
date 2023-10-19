@@ -175,7 +175,10 @@ function evolve!(
     eco_creator::BasicEcosystemCreator;
     n_gen::Int = 100,
 )
+    #println("---------Ecosystems: evolve!------------")
+    #println("rng 1: ", rand(eco_creator.rng))
     eco = create_ecosystem(eco_creator)
+    ##println("rng 2: ", rand(eco_creator.rng))
     last_reproduce_time = 0.0
     for gen in 1:n_gen
         eval_time_start = time()

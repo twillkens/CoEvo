@@ -173,7 +173,6 @@ function create_genotypes(
     return genotypes
 end
 
-
 function minimize(geno::FunctionGraphGenotype)
     # A Set to store IDs of essential nodes.
     essential_nodes_ids = Set{Int}()

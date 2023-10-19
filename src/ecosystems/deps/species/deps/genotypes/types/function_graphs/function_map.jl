@@ -5,32 +5,32 @@
     arity::Int
 end
 
-function graph_identity(x::Float32)::Float32
+@inline function graph_identity(x::Float32)::Float32
     return x
 end
 
-function graph_add(x::Float32, y::Float32)::Float32
+@inline function graph_add(x::Float32, y::Float32)::Float32
     if x == Inf32 && y == -Inf32 || x == -Inf32 && y == Inf32
         return 0.0f0
     end
     return x + y
 end
 
-function graph_subtract(x::Float32, y::Float32)::Float32
+@inline function graph_subtract(x::Float32, y::Float32)::Float32
     if x == Inf32 && y == Inf32 || x == -Inf32 && y == -Inf32
         return 0.0f0
     end
     return x - y
 end
 
-function graph_multiply(x::Float32, y::Float32)::Float32
+@inline function graph_multiply(x::Float32, y::Float32)::Float32
     if x == 0.0f0 || y == 0.0f0
         return 0.0f0
     end
     return x * y
 end
 
-function graph_divide(x::Float32, y::Float32)::Float32
+@inline function graph_divide(x::Float32, y::Float32)::Float32
     if x == Inf32 && y == Inf32 || x == -Inf32 && y == -Inf32
         return 1.0f0
     elseif x == Inf32 && y == -Inf32 || x == -Inf32 && y == Inf32
@@ -45,47 +45,47 @@ function graph_divide(x::Float32, y::Float32)::Float32
     return x / y
 end
 
-function graph_maximum(x::Float32, y::Float32)::Float32
+@inline function graph_maximum(x::Float32, y::Float32)::Float32
     return max(x, y)
 end
 
-function graph_minimum(x::Float32, y::Float32)::Float32
+@inline function graph_minimum(x::Float32, y::Float32)::Float32
     return min(x, y)
 end
 
-function graph_sin(x::Float32)::Float32
+@inline function graph_sin(x::Float32)::Float32
     return isinf(x) ? 0.0f0 : sin(x)
 end
 
-function graph_cosine(x::Float32)::Float32
+@inline function graph_cosine(x::Float32)::Float32
     return isinf(x) ? 0.0f0 : cos(x)
 end
 
-function graph_sigmoid(x::Float32)::Float32
+@inline function graph_sigmoid(x::Float32)::Float32
     return 1.0f0 / (1.0f0 + exp(-x))
 end
 
-function graph_tanh(x::Float32)::Float32
+@inline function graph_tanh(x::Float32)::Float32
     return tanh(x)
 end
 
-function graph_relu(x::Float32)::Float32
+@inline function graph_relu(x::Float32)::Float32
     return x < 0.0f0 ? 0.0f0 : x
 end
 
-function graph_and(x::Float32, y::Float32)::Float32
+@inline function graph_and(x::Float32, y::Float32)::Float32
     return Bool(x) && Bool(y) ? 1.0f0 : 0.0f0
 end
 
-function graph_or(x::Float32, y::Float32)::Float32
+@inline function graph_or(x::Float32, y::Float32)::Float32
     return Bool(x) || Bool(y) ? 1.0f0 : 0.0f0
 end
 
-function graph_nand(x::Float32, y::Float32)::Float32
+@inline function graph_nand(x::Float32, y::Float32)::Float32
     return !(Bool(x) && Bool(y)) ? 1.0f0 : 0.0f0
 end
 
-function graph_xor(x::Float32, y::Float32)::Float32
+@inline function graph_xor(x::Float32, y::Float32)::Float32
     return Bool(x) ⊻ Bool(y) ? 1.0f0 : 0.0f0
 end
 

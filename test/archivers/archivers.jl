@@ -1,5 +1,5 @@
 # include("../../src/CoEvo.jl")
-using .CoEvo
+using CoEvo
 
 using Test
 
@@ -67,7 +67,7 @@ println("Starting tests for Archivers...")
     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
     evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
-    reporter = BasicReporter(metric = AllSpeciesIdentity())
+    reporter = BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1)
     species_evaluations = Dict(species => evaluation)
     measurement = measure(reporter, species_evaluations, Observation[])
     report = create_report(reporter, gen, species_evaluations, Observation[])

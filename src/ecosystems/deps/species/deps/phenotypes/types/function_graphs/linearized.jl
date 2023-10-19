@@ -4,7 +4,7 @@ export LinearizedFunctionGraphPhenotype, LinearizedFunctionGraphNode, Linearized
 export LinearizedFunctionGraphPhenotypeCreator
 
 using ...Species.Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
-using ...Species.Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP
+using ...Species.Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP, minimize
 using ...Phenotypes.Abstract: Phenotype, PhenotypeCreator
 
 import ...Phenotypes.Interfaces: create_phenotype, act!, reset!
@@ -71,46 +71,6 @@ function sort_layer(node_ids::Vector{Int}, genotype::FunctionGraphGenotype)::Vec
     return node_ids
 end
 
-# function construct_layers(genotype::FunctionGraphGenotype)::Vector{Vector{Int}}
-#     layers = Vector{Vector{Int}}()
-#     
-#     # Initialize pool with all nodes except the input nodes
-#     first_layer = [genotype.input_node_ids ; genotype.bias_node_ids]
-#     node_pool = Set(keys(genotype.nodes))
-#     setdiff!(node_pool, first_layer)
-#     
-#     current_layer = first_layer
-# 
-#     while !isempty(current_layer)
-#         # Add the current layer to layers
-#         push!(layers, current_layer)
-#         
-#         # Find the nodes that use the current layer as inputs
-#         next_layer = Int[]
-#         for node_id in node_pool
-#             node = genotype.nodes[node_id]
-#             for input_connection in node.input_connections
-#                 input_node_id = input_connection.input_node_id
-#                 if input_node_id in current_layer
-#                     push!(next_layer, node_id)
-#                     break  # Move to the next node in the pool after finding a valid connection
-#                 end
-#             end
-#         end
-# 
-#         # Remove the nodes in the next_layer from the pool
-#         setdiff!(node_pool, next_layer)
-# 
-#         # Sort the next layer
-#         next_layer = sort_layer(next_layer, genotype)
-# 
-#         # Set the next layer as the current layer for the next iteration
-#         current_layer = next_layer
-#     end
-# 
-#     return layers
-# end
-
 function construct_layers(genotype::FunctionGraphGenotype)::Vector{Vector{Int}}
     layers = Vector{Vector{Int}}()
     
@@ -140,6 +100,9 @@ function construct_layers(genotype::FunctionGraphGenotype)::Vector{Vector{Int}}
                 if !input_connection.is_recurrent
             ]
             
+            # This node is valid if all of its input nodes are in the flattened previous layers
+            # or if it has no nonrecurrent input nodes.
+            # (This evaluates to `true` if the input_node_ids is empty)
             if all(in_id -> in_id in flattened_previous_layers, input_node_ids)
                 push!(next_layer, node_id)
             end
@@ -174,6 +137,7 @@ end
 function create_phenotype(
     ::LinearizedFunctionGraphPhenotypeCreator, geno::FunctionGraphGenotype
 )::LinearizedFunctionGraphPhenotype
+    geno = minimize(geno)
     layers = construct_layers(geno)
     stateful_nodes = initialize_linearized_nodes_from_genotype(geno)
     
@@ -214,7 +178,52 @@ function apply_func(node_func::GraphFunction, input_values::Vector{Float32})::Fl
     end
 end
 
+# function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{Float32})
+#     for node in phenotype.nodes
+#         node.previous_value = node.current_value
+#     end
+# 
+#     if any(isnan, input_values)
+#         println("NaN input values: ", input_values)
+#         println("Phenotype: ", phenotype)
+#         throw(ErrorException("NaN input values"))
+#     end
+# 
+#     @inbounds for (index, value) in enumerate(input_values)
+#         phenotype.nodes[index].previous_value = value
+#         phenotype.nodes[index].current_value = value
+#     end
+# 
+#     hidden_node_start = phenotype.n_input_nodes + phenotype.n_bias_nodes + 1
+# 
+#     @inbounds for node in phenotype.nodes[hidden_node_start:end]
+#         @inbounds for (index, input_node_connection) in enumerate(node.input_nodes)
+#             input_node, connection = input_node_connection
+#             value = connection.is_recurrent ? 
+#                 input_node.previous_value : input_node.current_value
+#             node.input_values[index] = connection.weight * value
+#         end
+# 
+#         node_value = apply_func(node.func, node.input_values)
+#         node.current_value = node_value
+#     end
+# 
+#     @inbounds for (index, output_node) in enumerate(phenotype.output_nodes)
+#         phenotype.output_values[index] = output_node.current_value
+#     end
+# 
+#     output_values = phenotype.output_values
+#     #output_values = [
+#     #    phenotype.nodes[output_id].current_value for output_id in phenotype.output_node_ids
+#     #]
+#     return output_values
+# end
+
 function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{Float32})
+    nodes = phenotype.nodes
+    output_values = phenotype.output_values
+    hidden_node_start = phenotype.n_input_nodes + phenotype.n_bias_nodes + 1
+
     for node in phenotype.nodes
         node.previous_value = node.current_value
     end
@@ -225,32 +234,32 @@ function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{
         throw(ErrorException("NaN input values"))
     end
 
-    @inbounds for (index, value) in enumerate(input_values)
-        phenotype.nodes[index].current_value = value
-    end
-
-    hidden_node_start = phenotype.n_input_nodes + phenotype.n_bias_nodes + 1
-
-    @inbounds for node in phenotype.nodes[hidden_node_start:end]
-        for (index, input_node_connection) in enumerate(node.input_nodes)
-            input_node, connection = input_node_connection
-            value = connection.is_recurrent ? 
-                input_node.previous_value : input_node.current_value
-            node.input_values[index] = connection.weight * value
+    @inbounds begin
+        for i in 1:length(input_values)
+            node = nodes[i]
+            node.previous_value = input_values[i]
+            node.current_value = input_values[i]
         end
 
-        node_value = apply_func(node.func, node.input_values)
-        node.current_value = node_value
+        for node in nodes[hidden_node_start:end]
+            input_node_connections = node.input_nodes
+            input_values_node = node.input_values
+
+            for j in eachindex(input_node_connections)
+                input_node, connection = input_node_connections[j]
+                value = connection.is_recurrent ? 
+                    input_node.previous_value : input_node.current_value
+                input_values_node[j] = connection.weight * value
+            end
+
+            node.current_value = apply_func(node.func, input_values_node)
+        end
+
+        for i in 1:length(phenotype.output_nodes)
+            output_values[i] = phenotype.output_nodes[i].current_value
+        end
     end
 
-    @inbounds for (index, output_node) in enumerate(phenotype.output_nodes)
-        phenotype.output_values[index] = output_node.current_value
-    end
-
-    output_values = phenotype.output_values
-    #output_values = [
-    #    phenotype.nodes[output_id].current_value for output_id in phenotype.output_node_ids
-    #]
     return output_values
 end
 

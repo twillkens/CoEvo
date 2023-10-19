@@ -627,18 +627,18 @@ end
 
     inputs_1 = Float32.([1, 2, 3, 4])
     inputs_2 = Float32.([1, 2, 3, 4])
-    #inputs_1 = Float32.([(6.674 * 10^-11), 5.972 * 10^24, 1.989 * 10^30, 1.496 * 10^11])
-    #inputs_2 = Float32.([6.674 * 10^-11, 7.342 * 10^22, 1.989 * 10^30, 3.844 * 10^8])
+    inputs_1 = Float32.([(6.674 * 10^-11), 5.972 * 10^24, 1.989 * 10^30, 1.496 * 10^11])
+    inputs_2 = Float32.([6.674 * 10^-11, 7.342 * 10^22, 1.989 * 10^30, 3.844 * 10^8])
 
-    #input_outputs = [
-    #    (inputs_1, [newtons_law_of_gravitation(inputs_1...)]),
-    #    (inputs_2, [newtons_law_of_gravitation(inputs_2...)])
-    #]
+    input_outputs = [
+        (inputs_1, [newtons_law_of_gravitation(inputs_1...)]),
+        (inputs_2, [newtons_law_of_gravitation(inputs_2...)])
+    ]
 
-    #for (input_values, expected_output) in input_outputs
-    #    output = act!(phenotype, input_values)
-    #    @test isapprox(output[1], expected_output[1]; atol=1e-1)
-    #end
+    for (input_values, expected_output) in input_outputs
+        output = act!(phenotype, input_values)
+        @test isapprox(output[1], expected_output[1]; atol=1e-1)
+    end
 end
 
 using Test

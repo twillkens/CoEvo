@@ -157,12 +157,19 @@ function create_species(
     species::AbstractSpecies,
     evaluation::Evaluation
 ) 
+    #println("-----------Species-----------------")
+    #println("rng 1: ", rand(rng))
     new_pop = replace(species_creator.replacer, rng, species, evaluation)
+    #println("rng 2: ", rand(rng))
     parents = select(species_creator.selector, rng, new_pop, evaluation)
+    #println("rng 3: ", rand(rng))
     new_children = recombine(species_creator.recombiner, rng, indiv_id_counter, parents)
+    #println("rng 4: ", rand(rng))
+    #println("new children ids: " , [indiv.id for indiv in new_children])
     for mutator in species_creator.mutators
         new_children = mutate(mutator, rng, gene_id_counter, new_children)
     end
+    #println("rng 5: ", rand(rng))
     new_children = Dict(indiv.id => indiv for indiv in new_children)
     new_species = BasicSpecies(species_creator.id, new_pop, new_children)
     return new_species

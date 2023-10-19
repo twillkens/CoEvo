@@ -12,7 +12,7 @@ using ...Metrics.Concrete.Common: AllSpeciesIdentity
 using ...Species.Mutators.Types: FunctionGraphMutator
 using ...Species.Genotypes.GnarlNetworks: GnarlNetworkGenotypeCreator
 using ...Species.Genotypes.FunctionGraphs: FunctionGraphGenotypeCreator
-using ...Species.Phenotypes.Defaults: DefaultPhenotypeCreator
+using ...Species.Phenotypes.LinearizedFunctionGraphs: LinearizedFunctionGraphPhenotypeCreator
 using ...Evaluators.Types.NSGAII: NSGAIIEvaluator
 using ...Replacers.Types.Truncation: TruncationReplacer
 using ...Species.Basic: BasicSpeciesCreator
@@ -64,6 +64,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
     mutator::FunctionGraphMutator = FunctionGraphMutator(),
     print_interval::Int = 25,
     save_interval::Int = 1,
+    phenotype_creator = LinearizedFunctionGraphPhenotypeCreator(),
 )
     eco_creator = BasicEcosystemCreator(
         id = id,
@@ -74,7 +75,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                 id = host,
                 n_pop = n_pop,
                 geno_creator = geno_creator,
-                phenotype_creator = DefaultPhenotypeCreator(),
+                phenotype_creator = phenotype_creator,
                 evaluator = NSGAIIEvaluator(
                     max_clusters = max_clusters, 
                     maximize = true, 
@@ -90,7 +91,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                 id = mutualist,
                 n_pop = n_pop,
                 geno_creator = geno_creator,
-                phenotype_creator = DefaultPhenotypeCreator(),
+                phenotype_creator = phenotype_creator,
                 evaluator = NSGAIIEvaluator(
                     max_clusters = max_clusters, 
                     maximize = true, 
@@ -106,7 +107,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                 id = parasite,
                 n_pop = n_pop,
                 geno_creator = geno_creator,
-                phenotype_creator = DefaultPhenotypeCreator(),
+                phenotype_creator = phenotype_creator,
                 evaluator = NSGAIIEvaluator(
                     max_clusters = max_clusters, 
                     maximize = true, 
@@ -180,7 +181,11 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                 save_interval = save_interval, 
                 print_interval = print_interval
             ),
-            BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1, print_interval = 0),
+            BasicReporter(
+                metric = AllSpeciesIdentity(), 
+                save_interval = save_interval, 
+                print_interval = 0
+            ),
         ],
         archiver = BasicArchiver(jld2_path = "trials/$id/$trial.jld2"),
         runtime_reporter = RuntimeReporter(print_interval = print_interval),

@@ -21,22 +21,22 @@ function get_action!(
     entity::Phenotype, 
     clockwise_distance::Float32, 
     counterclockwise_distance::Float32, 
-    communication::Vector{Float32}, 
-    movement_scale::Float32,
+    current_communication_of_other_entity::Vector{Float32}, 
+    next_communication_of_this_entity::Vector{Float32},
     input_vector::Vector{Float32}
 )
     #input = [clockwise_distance ; counterclockwise_distance ; communication]
     input_vector[1] = clockwise_distance
     input_vector[2] = counterclockwise_distance
     if length(input_vector) > 2
-        input_vector[3:end] .= communication
+        input_vector[3:end] .= current_communication_of_other_entity
     end
 
     if any(isnan, input_vector)
         println("NaN input vector: ", input_vector)
         println("clockwise_distance: ", clockwise_distance)
         println("counterclockwise_distance: ", counterclockwise_distance)
-        println("communication: ", communication)
+        println("communication: ", current_communication_of_other_entity)
         throw(ErrorException("NaN input vector"))
     end
 
@@ -58,8 +58,11 @@ function get_action!(
     #if rand() < 0.0001
     #    println("action: ", action)
     #end
-    communication_output = length(action) < 2 ? Float32[] : atan.(action[2:end])
-    return movement_output, communication_output
+    if length(action) > 1
+        next_communication_of_this_entity .= atan.(action[2:end])
+    end
+    #communication_output = length(action) < 2 ? Float32[] : atan.(action[2:end])
+    return movement_output #, communication_output
 end
 
 function circle_distance(a::Real, b::Real)
@@ -112,43 +115,56 @@ end
 function next!(
     environment::TapeEnvironment{D, <:Phenotype, <:Phenotype}
 ) where {D <: ContinuousPredictionGameDomain}
-    clockwise_distance = get_clockwise_distance(environment.position_1, environment.position_2)
-    counterclockwise_distance = get_counterclockwise_distance(clockwise_distance)
-    movement_1, environment.communication_1 = get_action!(
+    environment.timestep += 1
+    movement_1 = get_action!(
         environment.entity_1, 
-        clockwise_distance, 
-        counterclockwise_distance,
-        environment.communication_2, 
-        environment.movement_scale,
+        environment.clockwise_distance, 
+        environment.counterclockwise_distance,
+        environment.current_communication_2, 
+        environment.next_communication_1,
         environment.input_vector
     )
-    movement_2, environment.communication_2 = get_action!(
+    movement_2 = get_action!(
         environment.entity_2, 
-        counterclockwise_distance,
-        clockwise_distance, 
-        environment.communication_1, 
-        environment.movement_scale,
+        environment.counterclockwise_distance,
+        environment.clockwise_distance, 
+        environment.current_communication_1, 
+        environment.next_communication_2,
         environment.input_vector
     )
+    @inbounds for (index, value) in enumerate(environment.next_communication_1)
+        environment.current_communication_1[index] = value
+    end
+
+    @inbounds for (index, value) in enumerate(environment.next_communication_2)
+        environment.current_communication_2[index] = value
+    end
     environment.position_1 = apply_movement(environment.position_1, movement_1)
     environment.position_2 = apply_movement(environment.position_2, movement_2)
-
-    closest_distance = min(clockwise_distance, counterclockwise_distance)
-    push!(environment.distances, closest_distance)
+    environment.clockwise_distance = get_clockwise_distance(
+        environment.position_1, environment.position_2
+    )
+    environment.counterclockwise_distance = get_counterclockwise_distance(
+        environment.clockwise_distance
+    )
+    environment.distances[environment.timestep] = min(
+        environment.clockwise_distance, environment.counterclockwise_distance
+    )
+    #push!(environment.distances, closest_distance)
 end
 
 function get_outcome_set(
     environment::TapeEnvironment{D, <:Phenotype, <:Phenotype}
 ) where {D <: ContinuousPredictionGameDomain}
-    clockwise_distance = get_clockwise_distance(environment.position_1, environment.position_2)
-    counterclockwise_distance = get_counterclockwise_distance(clockwise_distance)
-    closest_distance = min(clockwise_distance, counterclockwise_distance)
-    distances = [environment.distances[2:end] ; closest_distance]
+    #clockwise_distance = get_clockwise_distance(environment.position_1, environment.position_2)
+    #counterclockwise_distance = get_counterclockwise_distance(clockwise_distance)
+    #closest_distance = min(clockwise_distance, counterclockwise_distance)
+    #distances = [environment.distances[2:end] ; closest_distance]
     # As pi is the maximum distance between two entities, and the episode begins with them
     # maximally distant, the maximum distance score is pi * episode_length in the case
     # where the entities never move.
     maximum_distance_score = π * environment.episode_length
-    distance_score = sum(distances) / maximum_distance_score
+    distance_score = sum(environment.distances) / maximum_distance_score
     outcome_set = measure(environment.domain, distance_score)
     return outcome_set
 end

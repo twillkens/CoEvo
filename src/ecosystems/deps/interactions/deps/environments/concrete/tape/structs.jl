@@ -20,13 +20,18 @@ Base.@kwdef mutable struct TapeEnvironment{D, P1 <: Phenotype, P2 <: Phenotype} 
     entity_1::P1
     entity_2::P2
     episode_length::Int
+    timestep::Int = 0
     position_1::Float32 = Float32(π)
     position_2::Float32 = 0.0f0
     movement_scale::Float32 = 1.0f0
     distances::Vector{Float32} = Float32[]
-    communication_1::Vector{Float32} = Float32[]
-    communication_2::Vector{Float32} = Float32[]
-    input_vector::Vector{Float32} = [0.0f0 for _ in 1:2 + length(communication_1)]
+    current_communication_1::Vector{Float32} = Float32[]
+    current_communication_2::Vector{Float32} = Float32[]
+    next_communication_1::Vector{Float32} = Float32[]
+    next_communication_2::Vector{Float32} = Float32[]
+    input_vector::Vector{Float32} = [0.0f0 for _ in 1:2 + length(current_communication_1)]
+    clockwise_distance::Float32 = Float32(π)
+    counterclockwise_distance::Float32 = Float32(π)
 end
 
 function create_environment(
@@ -40,13 +45,16 @@ function create_environment(
         entity_1 = phenotypes[1],
         entity_2 = phenotypes[2],
         episode_length = environment_creator.episode_length,
-        communication_1 = zeros(Float32, environment_creator.communication_dimension),
-        communication_2 = zeros(Float32, environment_creator.communication_dimension)
+        distances = zeros(Float32, environment_creator.episode_length),
+        current_communication_1 = zeros(Float32, environment_creator.communication_dimension),
+        current_communication_2 = zeros(Float32, environment_creator.communication_dimension),
+        next_communication_1 = zeros(Float32, environment_creator.communication_dimension),
+        next_communication_2 = zeros(Float32, environment_creator.communication_dimension),
     )
 end
 
 function is_active(environment::TapeEnvironment)
-    return length(environment.distances) - 1 < environment.episode_length
+    return environment.timestep < environment.episode_length
 end
 
 end

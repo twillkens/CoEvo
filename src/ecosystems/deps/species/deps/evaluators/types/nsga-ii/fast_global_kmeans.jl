@@ -7,17 +7,49 @@ using Random: rand, AbstractRNG
 using DataStructures: SortedDict
 using StableRNGs: StableRNG
 using StatsBase: mean
+using LinearAlgebra: dot
 
 
-# Calculating Euclidean VDistance
-function eucli_dist(sample, center)
-    return sqrt(sum((sample .- center).^2))
+## Calculating Euclidean VDistance
+#function eucli_dist(sample, center)
+#    return sqrt(sum((sample .- center).^2))
+#end
+#
+## Calculating Squared Euclidean Distance
+#function sq_eucli_dist(sample, center)
+#    return sum((sample .- center).^2)
+#end
+
+#@inline function eucli_dist(sample::Vector{T}, center::Vector{T}) where T
+#    return sqrt(dot(sample .- center, sample .- center))
+#end
+#
+#@inline function sq_eucli_dist(sample::Vector{T}, center::Vector{T}) where T
+#    return dot(sample .- center, sample .- center)
+#end
+
+@inline function eucli_dist(sample::Vector{T}, center::Vector{T}) where T
+    @assert length(sample) == length(center)
+    s = zero(T)
+    @simd for i in eachindex(sample)
+        Δ = sample[i] - center[i]
+        s += Δ * Δ
+    end
+    return sqrt(s)
 end
 
-# Calculating Squared Euclidean Distance
-function sq_eucli_dist(sample, center)
-    return sum((sample .- center).^2)
+@inline function sq_eucli_dist(sample::Vector{T}, center::Vector{T}) where T
+    @assert length(sample) == length(center)
+    s = zero(T)
+    @simd for i in eachindex(sample)
+        Δ = sample[i] - center[i]
+        s += Δ * Δ
+    end
+    return s
 end
+
+
+
 
 is_power2(num::Int) = (num & (num - 1)) == 0 && num != 0
 
@@ -33,6 +65,70 @@ function compute_bic(log_likelihood::Float64, k::Int, n::Int)
     return -2 * log_likelihood + k * log(n)
 end
 
+#function get_kmeans_clustering_result(
+#    rng::AbstractRNG,
+#    samples::Vector{Vector{Float64}}, 
+#    cluster_count::Int, 
+#    tolerance::Float64, 
+#    centroids::Vector{Vector{Float64}},
+#    maximum_iterations::Int = 500
+#)
+#    # Initializing the sum of squared error
+#    previous_error = 0.0
+#    current_error = 0.0
+#    partition = [Vector{Vector{Float64}}() for _ in 1:cluster_count]
+#    cluster_indices = [Vector{Int}() for _ in 1:cluster_count]
+#    current_iteration = 1
+#
+#    while current_iteration <= maximum_iterations
+#        # Create an empty partition for each centroid
+#        partition = [Vector{Vector{Float64}}() for _ in 1:cluster_count]
+#        cluster_indices = [Vector{Int}() for _ in 1:cluster_count]
+#
+#        # Assign each sample to the closest centroid
+#        for (sample_index, sample) in enumerate(samples)
+#            distances = [eucli_dist(sample, centroid) for centroid in centroids]
+#            assigned_cluster = argmin(distances)
+#            push!(cluster_indices[assigned_cluster], sample_index)
+#            push!(partition[assigned_cluster], sample)
+#        end
+#
+#        # Recompute the centroids of the clusters
+#        for (idx, cluster_samples) in enumerate(partition)
+#            if isempty(cluster_samples)
+#                cluster_samples = [rand(rng, samples)]  # handle empty clusters
+#            end
+#            initial_centroid = mean(cluster_samples)
+#            centroids[idx] = initial_centroid
+#        end
+#
+#        # Compute the current clustering error
+#        current_error = sum(
+#            sq_eucli_dist(sample, centroids[idx]) 
+#            for idx in 1:cluster_count 
+#            for sample in partition[idx]
+#        )
+#
+#        # Check if the change in error is below the tolerance to determine convergence
+#        if abs(current_error - previous_error) < tolerance
+#            break
+#        end
+#
+#        # Update the error for the next iteration
+#        previous_error = current_error
+#        current_iteration += 1
+#    end
+#
+#    error = round(current_error, sigdigits=4)
+#
+#    log_likelihood = -0.5 * error
+#    bic = compute_bic(log_likelihood, cluster_count, length(samples))
+#
+#    result = KMeansClusteringResult(error, centroids, cluster_indices, partition, bic)
+#
+#    return result
+#end
+
 function get_kmeans_clustering_result(
     rng::AbstractRNG,
     samples::Vector{Vector{Float64}}, 
@@ -41,7 +137,6 @@ function get_kmeans_clustering_result(
     centroids::Vector{Vector{Float64}},
     maximum_iterations::Int = 500
 )
-    # Initializing the sum of squared error
     previous_error = 0.0
     current_error = 0.0
     partition = [Vector{Vector{Float64}}() for _ in 1:cluster_count]
@@ -49,40 +144,56 @@ function get_kmeans_clustering_result(
     current_iteration = 1
 
     while current_iteration <= maximum_iterations
-        # Create an empty partition for each centroid
-        partition = [Vector{Vector{Float64}}() for _ in 1:cluster_count]
-        cluster_indices = [Vector{Int}() for _ in 1:cluster_count]
+        # Reset partitions
+        foreach(empty!, partition)
+        foreach(empty!, cluster_indices)
 
         # Assign each sample to the closest centroid
         for (sample_index, sample) in enumerate(samples)
-            distances = [eucli_dist(sample, centroid) for centroid in centroids]
-            assigned_cluster = argmin(distances)
+            min_distance = eucli_dist(sample, centroids[1])
+            assigned_cluster = 1
+
+            for i in 2:cluster_count
+                distance = eucli_dist(sample, centroids[i])
+                if distance < min_distance
+                    min_distance = distance
+                    assigned_cluster = i
+                end
+            end
+
             push!(cluster_indices[assigned_cluster], sample_index)
             push!(partition[assigned_cluster], sample)
         end
 
-        # Recompute the centroids of the clusters
+
         for (idx, cluster_samples) in enumerate(partition)
             if isempty(cluster_samples)
-                cluster_samples = [rand(rng, samples)]  # handle empty clusters
+                centroids[idx] = rand(rng, samples)
+            else
+                centroids[idx] = mean(cluster_samples)
             end
-            initial_centroid = mean(cluster_samples)
-            centroids[idx] = initial_centroid
+        end
+
+
+        current_error = 0.0
+        for idx in 1:cluster_count
+            for sample in partition[idx]
+                current_error += sq_eucli_dist(sample, centroids[idx])
+            end
         end
 
         # Compute the current clustering error
-        current_error = sum(
-            sq_eucli_dist(sample, centroids[idx]) 
-            for idx in 1:cluster_count 
-            for sample in partition[idx]
-        )
+        #current_error = sum(
+        #    sq_eucli_dist(sample, centroids[idx]) 
+        #    for idx in 1:cluster_count 
+        #    for sample in partition[idx]
+        #)
 
-        # Check if the change in error is below the tolerance to determine convergence
+        # Check for convergence
         if abs(current_error - previous_error) < tolerance
             break
         end
 
-        # Update the error for the next iteration
         previous_error = current_error
         current_iteration += 1
     end
@@ -96,6 +207,7 @@ function get_kmeans_clustering_result(
 
     return result
 end
+
 
 struct KDNode
     bucket::Vector{Vector{Float64}}

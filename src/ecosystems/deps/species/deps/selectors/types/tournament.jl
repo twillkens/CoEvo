@@ -46,11 +46,13 @@ function select(
     # Fetch NSGAIIRecord for each individual
     records = evaluation.disco_records
     records = filter(record -> record.id in keys(new_pop), records)
+    #println("ids: ", [record.id for record in records])
     
     parents = I[]
     for i in 1:selector.μ
         # Get tournament contenders
-        contenders = sample(rng, records, selector.tournament_size, replace=false)
+        #contenders = sample(rng, records, selector.tournament_size, replace=false)
+        contenders = sample(rng, records, selector.tournament_size, replace=true)
         
         # Select a winner from the contenders
         winner = nsga_tournament(rng, contenders, selector.tournament_size)

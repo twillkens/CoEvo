@@ -14,9 +14,9 @@ include("numbers/numbers.jl")
 #include("sym_regress/sym_regress.jl")
 include("gnarl/gnarl.jl")
 include("disco/disco.jl")
-# include("cont_pred/cont_pred.jl")
+include("cont_pred/cont_pred.jl")
 include("fsm/fsm.jl")
-include("evolving_graphs/evolving_graphs.jl")
+include("function_graphs/function_graphs.jl")
 include("archivers/archivers.jl")
 
 end

@@ -524,12 +524,15 @@ function mutate(
     gene_id_counter::Counter, 
     geno::FunctionGraphGenotype
 ) 
+    #println("----------Mutate----------")
+    #println("rng 1: ", rand(rng))
     mutations = sample(
         rng, 
         collect(keys(mutator.mutation_probabilities)), 
         Weights(collect(values(mutator.mutation_probabilities))), 
         mutator.n_mutations
     )
+    #println("rng 2: ", rand(rng))
     n_input_nodes = length(geno.input_node_ids)
     n_bias_nodes = length(geno.bias_node_ids)
     n_hidden_nodes = length(geno.hidden_node_ids)
@@ -539,9 +542,12 @@ function mutate(
         #println("MUTATION TYPE: ", mutation)
         geno = mutation(rng, gene_id_counter, geno, mutator.function_map)
     end
+    #println("rng 3: ", rand(rng))
     inject_noise!(rng, geno, std_dev = mutator.noise_std)
+    #println("rng 4: ", rand(rng))
     #println("GENOTYPE AFTER: ", geno)
     validate_genotype(geno, n_input_nodes, n_bias_nodes, n_hidden_nodes, n_output_nodes)
+    #println("rng 5: ", rand(rng))
     return geno
 end
 

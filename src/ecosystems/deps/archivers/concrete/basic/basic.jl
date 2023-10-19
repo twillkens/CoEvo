@@ -115,24 +115,26 @@ function archive!(
     gen::Int, 
     report::BasicReport{<:AllSpeciesIdentity, <:AllSpeciesMeasurement}
 )
-    jld2_file = jldopen(archiver.jld2_path, "a+")
-    base_path = "indivs/$gen"
-    #println("base_path: $base_path")
-    for (species_id, species) in report.measurement.species
-        individuals = gen == 1 ? species.pop : species.children
-        species_path = "$base_path/$species_id"
-        species_group = get_or_make_group!(jld2_file, species_path)
-        species_group["population_ids"] = Set([individual_id for (individual_id, _) in species.pop])
-        #println("species_path: $species_path")
-        for (individual_id, individual) in individuals
-            individual_id = string(individual_id)
-            individual_path = "$species_path/children/$individual_id"
-            #println("individual_path: $individual_path")
-            individual_group = get_or_make_group!(jld2_file, individual_path)
-            save_individual!(archiver, individual_group, individual)
+    if report.to_save
+        jld2_file = jldopen(archiver.jld2_path, "a+")
+        base_path = "indivs/$gen"
+        #println("base_path: $base_path")
+        for (species_id, species) in report.measurement.species
+            individuals = gen == 1 ? species.pop : species.children
+            species_path = "$base_path/$species_id"
+            species_group = get_or_make_group!(jld2_file, species_path)
+            species_group["population_ids"] = Set([individual_id for (individual_id, _) in species.pop])
+            #println("species_path: $species_path")
+            for (individual_id, individual) in individuals
+                individual_id = string(individual_id)
+                individual_path = "$species_path/children/$individual_id"
+                #println("individual_path: $individual_path")
+                individual_group = get_or_make_group!(jld2_file, individual_path)
+                save_individual!(archiver, individual_group, individual)
+            end
         end
+        close(jld2_file)
     end
-    close(jld2_file)
 end
 
 end
