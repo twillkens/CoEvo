@@ -36,7 +36,7 @@ function perform(::BasicPerformer, job::BasicJob)
     results = Result[]
     for match in job.matches
         interaction = job.interactions[match.interaction_id]
-        phenotypes = Phenotype[job.phenotypes[indiv_id] for indiv_id in match.indiv_ids]
+        phenotypes = Phenotype[job.phenotypes[individual_id] for individual_id in match.indiv_ids]
         result = interact(
             interaction,
             match.indiv_ids,

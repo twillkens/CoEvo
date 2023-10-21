@@ -7,8 +7,7 @@ using DataStructures: SortedDict
 using ....Species.Abstract: AbstractSpecies
 using ....Species.Individuals: Individual
 using ...Evaluators.Abstract: Evaluation, Evaluator
-using Serialization
-import ...Evaluators.Interfaces: create_evaluation, get_ranked_ids
+import ...Evaluators.Interfaces: create_evaluation
 
 include("fast_global_kmeans.jl")
 using .FastGlobalKMeans: FastGlobalKMeans, get_derived_tests
@@ -28,37 +27,28 @@ Base.@kwdef struct NSGAIIEvaluator <: Evaluator
     max_clusters::Int = -1
     function_minimums::Union{Vector{Float64}, Nothing} = nothing
     function_maximums::Union{Vector{Float64}, Nothing} = nothing
-    include_parents::Bool = false
 end
 
 struct NSGAIIEvaluation <: Evaluation
     species_id::String
-    disco_records::Vector{NSGAIIRecord}
-    outcomes::Dict{Int, Dict{Int, Float64}}
+    records::Vector{NSGAIIRecord}
 end
-
 
 function create_evaluation(
     evaluator::NSGAIIEvaluator,
     rng::AbstractRNG,
-    outcomes::Dict{Int, Dict{Int, Float64}},
-    ids::Vector{Int},
-    species_id::String = "default"
+    species::AbstractSpecies,
+    outcomes::Dict{Int, SortedDict{Int, Float64}}
 )
-    # println("create_evaluation")
-    # println("ids: ", ids)
-    # println(keys(outcomes))
+    individuals = [species.population ; species.children]
+    filter!(individual -> individual.id in keys(outcomes), individuals)
+    ids = [individual.id for individual in individuals]
     individual_tests = SortedDict{Int, Vector{Float64}}(
-        id => [pair.second for pair in sort(collect(outcomes[id]), by = x -> x[1])]
+        id => [pair.second for pair in outcomes[id]]
         for id in ids
     )
     fitnesses = [sum(tests) / length(tests) for tests in values(individual_tests)]
     if any(isnan, fitnesses)
-        #println("individual_tests: ", individual_tests)
-        println("fitnesses: ", fitnesses)
-        serialize("outcomes.jls", outcomes)
-        serialize("individual_tests.jls", individual_tests)
-        serialize("fitnesses.jls", fitnesses)
         throw(ErrorException("NaN in fitnesses"))
     end
 
@@ -68,12 +58,6 @@ function create_evaluation(
 
     disco_fitnesses = [sum(tests) / length(tests) for tests in values(individual_tests)]
     if any(isnan, disco_fitnesses)
-        #println("individual_tests: ", individual_tests)
-        println("disco_fitnesses: ", disco_fitnesses)
-        serialize("outcomes.jls", outcomes)
-        serialize("individual_tests.jls", individual_tests)
-        serialize("disco_fitnesses.jls", disco_fitnesses)
-
         throw(ErrorException("NaN in disco fitnesses"))
     end
 
@@ -94,26 +78,10 @@ function create_evaluation(
     sorted_records = nsga_sort!(
         records, sense, evaluator.function_minimums, evaluator.function_maximums
     )
-    evaluation = NSGAIIEvaluation(species_id, sorted_records, outcomes)
+    evaluation = NSGAIIEvaluation(species.id, sorted_records)
 
     return evaluation
 end
 
-function create_evaluation(
-    evaluator::NSGAIIEvaluator,
-    rng::AbstractRNG,
-    species::AbstractSpecies,
-    outcomes::Dict{Int, Dict{Int, Float64}}
-)
-    ids = evaluator.include_parents ? 
-        collect(keys(merge(species.pop, species.children))) : collect(keys(species.children))
-    evaluation = create_evaluation(evaluator, rng, outcomes, ids, species.id)
-    return evaluation
-end
-
-function get_ranked_ids(evaluation::NSGAIIEvaluation, ids::Vector{Int})
-    ranked_ids = [record.id for record in evaluation.disco_records if record.id in ids]
-    return ranked_ids
-end
 
 end

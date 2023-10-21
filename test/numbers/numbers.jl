@@ -122,7 +122,7 @@ confirms the outcomes when different phenotypes interact within the specified do
      evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
      reporter = BasicReporter(metric = AllSpeciesFitness())
      species_evaluations = Dict(species => evaluation)
-     measurement = measure(reporter, species_evaluations, Observation[])
+     #measurement = measure(reporter, species_evaluations, Observation[])
  #
  end
 #
@@ -146,12 +146,12 @@ function dummy_eco_creator(;
     default_vector::Vector{Float64} = fill(0.0, 1),
     n_elite::Int = 10
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
-        species_creators = Dict(
-            species_id1 => BasicSpeciesCreator(
+        species_creators = [
+            BasicSpeciesCreator(
                 id = species_id1,
                 n_pop = n_pop,
                 geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
@@ -162,7 +162,7 @@ function dummy_eco_creator(;
                 recombiner = CloneRecombiner(),
                 mutators = [NoiseInjectionMutator(noise_std = 0.1)],
             ),
-            species_id2 => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = species_id2,
                 n_pop = n_pop,
                 geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
@@ -173,19 +173,20 @@ function dummy_eco_creator(;
                 recombiner = CloneRecombiner(),
                 mutators = [NoiseInjectionMutator(noise_std = 0.1)],
             ),
-        ),
+        ],
         job_creator = BasicJobCreator(
             n_workers = 1,
-            interactions = Dict(
-                interaction_id => BasicInteraction(
+            interactions = [
+                BasicInteraction(
                     id = interaction_id,
                     environment_creator = StatelessEnvironmentCreator(NumbersGameDomain(:Sum)),
                     species_ids = [species_id1, species_id2],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = [:population, :children]),
                 ),
-            ),
+            ],
         ),
         performer = BasicPerformer(n_workers = 1),
+        state_creator = BasicCoevolutionaryStateCreator(),
         reporters = Reporter[
             #BasicReporter(metric = AllSpeciesFitness()),
             #BasicReporter(metric = GenotypeSum())
@@ -193,16 +194,16 @@ function dummy_eco_creator(;
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 
 end
 
-#eco_creator = dummy_eco_creator()
+#ecosystem_creator = dummy_eco_creator()
 
-#eco = evolve!(eco_creator, n_gen=10)
+#eco = evolve!(ecosystem_creator, n_generations=10)
 
-eco_creator = dummy_eco_creator(n_pop = 100)
-eco = evolve!(eco_creator, n_gen=10)
+ecosystem_creator = dummy_eco_creator(n_pop = 4, n_elite = 2)
+eco = evolve!(ecosystem_creator, n_generations=10)
 end
 
 println("Finished tests for NumbersGame.")

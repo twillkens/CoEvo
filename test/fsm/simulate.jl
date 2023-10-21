@@ -35,7 +35,7 @@ phenotype_creator = DefaultPhenotypeCreator()
     genotype = FiniteStateMachineGenotype(start, ones, zeros, links)
     fsm2 = create_phenotype(phenotype_creator, genotype)
 
-    domain = LinguisticPredictionGameDomain(:CooperativeMatching)
+    domain = PredictionGameDomain(:Affinitive)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
@@ -79,7 +79,7 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = LinguisticPredictionGameDomain(:CooperativeMatching)
+    domain = PredictionGameDomain(:Affinitive)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
@@ -125,7 +125,7 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = LinguisticPredictionGameDomain(:Competitive)  # Updated to reflect Mismatch Competition
+    domain = PredictionGameDomain(:Adversarial)  # Updated to reflect Mismatch Competition
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
@@ -175,7 +175,7 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = LinguisticPredictionGameDomain(:CooperativeMatching)
+    domain = PredictionGameDomain(:Affinitive)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
@@ -183,7 +183,6 @@ end
     end
     outcome_set = get_outcome_set(environment)
     
-    # Adjusted the tests to fit the new structure. 
     @test outcome_set ≈ [2/3, 2/3]
     @test environment.states1 == ["a", "b", "b", "c", "b"]
     @test environment.states2 == ["a", "a", "b", "c", "a"]
@@ -225,7 +224,7 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = LinguisticPredictionGameDomain(:Competitive)
+    domain = PredictionGameDomain(:Adversarial)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     # println(fsm1)
     # println(typeof(fsm1))

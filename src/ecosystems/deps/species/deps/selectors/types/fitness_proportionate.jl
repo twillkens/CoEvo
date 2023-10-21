@@ -39,35 +39,35 @@ Implements the roulette wheel algorithm for fitness-proportionate selection.
 # Returns
 - `Array{Int}`: Indices of selected individuals.
 """
-function roulette(rng::AbstractRNG, μ::Int, fits::Vector{<:Real})
-    absolute_fitness = abs.(fits)
-    probs = absolute_fitness./sum(absolute_fitness)
-    cumulative_probs = cumsum(probs)
-    selected = Array{Int}(undef, μ)
-    for i in 1:μ
-        j = 1
-        r = rand(rng)
-        while cumulative_probs[j] < r
-            j += 1
-        end
-        selected[i] = j
+function roulette(rng::AbstractRNG, n_parents::Int, fitnesses::Vector{<:Real})
+    if any(fitnesses .<= 0)
+        throw(ArgumentError("Fitness values must be strictly positive for FitnessProportionateSelector."))
     end
-    return selected
+    probabilities = fitnesses ./ sum(fitnesses)
+    cumulative_probabilities = cumsum(probabilities)
+    parents = Array{Int}(undef, n_parents)
+    spins = rand(rng, n_parents)
+    for (n_parent, spin) in enumerate(spins)
+        candidate_index = 1
+        while cumulative_probabilities[candidate_index] < spin
+            candidate_index += 1
+        end
+        parents[n_parent] = candidate_index
+    end
+    return parents
 end
 
 function select(
     selector::FitnessProportionateSelector,
     rng::AbstractRNG, 
-    new_pop::Dict{Int, <:Individual},
+    new_population::Vector{<:Individual},
     evaluation::ScalarFitnessEvaluation
 )
-    new_pop = collect(values(new_pop))
-    sort(new_pop, by = ind -> ind.id, alg = Base.Sort.QuickSort)
-    pop_ids = [indiv.id for indiv in new_pop]
-    fitnesses = [evaluation.fitnesses[indiv.id] for indiv in new_pop]
+    ids = [individual.id for individual in new_population]
+    records_dict = Dict(record.id => record for record in evaluation.records)
+    fitnesses = [records_dict[id].fitness for id in ids]
     parent_indices = roulette(rng, selector.n_parents, fitnesses)
-    parents = [new_pop[i] for i in parent_indices]
-    parent_ids = [parent.id for parent in parents]
+    parents = [new_population[i] for i in parent_indices]
     return parents  
 end
 

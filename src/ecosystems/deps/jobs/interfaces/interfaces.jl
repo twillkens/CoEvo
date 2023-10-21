@@ -6,15 +6,16 @@ using Random: AbstractRNG
 
 using ..Jobs.Abstract: JobCreator
 using ...Ecosystems.Abstract: Ecosystem
-using ...Ecosystems.Species.Abstract: AbstractSpecies, SpeciesCreator
+using ...Ecosystems.Species.Abstract: AbstractSpecies
+using ...Ecosystems.Species.Phenotypes.Abstract: PhenotypeCreator
 
 function create_jobs(
     job_creator::JobCreator,
     rng::AbstractRNG,
-    species_creators::Dict{String, <:SpeciesCreator},
-    all_species::Dict{String, <:AbstractSpecies},
+    all_species::Vector{<:AbstractSpecies},
+    phenotype_creators::Vector{<:PhenotypeCreator},
 )
-    throw(ErrorException("create_jobs not implemented for $(typeof(job_creator))"))
+    throw(ErrorException("`create_jobs` not implemented for $(typeof(job_creator))"))
 end
 
 end

@@ -25,7 +25,7 @@ function cont_pred_eco_creator(;
     n_workers::Int = 1,
     episode_length::Int = 32
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
@@ -99,12 +99,12 @@ function cont_pred_eco_creator(;
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 end
 
 
-eco_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
-eco = evolve!(eco_creator, n_gen=5)
+ecosystem_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
+eco = evolve!(ecosystem_creator, n_generations=5)
 @test length(eco.species) == 3
 
 end
@@ -124,7 +124,7 @@ function cont_pred_eco_creator(;
     n_elite::Int = 0,
     n_workers::Int = 1
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
@@ -202,12 +202,12 @@ function cont_pred_eco_creator(;
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 end
 
 
-eco_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
-eco = evolve!(eco_creator, n_gen=5)
+ecosystem_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
+eco = evolve!(ecosystem_creator, n_generations=5)
 @test length(eco.species) == 3
 
 end

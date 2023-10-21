@@ -8,19 +8,19 @@ import ..MatchMakers.Interfaces: make_matches
 
 
 
-function make_matches(
-    matchmaker::MatchMaker,
-    interaction::Interaction, 
-    eco_creator::EcosystemCreator, 
-    eco::Ecosystem
-)
-    make_matches(
-        matchmaker, 
-        eco_creator.rng, 
-        eco.species, 
-        interaction.id, 
-        interaction.species_ids
-    )
-end
+# function make_matches(
+#     matchmaker::MatchMaker,
+#     interaction::Interaction, 
+#     ecosystem_creator::EcosystemCreator, 
+#     eco::Ecosystem
+# )
+#     make_matches(
+#         matchmaker, 
+#         ecosystem_creator.rng, 
+#         eco.species, 
+#         interaction.id, 
+#         interaction.species_ids
+#     )
+# end
 
 end

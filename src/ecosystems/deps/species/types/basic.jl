@@ -31,34 +31,18 @@ Represents a species population and its offspring.
 # Fields
 - `id::String`: Unique species identifier.
 - `phenotype_creator::P`: Phenotype configuration.
-- `pop::OrderedDict{Int, I}`: Current population.
+- `population::OrderedDict{Int, I}`: Current population.
 - `children::OrderedDict{Int, I}`: Offspring of the population.
 """
 struct BasicSpecies{I <: Individual} <: AbstractSpecies
     id::String
-    pop::Dict{Int, I}
-    children::Dict{Int, I}
+    population::Vector{I}
+    children::Vector{I}
 end
 
-# Constructors
-function BasicSpecies(
-    id::String,
-    pop::Vector{<:Individual},
-    children::Vector{<:Individual}
-)
-    return BasicSpecies(
-        id,
-        Dict(indiv.id => indiv for indiv in pop),
-        Dict(indiv.id => indiv for indiv in children)
-    )
-end
-
-function BasicSpecies(id::String, pop::Dict{Int, I}) where {I <: Individual}
-    return BasicSpecies(
-        id, 
-        pop, 
-        Dict{Int, I}(), 
-    )
+function BasicSpecies(id::String, population::Vector{I}) where {I <: Individual}
+    species = BasicSpecies(id, population, I[])
+    return species
 end
 
 
@@ -120,19 +104,14 @@ function create_species(
         species_creator.geno_creator, rng, gene_id_counter, species_creator.n_pop
     ) 
     indiv_ids = next!(indiv_id_counter, species_creator.n_pop)
-    pop = Dict(
-        indiv_id => Individual(indiv_id, geno, Int[]) 
-        for (indiv_id, geno) in zip(indiv_ids, genos)
-    )
+    population = [Individual(individual_id, geno, Int[]) for (individual_id, geno) in zip(indiv_ids, genos)]
     genos = create_genotypes(
         species_creator.geno_creator, rng, gene_id_counter, species_creator.n_pop
     ) 
     indiv_ids = next!(indiv_id_counter, species_creator.n_pop)
-    children = Dict(
-        indiv_id => Individual(indiv_id, geno, Int[]) 
-        for (indiv_id, geno) in zip(indiv_ids, genos)
-    )
-    return BasicSpecies(species_creator.id, pop, children)
+    children = [Individual(individual_id, geno, Int[]) for (individual_id, geno) in zip(indiv_ids, genos)]
+    species = BasicSpecies(species_creator.id, population, children)
+    return species
 end
 
 """
@@ -157,21 +136,13 @@ function create_species(
     species::AbstractSpecies,
     evaluation::Evaluation
 ) 
-    #println("-----------Species-----------------")
-    #println("rng 1: ", rand(rng))
-    new_pop = replace(species_creator.replacer, rng, species, evaluation)
-    #println("rng 2: ", rand(rng))
-    parents = select(species_creator.selector, rng, new_pop, evaluation)
-    #println("rng 3: ", rand(rng))
+    new_population = replace(species_creator.replacer, rng, species, evaluation)
+    parents = select(species_creator.selector, rng, new_population, evaluation)
     new_children = recombine(species_creator.recombiner, rng, indiv_id_counter, parents)
-    #println("rng 4: ", rand(rng))
-    #println("new children ids: " , [indiv.id for indiv in new_children])
     for mutator in species_creator.mutators
         new_children = mutate(mutator, rng, gene_id_counter, new_children)
     end
-    #println("rng 5: ", rand(rng))
-    new_children = Dict(indiv.id => indiv for indiv in new_children)
-    new_species = BasicSpecies(species_creator.id, new_pop, new_children)
+    new_species = BasicSpecies(species_creator.id, new_population, new_children)
     return new_species
 end
 

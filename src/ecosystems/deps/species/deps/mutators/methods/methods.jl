@@ -18,10 +18,10 @@ function mutate(
 )
     individuals = [
         Individual(
-            indiv.id,
-            mutate(mutator, rng, gene_id_counter, indiv.geno),
-            indiv.parent_ids
-        ) for indiv in individuals
+            individual.id,
+            mutate(mutator, rng, gene_id_counter, individual.geno),
+            individual.parent_ids
+        ) for individual in individuals
     ]
 
     return individuals

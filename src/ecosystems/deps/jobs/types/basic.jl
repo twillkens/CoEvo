@@ -25,7 +25,7 @@ end
 
 
 Base.@kwdef struct BasicJobCreator{I <: Interaction} <: JobCreator
-    interactions::Dict{String, I} 
+    interactions::Vector{I} 
     n_workers::Int = 1
 end
 
@@ -64,40 +64,35 @@ Results from all interactions are aggregated and returned.
 """
 
 
-function create_phenotypes(
-    species_creators::Dict{String, <:SpeciesCreator},
-    all_species::Dict{String, <:AbstractSpecies},
+function create_phenotype_dict(
+    all_species::Vector{<:AbstractSpecies},
+    phenotype_creators::Vector{<:PhenotypeCreator},
 )
-    pheno_creators = Dict(
-        species_id => species_creator.phenotype_creator
-        for (species_id, species_creator) in species_creators
+    phenotype_dict = Dict(
+        individual.id => create_phenotype(phenotype_creator, individual.geno)
+        for (species, phenotype_creator) in zip(all_species, phenotype_creators)
+        for individual in [species.population; species.children]
     )
-    phenotypes = Dict(
-        indiv_id => create_phenotype(pheno_creators[species_id], indiv.geno)
-        for (species_id, species) in all_species
-        for (indiv_id, indiv) in merge(species.pop, species.children)
-    )
-    return phenotypes
+    return phenotype_dict
 end
 
 function filter_phenotypes_by_matches(
-    phenotypes::Dict{Int, <:Phenotype}, matches::Vector{<:Match}, 
+    phenotype_dict::Dict{Int, <:Phenotype}, matches::Vector{<:Match}, 
 )
     filtered_phenotypes = Dict(
-        indiv_id => phenotypes[indiv_id]
+        individual_id => phenotype_dict[individual_id]
         for match in matches
-        for indiv_id in match.indiv_ids
+        for individual_id in match.indiv_ids
     )
     return filtered_phenotypes
 end
 
-function create_jobs(
-    job_creator::BasicJobCreator, 
+function make_all_matches(
+    job_creator::BasicJobCreator,
     rng::AbstractRNG,
-    species_creators::Dict{String, <:SpeciesCreator},
-    all_species::Dict{String, <:AbstractSpecies},
+    all_species::Vector{<:AbstractSpecies}
 )
-    matches = vcat(
+    all_matches = vcat(
         [
             make_matches(
                 interaction.matchmaker, 
@@ -106,19 +101,37 @@ function create_jobs(
                 all_species,
                 interaction.species_ids
             ) 
-            for interaction in values(job_creator.interactions)
+            for interaction in job_creator.interactions
         ]...
     )
-    match_partitions = make_partitions(matches, job_creator.n_workers)
-    phenotypes = create_phenotypes(species_creators, all_species)
-    jobs = [
-        BasicJob(
-            job_creator.interactions, 
-            filter_phenotypes_by_matches(phenotypes, match_partition), 
-            match_partition
-        )
-        for match_partition in match_partitions
-    ]
+    return all_matches
+end
+
+function make_all_jobs(
+    job_creator::BasicJobCreator,
+    phenotype_dict::Dict{Int, <:Phenotype},
+    match_partitions::Vector{Vector{M}}
+) where M <: Match
+    interactions = Dict(
+        interaction.id => interaction for interaction in job_creator.interactions
+    )
+    jobs = map(match_partitions) do match_partition
+        filtered_phenotype_dict = filter_phenotypes_by_matches(phenotype_dict, match_partition)
+        BasicJob(interactions, filtered_phenotype_dict, match_partition)
+    end
+    return jobs
+end
+
+function create_jobs(
+    job_creator::BasicJobCreator, 
+    rng::AbstractRNG,
+    all_species::Vector{<:AbstractSpecies},
+    phenotype_creators::Vector{<:PhenotypeCreator},
+)
+    all_matches = make_all_matches(job_creator, rng, all_species)
+    match_partitions = make_partitions(all_matches, job_creator.n_workers)
+    phenotype_dict = create_phenotype_dict(all_species, phenotype_creators)
+    jobs = make_all_jobs(job_creator, phenotype_dict, match_partitions)
     return jobs
 end
 

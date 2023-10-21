@@ -6,6 +6,7 @@ using ....Species.Phenotypes.Abstract: Phenotype
 using ...Interactions.Abstract: Interaction
 using ...MatchMakers.Abstract: MatchMaker
 using ...Observers.Abstract: Observer
+#using ...Observers.Concrete.Null: NullObserver
 using ...Environments.Abstract: EnvironmentCreator, Environment
 using ...Results: Result
 

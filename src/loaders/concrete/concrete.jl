@@ -46,7 +46,7 @@ function load_population(
     pop_ids::Set{Int},
     population_dict::Dict{Int, Individual} = Dict{Int, Individual}()
 )
-    children_group = jld2_file["indivs/$gen/$species_id/children"]
+    children_group = jld2_file["individuals/$gen/$species_id/children"]
     for individual_id_str in keys(children_group) 
         individual_id = parse(Int, individual_id_str)
         if individual_id in pop_ids
@@ -105,7 +105,7 @@ function load_ecosystem(loader::EcosystemLoader, species_loaders::Dict{String, <
     #println("Loading generation $gen")
     
     jld2_file = jldopen(loader.jld2_filepath, "r")
-    base_path = "indivs/$gen"
+    base_path = "individuals/$gen"
     
     species_dict = Dict{String, BasicSpecies}()
     

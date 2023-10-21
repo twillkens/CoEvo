@@ -1,26 +1,24 @@
 module Interfaces
 
-export create_evaluation, get_ranked_ids
+export create_evaluation
 
 using Random: AbstractRNG
+using DataStructures: SortedDict
 
 using ..Evaluators.Abstract: Evaluator 
 using ...Species.Abstract: AbstractSpecies
+
+# TODO: Add observations to the interface.
 
 function create_evaluation(
     evaluator::Evaluator,
     rng::AbstractRNG,
     species::AbstractSpecies,
-    outcomes::Dict{Int, Float64}
+    outcomes::Dict{Int, SortedDict{Int, Float64}},
+    #observations::Vector{<:Observation}
 )
     throw(ErrorException(
         "`create_evaluation` not implemented for $evaluator and $species."))
 end
-
-function get_ranked_ids(evaluator::Evaluator, ids::Vector{Int})
-    throw(ErrorException(
-        "`get_ranked_ids` not implemented for $evaluator and $ids."))
-end
-
 
 end

@@ -12,7 +12,7 @@ function make_matches(
     matchmaker::MatchMaker, 
     rng::AbstractRNG,
     interaction_id::String,
-    all_species::Dict{String, <:AbstractSpecies},
+    all_species::Vector{<:AbstractSpecies},
     species_ids::Vector{String}
 )
     throw(ErrorException(

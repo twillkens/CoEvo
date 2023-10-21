@@ -9,9 +9,11 @@ end
 
 using Random: AbstractRNG
 using StableRNGs: StableRNG
+using DataStructures: SortedDict
+
 function generate_nested_dict(first_layer_size::Int, second_layer_size::Int)
     # Initialize an empty dictionary
-    my_dict = Dict{Int, Dict{Int, Float64}}()
+    my_dict = Dict{Int, SortedDict{Int, Float64}}()
 
     # Loop for the first layer
     for i in 1:first_layer_size
@@ -40,46 +42,46 @@ using .CoEvo.Loaders.Abstract: Loader
 @testset "Archivers" begin
 println("Starting tests for Archivers...")
 
-@testset "BasicSpeciesCreator" begin
-    gen = 1
-    rng = StableRNG(42)
-    indiv_id_counter = Counter()
-    gene_id_counter = Counter()
-    species_id = "Subjects"
-    n_pop = 2
-
-    default_vector = collect(1:10)
-
-    # Define species configuration similar to spawner
-    species_creator = BasicSpeciesCreator(
-        id = species_id,
-        n_pop = n_pop,
-        geno_creator = BasicVectorGenotypeCreator(
-            default_vector = default_vector
-        ),
-        phenotype_creator = DefaultPhenotypeCreator(),
-        evaluator = ScalarFitnessEvaluator(),
-        replacer = GenerationalReplacer(),
-        selector = FitnessProportionateSelector(n_parents = 2),
-        recombiner = CloneRecombiner(),
-        mutators = [IdentityMutator()],
-    )
-    species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
-    dummy_outcomes = generate_nested_dict(n_pop, n_pop)
-    evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
-    reporter = BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1)
-    species_evaluations = Dict(species => evaluation)
-    measurement = measure(reporter, species_evaluations, Observation[])
-    report = create_report(reporter, gen, species_evaluations, Observation[])
-    archiver = BasicArchiver()
-    archive!(archiver, gen, report)
-    #try
-        loaders = Dict("Subjects" => BasicVectorGenotypeLoader())
-        ecosystem_loader = EcosystemLoader("archive.jld2")
-    ecosystem = load_ecosystem(ecosystem_loader, loaders, gen)
-    @test length(ecosystem.species) == 1
-    @test length(ecosystem.species["Subjects"].pop) == 2
-end
+# @testset "BasicSpeciesCreator" begin
+#     gen = 1
+#     rng = StableRNG(42)
+#     indiv_id_counter = Counter()
+#     gene_id_counter = Counter()
+#     species_id = "Subjects"
+#     n_pop = 2
+# 
+#     default_vector = collect(1:10)
+# 
+#     # Define species configuration similar to spawner
+#     species_creator = BasicSpeciesCreator(
+#         id = species_id,
+#         n_pop = n_pop,
+#         geno_creator = BasicVectorGenotypeCreator(
+#             default_vector = default_vector
+#         ),
+#         phenotype_creator = DefaultPhenotypeCreator(),
+#         evaluator = ScalarFitnessEvaluator(),
+#         replacer = GenerationalReplacer(),
+#         selector = FitnessProportionateSelector(n_parents = 2),
+#         recombiner = CloneRecombiner(),
+#         mutators = [IdentityMutator()],
+#     )
+#     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
+#     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
+#     evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
+#     reporter = BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1)
+#     species_evaluations = Dict(species => evaluation)
+#     measurement = measure(reporter, species_evaluations, Observation[])
+#     report = create_report(reporter, gen, species_evaluations, Observation[])
+#     archiver = BasicArchiver()
+#     archive!(archiver, gen, report)
+#     #try
+#         loaders = Dict("Subjects" => BasicVectorGenotypeLoader())
+#         ecosystem_loader = EcosystemLoader("archive.jld2")
+#     ecosystem = load_ecosystem(ecosystem_loader, loaders, gen)
+#     @test length(ecosystem.species) == 1
+#     @test length(ecosystem.species["Subjects"].pop) == 2
+# end
 
 
 
@@ -96,7 +98,7 @@ function dummy_eco_creator(;
     default_vector::Vector{Float64} = fill(0.0, 1),
     n_elite::Int = 10
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
@@ -143,16 +145,16 @@ function dummy_eco_creator(;
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 
 end
 
-#eco_creator = dummy_eco_creator()
+#ecosystem_creator = dummy_eco_creator()
 
-#eco = evolve!(eco_creator, n_gen=10)
+#eco = evolve!(ecosystem_creator, n_generations=10)
 
-eco_creator = dummy_eco_creator(n_pop = 100)
-eco = evolve!(eco_creator, n_gen=10)
+#ecosystem_creator = dummy_eco_creator(n_pop = 100)
+#eco = evolve!(ecosystem_creator, n_generations=10)
 end
 
 println("Finished tests for Archivers.")

@@ -4,7 +4,7 @@ export LinguisticPredictionGameEnvironmentCreator
 export LinguisticPredictionGameEnvironment
 
 using ....Domains.Abstract: Domain
-using ....Domains.Concrete: LinguisticPredictionGameDomain
+using ....Domains.Concrete: PredictionGameDomain
 using ....Domains.Interfaces: measure
 using ....Environments.Abstract: Environment, EnvironmentCreator
 using .....Species.Phenotypes.Abstract: Phenotype
@@ -17,7 +17,9 @@ Base.@kwdef struct LinguisticPredictionGameEnvironmentCreator{D <: Domain} <: En
     domain::D
 end
 
-Base.@kwdef mutable struct LinguisticPredictionGameEnvironment{D, P <: Phenotype, T} <: Environment{D}
+Base.@kwdef mutable struct LinguisticPredictionGameEnvironment{
+    D, P <: Phenotype, T
+} <: Environment{D}
     domain::D
     phenotypes::Vector{P}
     timestep::Int
@@ -82,7 +84,7 @@ end
 
 function next!(
     environment::LinguisticPredictionGameEnvironment{D, <:Phenotype}
-) where {D <: LinguisticPredictionGameDomain}
+) where {D <: PredictionGameDomain}
     fsm1, fsm2 = environment.phenotypes
     state1, state2 = environment.state1, environment.state2
     bit1, bit2 = environment.bit1, environment.bit2
@@ -97,7 +99,7 @@ end
 
 function get_outcome_set(
     environment::LinguisticPredictionGameEnvironment{D, <:Phenotype}
-) where {D <: LinguisticPredictionGameDomain}
+) where {D <: PredictionGameDomain}
     update_state_vectors!(environment)
     bits1 = environment.bits1[environment.loop_start:end - 1]
     bits2 = environment.bits2[environment.loop_start:end - 1]

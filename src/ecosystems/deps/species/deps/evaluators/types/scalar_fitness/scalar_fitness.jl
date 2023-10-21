@@ -1,20 +1,24 @@
 module ScalarFitness
 
-export ScalarFitnessEvaluation, ScalarFitnessEvaluator
+export ScalarFitnessEvaluation, ScalarFitnessEvaluator, ScalarFitnessRecord
 
 using Random: AbstractRNG
-using DataStructures: OrderedDict
+using DataStructures: SortedDict
 using ....Species.Abstract: AbstractSpecies
 using ....Species.Individuals: Individual
 using ...Evaluators.Abstract: Evaluation, Evaluator
 using StatsBase: mean
 
-import ...Evaluators.Interfaces: create_evaluation, get_ranked_ids
+import ...Evaluators.Interfaces: create_evaluation
+
+struct ScalarFitnessRecord
+    id::Int
+    fitness::Float64
+end
 
 struct ScalarFitnessEvaluation <: Evaluation
     species_id::String
-    fitnesses::OrderedDict{Int, Float64}
-    outcome_sums::Vector{Float64}
+    records::Vector{ScalarFitnessRecord}
 end
 
 Base.@kwdef struct ScalarFitnessEvaluator <: Evaluator 
@@ -26,36 +30,22 @@ function create_evaluation(
     evaluator::ScalarFitnessEvaluator,
     ::AbstractRNG,
     species::AbstractSpecies,
-    outcomes::Dict{Int, Dict{Int, Float64}}
+    outcomes::Dict{Int, SortedDict{Int, Float64}}
 ) 
-    indiv_ids = [
-        indiv.id for indiv in values(merge(species.pop, species.children)) 
-        if indiv.id in keys(outcomes)
-    ]
-    outcome_means = [
-        mean(outcomes[indiv_id][partner_id] 
-        for partner_id in keys(outcomes[indiv_id]))
-        for indiv_id in indiv_ids 
-    ]
-    fitnesses = evaluator.maximize ? outcome_means : -outcome_means
+    individuals = [species.population ; species.children]
+    filter!(individual -> individual.id in keys(outcomes), individuals)
+    ids = [individual.id for individual in individuals]
+    outcome_sums = [sum(values(outcomes[id])) for id in ids]
+    fitnesses = evaluator.maximize ? outcome_sums : -outcome_sums
     min_fitness = minimum(fitnesses)
     shift_value = (min_fitness <= 0) ? abs(min_fitness) + evaluator.epsilon : 0
     fitnesses .+= shift_value
 
-    indiv_fitnesses = Dict(
-        indiv_ids[i] => fitnesses[i] for i in eachindex(indiv_ids)
-    )
-    indiv_fitnesses = OrderedDict(sort(collect(indiv_fitnesses), by = x-> x[2], rev=true))
-    evaluation = ScalarFitnessEvaluation(species.id, indiv_fitnesses, outcome_means)
+    records = [ScalarFitnessRecord(id, fitness) for (id, fitness) in zip(ids, fitnesses)]
+    sort!(records, by = x -> x.fitness, rev = true)
+
+    evaluation = ScalarFitnessEvaluation(species.id, records)
     return evaluation
 end
-
-function get_ranked_ids(evaluator::ScalarFitnessEvaluation, ids::Vector{Int})
-    ranked_ids = filter(
-        indiv_id -> indiv_id in ids, keys(evaluator.fitnesses)
-    )
-    return ranked_ids
-end
-
 
 end

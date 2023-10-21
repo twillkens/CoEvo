@@ -9,6 +9,7 @@ import ....Reporters.Interfaces: create_report, measure
 using .....Ecosystems.Interactions.Observers.Abstract: Observation
 using .....Ecosystems.Species.Evaluators.Abstract: Evaluation
 using .....Ecosystems.Species.Abstract: AbstractSpecies
+using .....Ecosystems.States.Abstract: CoevolutionaryState
 
 struct BasicReport{MET, MEA} <: Report{MET, MEA}
     to_print::Bool
@@ -25,13 +26,12 @@ end
 
 function create_report(
     reporter::BasicReporter,
-    gen::Int,
-    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
-    observations::Vector{<:Observation}
+    state::CoevolutionaryState,
 )
-    to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
-    to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
-    measurement = measure(reporter, species_evaluations, observations)
+    generation = state.generation
+    to_print = reporter.print_interval > 0 && generation % reporter.print_interval == 0
+    to_save = reporter.save_interval > 0 && generation % reporter.save_interval == 0
+    measurement = measure(reporter, state)
     report = BasicReport(
         to_print,
         to_save,

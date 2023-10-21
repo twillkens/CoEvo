@@ -6,9 +6,9 @@ using ..Ecosystems.Abstract: Ecosystem, EcosystemCreator
 using ..Interactions.Results: Result
 using ..Reporters.Abstract: Report
 
-function create_ecosystem(eco_creator::EcosystemCreator)::Ecosystem
+function create_ecosystem(ecosystem_creator::EcosystemCreator)::Ecosystem
     throw(ErrorException(
-        "`create_environment` not implemented for $eco_creator"
+        "`create_environment` not implemented for $ecosystem_creator"
         )
     )
 end
@@ -26,7 +26,7 @@ function create_ecosystem(
     )
 end
 
-function evolve!(eco::Ecosystem, eco_creator::EcosystemCreator, n_gen::Int)::Nothing
+function evolve!(eco::Ecosystem, ecosystem_creator::EcosystemCreator, n_generations::Int)::Nothing
     throw(ErrorException(
         "`evolve!` not implemented for $eco"
         )

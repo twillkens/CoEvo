@@ -38,11 +38,10 @@ function recombine(
     indiv_id_counter::Counter, 
     parents::Vector{<:Individual}
 ) 
-    individuals = [
+    children = [
         Individual(next!(indiv_id_counter), parent.geno, [parent.id]) for parent in parents
     ]
-    #println([indiv.geno.genes for indiv in individuals])
-    return individuals
+    return children
 end
 
 end

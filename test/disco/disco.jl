@@ -130,7 +130,7 @@ end
 #     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
 #     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
 #     evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
-#     @test length(evaluation.disco_records) == n_pop
+#     @test length(evaluation.records) == n_pop
 # end
 
 

@@ -40,10 +40,10 @@ function dominates(::Min, a::NSGAIIRecord, b::NSGAIIRecord)
     res
 end
 
-function fast_non_dominated_sort!(indivs::Vector{<:NSGAIIRecord}, sense::Sense)
-    n = length(indivs)
+function fast_non_dominated_sort!(individuals::Vector{<:NSGAIIRecord}, sense::Sense)
+    n = length(individuals)
 
-    for p in indivs
+    for p in individuals
         empty!(p.dom_list)
         p.dom_count = 0
         p.rank = 0
@@ -51,27 +51,27 @@ function fast_non_dominated_sort!(indivs::Vector{<:NSGAIIRecord}, sense::Sense)
 
     @inbounds for i in 1:n
         for j in i+1:n
-            if dominates(sense, indivs[i], indivs[j])
-                push!(indivs[i].dom_list, j)
-                indivs[j].dom_count += 1
-            elseif dominates(sense, indivs[j], indivs[i])
-                push!(indivs[j].dom_list, i)
-                indivs[i].dom_count += 1
+            if dominates(sense, individuals[i], individuals[j])
+                push!(individuals[i].dom_list, j)
+                individuals[j].dom_count += 1
+            elseif dominates(sense, individuals[j], individuals[i])
+                push!(individuals[j].dom_list, i)
+                individuals[i].dom_count += 1
             end
         end
-        if indivs[i].dom_count == 0
-            indivs[i].rank = 1
+        if individuals[i].dom_count == 0
+            individuals[i].rank = 1
         end
     end
 
     k = UInt16(2)
-    @inbounds while any(==(k-one(UInt16)), (p.rank for p in indivs)) #ugly workaround for #15276
-        for p in indivs 
+    @inbounds while any(==(k-one(UInt16)), (p.rank for p in individuals)) #ugly workaround for #15276
+        for p in individuals 
             if p.rank == k-one(UInt16)
                 for q in p.dom_list
-                    indivs[q].dom_count -= one(UInt16)
-                    if indivs[q].dom_count == zero(UInt16)
-                        indivs[q].rank = k
+                    individuals[q].dom_count -= one(UInt16)
+                    if individuals[q].dom_count == zero(UInt16)
+                        individuals[q].rank = k
                     end
                 end
             end
@@ -82,43 +82,43 @@ function fast_non_dominated_sort!(indivs::Vector{<:NSGAIIRecord}, sense::Sense)
 end
 
 function crowding_distance_assignment!(
-    indivs::Vector{<:NSGAIIRecord},
+    individuals::Vector{<:NSGAIIRecord},
     function_minimums::Union{Nothing, Vector{Float64}} = nothing,
     function_maximums::Union{Nothing, Vector{Float64}} = nothing
 )
-    @inbounds for j = 1:length(first(indivs).tests) # Foreach objective
+    @inbounds for j = 1:length(first(individuals).tests) # Foreach objective
         let j = j #https://github.com/JuliaLang/julia/issues/15276
-            sort!(indivs, by = x -> x.tests[j]) #sort by the objective value
+            sort!(individuals, by = x -> x.tests[j]) #sort by the objective value
         end
-        indivs[1].crowding = indivs[end].crowding = Inf #Assign infinite value to extremas
-        if indivs[1].tests[j] != indivs[end].tests[j]
-            for i = 2:length(indivs) - 1
-                greater_neighbor_value = indivs[i + 1].tests[j] 
-                lesser_neighbor_value = indivs[i - 1].tests[j]
+        individuals[1].crowding = individuals[end].crowding = Inf #Assign infinite value to extremas
+        if individuals[1].tests[j] != individuals[end].tests[j]
+            for i = 2:length(individuals) - 1
+                greater_neighbor_value = individuals[i + 1].tests[j] 
+                lesser_neighbor_value = individuals[i - 1].tests[j]
                 minimum_value = function_minimums === nothing ? 
-                    indivs[1].tests[j] :
+                    individuals[1].tests[j] :
                     function_minimums[j]
                 maximum_value = function_maximums === nothing ? 
-                    indivs[end].tests[j] :
+                    individuals[end].tests[j] :
                     function_maximums[j]
                 crowding = (greater_neighbor_value - lesser_neighbor_value) / 
                            (maximum_value - minimum_value)
-                indivs[i].crowding += crowding
+                individuals[i].crowding += crowding
             end
         end
     end
 end
 
 function nsga_sort!(
-    indivs::Vector{<:NSGAIIRecord}, 
+    individuals::Vector{<:NSGAIIRecord}, 
     sense::Sense = Max(), 
     function_minimums::Union{Nothing, Vector{Float64}} = nothing,
     function_maximums::Union{Nothing, Vector{Float64}} = nothing
 )
-    fast_non_dominated_sort!(indivs, sense)
-    sort!(indivs, by = ind -> ind.rank, alg = Base.Sort.QuickSort)
+    fast_non_dominated_sort!(individuals, sense)
+    sort!(individuals, by = ind -> ind.rank, alg = Base.Sort.QuickSort)
     fronts = SortedDict{Int, Vector{<:NSGAIIRecord}}()
-    for ind in indivs 
+    for ind in individuals 
         if haskey(fronts, ind.rank)
             a = fronts[ind.rank]
             push!(a, ind)
@@ -168,9 +168,9 @@ end
 #    sense::Sense = Max()
 #end
 
-#function(s::NSGASelector)(rng::AbstractRNG, pop::Vector{<:Individual}, evals::Dict{Int, NSGAIIRecord})
-#    pop = nsga!(pop, )
-#    [nsga_tournament(rng, pop, c.tsize) for _ in 1:s.μ]
+#function(s::NSGASelector)(rng::AbstractRNG, population::Vector{<:Individual}, evals::Dict{Int, NSGAIIRecord})
+#    population = nsga!(population, )
+#    [nsga_tournament(rng, population, c.tsize) for _ in 1:s.μ]
 #end
 
 end

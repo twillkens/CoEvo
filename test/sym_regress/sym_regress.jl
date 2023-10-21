@@ -28,7 +28,7 @@ function sym_regress_eco_creator(;
     interaction_id::String = "SymbolicRegression",
     n_elite::Int = 10
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
@@ -88,12 +88,12 @@ function sym_regress_eco_creator(;
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 
 end
 
-eco_creator = sym_regress_eco_creator(n_pop = 100)
-eco = evolve!(eco_creator, n_gen=10)
+ecosystem_creator = sym_regress_eco_creator(n_pop = 100)
+eco = evolve!(ecosystem_creator, n_generations=10)
 @test length(eco.species) == 2
 
 end

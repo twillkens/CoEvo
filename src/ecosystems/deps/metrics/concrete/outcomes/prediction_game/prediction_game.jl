@@ -1,29 +1,27 @@
 module PredictionGameOutcomeMetrics
 
-export Control, Competitive, CooperativeMatching
-export CooperativeMismatching
+export Control, Adversarial, Affinitive, Avoidant
 
 using ....Metrics.Abstract: Metric
 
-
 # Both are rewarded regardless
 Base.@kwdef struct Control <: Metric
-    name::String = "ControlMetric"
+    name::String = "Control"
 end
 
 # The first is rewarded if it matches, the second if it mismatches
-Base.@kwdef struct Competitive <: Metric
-    name::String = "CompetitiveGameMetric"
+Base.@kwdef struct Adversarial <: Metric
+    name::String = "Adversarial"
 end
 
 # Both are rewarded if they match
-Base.@kwdef struct CooperativeMatching <: Metric
-    name::String = "CooperativeMatchingGameMetric"
+Base.@kwdef struct Affinitive <: Metric
+    name::String = "Affinitive"
 end
 
 # Both are rewarded if they mismatch
-Base.@kwdef struct CooperativeMismatching <: Metric
-    name::String = "CooperativeMismatchingGameMetric"
+Base.@kwdef struct Avoidant <: Metric
+    name::String = "Avoidant"
 end
 
 end

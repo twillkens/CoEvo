@@ -3,6 +3,7 @@ module Basic
 export BasicEcosystem, BasicEcosystemCreator
 export evolve!
 
+using DataStructures: SortedDict
 using Random: AbstractRNG
 using StableRNGs: StableRNG
 
@@ -11,12 +12,13 @@ using ..Utilities.Counters: Counter
 using ..Species.Abstract: AbstractSpecies, SpeciesCreator
 using ..Species.Interfaces: create_species
 using ..Species.Individuals: Individual
-using ..Species.Evaluators.Abstract: Evaluation
+using ..Species.Evaluators.Abstract: Evaluation, Evaluator
 using ..Species.Evaluators.Interfaces: create_evaluation
+using ..Species.Basic: BasicSpeciesCreator
 using ..Jobs.Abstract: JobCreator
 using ..Performers.Abstract: Performer
 using ..Interactions.Abstract: Interaction
-using ..Interactions.Results: Result, get_indiv_outcomes, get_observations
+using ..Interactions.Results: Result, get_individual_outcomes, get_observations
 using ..Interactions.Observers.Abstract: Observation
 using ..Reporters.Types.Runtime: RuntimeReporter, create_runtime_report
 using ..Reporters.Abstract: Reporter, Report
@@ -26,13 +28,15 @@ using ..Archivers.Interfaces: archive!
 using  ..Jobs.Interfaces: create_jobs
 using ..Performers.Interfaces: perform
 using ..Interactions.Observers.Concrete.Null: NullObservation
+using ..States.Concrete: BasicCoevolutionaryStateCreator, BasicCoevolutionaryState
+using ..States.Abstract: CoevolutionaryStateCreator, CoevolutionaryState
 
 import ..Ecosystems.Interfaces: create_ecosystem, evolve!
 
 
 struct BasicEcosystem{S <: AbstractSpecies} <: Ecosystem
     id::String
-    species::Dict{String, S}
+    species::Vector{S}
 end
 
 function Base.show(io::IO, eco::BasicEcosystem)
@@ -43,20 +47,23 @@ Base.@kwdef struct BasicEcosystemCreator{
     S <: SpeciesCreator, 
     J <: JobCreator, 
     P <: Performer,
+    C <: CoevolutionaryStateCreator,
     R <: Reporter,
     A <: Archiver,
 } <: EcosystemCreator
     id::String
     trial::Int
     rng::AbstractRNG
-    species_creators::Dict{String, S}
+    species_creators::Vector{S}
     job_creator::J
     performer::P
+    state_creator::C
     reporters::Vector{R}
     archiver::A
     indiv_id_counter::Counter = Counter()
     gene_id_counter::Counter = Counter()
     runtime_reporter::RuntimeReporter = RuntimeReporter()
+    garbage_collection_interval::Int = 50
 end
 
 function show(io::IO, c::BasicEcosystemCreator)
@@ -67,79 +74,20 @@ function show(io::IO, c::BasicEcosystemCreator)
           ", interactions: ", c.job_creator.interactions,")")
 end
 
-function create_ecosystem(eco_creator::BasicEcosystemCreator)
+function create_ecosystem(ecosystem_creator::BasicEcosystemCreator)
     # Determine species IDs and populate species dictionary
-    all_species = Dict(
-        species_id => create_species(
+    all_species = [
+        create_species(
             species_creator,
-            eco_creator.rng, 
-            eco_creator.indiv_id_counter, 
-            eco_creator.gene_id_counter
+            ecosystem_creator.rng, 
+            ecosystem_creator.indiv_id_counter, 
+            ecosystem_creator.gene_id_counter
         ) 
-        for (species_id, species_creator) in eco_creator.species_creators
-    )
-    eco = BasicEcosystem(eco_creator.id, all_species)
+        for species_creator in ecosystem_creator.species_creators
+    ]
+    eco = BasicEcosystem(ecosystem_creator.id, all_species)
 
     return eco
-end
-
-
-function evaluate_species(
-    eco_creator::BasicEcosystemCreator,
-    eco::Ecosystem, 
-    results::Vector{<:Result}
-)
-    indiv_outcomes = get_indiv_outcomes(results)
-
-    species_evaluations = Dict(
-        species => create_evaluation(
-            eco_creator.species_creators[species_id].evaluator,
-            eco_creator.rng,
-            species, 
-            indiv_outcomes
-        ) 
-        for (species_id, species) in eco.species
-    )
-    
-    return species_evaluations
-end
-
-function create_all_reports(
-    gen::Int, 
-    eco_creator::BasicEcosystemCreator,
-    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation},
-    observations::Vector{<:Observation}
-)
-    reporters = eco_creator.reporters
-    reports = [
-        create_report(reporter, gen, species_evaluations, observations) 
-        for reporter in reporters
-    ]
-
-    return reports
-end
-
-function archive_reports!(archiver::Archiver, gen::Int, reports::Vector{<:Report})
-    [archive!(archiver, gen, report) for report in reports]
-    return nothing
-end
-
-function construct_new_species(
-    eco_creator::BasicEcosystemCreator, 
-    species_evaluations::Dict{<:AbstractSpecies, <:Evaluation}
-)
-    all_new_species = Dict(
-        species.id => create_species(
-            eco_creator.species_creators[species.id],
-            eco_creator.rng, 
-            eco_creator.indiv_id_counter,
-            eco_creator.gene_id_counter,
-            species,
-            evaluation
-        ) for (species, evaluation) in species_evaluations
-    )
-
-    return all_new_species
 end
 
 function collect_observations(results::Vector{<:Result})
@@ -150,57 +98,159 @@ function collect_observations(results::Vector{<:Result})
     return observations
 end
 
-function create_ecosystem(
-    eco_creator::BasicEcosystemCreator,
-    gen::Int, 
-    eco::Ecosystem, 
-    results::Vector{<:Result}, 
-    reports::Vector{<:Report}
+
+
+function evaluate_species(
+    rng::AbstractRNG,
+    species::Vector{<:AbstractSpecies},
+    evaluators::Vector{<:Evaluator},
+    individual_outcomes::Dict{Int, SortedDict{Int, Float64}},
+    observations::Vector{<:Observation},
 )
-    species_evaluations = evaluate_species(eco_creator, eco, results)
+    evaluations = [
+        create_evaluation(evaluator, rng, species, individual_outcomes) #observations
+        for (evaluator, species) in zip(evaluators, species)
+    ]
+    
+    return evaluations
+end
+
+function evaluate_species(
+    ecosystem_creator::BasicEcosystemCreator, 
+    ecosystem::Ecosystem, 
+    individual_outcomes::Dict{Int, SortedDict{Int, Float64}}, 
+    observations::Vector{<:Observation}
+)
+    evaluators = [
+        species_creator.evaluator for species_creator in ecosystem_creator.species_creators
+    ]
+    evaluations = evaluate_species(
+        ecosystem_creator.rng, ecosystem.species, evaluators, individual_outcomes, observations
+    )
+    return evaluations
+end
+
+function create_state(
+    ::BasicCoevolutionaryStateCreator,
+    ecosystem_creator::BasicEcosystemCreator,
+    generation::Int,
+    ecosystem::Ecosystem,
+    individual_outcomes::Dict{Int, SortedDict{Int, Float64}},
+    evaluations::Vector{<:Evaluation},
+    observations::Vector{<:Observation},
+)
+    state = BasicCoevolutionaryState(
+        id = ecosystem_creator.id,
+        rng = ecosystem_creator.rng,
+        trial = ecosystem_creator.trial,
+        generation = generation,
+        indiv_id_counter = ecosystem_creator.indiv_id_counter,
+        gene_id_counter = ecosystem_creator.gene_id_counter,
+        species = ecosystem.species,
+        individual_outcomes = individual_outcomes,
+        evaluations = evaluations,
+        observations = observations,
+    )
+    return state
+end
+
+function create_all_reports(reporters::Vector{<:Reporter}, state::CoevolutionaryState)
+    reports = [create_report(reporter, state) for reporter in reporters]
+    return reports
+end
+
+function archive_reports!(archiver::Archiver, gen::Int, reports::Vector{<:Report})
+    [archive!(archiver, gen, report) for report in reports]
+    return nothing
+end
+
+function construct_new_species(
+    species_creators::Vector{<:BasicSpeciesCreator}, state::BasicCoevolutionaryState
+)
+    new_species = [
+        create_species(
+            species_creators[index],
+            state.rng, 
+            state.indiv_id_counter,
+            state.gene_id_counter,
+            state.species[index],
+            state.evaluations[index]
+        ) for (index) in eachindex(species_creators)
+    ]
+
+    return new_species
+end
+
+function create_ecosystem(
+    ecosystem_creator::BasicEcosystemCreator,
+    gen::Int, 
+    ecosystem::Ecosystem, 
+    results::Vector{<:Result}, 
+    reports::Vector{Report}
+)
+    individual_outcomes = get_individual_outcomes(results)
     observations = collect_observations(results)
-    generation_reports = create_all_reports(gen, eco_creator, species_evaluations, observations)
+    evaluations = evaluate_species(
+        ecosystem_creator, ecosystem, individual_outcomes, observations
+    )
+    state = create_state(
+        ecosystem_creator.state_creator, 
+        ecosystem_creator, 
+        gen, 
+        ecosystem, 
+        individual_outcomes,
+        evaluations,
+        observations,
+    )
+    generation_reports = create_all_reports(ecosystem_creator.reporters, state)
     append!(reports, generation_reports)
-    archive_reports!(eco_creator.archiver, gen, reports)
-    if gen % 50 == 0
+    archive_reports!(ecosystem_creator.archiver, gen, reports)
+    if gen % ecosystem_creator.garbage_collection_interval == 0
         Base.GC.gc()
     end
-    all_new_species = construct_new_species(eco_creator, species_evaluations)
-    new_eco = BasicEcosystem(eco_creator.id, all_new_species)
+    all_new_species = construct_new_species(ecosystem_creator.species_creators, state)
+    new_eco = BasicEcosystem(ecosystem_creator.id, all_new_species)
     
     return new_eco
 end
+using JLD2: @save
+
 
 function evolve!(
-    eco_creator::BasicEcosystemCreator;
-    n_gen::Int = 100,
+    ecosystem_creator::BasicEcosystemCreator;
+    n_generations::Int = 100,
 )
-    #println("---------Ecosystems: evolve!------------")
-    #println("rng 1: ", rand(eco_creator.rng))
-    eco = create_ecosystem(eco_creator)
-    ##println("rng 2: ", rand(eco_creator.rng))
+    ecosystem = create_ecosystem(ecosystem_creator)
     last_reproduce_time = 0.0
-    for gen in 1:n_gen
+    for generation in 1:n_generations
         eval_time_start = time()
+        phenotype_creators = [
+            species_creator.phenotype_creator 
+            for species_creator in ecosystem_creator.species_creators
+        ]
         jobs = create_jobs(
-            eco_creator.job_creator,
-            eco_creator.rng, 
-            eco_creator.species_creators, 
-            eco.species
+            ecosystem_creator.job_creator,
+            ecosystem_creator.rng, 
+            ecosystem.species,
+            phenotype_creators,
         )
-        results = perform(eco_creator.performer, jobs)
+        results = perform(ecosystem_creator.performer, jobs)
         eval_time = time() - eval_time_start
         runtime_report = create_runtime_report(
-            eco_creator.runtime_reporter, eco_creator.id, gen, eval_time, last_reproduce_time
+            ecosystem_creator.runtime_reporter, 
+            ecosystem_creator.id, 
+            generation, 
+            eval_time, 
+            last_reproduce_time
         )
         reports = Report[runtime_report]
 
         last_reproduce_time_start = time()
-        eco = create_ecosystem(eco_creator, gen, eco, results, reports)
+        ecosystem = create_ecosystem(ecosystem_creator, generation, ecosystem, results, reports)
         last_reproduce_time = time() - last_reproduce_time_start
     end
 
-    return eco
+    return ecosystem
 end
 
 end

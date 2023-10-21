@@ -19,7 +19,7 @@ export Ecosystem, EcosystemCreator,
        BasicVectorPhenotype,
        FiniteStateMachinePhenotype,
        Individuals, Individual,
-       Evaluators, create_evaluation, get_ranked_ids, Evaluation, Evaluator,
+       Evaluators, create_evaluation, Evaluation, Evaluator,
        ScalarFitnessEvaluator, ScalarFitnessEvaluation,
        NullEvaluator, NullEvaluation,
        NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods,
@@ -83,10 +83,17 @@ export Ecosystem, EcosystemCreator,
        FunctionGraphGenotypeLoader, Loaders, get_or_make_group!,
        load_genotype, get_size, minimize,
        LinearizedFunctionGraphPhenotype, LinearizedFunctionGraphNode, LinearizedFunctionGraphConnection,
-        LinearizedFunctionGraphPhenotypeCreator
+        LinearizedFunctionGraphPhenotypeCreator,
+        CoevolutionaryState, CoevolutionaryStateCreator,
+        BasicCoevolutionaryState, BasicCoevolutionaryStateCreator,
+        PredictionGameDomain, Configurations, PredictionGameTrialConfiguration
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
+
+include("configurations/configurations.jl")
+using .Configurations: Configurations
+using .Configurations.Concrete: PredictionGameTrialConfiguration
 
 include("loaders/loaders.jl")
 using .Loaders: Loaders
@@ -151,7 +158,7 @@ using .Mutators.Types.FiniteStateMachineMutators: FiniteStateMachineMutators
 println("loaded mutators")
 
 using .Species: Evaluators
-using .Evaluators.Interfaces: create_evaluation, get_ranked_ids
+using .Evaluators.Interfaces: create_evaluation
 using .Evaluators.Abstract: Evaluation, Evaluator
 using .Evaluators.Types.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
 using .Evaluators.Types.Null: NullEvaluator, NullEvaluation
@@ -197,6 +204,7 @@ using .Interactions: Domains
 using .Domains.Abstract: Domain
 using .Domains.Concrete: NumbersGameDomain, SymbolicRegressionDomain, CollisionGameDomain
 using .Domains.Concrete: ContinuousPredictionGameDomain, LinguisticPredictionGameDomain
+using .Domains.Concrete: PredictionGameDomain
 println("loaded domains")
 
 using .Interactions: MatchMakers
@@ -243,6 +251,10 @@ using .Ecosystems: Measurements
 using .Measurements.Abstract: Measurement
 using .Measurements: BasicStatisticalMeasurement
 println("loaded measurements")
+
+using .Ecosystems: States
+using .States.Abstract: CoevolutionaryState, CoevolutionaryStateCreator
+using .States.Concrete: BasicCoevolutionaryState, BasicCoevolutionaryStateCreator
 
 using .Ecosystems: Reporters
 using .Reporters.Abstract: Reporter

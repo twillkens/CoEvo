@@ -1,7 +1,7 @@
 module Concrete
 
 export NumbersGameDomain, SymbolicRegressionDomain, ContinuousPredictionGameDomain
-export LinguisticPredictionGameDomain, CollisionGameDomain
+export LinguisticPredictionGameDomain, CollisionGameDomain, PredictionGameDomain
 
 include("numbers_game/numbers_game.jl")
 using .NumbersGame: NumbersGameDomain
@@ -18,4 +18,6 @@ using .LinguisticPredictionGame: LinguisticPredictionGameDomain
 include("collision_game/collision_game.jl")
 using .CollisionGame: CollisionGameDomain
 
+include("prediction_game/prediction_game.jl")
+using .PredictionGame: PredictionGameDomain
 end

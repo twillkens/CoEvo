@@ -4,7 +4,7 @@ export scaled_arctangent, get_action!, apply_movement
 export get_clockwise_distance, get_counterclockwise_distance
 
 using .....Environments.Concrete.Tape: TapeEnvironment
-using ......Domains.Concrete: ContinuousPredictionGameDomain
+using ......Domains.Concrete: PredictionGameDomain
 using ......Domains.Interfaces: measure
 using .......Species.Phenotypes.Abstract: Phenotype
 using .......Species.Phenotypes.Interfaces: act!
@@ -114,7 +114,7 @@ end
 
 function next!(
     environment::TapeEnvironment{D, <:Phenotype, <:Phenotype}
-) where {D <: ContinuousPredictionGameDomain}
+) where {D <: PredictionGameDomain}
     environment.timestep += 1
     movement_1 = get_action!(
         environment.entity_1, 
@@ -155,7 +155,7 @@ end
 
 function get_outcome_set(
     environment::TapeEnvironment{D, <:Phenotype, <:Phenotype}
-) where {D <: ContinuousPredictionGameDomain}
+) where {D <: PredictionGameDomain}
     #clockwise_distance = get_clockwise_distance(environment.position_1, environment.position_2)
     #counterclockwise_distance = get_counterclockwise_distance(clockwise_distance)
     #closest_distance = min(clockwise_distance, counterclockwise_distance)

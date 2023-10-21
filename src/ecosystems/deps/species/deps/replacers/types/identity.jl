@@ -36,7 +36,7 @@ function replace(
     species::AbstractSpecies,
     ::Evaluation
 )
-    population = species.pop
+    population = species.population
     return population
 end
 

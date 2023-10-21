@@ -21,9 +21,9 @@ struct BasicVectorGenotype{T <: Real} <: VectorGenotype
 end
 
 # Utility functions for `BasicVectorGenotype`.
-Base.length(indiv::VectorGenotype) = length(indiv.genes)
+Base.length(individual::VectorGenotype) = length(individual.genes)
 Base.:(==)(indiv1::VectorGenotype, indiv2::BasicVectorGenotype) = indiv1.genes == indiv2.genes
-Base.hash(indiv::VectorGenotype, h::UInt) = hash(indiv.genes, h)
+Base.hash(individual::VectorGenotype, h::UInt) = hash(individual.genes, h)
 
 """
     BasicVectorGenotypeCreator{T <: Real}

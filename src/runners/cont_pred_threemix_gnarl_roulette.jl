@@ -63,7 +63,7 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
         :identity_mutation => 1/2
     ))
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
@@ -162,7 +162,7 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
         archiver = BasicArchiver(jld2_path = "trials/$id/$trial.jld2"),
         runtime_reporter = RuntimeReporter(print_interval = 25),
     )
-    return eco_creator
+    return ecosystem_creator
 end
 
 end

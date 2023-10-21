@@ -146,7 +146,7 @@ evaluator = NSGAIIEvaluator(
 
 evaluation = create_evaluation(evaluator, rng, outcomes, [1, 2, 3, 4])
 println("evaluation: $evaluation")
-winners = [nsga_tournament(rng, evaluation.disco_records, 2) for _ in 1:10_000]
+winners = [nsga_tournament(rng, evaluation.records, 2) for _ in 1:10_000]
 winner_ids = [winner.id for winner in winners]
 println("winner_ids: $winner_ids")
 

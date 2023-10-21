@@ -66,7 +66,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
     save_interval::Int = 1,
     phenotype_creator = LinearizedFunctionGraphPhenotypeCreator(),
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
@@ -190,7 +190,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
         archiver = BasicArchiver(jld2_path = "trials/$id/$trial.jld2"),
         runtime_reporter = RuntimeReporter(print_interval = print_interval),
     )
-    return eco_creator
+    return ecosystem_creator
 end
 
 

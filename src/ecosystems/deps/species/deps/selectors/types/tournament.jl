@@ -3,21 +3,35 @@ module Tournament
 using ...Selectors.Abstract: Selector
 using StatsBase: sample
 using Random: AbstractRNG
-using ....Evaluators.Interfaces: get_ranked_ids
-using ....Evaluators.Types.ScalarFitness: ScalarFitnessEvaluation
-using ....Evaluators.Types.NSGAII: NSGAIIEvaluation, NSGAIIRecord
+using ....Evaluators.Abstract: Evaluation
+using ....Evaluators.Types.ScalarFitness: ScalarFitnessRecord
+using ....Evaluators.Types.NSGAII: NSGAIIRecord
 using ....Species.Individuals: Individual
 
 import ...Selectors.Interfaces: select
 
 
 Base.@kwdef struct TournamentSelector <: Selector
-    μ::Int # number of parents to select
+    n_parents::Int # number of parents to select
     tournament_size::Int # tournament size
-    selection_func::Function = argmax # function to select the winner of the tournament
 end
 
-function nsga_tournament(rng::AbstractRNG, parents::Array{<:NSGAIIRecord}, tourn_size::Int64) 
+
+function run_tournament(rng::AbstractRNG, contenders::Array{<:ScalarFitnessRecord}) 
+    function get_winner(d1::ScalarFitnessRecord, d2::ScalarFitnessRecord)
+        if d1.fitness > d2.fitness
+            return d1
+        elseif d2.fitness > d1.fitness
+            return d2
+        else
+            return rand(rng, (d1, d2))
+        end
+    end
+    winner = reduce(get_winner, contenders)
+    return winner
+end
+
+function run_tournament(rng::AbstractRNG, contenders::Array{<:NSGAIIRecord}) 
     function get_winner(d1::NSGAIIRecord, d2::NSGAIIRecord)
         if d1.rank < d2.rank
             return d1
@@ -33,53 +47,37 @@ function nsga_tournament(rng::AbstractRNG, parents::Array{<:NSGAIIRecord}, tourn
             end
         end
     end
-    contenders = rand(rng, parents, tourn_size)
-    reduce(get_winner, contenders)
+    winner = reduce(get_winner, contenders)
+    return winner
 end
 
 function select(
     selector::TournamentSelector,
     rng::AbstractRNG, 
-    new_pop::Dict{Int, I},
-    evaluation::NSGAIIEvaluation
+    new_population::Vector{I},
+    evaluation::Evaluation
 ) where {I <: Individual}
     # Fetch NSGAIIRecord for each individual
-    records = evaluation.disco_records
-    records = filter(record -> record.id in keys(new_pop), records)
+    new_population_dict = Dict(individual.id => individual for individual in new_population)
+    records = filter(record -> record.id in keys(new_population_dict), evaluation.records)
     #println("ids: ", [record.id for record in records])
     
     parents = I[]
-    for i in 1:selector.μ
+    for _ in 1:selector.n_parents
         # Get tournament contenders
+        # TODO: make false once rng bug fixed.
         #contenders = sample(rng, records, selector.tournament_size, replace=false)
         contenders = sample(rng, records, selector.tournament_size, replace=true)
         
         # Select a winner from the contenders
-        winner = nsga_tournament(rng, contenders, selector.tournament_size)
+        winner = run_tournament(rng, contenders)
         
         # Extract the individual associated with the winning record
-        push!(parents, new_pop[winner.id])
+        push!(parents, new_population_dict[winner.id])
     end
     
     return parents
 end
 
-
-#function select(
-#    selector::TournamentSelector,
-#    rng::AbstractRNG, 
-#    new_pop::Dict{Int, <:Individual},
-#    evaluation::NSGAIIEvaluation
-#)
-#    ranked_ids = get_ranked_ids(evaluation, collect(keys(new_pop)))
-#    parent_idxs = Array{Int}(undef, selector.μ)
-#    for i in 1:selector.μ
-#        tournament_idxs = sample(rng, 1:length(ranked_ids), selector.tournament_size, replace=false)
-#        parent_idx = selector.selection_func(tournament_idxs)
-#        parent_idxs[i] = ranked_ids[parent_idx]
-#    end
-#    parents = [new_pop[idx] for idx in parent_idxs]
-#    return parents
-#end
 
 end

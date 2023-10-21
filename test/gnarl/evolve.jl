@@ -25,14 +25,15 @@ function collision_game_eco_creator(;
     episode_length::Int = 10,
     n_input_nodes::Int = 2,
     n_output_nodes::Int = 2,
-    initial_distance::Float64 = 5.0
+    initial_distance::Float64 = 5.0,
+    cohorts = [:population, :children],
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
-        species_creators = Dict(
-            host => BasicSpeciesCreator(
+        species_creators = [
+            BasicSpeciesCreator(
                 id = host,
                 n_pop = n_pop,
                 geno_creator = GnarlNetworkGenotypeCreator(
@@ -46,7 +47,7 @@ function collision_game_eco_creator(;
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
-            parasite => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = parasite,
                 n_pop = n_pop,
                 geno_creator = GnarlNetworkGenotypeCreator(
@@ -60,7 +61,7 @@ function collision_game_eco_creator(;
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
-            mutualist => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = mutualist,
                 n_pop = n_pop,
                 geno_creator = GnarlNetworkGenotypeCreator(
@@ -74,11 +75,11 @@ function collision_game_eco_creator(;
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
-        ),
+        ],
         job_creator = BasicJobCreator(
             n_workers = 1,
-            interactions = Dict(
-                host_mutualist_affinitive => BasicInteraction(
+            interactions = [
+                BasicInteraction(
                     id = host_mutualist_affinitive,
                     environment_creator = CollisionGameEnvironmentCreator(
                         domain = CollisionGameDomain(
@@ -88,9 +89,9 @@ function collision_game_eco_creator(;
                         episode_length = episode_length
                     ),
                     species_ids = [host, mutualist],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-                host_parasite_adversarial => BasicInteraction(
+                BasicInteraction(
                     id = host_parasite_adversarial,
                     environment_creator = CollisionGameEnvironmentCreator(
                         domain = CollisionGameDomain(
@@ -100,9 +101,9 @@ function collision_game_eco_creator(;
                         episode_length = episode_length
                     ),
                     species_ids = [parasite, host],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-                parasite_mutualist_avoidant => BasicInteraction(
+                BasicInteraction(
                     id = parasite_mutualist_avoidant,
                     environment_creator = CollisionGameEnvironmentCreator(
                         domain = CollisionGameDomain(
@@ -112,23 +113,24 @@ function collision_game_eco_creator(;
                         episode_length = episode_length
                     ),
                     species_ids = [parasite, host],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-            ),
+            ],
         ),
         performer = BasicPerformer(n_workers = n_workers),
+        state_creator = BasicCoevolutionaryStateCreator(),
         reporters = Reporter[
             # BasicReporter(metric = GenotypeSize()),
         ],
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 end
 
 
-eco_creator = collision_game_eco_creator(n_pop = 50, n_workers = 1)
-eco = evolve!(eco_creator, n_gen = 5)
+ecosystem_creator = collision_game_eco_creator(n_pop = 50, n_workers = 1)
+eco = evolve!(ecosystem_creator, n_generations = 5)
 @test length(eco.species) == 3
 
 end
@@ -146,19 +148,21 @@ function collision_game_disco_eco_creator(;
     host_mutualist_affinitive::String = "Host-Mutualist-Affinitive",
     host_parasite_adversarial::String = "Host-Parasite-Adversarial",
     parasite_mutualist_avoidant::String = "Parasite-Mutualist-Avoidant",
-    n_elite::Int = 0,
     n_workers::Int = 1,
     episode_length::Int = 10,
     initial_distance::Float64 = 5.0,
     n_input_nodes::Int = 2,
-    n_output_nodes::Int = 2
+    n_output_nodes::Int = 2,
+    cohorts::Vector{Symbol} = [:population, :children],
+    n_truncate::Int = n_pop,
+    tournament_size::Int = 3,
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
-        species_creators = Dict(
-            host => BasicSpeciesCreator(
+        species_creators = [
+            BasicSpeciesCreator(
                 id = host,
                 n_pop = n_pop,
                 geno_creator = GnarlNetworkGenotypeCreator(
@@ -170,14 +174,14 @@ function collision_game_disco_eco_creator(;
                     maximize = true,
                     perform_disco = true
                 ),
-                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
+                replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    μ = n_pop, tournament_size = 3, selection_func=argmin
+                    n_parents = n_pop, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
-            parasite => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = parasite,
                 n_pop = n_pop,
                 geno_creator = GnarlNetworkGenotypeCreator(
@@ -189,14 +193,14 @@ function collision_game_disco_eco_creator(;
                     maximize = true,
                     perform_disco = true
                 ),
-                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
+                replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    μ = n_pop, tournament_size = 3, selection_func=argmin
+                    n_parents = n_pop, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
-            mutualist => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = mutualist,
                 n_pop = n_pop,
                 geno_creator = GnarlNetworkGenotypeCreator(
@@ -205,16 +209,18 @@ function collision_game_disco_eco_creator(;
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
-                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
-                selector = TournamentSelector(μ = n_pop, tournament_size = 3),
+                replacer = TruncationReplacer(n_truncate = n_truncate),
+                selector = TournamentSelector(
+                    n_parents = n_pop, tournament_size = tournament_size
+                ),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
-        ),
+        ],
         job_creator = BasicJobCreator(
             n_workers = 1,
-            interactions = Dict(
-                host_mutualist_affinitive => BasicInteraction(
+            interactions = [
+                BasicInteraction(
                     id = host_mutualist_affinitive,
                     environment_creator = CollisionGameEnvironmentCreator(
                         domain = CollisionGameDomain(
@@ -224,9 +230,9 @@ function collision_game_disco_eco_creator(;
                         episode_length = episode_length
                     ),
                     species_ids = [host, mutualist],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-                host_parasite_adversarial => BasicInteraction(
+                BasicInteraction(
                     id = host_parasite_adversarial,
                     environment_creator = CollisionGameEnvironmentCreator(
                         domain = CollisionGameDomain(
@@ -236,9 +242,9 @@ function collision_game_disco_eco_creator(;
                         episode_length = episode_length
                     ),
                     species_ids = [parasite, host],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-                parasite_mutualist_avoidant => BasicInteraction(
+                BasicInteraction(
                     id = parasite_mutualist_avoidant,
                     environment_creator = CollisionGameEnvironmentCreator(
                         domain = CollisionGameDomain(
@@ -248,11 +254,12 @@ function collision_game_disco_eco_creator(;
                         episode_length = episode_length
                     ),
                     species_ids = [parasite, host],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-            ),
+            ],
         ),
         performer = BasicPerformer(n_workers = n_workers),
+        state_creator = BasicCoevolutionaryStateCreator(),
         reporters = Reporter[
             # BasicReporter(metric = GenotypeSize()),
             # BasicReporter(metric = AllSpeciesFitness()),
@@ -260,12 +267,12 @@ function collision_game_disco_eco_creator(;
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 end
 
 
-eco_creator = collision_game_disco_eco_creator(n_pop = 50, n_workers = 1)
-eco = evolve!(eco_creator, n_gen=1)
+ecosystem_creator = collision_game_disco_eco_creator(n_pop = 50, n_workers = 1)
+eco = evolve!(ecosystem_creator, n_generations=1)
 @test length(eco.species) == 3
 
 end

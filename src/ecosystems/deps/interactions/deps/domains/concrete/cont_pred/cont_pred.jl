@@ -4,7 +4,7 @@ export ContinuousPredictionGameDomain
 
 using .....Ecosystems.Metrics.Abstract: Metric
 using .....Ecosystems.Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: PredictionGameOutcomeMetrics
-using .PredictionGameOutcomeMetrics: Control, Competitive, CooperativeMatching, CooperativeMismatching
+using .PredictionGameOutcomeMetrics: Control, Adversarial, Affinitive, Avoidant
 using ...Domains.Abstract: Domain
 
 import ...Domains.Interfaces: measure
@@ -16,9 +16,9 @@ end
 function ContinuousPredictionGameDomain(metric::Symbol)
     symbol_to_metric = Dict(
         :Control => Control,
-        :Competitive => Competitive,
-        :CooperativeMatching => CooperativeMatching,
-        :CooperativeMismatching => CooperativeMismatching
+        :Adversarial => Adversarial,
+        :Affinitive => Affinitive,
+        :Avoidant => Avoidant
     )
     ContinuousPredictionGameDomain(symbol_to_metric[metric]())
 end
@@ -28,18 +28,18 @@ function measure(::ContinuousPredictionGameDomain{Control}, ::Float64)
     return outcome_set
 end
 
-function measure(::ContinuousPredictionGameDomain{Competitive}, distance_score::Float64)
+function measure(::ContinuousPredictionGameDomain{Adversarial}, distance_score::Float64)
     outcome_set = [1 - distance_score, distance_score]
     return outcome_set
 end
 
-function measure(::ContinuousPredictionGameDomain{CooperativeMatching}, distance_score::Float64)
+function measure(::ContinuousPredictionGameDomain{Affinitive}, distance_score::Float64)
     outcome_set = [1 - distance_score, 1 - distance_score]
     return outcome_set
 end
 
 function measure(
-    ::ContinuousPredictionGameDomain{CooperativeMismatching}, distance_score::Float64
+    ::ContinuousPredictionGameDomain{Avoidant}, distance_score::Float64
 )
     outcome_set = [distance_score, distance_score]
     return outcome_set

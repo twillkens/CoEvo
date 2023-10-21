@@ -2,6 +2,7 @@ module Ecosystems
 
 export Abstract, Utilities
 export Species, Metrics, Interactions, Jobs, Performers, Measurements, Reporters, Archivers
+export States
 export Interfaces
 export Basic
 
@@ -28,6 +29,9 @@ using .Performers: Performers
 
 include("deps/measurements/measurements.jl")
 using .Measurements: Measurements
+
+include("deps/states/states.jl")
+using .States: States
 
 include("deps/reporters/reporters.jl")
 using .Reporters: Reporters

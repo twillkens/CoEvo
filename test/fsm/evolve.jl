@@ -3,8 +3,6 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 #include("../../src/CoEvo.jl")
 using .CoEvo
-using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMatching, Competitive
-using .Metrics.Concrete.Outcomes.PredictionGameOutcomeMetrics: CooperativeMismatching
 using .FiniteStateMachineMutators: FiniteStateMachineMutator
 
 @testset "Evolve" begin
@@ -23,13 +21,14 @@ function cont_pred_eco_creator(;
     interaction_id2::String = "Host-Parasite-Competitive",
     n_elite::Int = 0,
     n_workers::Int = 1,
+    cohorts::Vector{Symbol} = [:population, :children],
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
-        species_creators = Dict(
-            species_id1 => BasicSpeciesCreator(
+        species_creators = [
+            BasicSpeciesCreator(
                 id = species_id1,
                 n_pop = n_pop,
                 geno_creator = FiniteStateMachineGenotypeCreator(),
@@ -40,7 +39,7 @@ function cont_pred_eco_creator(;
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
-            species_id2 => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = species_id2,
                 n_pop = n_pop,
                 geno_creator = FiniteStateMachineGenotypeCreator(),
@@ -51,7 +50,7 @@ function cont_pred_eco_creator(;
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
-            species_id3 => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = species_id3,
                 n_pop = n_pop,
                 geno_creator = FiniteStateMachineGenotypeCreator(),
@@ -62,45 +61,46 @@ function cont_pred_eco_creator(;
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
-        ),
+        ],
         job_creator = BasicJobCreator(
             n_workers = 1,
-            interactions = Dict(
-                interaction_id1 => BasicInteraction(
+            interactions = [
+                BasicInteraction(
                     id = interaction_id1,
                     environment_creator = LinguisticPredictionGameEnvironmentCreator(
-                        domain = LinguisticPredictionGameDomain(
-                            CooperativeMatching()
+                        domain = PredictionGameDomain(
+                            :Affinitive
                         ),
                     ),
                     species_ids = [species_id1, species_id2],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-                interaction_id2 => BasicInteraction(
+                BasicInteraction(
                     id = interaction_id2,
                     environment_creator = LinguisticPredictionGameEnvironmentCreator(
-                        domain = LinguisticPredictionGameDomain(
-                            Competitive()
+                        domain = PredictionGameDomain(
+                            :Adversarial
                         ),
                     ),
                     species_ids = [species_id1, species_id3],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-            ),
+            ],
         ),
         performer = BasicPerformer(n_workers = n_workers),
+        state_creator = BasicCoevolutionaryStateCreator(),
         reporters = Reporter[
             # BasicReporter(metric = GenotypeSize()),
         ],
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 end
 
 
-eco_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
-eco = evolve!(eco_creator, n_gen = 5)
+ecosystem_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
+eco = evolve!(ecosystem_creator, n_generations = 5)
 @test length(eco.species) == 3
 
 end
@@ -118,14 +118,17 @@ function cont_pred_eco_creator(;
     interaction_id1::String = "Host-Mutualist-CooperativeMatching",
     interaction_id2::String = "Host-Parasite-Competitive",
     n_elite::Int = 0,
-    n_workers::Int = 1
+    n_workers::Int = 1,
+    cohorts::Vector{Symbol} = [:population, :children],
+    n_truncate::Int = 25,
+    tournament_size::Int = 3,
 )
-    eco_creator = BasicEcosystemCreator(
+    ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
         rng = rng,
-        species_creators = Dict(
-            species_id1 => BasicSpeciesCreator(
+        species_creators = [
+            BasicSpeciesCreator(
                 id = species_id1,
                 n_pop = n_pop,
                 geno_creator = FiniteStateMachineGenotypeCreator(),
@@ -134,14 +137,14 @@ function cont_pred_eco_creator(;
                     maximize = true,
                     perform_disco = true
                 ),
-                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
+                replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    μ = n_pop, tournament_size = 3, selection_func=argmin
+                    n_parents = n_pop, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
-            species_id2 => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = species_id2,
                 n_pop = n_pop,
                 geno_creator = FiniteStateMachineGenotypeCreator(),
@@ -150,51 +153,50 @@ function cont_pred_eco_creator(;
                     maximize = true,
                     perform_disco = true
                 ),
-                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
+                replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    μ = n_pop, tournament_size = 3, selection_func=argmin
+                    n_parents = n_pop, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
-            species_id3 => BasicSpeciesCreator(
+            BasicSpeciesCreator(
                 id = species_id3,
                 n_pop = n_pop,
                 geno_creator = FiniteStateMachineGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
-                replacer = TruncationReplacer(type = :plus, n_truncate = 25),
-                selector = TournamentSelector(μ = n_pop, tournament_size = 3),
+                replacer = TruncationReplacer(n_truncate = n_truncate),
+                selector = TournamentSelector(
+                    n_parents = n_pop, tournament_size = tournament_size
+                ),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
-        ),
+        ],
         job_creator = BasicJobCreator(
             n_workers = 1,
-            interactions = Dict(
-                interaction_id1 => BasicInteraction(
+            interactions = [
+                BasicInteraction(
                     id = interaction_id1,
                     environment_creator = LinguisticPredictionGameEnvironmentCreator(
-                        LinguisticPredictionGameDomain(
-                            CooperativeMismatching()
-                        ),
+                        PredictionGameDomain(:Affinitive),
                     ),
                     species_ids = [species_id1, species_id2],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-                interaction_id2 => BasicInteraction(
+                BasicInteraction(
                     id = interaction_id2,
                     environment_creator = LinguisticPredictionGameEnvironmentCreator(
-                        LinguisticPredictionGameDomain(
-                            Competitive()
-                        ),
+                        PredictionGameDomain(:Adversarial),
                     ),
                     species_ids = [species_id1, species_id3],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllvsAllMatchMaker(cohorts = cohorts),
                 ),
-            ),
+            ],
         ),
         performer = BasicPerformer(n_workers = n_workers),
+        state_creator = BasicCoevolutionaryStateCreator(),
         reporters = Reporter[
             # BasicReporter(metric = GenotypeSize()),
             # BasicReporter(metric = AllSpeciesFitness()),
@@ -202,12 +204,12 @@ function cont_pred_eco_creator(;
         archiver = BasicArchiver(),
         runtime_reporter = RuntimeReporter(print_interval = 0),
     )
-    return eco_creator
+    return ecosystem_creator
 end
 
 
-eco_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
-eco = evolve!(eco_creator, n_gen=5)
+ecosystem_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
+eco = evolve!(ecosystem_creator, n_generations=5)
 @test length(eco.species) == 3
 
 end
