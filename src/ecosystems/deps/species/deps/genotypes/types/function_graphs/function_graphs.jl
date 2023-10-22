@@ -4,6 +4,7 @@ export FunctionGraphGenotype, FunctionGraphGenotypeCreator, FUNCTION_MAP
 export FunctionGraphConnection, FunctionGraphNode, GraphFunction
 export pretty_print
 
+using Base: @kwdef
 using Random: AbstractRNG
 using ...Genotypes.Abstract: Genotype, GenotypeCreator
 using CoEvo.Ecosystems.Utilities.Counters: Counter, next!

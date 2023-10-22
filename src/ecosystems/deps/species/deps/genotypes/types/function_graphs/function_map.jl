@@ -1,36 +1,97 @@
+export FUNCTION_MAP, GraphFunction, evaluate, InputGraphFunction, BiasGraphFunction
+export OutputGraphFunction, IdentityGraphFunction, AddGraphFunction, SubtractGraphFunction
+export MultiplyGraphFunction, GraphDivide, MaximumGraphFunction, MinimumGraphFunction
+export SineGraphFunction, CosineGraphFunction, SigmoidGraphFunction, TanhGraphFunction
+export ReluGraphFunction, AndGraphFunction, OrGraphFunction, NandGraphFunction, XorGraphFunction
 
-@kwdef struct GraphFunction
-    name::Symbol
-    func::Function
-    arity::Int
+using Base: @kwdef
+
+abstract type GraphFunction end
+
+function evaluate(func::GraphFunction, args...)
+    throw(ArgumentError("Function $func is not implemented."))
 end
 
-@inline function graph_identity(x::Float32)::Float32
+@kwdef struct InputGraphFunction <: GraphFunction 
+    name::Symbol = :INPUT
+    arity::Int = 0
+end
+
+@inline function evaluate(::InputGraphFunction, x::Float32)::Float32
+    throw(ArgumentError("Input function cannot be evaluated."))
+end
+
+@kwdef struct BiasGraphFunction <: GraphFunction 
+    name::Symbol = :BIAS
+    arity::Int = 0
+end
+
+@inline function evaluate(::BiasGraphFunction, x::Float32)::Float32
+    throw(ArgumentError("Bias function cannot be evaluated."))
+end
+
+@kwdef struct OutputGraphFunction <: GraphFunction 
+    name::Symbol = :OUTPUT
+    arity::Int = 1
+end
+
+@inline function evaluate(::OutputGraphFunction, x::Float32)::Float32
     return x
 end
 
-@inline function graph_add(x::Float32, y::Float32)::Float32
+@kwdef struct IdentityGraphFunction <: GraphFunction 
+    name::Symbol = :IDENTITY
+    arity::Int = 1
+end
+     
+
+@inline function evaluate(::IdentityGraphFunction, x::Float32)::Float32
+    return x
+end
+
+@kwdef struct AddGraphFunction <: GraphFunction 
+    name::Symbol = :ADD
+    arity::Int = 2
+end
+
+@inline function evaluate(::AddGraphFunction, x::Float32, y::Float32)::Float32
     if x == Inf32 && y == -Inf32 || x == -Inf32 && y == Inf32
         return 0.0f0
     end
     return x + y
 end
 
-@inline function graph_subtract(x::Float32, y::Float32)::Float32
+@kwdef struct SubtractGraphFunction <: GraphFunction 
+    name::Symbol = :SUBTRACT
+    arity::Int = 2
+end
+
+@inline function evaluate(::SubtractGraphFunction, x::Float32, y::Float32)::Float32
     if x == Inf32 && y == Inf32 || x == -Inf32 && y == -Inf32
         return 0.0f0
     end
     return x - y
 end
 
-@inline function graph_multiply(x::Float32, y::Float32)::Float32
+@kwdef struct MultiplyGraphFunction <: GraphFunction 
+    name::Symbol = :MULTIPLY
+    arity::Int = 2
+end
+
+
+@inline function evaluate(::MultiplyGraphFunction, x::Float32, y::Float32)::Float32
     if x == 0.0f0 || y == 0.0f0
         return 0.0f0
     end
     return x * y
 end
 
-@inline function graph_divide(x::Float32, y::Float32)::Float32
+@kwdef struct GraphDivide <: GraphFunction 
+    name::Symbol = :DIVIDE
+    arity::Int = 2
+end
+
+@inline function evaluate(::GraphDivide, x::Float32, y::Float32)::Float32
     if x == Inf32 && y == Inf32 || x == -Inf32 && y == -Inf32
         return 1.0f0
     elseif x == Inf32 && y == -Inf32 || x == -Inf32 && y == Inf32
@@ -45,145 +106,125 @@ end
     return x / y
 end
 
-@inline function graph_maximum(x::Float32, y::Float32)::Float32
+@kwdef struct MaximumGraphFunction <: GraphFunction 
+    name::Symbol = :MAXIMUM
+    arity::Int = 2
+end
+
+@inline function evaluate(::MaximumGraphFunction, x::Float32, y::Float32)::Float32
     return max(x, y)
 end
 
-@inline function graph_minimum(x::Float32, y::Float32)::Float32
+@kwdef struct MinimumGraphFunction <: GraphFunction 
+    name::Symbol = :MINIMUM
+    arity::Int = 2
+end
+
+@inline function evaluate(::MinimumGraphFunction, x::Float32, y::Float32)::Float32
     return min(x, y)
 end
 
-@inline function graph_sin(x::Float32)::Float32
+@kwdef struct SineGraphFunction <: GraphFunction 
+    name::Symbol = :SINE
+    arity::Int = 1
+end
+
+@inline function evaluate(::SineGraphFunction, x::Float32)::Float32
     return isinf(x) ? 0.0f0 : sin(x)
 end
 
-@inline function graph_cosine(x::Float32)::Float32
-    return isinf(x) ? 0.0f0 : cos(x)
+@kwdef struct CosineGraphFunction <: GraphFunction 
+    name::Symbol = :COSINE
+    arity::Int = 1
 end
 
-@inline function graph_sigmoid(x::Float32)::Float32
+@inline function evaluate(::CosineGraphFunction, x::Float32)::Float32
+    return isinf(x) ? 1.0f0 : cos(x)
+end
+
+@kwdef struct SigmoidGraphFunction <: GraphFunction 
+    name::Symbol = :SIGMOID
+    arity::Int = 1
+end
+
+@inline function evaluate(::SigmoidGraphFunction, x::Float32)::Float32
     return 1.0f0 / (1.0f0 + exp(-x))
 end
 
-@inline function graph_tanh(x::Float32)::Float32
+@kwdef struct TanhGraphFunction <: GraphFunction 
+    name::Symbol = :TANH
+    arity::Int = 1
+end
+
+@inline function evaluate(::TanhGraphFunction, x::Float32)::Float32
     return tanh(x)
 end
 
-@inline function graph_relu(x::Float32)::Float32
+@kwdef struct ReluGraphFunction <: GraphFunction 
+    name::Symbol = :RELU
+    arity::Int = 1
+end
+
+@inline function evaluate(::ReluGraphFunction, x::Float32)::Float32
     return x < 0.0f0 ? 0.0f0 : x
 end
 
-@inline function graph_and(x::Float32, y::Float32)::Float32
+@kwdef struct AndGraphFunction <: GraphFunction 
+    name::Symbol = :AND
+    arity::Int = 2
+end
+
+@inline function evaluate(::AndGraphFunction, x::Float32, y::Float32)::Float32
     return Bool(x) && Bool(y) ? 1.0f0 : 0.0f0
 end
 
-@inline function graph_or(x::Float32, y::Float32)::Float32
+@kwdef struct OrGraphFunction <: GraphFunction 
+    name::Symbol = :OR
+    arity::Int = 2
+end
+
+@inline function evaluate(::OrGraphFunction, x::Float32, y::Float32)::Float32
     return Bool(x) || Bool(y) ? 1.0f0 : 0.0f0
 end
 
-@inline function graph_nand(x::Float32, y::Float32)::Float32
+@kwdef struct NandGraphFunction <: GraphFunction 
+    name::Symbol = :NAND
+    arity::Int = 2
+end
+
+@inline function evaluate(::NandGraphFunction, x::Float32, y::Float32)::Float32
     return !(Bool(x) && Bool(y)) ? 1.0f0 : 0.0f0
 end
 
-@inline function graph_xor(x::Float32, y::Float32)::Float32
+@kwdef struct XorGraphFunction <: GraphFunction 
+    name::Symbol = :XOR
+    arity::Int = 2
+end
+
+@inline function evaluate(::XorGraphFunction, x::Float32, y::Float32)::Float32
     return Bool(x) ⊻ Bool(y) ? 1.0f0 : 0.0f0
 end
 
 
+
 const FUNCTION_MAP = Dict(
-    :INPUT => GraphFunction(
-        name = :INPUT, 
-        func = graph_identity, 
-        arity = 0
-    ),
-    :BIAS => GraphFunction(
-        name = :BIAS, 
-        func = graph_identity, 
-        arity = 0
-    ),
-    :OUTPUT => GraphFunction(
-        name = :OUTPUT, 
-        func = graph_identity, 
-        arity = 1
-    ),
-    :IDENTITY => GraphFunction(
-        name = :IDENTITY, 
-        func = graph_identity, 
-        arity = 1
-    ),
-    :ADD => GraphFunction(
-        name = :ADD, 
-        func = graph_add, 
-        arity = 2
-    ),
-    :SUBTRACT => GraphFunction(
-        name = :SUBTRACT, 
-        func = graph_subtract, 
-        arity = 2
-    ),
-    :MULTIPLY => GraphFunction(
-        name = :MULTIPLY, 
-        func = graph_multiply, 
-        arity = 2
-    ),
-    :DIVIDE => GraphFunction(
-        name = :DIVIDE, 
-        func = graph_divide, 
-        arity = 2
-    ),
-    :MAXIMUM => GraphFunction(
-        name = :MAXIMUM, 
-        func = graph_maximum, 
-        arity = 2
-    ),
-    :MINIMUM => GraphFunction(
-        name = :MINIMUM, 
-        func = graph_minimum, 
-        arity = 2
-    ),
-    :SIN => GraphFunction(
-        name = :SIN, 
-        func = graph_sin,
-        arity = 1
-    ),
-    :COSINE => GraphFunction(
-        name = :COSINE, 
-        func = graph_cosine,
-        arity = 1
-    ),
-    :SIGMOID => GraphFunction(
-        name = :SIGMOID, 
-        func = graph_sigmoid,
-        arity = 1
-    ),
-    :TANH => GraphFunction(
-        name = :TANH, 
-        func = graph_tanh, 
-        arity = 1
-    ),
-    :RELU => GraphFunction(
-        name = :RELU, 
-        func = graph_relu,
-        arity = 1
-    ),
-    :AND => GraphFunction(
-        name = :AND, 
-        func = graph_and,
-        arity = 2
-    ),
-    :OR => GraphFunction(
-        name = :OR, 
-        func = graph_or,
-        arity = 2
-    ),
-    :NAND => GraphFunction(
-        name = :NAND, 
-        func = graph_nand,
-        arity = 2
-    ),
-    :XOR => GraphFunction(
-        name = :XOR, 
-        func = graph_xor,
-        arity = 2
-    ),
+    :INPUT => InputGraphFunction(),
+    :BIAS => BiasGraphFunction(),
+    :OUTPUT => OutputGraphFunction(),
+    :IDENTITY => IdentityGraphFunction(),
+    :ADD => AddGraphFunction(),
+    :SUBTRACT => SubtractGraphFunction(),
+    :MULTIPLY => MultiplyGraphFunction(),
+    :DIVIDE => GraphDivide(),
+    :MAXIMUM => MaximumGraphFunction(),
+    :MINIMUM => MinimumGraphFunction(),
+    :SINE => SineGraphFunction(),
+    :COSINE => CosineGraphFunction(),
+    :SIGMOID => SigmoidGraphFunction(),
+    :TANH => TanhGraphFunction(),
+    :RELU => ReluGraphFunction(),
+    :AND => AndGraphFunction(),
+    :OR => OrGraphFunction(),
+    :NAND => NandGraphFunction(),
+    :XOR => XorGraphFunction(),
 )

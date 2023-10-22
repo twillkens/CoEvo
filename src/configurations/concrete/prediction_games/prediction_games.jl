@@ -3,6 +3,7 @@ module PredictionGames
 export make_ecosystem_creator, PredictionGameTrialConfiguration
 
 using Distributed
+using Base: @kwdef
 using Random: AbstractRNG
 using StableRNGs: StableRNG
 using ....Ecosystems.Metrics.Concrete.Outcomes: PredictionGameOutcomeMetrics
@@ -15,20 +16,16 @@ using ....Ecosystems.Species.Phenotypes.LinearizedFunctionGraphs: LinearizedFunc
 using ....Ecosystems.Species.Phenotypes.Defaults: DefaultPhenotypeCreator
 using ....Ecosystems.Species.Evaluators.Types.NSGAII: NSGAIIEvaluator
 using ....Ecosystems.Species.Evaluators.Types.ScalarFitness: ScalarFitnessEvaluator
-using ....Ecosystems.Species.Replacers.Types.Truncation: TruncationReplacer
 using ....Ecosystems.Species.Basic: BasicSpeciesCreator
 using ....Ecosystems.Basic: BasicEcosystemCreator
 using ....Ecosystems.Species.Selectors.Types.Tournament: TournamentSelector
 using ....Ecosystems.Species.Selectors.Types.FitnessProportionate: FitnessProportionateSelector
 using ....Ecosystems.Species.Selectors.Types.Tournament: TournamentSelector
-using ....Ecosystems.Species.Recombiners.Types.Clone: CloneRecombiner
 using ....Ecosystems.Jobs.Basic: BasicJobCreator
 
 using ....Ecosystems.Interactions.Concrete.Basic: BasicInteraction
 using ....Ecosystems.Interactions.Environments.Concrete.Tape: TapeEnvironmentCreator
 using ....Ecosystems.Interactions.Domains.Concrete: PredictionGameDomain
-using ....Ecosystems.Interactions.MatchMakers.AllvsAll: AllvsAllMatchMaker
-using ....Ecosystems.Performers.Concrete.Cache: CachePerformer
 using ....Ecosystems.Reporters.Types.Basic: BasicReporter
 using ....Ecosystems.Reporters.Types.Runtime: RuntimeReporter
 using ....Ecosystems.Reporters.Abstract: Reporter
@@ -39,9 +36,9 @@ using ....Ecosystems.Archivers.Concrete.Basic: BasicArchiver
 using ....Ecosystems.Interfaces: evolve!
 
 using ....Ecosystems.States.Concrete: BasicCoevolutionaryStateCreator
-using ....Ecosystems.Utilities.Counters: Counter
 using ...Configurations.Abstract: Configuration
-using Base: @kwdef
+using ...Configurations.Helpers: make_counters, make_random_number_generator, make_performer
+using ...Configurations.Helpers: make_recombiner, make_replacer, make_matchmaker
 
 import ...Configurations.Interfaces: make_ecosystem_creator
 
@@ -114,7 +111,7 @@ function make_domains(configuration::PredictionGameTrialConfiguration)
 end
 
 
-function make_reporters(configuration::Configuration)
+function make_reporters(configuration::PredictionGameTrialConfiguration)
     reporters = Reporter[]
     report_type = configuration.report_type
     print_interval = 0
@@ -132,7 +129,7 @@ function make_reporters(configuration::Configuration)
         throw(ArgumentError("Unrecognized report type: $report_type"))
     end
     runtime_reporter = RuntimeReporter(print_interval = print_interval)
-    reporters = [
+    reporters = Reporter[
         BasicReporter(
             metric = GenotypeSize(), 
             save_interval = save_interval, 
@@ -157,25 +154,8 @@ function make_reporters(configuration::Configuration)
     return runtime_reporter, reporters
 end
 
-function make_replacer(configuration::Configuration)
-    replacer = configuration.replacer
-    if replacer == :truncation
-        return TruncationReplacer(n_truncate = configuration.n_truncate)
-    else
-        throw(ArgumentError("Unrecognized replacer: $replacer"))
-    end
-end
 
-function make_matchmaker(configuration::Configuration)
-    matchmaker = configuration.matchmaker
-    if matchmaker == :all_vs_all
-        return AllvsAllMatchMaker(cohorts = configuration.cohorts)
-    else
-        throw(ArgumentError("Unrecognized matchmaker: $matchmaker"))
-    end
-end
-
-function make_evaluator_and_selector(configuration::Configuration)
+function make_reproducer_types(configuration::PredictionGameTrialConfiguration)
     reproduction_method = configuration.reproduction_method
     if reproduction_method == :roulette
         evaluator = ScalarFitnessEvaluator()
@@ -194,7 +174,7 @@ function make_evaluator_and_selector(configuration::Configuration)
     return evaluator, selector
 end
 
-function make_genotype_related_types(configuration::Configuration)
+function make_substrate_types(configuration::PredictionGameTrialConfiguration)
     substrate = configuration.substrate
     communication_dimension = configuration.communication_dimension
     if substrate == :function_graphs
@@ -215,28 +195,10 @@ function make_genotype_related_types(configuration::Configuration)
     else
         throw(ArgumentError("Unrecognized substrate: $substrate"))
     end
-
     return genotype_creator, phenotype_creator, mutators
 end
 
 
-function make_performer(configuration::Configuration)
-    performer = configuration.performer
-    if performer == :cache
-        return CachePerformer(n_workers = configuration.n_workers)
-    else
-        throw(ArgumentError("Unrecognized performer: $performer"))
-    end
-end
-
-function make_recombiner(configuration::Configuration)
-    recombiner = configuration.recombiner
-    if recombiner == :clone
-        return CloneRecombiner()
-    else
-        throw(ArgumentError("Unrecognized recombiner: $recombiner"))
-    end
-end
 
 function make_species_ids(configuration::PredictionGameTrialConfiguration)
     SPECIES_ID_DICT = Dict(
@@ -256,27 +218,14 @@ function make_species_ids(configuration::PredictionGameTrialConfiguration)
     return species_ids
 end
 
-function make_counters(configuration::PredictionGameTrialConfiguration)
-    individual_id_counter = Counter(configuration.individual_id_counter_state)
-    gene_id_counter = Counter(configuration.gene_id_counter_state)
-    return individual_id_counter, gene_id_counter
-end
 
-function make_random_number_generator(configuration::PredictionGameTrialConfiguration)
-    seed = configuration.seed
-    rng = configuration.random_number_generator
-    if rng === nothing
-        rng = StableRNG(seed)
-    end
-    return rng
-end
 
 function make_species_creators(configuration::PredictionGameTrialConfiguration)
-    genotype_creator, phenotype_creator, mutators = make_genotype_related_types(configuration)
-    recombiner = make_recombiner(configuration)
-    evaluator, selector = make_evaluator_and_selector(configuration)
-    replacer = make_replacer(configuration)
     species_ids = make_species_ids(configuration)
+    genotype_creator, phenotype_creator, mutators = make_substrate_types(configuration)
+    evaluator, selector = make_reproducer_types(configuration)
+    replacer = make_replacer(configuration)
+    recombiner = make_recombiner(configuration)
     species_creators = [
         BasicSpeciesCreator(
             id = species_id,

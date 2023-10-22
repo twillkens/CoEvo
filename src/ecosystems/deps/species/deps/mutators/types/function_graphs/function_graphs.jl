@@ -438,7 +438,7 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
         :DIVIDE => FUNCTION_MAP[:DIVIDE],
         :MAXIMUM => FUNCTION_MAP[:MAXIMUM],
         :MINIMUM => FUNCTION_MAP[:MINIMUM],
-        :SIN => FUNCTION_MAP[:SIN],
+        :SINE => FUNCTION_MAP[:SINE],
         :COSINE => FUNCTION_MAP[:COSINE],
         :SIGMOID => FUNCTION_MAP[:SIGMOID],
         :TANH => FUNCTION_MAP[:TANH],

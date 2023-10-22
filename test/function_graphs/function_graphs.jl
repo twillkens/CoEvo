@@ -584,6 +584,7 @@ end
     for (input_values, expected_output) in input_outputs
         output = act!(phenotype, input_values)
         @test output == expected_output
+        #println(output == expected_output)
     end
 end
 
@@ -705,7 +706,7 @@ function apply_mutation_storm(mutator::FunctionGraphMutator, genotype::FunctionG
     # Use the mutate function, applying n_storms mutations
     rng = Random.MersenneTwister(rand(UInt64))
     gene_id_counter = Counter(7)  # Assume some counter
-    phenotype_creator = DefaultPhenotypeCreator()
+    phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
     output_length_equals_expected = Bool[]
     
     for _ in ProgressBar(1:n_storms)

@@ -4,6 +4,7 @@ export FunctionGraphPhenotype, FunctionGraphStatefulNode
 
 using ...Species.Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
 using ...Species.Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP
+using ...Species.Genotypes.FunctionGraphs: evaluate
 using ...Phenotypes.Abstract: Phenotype, PhenotypeCreator
 
 import ...Phenotypes.Interfaces: create_phenotype, act!, reset!
@@ -112,13 +113,13 @@ end
 function apply_func(node_func::GraphFunction, input_values::Vector{Float32})::Float32
     # Specific function applications for known arities
     if node_func.arity == 1
-        value = node_func.func(input_values[1])::Float32
+        value = evaluate(node_func, input_values[1])::Float32
         if typeof(value) !== Float32
             throw(ErrorException("Function $(node_func.name) returned $(typeof(value)) instead of Float32"))
         end
         return value
     elseif node_func.arity == 2
-        value = node_func.func(input_values[1], input_values[2])::Float32
+        value = evaluate(node_func, input_values[1], input_values[2])::Float32
         if typeof(value) !== Float32
             throw(ErrorException("Function $(node_func.name) returned $(typeof(value)) instead of Float32"))
         end
