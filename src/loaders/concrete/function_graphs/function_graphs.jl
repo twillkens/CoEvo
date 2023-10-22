@@ -18,6 +18,7 @@ function load_genotype(::FunctionGraphGenotypeLoader, geno_group::Group)
     bias_node_ids = geno_group["bias_node_ids"]
     hidden_node_ids = geno_group["hidden_node_ids"]
     output_node_ids = geno_group["output_node_ids"]
+    n_nodes_per_output = geno_group["n_nodes_per_output"]
     
     # Load node-related data.
     node_ids = geno_group["node_ids"]
@@ -42,7 +43,8 @@ function load_genotype(::FunctionGraphGenotypeLoader, geno_group::Group)
         bias_node_ids=bias_node_ids,
         hidden_node_ids=hidden_node_ids,
         output_node_ids=output_node_ids,
-        nodes=nodes
+        nodes=nodes,
+        n_nodes_per_output=n_nodes_per_output
     )
     return genotype
 end

@@ -16,6 +16,7 @@ function save_genotype!(::BasicArchiver, geno_group::Group, geno::FunctionGraphG
     geno_group["bias_node_ids"] = geno.bias_node_ids
     geno_group["hidden_node_ids"] = geno.hidden_node_ids
     geno_group["output_node_ids"] = geno.output_node_ids
+    geno_group["n_nodes_per_output"] = geno.n_nodes_per_output
     
     # Ensure ordered saving of node-related data.
     ordered_node_ids = sort(collect(keys(geno.nodes)))

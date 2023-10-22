@@ -136,7 +136,8 @@ function remove_function(
         bias_node_ids = genotype.bias_node_ids,
         hidden_node_ids = hidden_node_ids,
         output_node_ids = genotype.output_node_ids,
-        nodes = new_nodes
+        nodes = new_nodes,
+        n_nodes_per_output = genotype.n_nodes_per_output
     )
 
     return genotype
@@ -189,26 +190,38 @@ function get_substitutions_for_node(
             
             if isempty(possible_redirects)
                 # Determine if the current node is an output node
-                is_output_node = node_id in genotype.output_node_ids
-
-                if is_output_node
-                    # For output nodes, choose from input, bias, and hidden nodes that are not the current node.
-                    valid_nodes = setdiff(
-                        union(
-                            genotype.input_node_ids, 
-                            genotype.bias_node_ids, 
-                            genotype.hidden_node_ids
-                        ), 
-                        [node_id, node_to_delete_id]
-                    )
-                    if isempty(valid_nodes)
-                        throw(ErrorException("No valid nodes to redirect to for output node"))
-                    end
-                    new_input_node_id = rand(rng, valid_nodes)
-                else
-                    # For non-output nodes, create a self-connection
-                    new_input_node_id = node_id
+                valid_nodes = setdiff(
+                    union(
+                        genotype.input_node_ids, 
+                        genotype.bias_node_ids, 
+                        genotype.hidden_node_ids
+                    ), 
+                    [node_id, node_to_delete_id]
+                )
+                if isempty(valid_nodes)
+                    throw(ErrorException("No valid nodes to redirect to for output node"))
                 end
+                new_input_node_id = rand(rng, valid_nodes)
+
+                #is_output_node = node_id in genotype.output_node_ids
+                #if is_output_node
+                #    # For output nodes, choose from input, bias, and hidden nodes that are not the current node.
+                #    valid_nodes = setdiff(
+                #        union(
+                #            genotype.input_node_ids, 
+                #            genotype.bias_node_ids, 
+                #            genotype.hidden_node_ids
+                #        ), 
+                #        [node_id, node_to_delete_id]
+                #    )
+                #    if isempty(valid_nodes)
+                #        throw(ErrorException("No valid nodes to redirect to for output node"))
+                #    end
+                #    new_input_node_id = rand(rng, valid_nodes)
+                #else
+                #    # For non-output nodes, create a self-connection
+                #    new_input_node_id = node_id
+                #end
             else
                 new_input_node_id = rand(rng, [x.input_node_id for x in possible_redirects])
             end
@@ -301,7 +314,8 @@ function get_genotype_after_swapping_functions(
         bias_node_ids = genotype.bias_node_ids, 
         hidden_node_ids = genotype.hidden_node_ids, 
         output_node_ids = genotype.output_node_ids, 
-        nodes = new_nodes
+        nodes = new_nodes,
+        n_nodes_per_output = genotype.n_nodes_per_output
     )
     return genotype
 end

@@ -43,7 +43,8 @@ println("Starting tests for FunctionGraphs...")
             5 => FunctionGraphNode(5, :OUTPUT, [
                 FunctionGraphConnection(4, 1.0, false)
             ]),
-        )
+        ),
+        n_nodes_per_output = 1
     )
     # Create an initial `genotype` object here for testing.
 
@@ -98,7 +99,8 @@ end
             6 => FunctionGraphNode(6, :OUTPUT, [
                 FunctionGraphConnection(5, 1.0, false)
             ])
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     @testset "Test Deterministic Removal" begin
@@ -168,7 +170,8 @@ end
             6 => FunctionGraphNode(6, :OUTPUT, [
                 FunctionGraphConnection(5, 1.0, false)
             ]),
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     @test length(keys(geno.nodes)) == 7
@@ -286,7 +289,8 @@ end
             3 => FunctionGraphNode(3, :ADD, [FunctionGraphConnection(1, 1.0, false)]),
             4 => FunctionGraphNode(4, :SUBTRACT, [FunctionGraphConnection(2, 1.0, false)]),
             5 => FunctionGraphNode(5, :OUTPUT, [FunctionGraphConnection(3, 1.0, false)])
-        )
+        ),
+        1
     )
     
     @testset "select_function_with_same_arity" begin
@@ -340,7 +344,8 @@ end
             4 => FunctionGraphNode(4, :OUTPUT, [
                 FunctionGraphConnection(3, 1.0, false)
             ])
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     # Seed to make stochastic tests reproducible
@@ -399,7 +404,8 @@ using Test
             4 => FunctionGraphNode(4, :OUTPUT, [
                 FunctionGraphConnection(3, 1.0, false),
             ])
-        )
+        ),
+        n_nodes_per_output = 1
     )
     
     # Test 1: Initialization of a stateful node from a stateless node
@@ -457,7 +463,8 @@ end
                 FunctionGraphConnection(0, 1.0, false)
             ]),
             0 => FunctionGraphNode(0, :INPUT, [])
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
@@ -505,7 +512,8 @@ end
             ]),
             2 => FunctionGraphNode(2, :INPUT, []),
             1 => FunctionGraphNode(1, :INPUT, [])
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
@@ -564,7 +572,8 @@ end
             3 => FunctionGraphNode(3, :INPUT, []),
             2 => FunctionGraphNode(2, :INPUT, []),
             1 => FunctionGraphNode(1, :INPUT, [])
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
@@ -618,7 +627,8 @@ end
             3 => FunctionGraphNode(3, :INPUT, []),
             2 => FunctionGraphNode(2, :INPUT, []),
             1 => FunctionGraphNode(1, :INPUT, [])
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     newtons_law_of_gravitation = (g, m1, m2, r) -> (Float32(g) * Float32(m1) * Float32(m2)) / Float32(r)^2
@@ -661,7 +671,8 @@ using Test
                 FunctionGraphConnection(2, 0.6, false)
             ]),
             5 => FunctionGraphNode(5, :OUTPUT, [FunctionGraphConnection(3, 0.2, false), FunctionGraphConnection(4, 0.7, false)])
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     # [Your inject_noise! implementations here]
@@ -753,7 +764,8 @@ end
             6 => FunctionGraphNode(6, :OUTPUT, [
                 FunctionGraphConnection(5, 1.0, false)
             ])
-        )
+        ),
+        n_nodes_per_output = 1
     )
     mutator = FunctionGraphMutator()  # You may customize this
     
@@ -780,7 +792,8 @@ end
             5 => FunctionGraphNode(5, :SUBTRACT, [FunctionGraphConnection(3, 1.0, false), FunctionGraphConnection(4, 1.0, false)]),
             6 => FunctionGraphNode(6, :MULTIPLY, [FunctionGraphConnection(2, 1.0, false), FunctionGraphConnection(3, 1.0, false)]),  # Not connected to output
             7 => FunctionGraphNode(7, :OUTPUT, [FunctionGraphConnection(5, 1.0, false)])
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     # Minimize the genotype
@@ -851,7 +864,8 @@ using .Archivers.Interfaces: save_genotype!
             5 => FunctionGraphNode(5, :OUTPUT, [
                 FunctionGraphConnection(4, 1.0, false)
             ]),
-        )
+        ),
+        n_nodes_per_output = 1
     )
 
     archiver = BasicArchiver()

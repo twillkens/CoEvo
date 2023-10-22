@@ -54,6 +54,7 @@ end
     hidden_node_ids::Vector{Int}
     output_node_ids::Vector{Int}
     nodes::Dict{Int, FunctionGraphNode}
+    n_nodes_per_output::Int
 end
 
 function Base.:(==)(a::FunctionGraphGenotype, b::FunctionGraphGenotype)
@@ -93,9 +94,10 @@ end
 
 
 @kwdef struct FunctionGraphGenotypeCreator <: GenotypeCreator
-    n_input_nodes::Int
-    n_bias_nodes::Int
-    n_output_nodes::Int
+    n_inputs::Int
+    n_bias::Int
+    n_outputs::Int
+    n_nodes_per_output::Int
 end
 
 
@@ -121,7 +123,8 @@ function create_output_ids_and_nodes(
     gene_id_counter::Counter,
     input_node_ids::Vector{Int},
 )
-    output_node_ids = next!(gene_id_counter, genotype_creator.n_output_nodes)
+    n_output_nodes = genotype_creator.n_outputs * genotype_creator.n_nodes_per_output
+    output_node_ids = next!(gene_id_counter, n_output_nodes)
     output_nodes = Dict(
         map(output_node_ids) do id
             input_connection_id = rand(rng, input_node_ids)[1]
@@ -150,23 +153,23 @@ function create_genotypes(
     genotypes = FunctionGraphGenotype[]
     for _ in 1:n_pop
         input_node_ids, input_nodes = create_ids_and_nodes(
-            gene_id_counter, :INPUT, genotype_creator.n_input_nodes
+            gene_id_counter, :INPUT, genotype_creator.n_inputs
         )
         bias_node_ids, bias_nodes = create_ids_and_nodes(
-            gene_id_counter, :BIAS, genotype_creator.n_bias_nodes
+            gene_id_counter, :BIAS, genotype_creator.n_bias
         )
         available_input_ids = [input_node_ids; bias_node_ids]
         output_node_ids, output_nodes = create_output_ids_and_nodes(
             genotype_creator, rng, gene_id_counter, available_input_ids
         )
-
         nodes = merge(input_nodes, bias_nodes, output_nodes)
         genotype = FunctionGraphGenotype(
             input_node_ids = input_node_ids, 
             bias_node_ids = bias_node_ids,
             output_node_ids = output_node_ids, 
             hidden_node_ids = Int[], 
-            nodes = nodes
+            nodes = nodes,
+            n_nodes_per_output = genotype_creator.n_nodes_per_output
         )
         push!(genotypes, genotype)
     end
@@ -206,13 +209,15 @@ function minimize(geno::FunctionGraphGenotype)
     minimized_nodes = Dict(id => node for (id, node) in geno.nodes if id in essential_nodes_ids)
 
     # Return a new FunctionGraphGenotype with minimized nodes and unaltered input, bias, and output nodes.
-    return FunctionGraphGenotype(
-        input_node_ids=geno.input_node_ids, 
-        bias_node_ids=geno.bias_node_ids, 
-        hidden_node_ids=filter(id -> id in essential_nodes_ids, geno.hidden_node_ids), 
-        output_node_ids=geno.output_node_ids, 
-        nodes=minimized_nodes
+    minimized_genotype = FunctionGraphGenotype(
+        input_node_ids = geno.input_node_ids, 
+        bias_node_ids = geno.bias_node_ids, 
+        hidden_node_ids = filter(id -> id in essential_nodes_ids, geno.hidden_node_ids), 
+        output_node_ids = geno.output_node_ids, 
+        nodes = minimized_nodes,
+        n_nodes_per_output = geno.n_nodes_per_output
     )
+    return minimized_genotype
 end
 
 

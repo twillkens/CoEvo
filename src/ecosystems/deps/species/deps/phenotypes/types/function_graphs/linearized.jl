@@ -34,6 +34,7 @@ end
     n_output_nodes::Int
     nodes::Vector{LinearizedFunctionGraphNode}
     output_node_indices::Vector{Int}
+    n_nodes_per_output::Int
     output_values::Vector{Float32}
 end
 
@@ -136,7 +137,8 @@ function create_phenotype(
     node_id_to_position_dict = create_node_id_to_position_dict(ordered_node_ids)
     linearized_nodes = make_linearized_nodes(geno, ordered_node_ids, node_id_to_position_dict)
     output_node_indices = [node_id_to_position_dict[id] for id in geno.output_node_ids]
-    output_values = zeros(Float32, length(geno.output_node_ids))
+    n_outputs = div(length(geno.output_node_ids), geno.n_nodes_per_output)
+    output_values = zeros(Float32, n_outputs)
 
     phenotype = LinearizedFunctionGraphPhenotype(
         n_input_nodes = length(geno.input_node_ids),
@@ -145,34 +147,31 @@ function create_phenotype(
         n_output_nodes = length(geno.output_node_ids),
         nodes = linearized_nodes,
         output_node_indices = output_node_indices,
+        n_nodes_per_output = geno.n_nodes_per_output,
         output_values = output_values
     )
     return phenotype
 end
 
-function apply_func(node_func::GraphFunction, input_values::Vector{Float32})::Float32
-    # Specific function applications for known arities
+@inline function update_previous_value!(node::LinearizedFunctionGraphNode)
+    node.previous_value = node.current_value
 end
-
 
 function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{Float32})
     if any(isnan, input_values)
-        println("NaN input values: ", input_values)
-        println("Phenotype: ", phenotype)
-        throw(ErrorException("NaN input values"))
+        throw(ErrorException("NaN input values: $input_values for $phenotype"))
     end
 
     @inbounds begin
         hidden_nodes_end_index = phenotype.n_input_nodes + 
             phenotype.n_bias_nodes + phenotype.n_hidden_nodes
-        for node in phenotype.nodes[1:hidden_nodes_end_index]
-            node.previous_value = node.current_value
+        for index in eachindex(1:hidden_nodes_end_index)
+            node = phenotype.nodes[index]
+            update_previous_value!(node)
+            if index <= phenotype.n_input_nodes
+                node.current_value = input_values[index]
+            end
         end
-        for i in 1:length(input_values)
-            node = phenotype.nodes[i]
-            node.current_value = input_values[i]
-        end
-
         hidden_node_start = phenotype.n_input_nodes + phenotype.n_bias_nodes + 1
         for node in phenotype.nodes[hidden_node_start:end]
             for input_index in eachindex(node.input_connections)
@@ -183,27 +182,27 @@ function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{
                 node.input_values[input_index] = connection.weight * value
             end
             node.current_value = evaluate(node.func, node.input_values)
-            #node_func = node.func
-            #if node_func.arity == 1
-            #    node.current_value = evaluate(node_func, node.input_values[1])::Float32
-            #elseif node_func.arity == 2
-            #    node.current_value = evaluate(
-            #        node_func, node.input_values[1], node.input_values[2])::Float32
-            #else
-            #    throw(ErrorException("Unsupported arity: $(node_func.arity)"))
-            #end
+        end
+        # First, reset all output_values to 0
+        for i in eachindex(phenotype.output_values)
+            phenotype.output_values[i] = 0.0f0
         end
 
-        for output_index in eachindex(phenotype.output_node_indices)
-            output_node_index = phenotype.output_node_indices[output_index]
+        for (output_index, output_node_index) in enumerate(phenotype.output_node_indices)
             output_node = phenotype.nodes[output_node_index]
-            phenotype.output_values[output_index] = output_node.current_value
+            output_value_index = ceil(Int, output_index / phenotype.n_nodes_per_output)
+            node_value = output_node.current_value
+
+            # Checking for the infinity condition
+            output_value = phenotype.output_values[output_value_index]
+            if (node_value == Inf32 && output_value == -Inf32) || 
+                (node_value == -Inf32 && output_value == Inf32)
+                phenotype.output_values[output_value_index] = 0.0f0
+            else
+                phenotype.output_values[output_value_index] += node_value
+            end
         end
     end
-    #for node in phenotype.nodes
-    #    node.previous_value = node.current_value
-    #end
-
 
     output_values = phenotype.output_values
     return output_values

@@ -56,6 +56,7 @@ import ...Configurations.Interfaces: make_ecosystem_creator
     n_workers::Int = 1
     n_population::Int = 50
     communication_dimension::Int = 1
+    n_nodes_per_output::Int = 4
     n_truncate::Int = n_population
     replacer::Symbol = :truncation
     recombiner::Symbol = :clone
@@ -179,9 +180,10 @@ function make_substrate_types(configuration::PredictionGameTrialConfiguration)
     communication_dimension = configuration.communication_dimension
     if substrate == :function_graphs
         genotype_creator = FunctionGraphGenotypeCreator(
-            n_input_nodes = 2 + communication_dimension, 
-            n_bias_nodes = 1,
-            n_output_nodes = 1 + communication_dimension
+            n_inputs = 2 + communication_dimension, 
+            n_bias = 1,
+            n_outputs = 1 + communication_dimension,
+            n_nodes_per_output = configuration.n_nodes_per_output,
         )
         phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
         mutators = [FunctionGraphMutator()]

@@ -8,8 +8,14 @@ using Base: @kwdef
 
 abstract type GraphFunction end
 
-function evaluate(func::GraphFunction, args...)
-    throw(ArgumentError("Function $func is not implemented."))
+@inline function evaluate(func::GraphFunction, inputs::Vector{Float32})::Float32
+    if length(inputs) == 1
+        return evaluate(func, inputs[1])
+    elseif length(inputs) == 2
+        return evaluate(func, inputs[1], inputs[2])
+    else
+        throw(ErrorException("Unsupported arity: $(func.arity)"))
+    end
 end
 
 @kwdef struct InputGraphFunction <: GraphFunction 
