@@ -1,0 +1,25 @@
+module Basic
+
+export BasicSpecies
+
+using ...Individuals.Abstract: Individual
+using ..Species.Abstract: AbstractSpecies
+
+"""
+    BasicSpecies{P <: PhenotypeCreator, I <: Individual}
+
+Represents a species population and its offspring.
+
+# Fields
+- `id::String`: Unique species identifier.
+- `phenotype_creator::P`: Phenotype configuration.
+- `population::OrderedDict{Int, I}`: Current population.
+- `children::OrderedDict{Int, I}`: Offspring of the population.
+"""
+struct BasicSpecies{I <: Individual} <: AbstractSpecies
+    id::String
+    population::Vector{I}
+    children::Vector{I}
+end
+
+end

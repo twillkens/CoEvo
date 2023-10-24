@@ -1,5 +1,4 @@
 using CoEvo
-using .Phenotypes.FunctionGraphs: FunctionGraphPhenotype
 using .Phenotypes.FunctionGraphs: init_stateful_nodes_from_genotype
 using DataStructures: OrderedDict
 using Test
@@ -110,12 +109,12 @@ function construct_layers(genotype::FunctionGraphGenotype)::Vector{Vector{Int}}
     return layers
 end
 
-function initialize_linearized_nodes_from_genotype(geno::FunctionGraphGenotype)
-    all_nodes = Dict(id => LinearizedFunctionGraphNode(node) for (id, node) in geno.nodes)
+function initialize_linearized_nodes_from_genotype(genotype::FunctionGraphGenotype)
+    all_nodes = Dict(id => LinearizedFunctionGraphNode(node) for (id, node) in genotype.nodes)
     for (id, node) in all_nodes
         node.input_nodes = [
             all_nodes[conn.input_node_id] => LinearizedFunctionGraphConnection(conn)
-            for conn in geno.nodes[id].input_connections
+            for conn in genotype.nodes[id].input_connections
         ]
         node.input_values = zeros(Float32, length(node.input_nodes))
     end
@@ -123,21 +122,21 @@ function initialize_linearized_nodes_from_genotype(geno::FunctionGraphGenotype)
 end
 
 function create_phenotype(
-    ::LinearizedFunctionGraphPhenotypeCreator, geno::FunctionGraphGenotype
+    ::LinearizedFunctionGraphPhenotypeCreator, genotype::FunctionGraphGenotype
 )::LinearizedFunctionGraphPhenotype
-    layers = construct_layers(geno)
-    stateful_nodes = initialize_linearized_nodes_from_genotype(geno)
+    layers = construct_layers(genotype)
+    stateful_nodes = initialize_linearized_nodes_from_genotype(genotype)
     
     ordered_nodes = vcat(layers...)
     nodes_in_order = [stateful_nodes[id] for id in ordered_nodes]
-    output_nodes = [stateful_nodes[id] for id in geno.output_node_ids]
+    output_nodes = [stateful_nodes[id] for id in genotype.output_node_ids]
     output_values = zeros(Float32, length(output_nodes))
 
     phenotype = LinearizedFunctionGraphPhenotype(
-        n_input_nodes = length(geno.input_node_ids),
-        n_bias_nodes = length(geno.bias_node_ids),
-        n_hidden_nodes = length(geno.hidden_node_ids),
-        n_output_nodes = length(geno.output_node_ids),
+        n_input_nodes = length(genotype.input_node_ids),
+        n_bias_nodes = length(genotype.bias_node_ids),
+        n_hidden_nodes = length(genotype.hidden_node_ids),
+        n_output_nodes = length(genotype.output_node_ids),
         nodes = nodes_in_order,
         output_nodes = output_nodes,
         output_values = output_values
@@ -217,7 +216,7 @@ function reset!(phenotype::LinearizedFunctionGraphPhenotype)
     end
 end
 
-geno = FunctionGraphGenotype(
+genotype = FunctionGraphGenotype(
     input_node_ids = [0],
     bias_node_ids = Int[],
     hidden_node_ids = [1, 2, 3, 4, 5],
@@ -248,11 +247,11 @@ geno = FunctionGraphGenotype(
     )
 )
 
-layers = construct_layers(geno)
+layers = construct_layers(genotype)
 println("layers: ", layers)
 
 phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
-phenotype = create_phenotype(phenotype_creator, geno)
+phenotype = create_phenotype(phenotype_creator, genotype)
 # # println("phenotype: ", phenotype)
 # 
 # #println("phenotype: ", phenotype)
@@ -299,9 +298,9 @@ function fibonacci_linearized(phenotype::Phenotype, input_values::Vector{Float32
     end
 end
 
-# This assumes you've loaded your genotype `geno` and created the phenotype `phenotype` as in your code above
+# This assumes you've loaded your genotype `genotype` and created the phenotype `phenotype` as in your code above
 phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
-phenotype = create_phenotype(phenotype_creator, geno)
+phenotype = create_phenotype(phenotype_creator, genotype)
 
 # Benchmark the LinearizedFunctionGraphPhenotypeCreator representation
 linearized_benchmark = @benchmark fibonacci_linearized($phenotype, [1.0f0])
@@ -310,7 +309,7 @@ linearized_benchmark = @benchmark fibonacci_linearized($phenotype, [1.0f0])
 println(linearized_benchmark)
 #
 phenotype_creator = DefaultPhenotypeCreator()
-phenotype = create_phenotype(phenotype_creator, geno)
+phenotype = create_phenotype(phenotype_creator, genotype)
 
 # Benchmark the LinearizedFunctionGraphPhenotypeCreator representation
 linearized_benchmark = @benchmark fibonacci_linearized($phenotype, [1.0f0])

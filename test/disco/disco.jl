@@ -105,19 +105,19 @@ end
 
 # @testset "Disco" begin
 #     gen = 1
-#     rng = StableRNG(42)
-#     indiv_id_counter = Counter()
+#     random_number_generator = StableRNG(42)
+#     individual_id_counter = Counter()
 #     gene_id_counter = Counter()
 #     species_id = "subjects"
-#     n_pop = 10
+#     n_population = 10
 # 
 #     default_vector = collect(1:10)
 # 
 #     # Define species configuration similar to spawner
 #     species_creator = BasicSpeciesCreator(
 #         id = species_id,
-#         n_pop = n_pop,
-#         geno_creator = BasicVectorGenotypeCreator(
+#         n_population = n_population,
+#         genotype_creator = BasicVectorGenotypeCreator(
 #             default_vector = default_vector
 #         ),
 #         phenotype_creator = DefaultPhenotypeCreator(),
@@ -127,10 +127,10 @@ end
 #         recombiner = CloneRecombiner(),
 #         mutators = [IdentityMutator()],
 #     )
-#     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
-#     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
-#     evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
-#     @test length(evaluation.records) == n_pop
+#     species = create_species(species_creator, random_number_generator, individual_id_counter, gene_id_counter) 
+#     dummy_outcomes = generate_nested_dict(n_population, n_population)
+#     evaluation = create_evaluation(species_creator.evaluator, random_number_generator, species, dummy_outcomes)
+#     @test length(evaluation.records) == n_population
 # end
 
 

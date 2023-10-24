@@ -11,13 +11,13 @@ using StableRNGs: StableRNG
 using StatsBase: mean
 using DataStructures: SortedDict
 
-rng = StableRNG(42)
+random_number_generator = StableRNG(42)
 
 # samples = [
 #     [1.0, 0.0], 
 #     [0.0, 1.0],
 # ]
-# result = get_fast_global_clustering_result(rng, samples)
+# result = get_fast_global_clustering_result(random_number_generator, samples)
 # error, centroids, clusters, bic = result.error, result.centroids, result.cluster_indices, result.bic
 # println("error: $error")
 # println("centroids: $centroids")
@@ -53,7 +53,7 @@ rng = StableRNG(42)
 # ]
 # 
 # samples = [cluster_samples_1 ; cluster_samples_2]
-# result = get_fast_global_clustering_result(rng, samples)
+# result = get_fast_global_clustering_result(random_number_generator, samples)
 # error, centroids, clusters, bic = result.error, result.centroids, result.cluster_indices, result.bic
 # println("error: $error")
 # println("centroids: $centroids")
@@ -62,7 +62,7 @@ rng = StableRNG(42)
 # 
 # 
 # samples = [cluster_samples_1 ; cluster_samples_2 ; cluster_samples_3]
-# result = get_fast_global_clustering_result(rng, samples)
+# result = get_fast_global_clustering_result(random_number_generator, samples)
 # error, centroids, clusters, bic = result.error, result.centroids, result.cluster_indices, result.bic
 # println("error: $error")
 # println("centroids: $centroids")
@@ -86,7 +86,7 @@ rng = StableRNG(42)
 # ]
 # 
 # samples = [cluster_samples_1 ; cluster_samples_2]
-# result = get_fast_global_clustering_result(rng, samples)
+# result = get_fast_global_clustering_result(random_number_generator, samples)
 # error, centroids, clusters, bic = result.error, result.centroids, result.cluster_indices, result.bic
 # centroids = [[round(x, digits=3) for x in centroid] for centroid in centroids]
 # println("error: $error")
@@ -99,7 +99,7 @@ rng = StableRNG(42)
 # 
 # indiv_ids = merge(indiv_ids_1, indiv_ids_2)
 # 
-# tests = get_derived_tests(rng, indiv_ids)
+# tests = get_derived_tests(random_number_generator, indiv_ids)
 # println("tests: $tests")
 
 
@@ -144,9 +144,9 @@ evaluator = NSGAIIEvaluator(
     max_clusters = 2
 )
 
-evaluation = create_evaluation(evaluator, rng, outcomes, [1, 2, 3, 4])
+evaluation = create_evaluation(evaluator, random_number_generator, outcomes, [1, 2, 3, 4])
 println("evaluation: $evaluation")
-winners = [nsga_tournament(rng, evaluation.records, 2) for _ in 1:10_000]
+winners = [nsga_tournament(random_number_generator, evaluation.records, 2) for _ in 1:10_000]
 winner_ids = [winner.id for winner in winners]
 println("winner_ids: $winner_ids")
 

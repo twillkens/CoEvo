@@ -19,77 +19,77 @@ basic_genotype() = GnarlNetworkGenotype(
 
 @testset "GnarlNetworks Mutation Tests" begin
 
-    rng = StableRNG(42)
+    random_number_generator = StableRNG(42)
     counter = Counter(1)
     mutator = GnarlNetworkMutator()
 
     @testset "mutate_weight" begin
-        geno = basic_genotype()
-        original_weight = geno.connections[1].weight
-        mutated_geno = mutate_weights(rng, geno, mutator.weight_factor)
+        genotype = basic_genotype()
+        original_weight = genotype.connections[1].weight
+        mutated_geno = mutate_weights(random_number_generator, genotype, mutator.weight_factor)
         @test mutated_geno.connections[1].weight ≠ original_weight
     end
 
     @testset "add_node" begin
-        geno = basic_genotype()
-        mutated_geno = add_node(rng, counter, geno)
-        @test length(mutated_geno.hidden_nodes) == length(geno.hidden_nodes) + 1
+        genotype = basic_genotype()
+        mutated_geno = add_node(random_number_generator, counter, genotype)
+        @test length(mutated_geno.hidden_nodes) == length(genotype.hidden_nodes) + 1
     end
 
     @testset "remove_node" begin
-        geno = basic_genotype()
-        mutated_geno = remove_node(rng, counter, geno)
+        genotype = basic_genotype()
+        mutated_geno = remove_node(random_number_generator, counter, genotype)
         # We have a single hidden node in the basic_genotype so it should be removed
         @test length(mutated_geno.hidden_nodes) == 1
     end
 
     @testset "add_connection" begin
-        geno = basic_genotype()
-        mutated_geno = add_connection(rng, counter, geno)
-        @test length(mutated_geno.connections) == length(geno.connections) + 1
+        genotype = basic_genotype()
+        mutated_geno = add_connection(random_number_generator, counter, genotype)
+        @test length(mutated_geno.connections) == length(genotype.connections) + 1
     end
 
     @testset "remove_connection" begin
-        geno = basic_genotype()
-        mutated_geno = remove_connection(rng, counter, geno)
+        genotype = basic_genotype()
+        mutated_geno = remove_connection(random_number_generator, counter, genotype)
         @test isempty(mutated_geno.connections)
     end
 
     @testset "mutate" begin
-        geno = basic_genotype()
-        create_phenotype(DefaultPhenotypeCreator(), geno)
+        genotype = basic_genotype()
+        create_phenotype(DefaultPhenotypeCreator(), genotype)
         for i in 1:1000
-            geno = mutate(mutator, rng, counter, geno)
-            phenotype = create_phenotype(DefaultPhenotypeCreator(), geno)
+            genotype = mutate(mutator, random_number_generator, counter, genotype)
+            phenotype = create_phenotype(DefaultPhenotypeCreator(), genotype)
         end
     end
 
 end
 @testset "GnarlNetworks Genotypes Tests" begin
 
-    rng = StableRNG(42)  # Deterministic RNG for reproducibility
+    random_number_generator = StableRNG(42)  # Deterministic RNG for reproducibility
     counter = Counter(1)
     genotype_creator = GnarlNetworkGenotypeCreator(2, 1)
 
     @testset "Genotype creation" begin
-        genotypes = create_genotypes(genotype_creator, rng, counter, 5)
+        genotypes = create_genotypes(genotype_creator, random_number_generator, counter, 5)
         @test length(genotypes) == 5
-        for geno in genotypes
-            @test geno.n_input_nodes == 2
-            @test geno.n_output_nodes == 1
-            @test isempty(geno.hidden_nodes)
-            @test isempty(geno.connections)
+        for genotype in genotypes
+            @test genotype.n_input_nodes == 2
+            @test genotype.n_output_nodes == 1
+            @test isempty(genotype.hidden_nodes)
+            @test isempty(genotype.connections)
         end
     end
 
     @testset "Genotype basic structure" begin
-        geno = basic_genotype()
-        @test geno.n_input_nodes == 2
-        @test geno.n_output_nodes == 1
-        @test length(geno.hidden_nodes) == 2
-        @test length(geno.connections) == 1
-        @test geno.connections[1].origin == 0.3f0
-        @test geno.connections[1].destination == 0.4f0
+        genotype = basic_genotype()
+        @test genotype.n_input_nodes == 2
+        @test genotype.n_output_nodes == 1
+        @test length(genotype.hidden_nodes) == 2
+        @test length(genotype.connections) == 1
+        @test genotype.connections[1].origin == 0.3f0
+        @test genotype.connections[1].destination == 0.4f0
     end
 end
 basic_genotype2() = GnarlNetworkGenotype(
@@ -108,9 +108,9 @@ basic_genotype2() = GnarlNetworkGenotype(
 @testset "GnarlNetworks Phenotype Tests" begin
     using .Phenotypes.GnarlNetworks: set_output!, get_output, reset!, act!
 
-    geno = basic_genotype2()
+    genotype = basic_genotype2()
     phenotype_creator = DefaultPhenotypeCreator()
-    phenotype = create_phenotype(phenotype_creator, geno)
+    phenotype = create_phenotype(phenotype_creator, genotype)
 
     @testset "Phenotype structure" begin
         @test phenotype.n_input_nodes == 2

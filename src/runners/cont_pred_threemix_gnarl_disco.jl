@@ -37,8 +37,8 @@ using ...Ecosystems.Interfaces: evolve!
 function cont_pred_threemix_gnarl_disco_eco_creator(;
     id::String = "ContinuousPredictionGame",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(777),
-    n_pop::Int = 100,
+    random_number_generator::AbstractRNG = StableRNG(777),
+    n_population::Int = 100,
     host::String = "Host",
     mutualist::String = "Mutualist",
     parasite::String = "Parasite",
@@ -65,12 +65,12 @@ function cont_pred_threemix_gnarl_disco_eco_creator(;
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = Dict(
             host => BasicSpeciesCreator(
                 id = host,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
@@ -81,14 +81,14 @@ function cont_pred_threemix_gnarl_disco_eco_creator(;
                     include_parents = true
                 ),
                 replacer = TruncationReplacer(type = matchmaking_type, n_truncate = n_truncate),
-                selector = TournamentSelector(μ = n_pop, tournament_size = tournament_size),
+                selector = TournamentSelector(μ = n_population, tournament_size = tournament_size),
                 recombiner = CloneRecombiner(),
                 mutators = [mutator]
             ),
             mutualist => BasicSpeciesCreator(
                 id = mutualist,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
@@ -99,14 +99,14 @@ function cont_pred_threemix_gnarl_disco_eco_creator(;
                     include_parents = true
                 ),
                 replacer = TruncationReplacer(type = matchmaking_type, n_truncate = n_truncate),
-                selector = TournamentSelector(μ = n_pop, tournament_size = tournament_size),
+                selector = TournamentSelector(μ = n_population, tournament_size = tournament_size),
                 recombiner = CloneRecombiner(),
                 mutators = [mutator]
             ),
             parasite => BasicSpeciesCreator(
                 id = parasite,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes, n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
@@ -117,7 +117,7 @@ function cont_pred_threemix_gnarl_disco_eco_creator(;
                     include_parents = true
                 ),
                 replacer = TruncationReplacer(type = matchmaking_type, n_truncate = n_truncate),
-                selector = TournamentSelector(μ = n_pop, tournament_size = tournament_size),
+                selector = TournamentSelector(μ = n_population, tournament_size = tournament_size),
                 recombiner = CloneRecombiner(),
                 mutators = [mutator]
             ),

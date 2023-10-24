@@ -24,11 +24,11 @@ end
 
 function make_random_number_generator(configuration::Configuration)
     seed = configuration.seed
-    rng = configuration.random_number_generator
-    if rng === nothing
-        rng = StableRNG(seed)
+    random_number_generator = configuration.random_number_generator
+    if random_number_generator === nothing
+        random_number_generator = StableRNG(seed)
     end
-    return rng
+    return random_number_generator
 end
 
 function make_performer(configuration::Configuration)

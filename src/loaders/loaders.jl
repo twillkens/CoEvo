@@ -17,7 +17,7 @@ using ..Loaders.Abstract: Loader
 
 function load_individual(loader::Loader, individual_group::Group)
     parent_ids = individual_group["parent_ids"]
-    geno_group = individual_group["geno"]
+    geno_group = individual_group["genotype"]
     genotype = load_genotype(loader, geno_group)
     # Assuming you have an Individual constructor that takes parent_ids and genotype as arguments
     return Individual(parent_ids, genotype)

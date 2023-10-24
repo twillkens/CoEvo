@@ -21,8 +21,8 @@ using .GPUtilities: protected_division, Terminal, FuncAlias, protected_sine, if_
 function sym_regress_eco_creator(;
     id::String = "Symbolic Regression",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
-    n_pop::Int = 100,
+    random_number_generator::AbstractRNG = StableRNG(42),
+    n_population::Int = 100,
     species_id1::String = "Subjects",
     species_id2::String = "Tests",
     interaction_id::String = "SymbolicRegression",
@@ -31,16 +31,16 @@ function sym_regress_eco_creator(;
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = Dict(
             species_id1 => BasicSpeciesCreator(
                 id = species_id1,
-                n_pop = n_pop,
-                geno_creator = GeneticProgramGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = false),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator(
                     functions = Dict{FuncAlias, Int}([
@@ -53,8 +53,8 @@ function sym_regress_eco_creator(;
             ),
             species_id2 => BasicSpeciesCreator(
                 id = species_id2,
-                n_pop = 100,
-                geno_creator = ScalarRangeGenotypeCreator(
+                n_population = 100,
+                genotype_creator = ScalarRangeGenotypeCreator(
                     start_value = -5.0,
                     stop_value = 5.0,
                 ),
@@ -92,7 +92,7 @@ function sym_regress_eco_creator(;
 
 end
 
-ecosystem_creator = sym_regress_eco_creator(n_pop = 100)
+ecosystem_creator = sym_regress_eco_creator(n_population = 100)
 eco = evolve!(ecosystem_creator, n_generations=10)
 @test length(eco.species) == 2
 

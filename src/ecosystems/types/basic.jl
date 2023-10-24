@@ -53,14 +53,14 @@ Base.@kwdef struct BasicEcosystemCreator{
 } <: EcosystemCreator
     id::String
     trial::Int
-    rng::AbstractRNG
+    random_number_generator::AbstractRNG
     species_creators::Vector{S}
     job_creator::J
     performer::P
     state_creator::C
     reporters::Vector{R}
     archiver::A
-    indiv_id_counter::Counter = Counter()
+    individual_id_counter::Counter = Counter()
     gene_id_counter::Counter = Counter()
     runtime_reporter::RuntimeReporter = RuntimeReporter()
     garbage_collection_interval::Int = 50
@@ -69,7 +69,7 @@ end
 function show(io::IO, c::BasicEcosystemCreator)
     print(io, "BasicEcosystemCreator(id: ", c.id, 
           ", trial: ", c.trial,
-          ", rng: ", typeof(c.rng), 
+          ", random_number_generator: ", typeof(c.random_number_generator), 
           ", species: ", keys(c.species_creators), 
           ", interactions: ", c.job_creator.interactions,")")
 end
@@ -79,8 +79,8 @@ function create_ecosystem(ecosystem_creator::BasicEcosystemCreator)
     all_species = [
         create_species(
             species_creator,
-            ecosystem_creator.rng, 
-            ecosystem_creator.indiv_id_counter, 
+            ecosystem_creator.random_number_generator, 
+            ecosystem_creator.individual_id_counter, 
             ecosystem_creator.gene_id_counter
         ) 
         for species_creator in ecosystem_creator.species_creators
@@ -101,14 +101,14 @@ end
 
 
 function evaluate_species(
-    rng::AbstractRNG,
+    random_number_generator::AbstractRNG,
     species::Vector{<:AbstractSpecies},
     evaluators::Vector{<:Evaluator},
     individual_outcomes::Dict{Int, SortedDict{Int, Float64}},
     observations::Vector{<:Observation},
 )
     evaluations = [
-        create_evaluation(evaluator, rng, species, individual_outcomes) #observations
+        create_evaluation(evaluator, random_number_generator, species, individual_outcomes) #observations
         for (evaluator, species) in zip(evaluators, species)
     ]
     
@@ -125,7 +125,7 @@ function evaluate_species(
         species_creator.evaluator for species_creator in ecosystem_creator.species_creators
     ]
     evaluations = evaluate_species(
-        ecosystem_creator.rng, ecosystem.species, evaluators, individual_outcomes, observations
+        ecosystem_creator.random_number_generator, ecosystem.species, evaluators, individual_outcomes, observations
     )
     return evaluations
 end
@@ -141,10 +141,10 @@ function create_state(
 )
     state = BasicCoevolutionaryState(
         id = ecosystem_creator.id,
-        rng = ecosystem_creator.rng,
+        random_number_generator = ecosystem_creator.random_number_generator,
         trial = ecosystem_creator.trial,
         generation = generation,
-        indiv_id_counter = ecosystem_creator.indiv_id_counter,
+        individual_id_counter = ecosystem_creator.individual_id_counter,
         gene_id_counter = ecosystem_creator.gene_id_counter,
         species = ecosystem.species,
         individual_outcomes = individual_outcomes,
@@ -170,8 +170,8 @@ function construct_new_species(
     new_species = [
         create_species(
             species_creators[index],
-            state.rng, 
-            state.indiv_id_counter,
+            state.random_number_generator, 
+            state.individual_id_counter,
             state.gene_id_counter,
             state.species[index],
             state.evaluations[index]
@@ -230,7 +230,7 @@ function evolve!(
         ]
         jobs = create_jobs(
             ecosystem_creator.job_creator,
-            ecosystem_creator.rng, 
+            ecosystem_creator.random_number_generator, 
             ecosystem.species,
             phenotype_creators,
         )

@@ -44,19 +44,19 @@ println("Starting tests for Archivers...")
 
 # @testset "BasicSpeciesCreator" begin
 #     gen = 1
-#     rng = StableRNG(42)
-#     indiv_id_counter = Counter()
+#     random_number_generator = StableRNG(42)
+#     individual_id_counter = Counter()
 #     gene_id_counter = Counter()
 #     species_id = "Subjects"
-#     n_pop = 2
+#     n_population = 2
 # 
 #     default_vector = collect(1:10)
 # 
 #     # Define species configuration similar to spawner
 #     species_creator = BasicSpeciesCreator(
 #         id = species_id,
-#         n_pop = n_pop,
-#         geno_creator = BasicVectorGenotypeCreator(
+#         n_population = n_population,
+#         genotype_creator = BasicVectorGenotypeCreator(
 #             default_vector = default_vector
 #         ),
 #         phenotype_creator = DefaultPhenotypeCreator(),
@@ -66,9 +66,9 @@ println("Starting tests for Archivers...")
 #         recombiner = CloneRecombiner(),
 #         mutators = [IdentityMutator()],
 #     )
-#     species = create_species(species_creator, rng, indiv_id_counter, gene_id_counter) 
-#     dummy_outcomes = generate_nested_dict(n_pop, n_pop)
-#     evaluation = create_evaluation(species_creator.evaluator, rng, species, dummy_outcomes)
+#     species = create_species(species_creator, random_number_generator, individual_id_counter, gene_id_counter) 
+#     dummy_outcomes = generate_nested_dict(n_population, n_population)
+#     evaluation = create_evaluation(species_creator.evaluator, random_number_generator, species, dummy_outcomes)
 #     reporter = BasicReporter(metric = AllSpeciesIdentity(), save_interval = 1)
 #     species_evaluations = Dict(species => evaluation)
 #     measurement = measure(reporter, species_evaluations, Observation[])
@@ -90,8 +90,8 @@ println("Starting tests for Archivers...")
 function dummy_eco_creator(;
     id::String = "test",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
-    n_pop::Int = 2,
+    random_number_generator::AbstractRNG = StableRNG(42),
+    n_population::Int = 2,
     species_id1::String = "a",
     species_id2::String = "b",
     interaction_id::String = "NumbersGame{Sum}",
@@ -101,27 +101,27 @@ function dummy_eco_creator(;
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = Dict(
             species_id1 => BasicSpeciesCreator(
                 id = species_id1,
-                n_pop = n_pop,
-                geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
+                n_population = n_population,
+                genotype_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [NoiseInjectionMutator(noise_std = 0.1)],
             ),
             species_id2 => BasicSpeciesCreator(
                 id = species_id2,
-                n_pop = n_pop,
-                geno_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
+                n_population = n_population,
+                genotype_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [NoiseInjectionMutator(noise_std = 0.1)],
             ),
@@ -153,7 +153,7 @@ end
 
 #eco = evolve!(ecosystem_creator, n_generations=10)
 
-#ecosystem_creator = dummy_eco_creator(n_pop = 100)
+#ecosystem_creator = dummy_eco_creator(n_population = 100)
 #eco = evolve!(ecosystem_creator, n_generations=10)
 end
 

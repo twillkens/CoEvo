@@ -1,92 +1,172 @@
 module CoEvo
 
-export Ecosystem, EcosystemCreator,
-       BasicEcosystem, BasicEcosystemCreator, evolve!,
-       Counter,
-       Species,
-       AbstractSpecies,
-       create_species,
-       BasicSpecies, BasicSpeciesCreator,
-       Genotypes, Genotype, create_genotypes, GenotypeCreator,
-       VectorGenotype, VectorGenotypeCreator,
-       ScalarRangeGenotypeCreator,
-       BasicVectorGenotype, BasicVectorGenotypeCreator,
-       #GeneticProgramGenotype, GeneticProgramGenotypeCreator,
-       #ExpressionNodeGene,
-       FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator,
-       Phenotypes, Phenotype, PhenotypeCreator, create_phenotype, act!,
-       DefaultPhenotypeCreator,
-       BasicVectorPhenotype,
-       FiniteStateMachinePhenotype,
-       Individuals, Individual,
-       Evaluators, create_evaluation, Evaluation, Evaluator,
-       ScalarFitnessEvaluator, ScalarFitnessEvaluation,
-       NullEvaluator, NullEvaluation,
-       NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods,
-       Replacers, Replacer, replace,
-       IdentityReplacer, GenerationalReplacer, TruncationReplacer,
-       Selectors, Selector, select,
-       IdentitySelector, FitnessProportionateSelector, TournamentSelector,
-       Recombiners, Recombiner, recombine,
-       CloneRecombiner, IdentityRecombiner,
-       Mutators, Mutator, mutate,
-        #GeneticProgramMutator, 
-       IdentityMutator, NoiseInjectionMutator, FiniteStateMachineMutators,
-       Metrics, Metric,
-       GenotypeSize, GenotypeSum,
-       TestBasedFitness, AllSpeciesFitness,
-       Interactions,
-       Interaction,
-       interact,
-       Domains, MatchMakers, Observers, Results, Environments,
-       BasicInteraction,
-       Domain,
-       NumbersGameDomain,
-       SymbolicRegressionDomain,
-       MatchMaker,
-       AllvsAllMatchMaker,
-       Observer, Observation,
-       create_observation,
-       BasicObserver, BasicObservation, NullObservation,
-       Result,
-       Environment, EnvironmentCreator,
-       create_environment, next!, get_outcome_set, is_active, observe!,
-       StatelessEnvironment, StatelessEnvironmentCreator,
-       Jobs,
-       Job, JobCreator,
-       create_jobs,
-       BasicJob, BasicJobCreator,
-       Performers, Performer, perform, BasicPerformer,
-       Measurements, Measurement, BasicStatisticalMeasurement,
-       Reporters, Reporter, create_report, measure, BasicReporter, BasicReport,
-       RuntimeReporter, RuntimeReport,
-       Archivers, Archiver, archive!, BasicArchiver,
-       ContinuousPredictionGameDomain,
-       NumbersGameOutcomeMetrics, PredictionGameOutcomeMetrics,
-       TapeEnvironment, TapeEnvironmentCreator, TapeMethods,
-       GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
-       GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
-       GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
-       GnarlMethods,
-       FiniteStateMachineMinimizers,
-       LinguisticPredictionGameDomain, LinguisticPredictionGameEnvironmentCreator,
-       LinguisticPredictionGameEnvironment,
-       CollisionGameOutcomeMetrics, CollisionGameDomain, CollisionGameEnvironment, 
-       CollisionGameEnvironmentCreator,
-       BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader,
-       #GeneticProgramGenotypeLoader, 
-       GnarlNetworkGenotypeLoader, EcosystemLoader, load_ecosystem,
-       FastGlobalKMeans, CachePerformer, Runners,
-       FunctionGraphGenotype, FunctionGraphGenotypeCreator, GraphFunction,
-       FunctionGraphPhenotype, FunctionGraphStatefulNode, FUNCTION_MAP,
-       FunctionGraphConnection, FunctionGraphMutator, FunctionGraphNode, FunctionGraphMutators,
-       FunctionGraphGenotypeLoader, Loaders, get_or_make_group!,
-       load_genotype, get_size, minimize,
-       LinearizedFunctionGraphPhenotype, LinearizedFunctionGraphNode, LinearizedFunctionGraphConnection,
-        LinearizedFunctionGraphPhenotypeCreator,
-        CoevolutionaryState, CoevolutionaryStateCreator,
-        BasicCoevolutionaryState, BasicCoevolutionaryStateCreator,
-        PredictionGameDomain, Configurations, PredictionGameTrialConfiguration
+#export Ecosystem, EcosystemCreator,
+#       BasicEcosystem, BasicEcosystemCreator, evolve!,
+#       Counter,
+#       Species,
+#       AbstractSpecies,
+#       create_species,
+#       BasicSpecies, BasicSpeciesCreator,
+#       Genotypes, Genotype, create_genotypes, GenotypeCreator,
+#       VectorGenotype, VectorGenotypeCreator,
+#       ScalarRangeGenotypeCreator,
+#       BasicVectorGenotype, BasicVectorGenotypeCreator,
+#       #GeneticProgramGenotype, GeneticProgramGenotypeCreator,
+#       #ExpressionNodeGene,
+#       FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator,
+#       Phenotypes, Phenotype, PhenotypeCreator, create_phenotype, act!,
+#       DefaultPhenotypeCreator,
+#       BasicVectorPhenotype,
+#       FiniteStateMachinePhenotype,
+#       Individuals, Individual,
+#       Evaluators, create_evaluation, Evaluation, Evaluator,
+#       ScalarFitnessEvaluator, ScalarFitnessEvaluation,
+#       NullEvaluator, NullEvaluation,
+#       NSGAIIEvaluator, NSGAIIEvaluation, NSGAIIMethods,
+#       Replacers, Replacer, replace,
+#       IdentityReplacer, GenerationalReplacer, TruncationReplacer,
+#       Selectors, Selector, select,
+#       IdentitySelector, FitnessProportionateSelector, TournamentSelector,
+#       Recombiners, Recombiner, recombine,
+#       CloneRecombiner, IdentityRecombiner,
+#       Mutators, Mutator, mutate,
+#        #GeneticProgramMutator, 
+#       IdentityMutator, NoiseInjectionMutator, FiniteStateMachineMutators,
+#       Metrics, Metric,
+#       GenotypeSize, GenotypeSum,
+#       TestBasedFitness, AllSpeciesFitness,
+#       Interactions,
+#       Interaction,
+#       interact,
+#       Domains, MatchMakers, Observers, Results, Environments,
+#       BasicInteraction,
+#       Domain,
+#       NumbersGameDomain,
+#       SymbolicRegressionDomain,
+#       MatchMaker,
+#       AllvsAllMatchMaker,
+#       Observer, Observation,
+#       create_observation,
+#       BasicObserver, BasicObservation, NullObservation,
+#       Result,
+#       Environment, EnvironmentCreator,
+#       create_environment, next!, get_outcome_set, is_active, observe!,
+#       StatelessEnvironment, StatelessEnvironmentCreator,
+#       Jobs,
+#       Job, JobCreator,
+#       create_jobs,
+#       BasicJob, BasicJobCreator,
+#       Performers, Performer, perform, BasicPerformer,
+#       Measurements, Measurement, BasicStatisticalMeasurement,
+#       Reporters, Reporter, create_report, measure, BasicReporter, BasicReport,
+#       RuntimeReporter, RuntimeReport,
+#       Archivers, Archiver, archive!, BasicArchiver,
+#       ContinuousPredictionGameDomain,
+#       NumbersGameOutcomeMetrics, PredictionGameOutcomeMetrics,
+#       TapeEnvironment, TapeEnvironmentCreator, TapeMethods,
+#       GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection,
+#       GnarlNetworkGenotype, GnarlNetworkGenotypeCreator, GnarlNetworkMutator,
+#       GnarlNetworkConnectionGene, GnarlNetworkNodeGene,
+#       GnarlMethods,
+#       FiniteStateMachineMinimizers,
+#       LinguisticPredictionGameDomain, LinguisticPredictionGameEnvironmentCreator,
+#       LinguisticPredictionGameEnvironment,
+#       CollisionGameOutcomeMetrics, CollisionGameDomain, CollisionGameEnvironment, 
+#       CollisionGameEnvironmentCreator,
+#       BasicVectorGenotypeLoader, FiniteStateMachineGenotypeLoader,
+#       #GeneticProgramGenotypeLoader, 
+#       GnarlNetworkGenotypeLoader, EcosystemLoader, load_ecosystem,
+#       FastGlobalKMeans, CachePerformer, Runners,
+#       FunctionGraphGenotype, FunctionGraphGenotypeCreator, GraphFunction,
+#       FunctionGraphPhenotype, FunctionGraphStatefulNode, FUNCTION_MAP,
+#       FunctionGraphConnection, FunctionGraphMutator, FunctionGraphNode, FunctionGraphMutators,
+#       FunctionGraphGenotypeLoader, Loaders, get_or_make_group!,
+#       load_genotype, get_size, minimize,
+#       LinearizedFunctionGraphPhenotype, LinearizedFunctionGraphNode, LinearizedFunctionGraphConnection,
+#        LinearizedFunctionGraphPhenotypeCreator,
+#        CoevolutionaryState, CoevolutionaryStateCreator,
+#        BasicCoevolutionaryState, BasicCoevolutionaryStateCreator,
+#        PredictionGameDomain, Configurations, PredictionGameTrialConfiguration
+
+
+
+include("counters/counters.jl")
+using .Counters: Counters
+
+include("genotypes/genotypes.jl")
+using .Genotypes: Genotypes
+
+include("phenotypes/phenotypes.jl")
+using .Phenotypes: Phenotypes
+
+include("individuals/individuals.jl")
+using .Individuals: Individuals
+
+include("species/species.jl")
+using .Species: Species
+
+include("criteria/criteria.jl")
+using .Criteria: Criteria
+
+include("evaluators/evaluators.jl")
+using .Evaluators: Evaluators
+
+include("replacers/replacers.jl")
+using .Replacers: Replacers
+
+include("selectors/selectors.jl")
+using .Selectors: Selectors
+
+include("recombiners/recombiners.jl")
+using .Recombiners: Recombiners
+
+include("mutators/mutators.jl")
+using .Mutators: Mutators
+
+include("species/species.jl")
+using .Species: Species
+
+include("metrics/metrics.jl")
+using .Metrics: Metrics
+
+include("domains/domains.jl")
+using .Domains: Domains
+
+include("matches/matches.jl")
+using .Matches: Matches
+
+include("matchmakers/matchmakers.jl")
+using .MatchMakers: MatchMakers
+
+include("observers/observers.jl")
+using .Observers: Observers
+
+include("results/results.jl")
+using .Results: Results 
+
+include("environments/environments.jl")
+using .Environments: Environments
+
+include("interactions/interactions.jl")
+using .Interactions: Interactions
+
+include("jobs/jobs.jl")
+using .Jobs: Jobs
+
+include("performers/performers.jl")
+using .Performers: Performers
+
+include("measurements/measurements.jl")
+using .Measurements: Measurements
+
+include("states/states.jl")
+using .States: States
+
+include("reporters/reporters.jl")
+using .Reporters: Reporters
+
+include("archivers/archivers.jl")
+using .Archivers: Archivers
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
@@ -104,26 +184,9 @@ using .Ecosystems.Utilities.Counters: Counter
 println("loaded ecosystems")
 
 using .Ecosystems: Species
-using .Species.Abstract: AbstractSpecies
-using .Species.Interfaces: create_species
-using .Species.Basic: BasicSpecies, BasicSpeciesCreator 
 println("loaded species")
 
 using .Species: Genotypes
-using .Genotypes.Abstract: Genotype, GenotypeCreator
-using .Genotypes.Interfaces: create_genotypes, get_size, minimize
-using .Genotypes.Vectors.Abstract: VectorGenotype, VectorGenotypeCreator
-using .Genotypes.Vectors.Basic: BasicVectorGenotype, BasicVectorGenotypeCreator  
-using .Genotypes.Vectors.Basic: ScalarRangeGenotypeCreator
-using .Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
-using .Genotypes.FunctionGraphs: FUNCTION_MAP, FunctionGraphConnection, FunctionGraphGenotypeCreator
-#using .Genotypes.GeneticPrograms.Genes: ExpressionNodeGene 
-#using .Genotypes.GeneticPrograms: GeneticProgramGenotype, GeneticProgramGenotypeCreator 
-using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
-using .Genotypes.GnarlNetworks: GnarlNetworkConnectionGene, GnarlNetworkNodeGene
-using .Genotypes.GnarlNetworks.GnarlMethods: GnarlMethods
-using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator
-using .Genotypes.FiniteStateMachines: FiniteStateMachineMinimizers
 
 println("loaded genotypes")
 

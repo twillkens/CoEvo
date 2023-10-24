@@ -58,10 +58,10 @@ end
 
 
 @testset "Deterministic Mutation Functions" begin
-    geno = dummygeno()
+    genotype = dummygeno()
 
     @testset "addfunc" begin
-        new_geno = add_function(geno, 4, +, [5, 6], Terminal[2.5, :x])
+        new_geno = add_function(genotype, 4, +, [5, 6], Terminal[2.5, :x])
         @test length(new_geno.functions) == 2
         @test get_node(new_geno, 4).val == +
         @test get_node(new_geno, 5).val == 2.5
@@ -69,7 +69,7 @@ end
     end
 
     @testset "rmfunc" begin
-        new_geno = remove_function(geno, 1, 2)
+        new_geno = remove_function(genotype, 1, 2)
         @test length(new_geno.functions) == 0
         @test length(new_geno.terminals) == 1
         @test !haskey(new_geno.functions, 1)
@@ -77,29 +77,29 @@ end
     end
 
     @testset "swapnode" begin
-        new_geno = swap_node(geno, 2, 3)
+        new_geno = swap_node(genotype, 2, 3)
         root_node = get_node(new_geno, 1)
         @test root_node.child_ids == [3, 2]
 
         # Swapping the same node shouldn't change anything
-        new_geno2 = swap_node(geno, 2, 2)
+        new_geno2 = swap_node(genotype, 2, 2)
         root_node2 = get_node(new_geno2, 1)
         @test root_node2.child_ids == [2, 3]
     end
 
     @testset "inject_noise" begin
         noise_dict = Dict(2 => 0.5)
-        new_geno = inject_noise(geno, noise_dict)
+        new_geno = inject_noise(genotype, noise_dict)
         @test get_node(new_geno, 2).val ≈ 2.5
 
         # Ensure error is raised for non-float node
         noise_dict_error = Dict(1 => 0.5)
-        @test_throws ErrorException inject_noise(geno, noise_dict_error)
+        @test_throws ErrorException inject_noise(genotype, noise_dict_error)
     end
 end
 
 @testset "Deterministic Mutation Functions Big" begin
-    geno = big_geno()
+    genotype = big_geno()
 
     @testset "addfunc" begin
         newnode_gid = 11
@@ -108,7 +108,7 @@ end
         newnode_child_vals = [12.0, 13.0]
 
         new_geno = add_function(
-            geno, newnode_gid, newnode_val, newnode_child_gids, newnode_child_vals
+            genotype, newnode_gid, newnode_val, newnode_child_gids, newnode_child_vals
         )
 
         # Assert that new function node is added
@@ -145,11 +145,11 @@ function dummygeno_challenge()
     return GeneticProgramGenotype(root_id=1, functions=funcs, terminals=terms)
 end
 
-geno = dummygeno_challenge()
+genotype = dummygeno_challenge()
 
 phenotype_creator = DefaultPhenotypeCreator()
 
-phenotype = create_phenotype(phenotype_creator, geno)
+phenotype = create_phenotype(phenotype_creator, genotype)
 value = act!(phenotype, [0, π, -π])
 @test value ≈ 1.0
 
@@ -177,8 +177,8 @@ end
     end
 
     @testset "splice1" begin
-        geno = splice_geno()
-        new_geno = splice_function(geno, 6, 7, 2)
+        genotype = splice_geno()
+        new_geno = splice_function(genotype, 6, 7, 2)
         expected_funcs = Dict(
             1 => ExpressionNodeGene(1, nothing, protected_sine, [6]),
             2 => ExpressionNodeGene(2, 6, +, [3, 4]),

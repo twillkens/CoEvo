@@ -13,11 +13,11 @@ addprocs(5)
     using StableRNGs: StableRNG
 end
 
-rng = StableRNG(seed)
+random_number_generator = StableRNG(seed)
 configuration = PredictionGameTrialConfiguration(
     trial = trial_id,
     n_population = 50,
-    random_number_generator = rng,
+    random_number_generator = random_number_generator,
     report_type = :deploy,
     cohorts = [:population, :children],
     n_truncate = 50,

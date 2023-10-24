@@ -12,8 +12,8 @@ using .FiniteStateMachineMutators: FiniteStateMachineMutator
 function cont_pred_eco_creator(;
     id::String = "LinguisticPredictionGame",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
-    n_pop::Int = 50,
+    random_number_generator::AbstractRNG = StableRNG(42),
+    n_population::Int = 50,
     species_id1::String = "Host",
     species_id2::String = "Mutualist",
     species_id3::String = "Parasite",
@@ -26,38 +26,38 @@ function cont_pred_eco_creator(;
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = [
             BasicSpeciesCreator(
                 id = species_id1,
-                n_pop = n_pop,
-                geno_creator = FiniteStateMachineGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = FiniteStateMachineGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
             BasicSpeciesCreator(
                 id = species_id2,
-                n_pop = n_pop,
-                geno_creator = FiniteStateMachineGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = FiniteStateMachineGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
             BasicSpeciesCreator(
                 id = species_id3,
-                n_pop = n_pop,
-                geno_creator = FiniteStateMachineGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = FiniteStateMachineGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
@@ -99,7 +99,7 @@ function cont_pred_eco_creator(;
 end
 
 
-ecosystem_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
+ecosystem_creator = cont_pred_eco_creator(n_population = 50, n_workers = 1)
 eco = evolve!(ecosystem_creator, n_generations = 5)
 @test length(eco.species) == 3
 
@@ -110,8 +110,8 @@ end
 function cont_pred_eco_creator(;
     id::String = "Symbolic Regression",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
-    n_pop::Int = 50,
+    random_number_generator::AbstractRNG = StableRNG(42),
+    n_population::Int = 50,
     species_id1::String = "Host",
     species_id2::String = "Mutualist",
     species_id3::String = "Parasite",
@@ -126,12 +126,12 @@ function cont_pred_eco_creator(;
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = [
             BasicSpeciesCreator(
                 id = species_id1,
-                n_pop = n_pop,
-                geno_creator = FiniteStateMachineGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = FiniteStateMachineGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(
                     maximize = true,
@@ -139,15 +139,15 @@ function cont_pred_eco_creator(;
                 ),
                 replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    n_parents = n_pop, tournament_size = tournament_size
+                    n_parents = n_population, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
             BasicSpeciesCreator(
                 id = species_id2,
-                n_pop = n_pop,
-                geno_creator = FiniteStateMachineGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = FiniteStateMachineGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(
                     maximize = true,
@@ -155,20 +155,20 @@ function cont_pred_eco_creator(;
                 ),
                 replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    n_parents = n_pop, tournament_size = tournament_size
+                    n_parents = n_population, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
             ),
             BasicSpeciesCreator(
                 id = species_id3,
-                n_pop = n_pop,
-                geno_creator = FiniteStateMachineGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = FiniteStateMachineGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
                 replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    n_parents = n_pop, tournament_size = tournament_size
+                    n_parents = n_population, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [FiniteStateMachineMutator()]
@@ -208,7 +208,7 @@ function cont_pred_eco_creator(;
 end
 
 
-ecosystem_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
+ecosystem_creator = cont_pred_eco_creator(n_population = 50, n_workers = 1)
 eco = evolve!(ecosystem_creator, n_generations=5)
 @test length(eco.species) == 3
 

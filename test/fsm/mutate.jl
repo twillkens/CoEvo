@@ -260,14 +260,14 @@ end
         (6, 1) => 6,
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
-    rng = StableRNG(42)
+    random_number_generator = StableRNG(42)
     gene_id_counter = Counter()
     gene_id_counter.curr = 7
     mutator = FiniteStateMachineMutator()
 
     n = 10
     for i in 1:n
-        fsm = add_state(rng, gene_id_counter, fsm)
+        fsm = add_state(random_number_generator, gene_id_counter, fsm)
     end
 
     @test length(union(fsm.ones, fsm.zeros)) == 16
@@ -299,17 +299,17 @@ end
         (7, 1) => 2,
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
-    rng = StableRNG(42)
+    random_number_generator = StableRNG(42)
     gene_id_counter = Counter()
     gene_id_counter.curr = 8
     n = 4
     for i in 1:n
-        fsm = remove_state(rng, gene_id_counter, fsm)
+        fsm = remove_state(random_number_generator, gene_id_counter, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 4
     @test length(fsm.links) == 8
     for i in 1:50
-        fsm = remove_state(rng, gene_id_counter, fsm)
+        fsm = remove_state(random_number_generator, gene_id_counter, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 1
     @test length(fsm.links) == 2
@@ -338,11 +338,11 @@ end
         (7, 1) => 2,
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
-    rng = StableRNG(42)
+    random_number_generator = StableRNG(42)
     gene_id_counter = Counter()
     n = 4
     for i in 1:n
-        fsm = change_link(rng, gene_id_counter, fsm)
+        fsm = change_link(random_number_generator, gene_id_counter, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 8
     @test length(fsm.links) == 16
@@ -372,11 +372,11 @@ end
         (7, 1) => 2,
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
-    rng = StableRNG(42)
+    random_number_generator = StableRNG(42)
     gene_id_counter = Counter()
     n = 4
     for i in 1:n
-        fsm = change_label(rng, gene_id_counter, fsm)
+        fsm = change_label(random_number_generator, gene_id_counter, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 8
     @test length(fsm.links) == 16
@@ -404,29 +404,29 @@ end
         (6, 1) => 6,
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
-    rng = StableRNG(42)
+    random_number_generator = StableRNG(42)
     gene_id_counter = Counter()
     gene_id_counter.curr = 7
     n = 4
     for i in 1:n
-        fsm = add_state(rng, gene_id_counter, fsm)
+        fsm = add_state(random_number_generator, gene_id_counter, fsm)
     end
     @test length(union(fsm.ones, fsm.zeros)) == 10
     @test length(fsm.links) == 20
 
     for i in 1:n
-        fsm = remove_state(rng, gene_id_counter, fsm)
+        fsm = remove_state(random_number_generator, gene_id_counter, fsm)
     end
 
     @test length(union(fsm.ones, fsm.zeros)) == 6
     @test length(fsm.links) == 12
 
     for i in 1:n
-        fsm = change_link(rng, gene_id_counter, fsm)
+        fsm = change_link(random_number_generator, gene_id_counter, fsm)
     end
 
     for i in 1:n
-        fsm = change_label(rng, gene_id_counter, fsm)
+        fsm = change_label(random_number_generator, gene_id_counter, fsm)
     end
 
     @test length(union(fsm.ones, fsm.zeros)) == 6

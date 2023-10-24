@@ -15,11 +15,11 @@ println("seeds: $seeds")
 
 @distributed for trial in 1:n_trials
     seed = seeds[trial]
-    rng = StableRNG(seed)
+    random_number_generator = StableRNG(seed)
     configuration = PredictionGameTrialConfiguration(
         trial = trial,
         n_population = 50,
-        random_number_generator = rng,
+        random_number_generator = random_number_generator,
         report_type = :deploy,
         cohorts = [:population, :children],
         n_truncate = 50,

@@ -17,11 +17,11 @@ function test_redirect_or_replace_connection()
     node3 = GnarlNetworkNodeGene(3, 0.75)
     conn1 = GnarlNetworkConnectionGene(1, 0.25, 0.5, 0.9)
     conn2 = GnarlNetworkConnectionGene(2, 0.5, 0.75, 0.8)
-    geno = GnarlNetworkGenotype(1, 1, [node1, node2, node3], [conn1, conn2])
+    genotype = GnarlNetworkGenotype(1, 1, [node1, node2, node3], [conn1, conn2])
     
     # Running the redirect_or_replace function
-    rng = Random.MersenneTwister(123)  # A random number generator
-    result = redirect_or_replace_connection(rng, geno, 0.5, conn1, :incoming)
+    random_number_generator = Random.MersenneTwister(123)  # A random number generator
+    result = redirect_or_replace_connection(random_number_generator, genotype, 0.5, conn1, :incoming)
     
     # Asserting the expected behavior
     # Note: Depending on the complexity of your network, you might want to check specific connection properties.
@@ -34,7 +34,7 @@ end
 test_redirect_or_replace_connection()
 
 using StableRNGs
-rng = StableRNG(42)
+random_number_generator = StableRNG(42)
 
 input_node = GnarlNetworkNodeGene(1, -1.0f0)
 hidden_node1 = GnarlNetworkNodeGene(2, 0.5f0)
@@ -57,7 +57,7 @@ genotype = GnarlNetworkGenotype(1, 1, [hidden_node1, hidden_node2], [conn1, conn
 
     for i = 1:n_iterations
         # Randomly select mutation type
-        mutated_genotype = mutate(mutator, rng, gene_id_counter, mutated_genotype)
+        mutated_genotype = mutate(mutator, random_number_generator, gene_id_counter, mutated_genotype)
 
         # Consistency checks after every mutation
 

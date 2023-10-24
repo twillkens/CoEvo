@@ -51,7 +51,7 @@ abstract type Configuration end
     ecosystem_topology::Symbol = :three_species_mix
     trial::Int = 1
     seed::Int = 777
-    rng::Union{AbstractRNG, Nothing} = nothing
+    random_number_generator::Union{AbstractRNG, Nothing} = nothing
     individual_id_counter_state::Int = 1
     gene_id_counter_state::Int = 1
     n_workers::Int = 1
@@ -262,11 +262,11 @@ end
 
 function make_random_number_generator(configuration::PredictionGameTrialConfiguration)
     seed = configuration.seed
-    rng = configuration.rng
-    if rng === nothing
-        rng = StableRNG(seed)
+    random_number_generator = configuration.random_number_generator
+    if random_number_generator === nothing
+        random_number_generator = StableRNG(seed)
     end
-    return rng
+    return random_number_generator
 end
 
 function make_species_creators(configuration::PredictionGameTrialConfiguration)
@@ -278,8 +278,8 @@ function make_species_creators(configuration::PredictionGameTrialConfiguration)
     species_creators = [
         BasicSpeciesCreator(
             id = species_id,
-            n_pop = configuration.n_population,
-            geno_creator = genotype_creator,
+            n_population = configuration.n_population,
+            genotype_creator = genotype_creator,
             phenotype_creator = phenotype_creator,
             evaluator = evaluator,
             replacer = replacer,
@@ -392,7 +392,7 @@ function make_ecosystem_creator(
 )
     id = make_ecosystem_id(configuration)
     trial = configuration.trial
-    rng = make_random_number_generator(configuration)
+    random_number_generator = make_random_number_generator(configuration)
     species_creators = make_species_creators(configuration)
     job_creator = make_job_creator(configuration)
     performer = make_performer(configuration)
@@ -404,14 +404,14 @@ function make_ecosystem_creator(
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = species_creators,
         job_creator = job_creator,
         performer = performer,
         state_creator = state_creator,
         reporters = reporters,
         archiver = archiver,
-        indiv_id_counter = individual_id_counter,
+        individual_id_counter = individual_id_counter,
         gene_id_counter = gene_id_counter,
         runtime_reporter = runtime_reporter,
     )

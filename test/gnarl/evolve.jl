@@ -12,8 +12,8 @@ using StableRNGs: StableRNG
 function collision_game_eco_creator(;
     id::String = "CollisionGame",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
-    n_pop::Int = 50,
+    random_number_generator::AbstractRNG = StableRNG(42),
+    n_population::Int = 50,
     host::String = "Host",
     mutualist::String = "Mutualist",
     parasite::String = "Parasite",
@@ -31,47 +31,47 @@ function collision_game_eco_creator(;
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = [
             BasicSpeciesCreator(
                 id = host,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes, 
                     n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
             BasicSpeciesCreator(
                 id = parasite,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes, 
                     n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
             BasicSpeciesCreator(
                 id = mutualist,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes, 
                     n_output_nodes = n_output_nodes
                 ),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
@@ -129,7 +129,7 @@ function collision_game_eco_creator(;
 end
 
 
-ecosystem_creator = collision_game_eco_creator(n_pop = 50, n_workers = 1)
+ecosystem_creator = collision_game_eco_creator(n_population = 50, n_workers = 1)
 eco = evolve!(ecosystem_creator, n_generations = 5)
 @test length(eco.species) == 3
 
@@ -140,8 +140,8 @@ end
 function collision_game_disco_eco_creator(;
     id::String = "CollisionGame: Disco",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
-    n_pop::Int = 50,
+    random_number_generator::AbstractRNG = StableRNG(42),
+    n_population::Int = 50,
     host::String = "Host",
     parasite::String = "Mutualist",
     mutualist::String = "Parasite",
@@ -154,18 +154,18 @@ function collision_game_disco_eco_creator(;
     n_input_nodes::Int = 2,
     n_output_nodes::Int = 2,
     cohorts::Vector{Symbol} = [:population, :children],
-    n_truncate::Int = n_pop,
+    n_truncate::Int = n_population,
     tournament_size::Int = 3,
 )
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = [
             BasicSpeciesCreator(
                 id = host,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes,
                     n_output_nodes = n_output_nodes 
                 ),
@@ -176,15 +176,15 @@ function collision_game_disco_eco_creator(;
                 ),
                 replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    n_parents = n_pop, tournament_size = tournament_size
+                    n_parents = n_population, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
             BasicSpeciesCreator(
                 id = parasite,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes, 
                     n_output_nodes = n_output_nodes
                 ),
@@ -195,15 +195,15 @@ function collision_game_disco_eco_creator(;
                 ),
                 replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    n_parents = n_pop, tournament_size = tournament_size
+                    n_parents = n_population, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
             ),
             BasicSpeciesCreator(
                 id = mutualist,
-                n_pop = n_pop,
-                geno_creator = GnarlNetworkGenotypeCreator(
+                n_population = n_population,
+                genotype_creator = GnarlNetworkGenotypeCreator(
                     n_input_nodes = n_input_nodes, 
                     n_output_nodes = n_output_nodes
                 ),
@@ -211,7 +211,7 @@ function collision_game_disco_eco_creator(;
                 evaluator = NSGAIIEvaluator(),
                 replacer = TruncationReplacer(n_truncate = n_truncate),
                 selector = TournamentSelector(
-                    n_parents = n_pop, tournament_size = tournament_size
+                    n_parents = n_population, tournament_size = tournament_size
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [GnarlNetworkMutator()]
@@ -271,7 +271,7 @@ function collision_game_disco_eco_creator(;
 end
 
 
-ecosystem_creator = collision_game_disco_eco_creator(n_pop = 50, n_workers = 1)
+ecosystem_creator = collision_game_disco_eco_creator(n_population = 50, n_workers = 1)
 eco = evolve!(ecosystem_creator, n_generations=1)
 @test length(eco.species) == 3
 

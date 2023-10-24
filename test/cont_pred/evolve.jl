@@ -14,8 +14,8 @@ println("Starting tests for ContinuousPredictionGame...")
 function cont_pred_eco_creator(;
     id::String = "ContinuousPredictionGame",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
-    n_pop::Int = 50,
+    random_number_generator::AbstractRNG = StableRNG(42),
+    n_population::Int = 50,
     species_id1::String = "Host",
     species_id2::String = "Mutualist",
     species_id3::String = "Parasite",
@@ -28,38 +28,38 @@ function cont_pred_eco_creator(;
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = Dict(
             species_id1 => BasicSpeciesCreator(
                 id = species_id1,
-                n_pop = n_pop,
-                geno_creator = GeneticProgramGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
             ),
             species_id2 => BasicSpeciesCreator(
                 id = species_id2,
-                n_pop = n_pop,
-                geno_creator = GeneticProgramGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
             ),
             species_id3 => BasicSpeciesCreator(
                 id = species_id3,
-                n_pop = n_pop,
-                geno_creator = GeneticProgramGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = ScalarFitnessEvaluator(maximize = true),
                 replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_pop),
+                selector = FitnessProportionateSelector(n_parents = n_population),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
             ),
@@ -103,7 +103,7 @@ function cont_pred_eco_creator(;
 end
 
 
-ecosystem_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
+ecosystem_creator = cont_pred_eco_creator(n_population = 50, n_workers = 1)
 eco = evolve!(ecosystem_creator, n_generations=5)
 @test length(eco.species) == 3
 
@@ -114,8 +114,8 @@ end
 function cont_pred_eco_creator(;
     id::String = "Symbolic Regression",
     trial::Int = 1,
-    rng::AbstractRNG = StableRNG(42),
-    n_pop::Int = 50,
+    random_number_generator::AbstractRNG = StableRNG(42),
+    n_population::Int = 50,
     species_id1::String = "Host",
     species_id2::String = "Mutualist",
     species_id3::String = "Parasite",
@@ -127,42 +127,42 @@ function cont_pred_eco_creator(;
     ecosystem_creator = BasicEcosystemCreator(
         id = id,
         trial = trial,
-        rng = rng,
+        random_number_generator = random_number_generator,
         species_creators = Dict(
             species_id1 => BasicSpeciesCreator(
                 id = species_id1,
-                n_pop = n_pop,
-                geno_creator = GeneticProgramGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
                 replacer = TruncationReplacer(type = :plus, n_truncate = 25),
                 selector = TournamentSelector(
-                    μ = n_pop, tournament_size = 3, selection_func=argmin
+                    μ = n_population, tournament_size = 3, selection_func=argmin
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
             ),
             species_id2 => BasicSpeciesCreator(
                 id = species_id2,
-                n_pop = n_pop,
-                geno_creator = GeneticProgramGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
                 replacer = TruncationReplacer(type = :plus, n_truncate = 25),
                 selector = TournamentSelector(
-                    μ = n_pop, tournament_size = 3, selection_func=argmin
+                    μ = n_population, tournament_size = 3, selection_func=argmin
                 ),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
             ),
             species_id3 => BasicSpeciesCreator(
                 id = species_id3,
-                n_pop = n_pop,
-                geno_creator = GeneticProgramGenotypeCreator(),
+                n_population = n_population,
+                genotype_creator = GeneticProgramGenotypeCreator(),
                 phenotype_creator = DefaultPhenotypeCreator(),
                 evaluator = NSGAIIEvaluator(),
                 replacer = TruncationReplacer(type = :plus, n_truncate = 25),
-                selector = TournamentSelector(μ = n_pop, tournament_size = 3),
+                selector = TournamentSelector(μ = n_population, tournament_size = 3),
                 recombiner = CloneRecombiner(),
                 mutators = [GeneticProgramMutator()]
             ),
@@ -206,7 +206,7 @@ function cont_pred_eco_creator(;
 end
 
 
-ecosystem_creator = cont_pred_eco_creator(n_pop = 50, n_workers = 1)
+ecosystem_creator = cont_pred_eco_creator(n_population = 50, n_workers = 1)
 eco = evolve!(ecosystem_creator, n_generations=5)
 @test length(eco.species) == 3
 
