@@ -1,9 +1,9 @@
 module Interfaces
 
 using Random: AbstractRNG
-using .....Ecosystems.Utilities.Counters: Counter
-using ..Abstract: Recombiner
-using ...Species.Individuals: Individual
+using ...Counters: Counter
+using ...Individuals.Abstract: Individual
+using ..Recombiners.Abstract: Recombiner
 
 function recombine(
     recombiner::Recombiner,

@@ -36,10 +36,10 @@ function perform(::BasicPerformer, job::BasicJob)
     results = Result[]
     for match in job.matches
         interaction = job.interactions[match.interaction_id]
-        phenotypes = Phenotype[job.phenotypes[individual_id] for individual_id in match.indiv_ids]
+        phenotypes = Phenotype[job.phenotypes[individual_id] for individual_id in match.individual_ids]
         result = interact(
             interaction,
-            match.indiv_ids,
+            match.individual_ids,
             phenotypes
         )
         push!(results, result)

@@ -51,7 +51,7 @@ function perform(performer::CachePerformer, jobs::Vector{J}) where {J <: Job}
     new_results = perform(basic_performer, filtered_jobs)
     empty!(performer.cache)
     [
-        push!(performer.cache, BasicMatch(result.interaction_id, result.indiv_ids) => result)
+        push!(performer.cache, BasicMatch(result.interaction_id, result.individual_ids) => result)
         for result in new_results
     ]
     all_results = [cached_results ; new_results]

@@ -1,10 +1,6 @@
 module Abstract
 
-export AbstractSpecies, SpeciesCreator
-
-using Random: AbstractRNG
-
-abstract type AbstractSpecies end
+export SpeciesCreator
 
 abstract type SpeciesCreator end
 

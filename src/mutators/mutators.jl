@@ -1,6 +1,6 @@
 module Mutators
 
-export Abstract, Interfaces, Types, Methods
+export Abstract, Interfaces, Identity, GnarlNetworks, FiniteStateMachines, FunctionGraphs
 
 include("abstract/abstract.jl")
 using .Abstract: Abstract
@@ -8,10 +8,19 @@ using .Abstract: Abstract
 include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces
 
-include("types/types.jl")
-using .Types: Types
+include("identity/identity.jl")
+using .Identity: Identity
 
-include("methods/methods.jl")
-using .Methods: Methods
+#include("genetic_programs/genetic_programs.jl")
+#using .GeneticPrograms: GeneticPrograms, GeneticProgramMutator
+
+include("gnarl/gnarl.jl")
+using .GnarlNetworks: GnarlNetworks
+
+include("fsms/fsms.jl")
+using .FiniteStateMachines: FiniteStateMachines
+
+include("function_graphs/function_graphs.jl")
+using .FunctionGraphs: FunctionGraphs
 
 end

@@ -2,11 +2,12 @@ module Interfaces
 
 export create_species
 
-using ..Species.Abstract: SpeciesCreator, AbstractRNG, AbstractSpecies
-using ....Ecosystems.Utilities.Counters: Counter
-using ....Ecosystems.Species.Evaluators.Abstract: Evaluation
-using ....Ecosystems.Species.Individuals: Individual
-
+using Random: AbstractRNG
+using ...Species.Abstract: AbstractSpecies
+using ...Counters: Counter
+using ...Evaluators.Abstract: Evaluation
+using ...Individuals.Abstract: Individual
+using ..SpeciesCreators.Abstract: SpeciesCreator
 
 function create_species(
     species_creator::SpeciesCreator,
@@ -33,7 +34,5 @@ function create_species(
         )
     )
 end
-
-
 
 end

@@ -4,7 +4,7 @@ export create_genotypes, minimize, get_size
 
 using Random: AbstractRNG
 
-using ...Counters: Counter
+using ...Counters.Abstract: Counter
 using ..Genotypes.Abstract: Genotype, GenotypeCreator
 
 function create_genotypes(

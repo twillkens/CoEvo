@@ -5,8 +5,9 @@ export BasicIndividual, BasicIndividualCreator
 import ..Individuals.Interfaces: create_individuals
 
 using Random: AbstractRNG
-using ...Counters: Counter, next!
-using ...Genotypes.Abstract: GenotypeCreator
+using ...Counters.Abstract: Counter
+using ...Counters.Interfaces: count!
+using ...Genotypes.Abstract: Genotype, GenotypeCreator
 using ...Genotypes.Interfaces: create_genotypes
 using ..Individuals.Abstract: Individual, IndividualCreator
 
@@ -29,7 +30,7 @@ function create_individuals(
     genotypes = create_genotypes(
         genotype_creator, random_number_generator, gene_id_counter, n_individuals
     )
-    individual_ids = next!(individual_id_counter, length(genotypes))
+    individual_ids = count!(individual_id_counter, n_individuals)
     individuals = [
         BasicIndividual(individual_id, genotype, Int[]) 
         for (individual_id, genotype) in zip(individual_ids, genotypes)

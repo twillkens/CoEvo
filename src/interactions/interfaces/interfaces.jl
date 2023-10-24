@@ -7,7 +7,7 @@ using ...Species.Phenotypes.Abstract: Phenotype
 
 function interact(
     interaction::Interaction,
-    indiv_ids::Vector{Int},
+    individual_ids::Vector{Int},
     phenotypes::Vector{Phenotype},
 )
     throw(ErrorException(

@@ -82,9 +82,24 @@ function filter_phenotypes_by_matches(
     filtered_phenotypes = Dict(
         individual_id => phenotype_dict[individual_id]
         for match in matches
-        for individual_id in match.indiv_ids
+        for individual_id in match.individual_ids
     )
     return filtered_phenotypes
+end
+
+function find_species_by_id(species_id::String, species_list::Vector{<:AbstractSpecies})
+    index = findfirst(s -> s.id == species_id, species_list)
+    if index === nothing
+        throw(ErrorException("Species with id $species_id not found."))
+    end
+    return species_list[index]
+end
+
+function get_species_with_ids(
+    all_species::Vector{<:AbstractSpecies}, species_ids::Vector{String}, 
+)
+    species = [find_species_by_id(species_id, all_species) for species_id in species_ids]
+    return species
 end
 
 function make_all_matches(
@@ -98,8 +113,7 @@ function make_all_matches(
                 interaction.matchmaker, 
                 random_number_generator,
                 interaction.id,
-                all_species,
-                interaction.species_ids
+                get_species_with_ids(all_species, interaction.species_ids),
             ) 
             for interaction in job_creator.interactions
         ]...

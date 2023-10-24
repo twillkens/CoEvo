@@ -1,9 +1,5 @@
 export get_neuron_positions, get_inputs, get_outputs, get_required_nodes
 
-using Random: AbstractRNG
-using ...Counters: Counter
-import ..Genotypes.Interfaces: create_genotypes, minimize
-
 function get_neuron_positions(genotype::GnarlNetworkGenotype)
     fixed_positions = Float32.(-genotype.n_input_nodes:genotype.n_output_nodes)
     hidden_positions = Float32.([node.position for node in genotype.hidden_nodes])
@@ -17,7 +13,6 @@ end
 function get_outputs(genotype::GnarlNetworkGenotype)
     Set(Float32(i) for i in 1:genotype.n_output_nodes)
 end
-
 
 function get_required_nodes(
     input_nodes::Set{Float32},

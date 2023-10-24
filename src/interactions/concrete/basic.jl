@@ -44,13 +44,13 @@ end
 
 function interact(
     interaction::BasicInteraction{E, M, O},
-    indiv_ids::Vector{Int},
+    individual_ids::Vector{Int},
     phenotypes::Vector{Phenotype},
 ) where {E <: EnvironmentCreator, M <: MatchMaker, O <: Observer}
     environment = create_environment(interaction.environment_creator, phenotypes)
     outcome_set = interact(environment, interaction.observers)
     observations = [create_observation(observer) for observer in interaction.observers]
-    result = Result(interaction.id, indiv_ids, outcome_set, observations)
+    result = Result(interaction.id, individual_ids, outcome_set, observations)
     return result
 end
 

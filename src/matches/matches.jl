@@ -5,7 +5,7 @@ export Abstract, Basic
 include("abstract/abstract.jl")
 using .Abstract: Abstract
 
-include("types/basic.jl")
+include("basic/basic.jl")
 using .Basic: Basic
 
 end

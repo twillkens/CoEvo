@@ -123,8 +123,8 @@ using .Recombiners: Recombiners
 include("mutators/mutators.jl")
 using .Mutators: Mutators
 
-include("species/species.jl")
-using .Species: Species
+include("species_creators/species_creators.jl")
+using .SpeciesCreators: SpeciesCreators
 
 include("metrics/metrics.jl")
 using .Metrics: Metrics
@@ -215,7 +215,6 @@ using .Mutators.Interfaces: mutate
 using .Mutators.Types.Identity: IdentityMutator 
 #using .Mutators.Types.GeneticPrograms: GeneticProgramMutator 
 using .Mutators.Types.FunctionGraphMutators: FunctionGraphMutator, FunctionGraphMutators
-using .Mutators.Types.NoiseInjection: NoiseInjectionMutator 
 using .Mutators.Types.GnarlNetworks: GnarlNetworkMutator
 using .Mutators.Types.FiniteStateMachineMutators: FiniteStateMachineMutators
 println("loaded mutators")

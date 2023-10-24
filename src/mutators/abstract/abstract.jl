@@ -8,5 +8,4 @@ using Random: AbstractRNG
 
 using ...Genotypes.Abstract: Genotype
 
-
 end
