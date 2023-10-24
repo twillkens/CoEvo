@@ -1,11 +1,3 @@
-module Abstract 
-
-export Mutator, AbstractRNG, Genotype
+export Mutator
 
 abstract type Mutator end
-
-using Random: AbstractRNG
-
-using ...Genotypes.Abstract: Genotype
-
-end

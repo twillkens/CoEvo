@@ -2,10 +2,10 @@ module Vectors
 
 export BasicVectorPhenotype
 
-import ..Phenotypes.Interfaces: create_phenotype, act!
+import ..Phenotypes: create_phenotype, act!
 
 using ...Genotypes.Vectors: BasicVectorGenotype
-using ..Phenotypes.Abstract: PhenotypeCreator
+using ..Phenotypes: Phenotype, PhenotypeCreator
 
 abstract type VectorPhenotype <: Phenotype end 
 

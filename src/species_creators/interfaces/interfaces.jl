@@ -1,13 +1,4 @@
-module Interfaces
-
 export create_species
-
-using Random: AbstractRNG
-using ...Species.Abstract: AbstractSpecies
-using ...Counters: Counter
-using ...Evaluators.Abstract: Evaluation
-using ...Individuals.Abstract: Individual
-using ..SpeciesCreators.Abstract: SpeciesCreator
 
 function create_species(
     species_creator::SpeciesCreator,
@@ -33,6 +24,4 @@ function create_species(
         "`create_species` not implemented for species $species_creator "
         )
     )
-end
-
 end

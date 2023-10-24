@@ -2,13 +2,12 @@ module Identity
 
 export IdentityRecombiner
 
-import ...Recombiners.Interfaces: recombine
+import ..Recombiners: recombine
 
 using Random: AbstractRNG
-using ...Counters.Abstract: Counter
+using ...Counters: Counter
 using ...Individuals: Individual
-using ..Recombiners.Abstract: Recombiner
-
+using ..Recombiners: Recombiner
 
 Base.@kwdef struct IdentityRecombiner <: Recombiner end
 

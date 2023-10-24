@@ -4,15 +4,14 @@ export FunctionGraphMutator, add_function, remove_function, swap_function
 export redirect_connection, identity, inject_noise!, ConnectionRedirectionSpecification
 
 import Base: identity
-import ..Mutators.Interfaces: mutate
+import ..Mutators: mutate
 
 using Random: rand, randn, AbstractRNG
 using StatsBase: sample, Weights
-using ...Counters.Abstract: Counter
-using ...Counters.Interfaces: count!
+using ...Counters: Counter, count!
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode
 using ...Genotypes.FunctionGraphs: FunctionGraphConnection, GraphFunction, FUNCTION_MAP
-using ..Mutators.Abstract: Mutator
+using ..Mutators: Mutator
 
 @kwdef struct ConnectionRedirectionSpecification
     node_id::Int
@@ -79,7 +78,6 @@ function add_function(
     return graph
 end
 
-
 function get_nodes_with_redirected_links(
     graph::FunctionGraphGenotype, 
     node_to_delete_id::Int,
@@ -113,7 +111,6 @@ function get_nodes_with_redirected_links(
     
     return new_nodes
 end
-
 
 function remove_function(
     genotype::FunctionGraphGenotype, 

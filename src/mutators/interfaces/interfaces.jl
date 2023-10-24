@@ -1,16 +1,5 @@
-module Interfaces 
-
 export mutate
 
-using Random: AbstractRNG
-using ...Counters: Counter
-using ..Mutators.Abstract: Mutator, Genotype
-
-"""
-    Generic mutation function for `Individual`.
-
-Mutate the genotype of an `Individual` using a given mutation strategy.
-"""
 function mutate(
     mutator::Mutator, 
     random_number_generator::AbstractRNG, 
@@ -19,8 +8,6 @@ function mutate(
 )::Genotype
     throw(ErrorException("Default mutation for $mutator not implemented for $genotype."))
 end
-
-using ...Individuals.Abstract: Individual
 
 function mutate(
     mutator::Mutator,
@@ -37,6 +24,4 @@ function mutate(
     ]
 
     return individuals
-end
-
 end

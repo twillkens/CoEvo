@@ -2,15 +2,15 @@ module Tournament
 
 export TournamentSelector, run_tournament
 
-import ...Selectors.Interfaces: select
+import ...Selectors: select
 
 using StatsBase: sample
 using Random: AbstractRNG
-using ...Evaluators.Abstract: Evaluation
+using ...Individuals: Individual
+using ...Evaluators: Evaluation
 using ...Evaluators.ScalarFitness: ScalarFitnessRecord
 using ...Evaluators.NSGAII: NSGAIIRecord
-using ...Individuals.Abstract: Individual
-using ..Selectors.Abstract: Selector
+using ..Selectors: Selector
 
 Base.@kwdef struct TournamentSelector <: Selector
     n_parents::Int # number of parents to select
@@ -59,7 +59,6 @@ function select(
     new_population::Vector{I},
     evaluation::Evaluation
 ) where {I <: Individual}
-    # Fetch NSGAIIRecord for each individual
     new_population_dict = Dict(individual.id => individual for individual in new_population)
     records = filter(record -> record.id in keys(new_population_dict), evaluation.records)
     parents = I[]

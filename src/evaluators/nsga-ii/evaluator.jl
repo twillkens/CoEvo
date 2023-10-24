@@ -1,10 +1,5 @@
 export NSGAIIEvaluator, NSGAIIEvaluation
 
-"""
-    DiscoRecordCfg <: EvaluationCreator
-
-A configuration for the Disco evaluation. This serves as a placeholder for potential configuration parameters.
-"""
 Base.@kwdef struct NSGAIIEvaluator <: Evaluator 
     maximize::Bool = true
     perform_disco::Bool = true

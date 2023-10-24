@@ -1,14 +1,15 @@
 module Performers
 
-export Abstract, Interfaces, Concrete
+export Basic, Cache
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
-include("concrete/concrete.jl")
-using .Concrete: Concrete
+include("basic/basic.jl")
+using .Basic: Basic
+
+include("cache/cache.jl")
+using .Cache: Cache
 
 end

@@ -1,19 +1,14 @@
-"""
-    Evaluations
-
-This module provides tools and configurations for evaluating individuals in a coevolutionary ecosystem.
-It supports various evaluation types, with the included type being `ScalarFitnessEvaluation`.
-"""
 module Evaluators
 
-export Abstract, Interfaces, Null, ScalarFitness, NSGAII
+export Null, ScalarFitness, NSGAII
 
-# Include abstract definitions and interfaces relevant to evaluations.
+using Random: AbstractRNG
+using DataStructures: SortedDict
+using ..Species: AbstractSpecies
+
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
 include("null/null.jl")
 using .Null: Null

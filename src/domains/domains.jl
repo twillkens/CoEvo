@@ -1,12 +1,12 @@
 module Domains
 
-export Abstract, Interfaces, NumbersGame, SymbolicRegression, PredictionGame
+export NumbersGame, SymbolicRegression, PredictionGame
+
+using ..Metrics: Metric
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
 include("numbers_game/numbers_game.jl")
 using .NumbersGame: NumbersGame

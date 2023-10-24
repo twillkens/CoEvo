@@ -2,7 +2,7 @@ module Observations
 
 export EpisodeLength
 
-using ...Metrics.Abstract: Metric
+using ...Metrics: Metric
 
 Base.@kwdef struct EpisodeLength <: Metric
     name::String = "Episode Length"

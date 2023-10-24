@@ -3,11 +3,11 @@ module Vectors
 export VectorGenotype, VectorGenotypeCreator
 export BasicVectorGenotype, BasicVectorGenotypeCreator, ScalarRangeGenotypeCreator
 
+import ...Genotypes: create_genotypes
+
 using Random: AbstractRNG
 using ...Counters: Counter
-using ..Genotypes.Abstract: Genotype, GenotypeCreator
-
-import ...Genotypes.Interfaces: create_genotypes
+using ..Genotypes: Genotype, GenotypeCreator
 
 abstract type VectorGenotype <: Genotype end
 

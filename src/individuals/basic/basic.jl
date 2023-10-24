@@ -2,14 +2,12 @@ module Basic
 
 export BasicIndividual, BasicIndividualCreator
 
-import ..Individuals.Interfaces: create_individuals
+import ..Individuals: create_individuals
 
 using Random: AbstractRNG
-using ...Counters.Abstract: Counter
-using ...Counters.Interfaces: count!
-using ...Genotypes.Abstract: Genotype, GenotypeCreator
-using ...Genotypes.Interfaces: create_genotypes
-using ..Individuals.Abstract: Individual, IndividualCreator
+using ...Counters: Counter, count!
+using ...Genotypes: Genotype, GenotypeCreator, create_genotypes
+using ..Individuals: Individual, IndividualCreator
 
 struct BasicIndividual{G <: Genotype} <: Individual
     id::Int

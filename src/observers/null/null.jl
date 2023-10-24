@@ -2,10 +2,8 @@ module Null
 
 export NullObservation
 
-using ...Observers.Abstract: Observation, Observer
-using .....Metrics.Abstract: Metric
-using .....Metrics.Concrete.Common: NullMetric
-
+using ...Observers: Observation, Observer
+using ...Metrics.Common: NullMetric
 
 Base.@kwdef struct NullObservation{O, D} <: Observation{O, D}
     metric::O = NullMetric()
@@ -13,6 +11,5 @@ Base.@kwdef struct NullObservation{O, D} <: Observation{O, D}
     individual_ids::Vector{Int} = Int[]
     data::D = nothing
 end
-
 
 end

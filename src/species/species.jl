@@ -1,9 +1,8 @@
 module Species
 
-export Abstract, Basic
+export Basic
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("basic/basic.jl")
 using .Basic: Basic

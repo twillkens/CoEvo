@@ -2,42 +2,21 @@ module FitnessProportionate
 
 export FitnessProportionateSelector, roulette
 
-import ..Selectors.Interfaces: select
+import ..Selectors: select
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using ...Individuals.Abstract: Individual
+using ...Individuals: Individual
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluation
-using ..Selectors.Abstract: Selector
+using ..Selectors: Selector
 
-"""
-    FitnessProportionateSelector
-
-Represents a selection strategy that chooses individuals based on their relative fitness scores.
-Each individual is assigned a probability proportional to its fitness, and individuals are selected
-with replacement according to these probabilities.
-
-# Fields
-- `n_parents::Int`: The number of parents to select from the population.
-"""
 Base.@kwdef struct FitnessProportionateSelector <: Selector
     n_parents::Int
 end
 
-"""
-    roulette(random_number_generator::AbstractRNG, μ::Int, fits::Vector{<:Real})
-
-Implements the roulette wheel algorithm for fitness-proportionate selection.
-
-# Arguments
-- `random_number_generator::AbstractRNG`: A random number generator.
-- `μ::Int`: Number of selections to make.
-- `fits::Vector{<:Real}`: A vector of fitness values corresponding to each individual in the population.
-
-# Returns
-- `Array{Int}`: Indices of selected individuals.
-"""
-function roulette(random_number_generator::AbstractRNG, n_parents::Int, fitnesses::Vector{<:Real})
+function roulette(
+    random_number_generator::AbstractRNG, n_parents::Int, fitnesses::Vector{<:Real}
+)
     if any(fitnesses .<= 0)
         throw(ArgumentError("Fitness values must be strictly positive for FitnessProportionateSelector."))
     end

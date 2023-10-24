@@ -2,13 +2,13 @@ module Generational
 
 export GenerationalReplacer
 
-import ...Replacers.Interfaces: replace
+import ..Replacers: replace
 
 using Random: AbstractRNG
 using ...Individuals: Individual
-using ...Species.Abstract: AbstractSpecies
+using ...Species: AbstractSpecies
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluation
-using ..Replacers.Abstract: Replacer
+using ..Replacers: Replacer
 
 Base.@kwdef struct GenerationalReplacer <: Replacer
     n_elite::Int = 0

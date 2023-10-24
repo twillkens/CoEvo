@@ -1,13 +1,4 @@
-module Interfaces
-
 export create_jobs
-
-using Random: AbstractRNG
-
-using ..Jobs.Abstract: JobCreator
-using ...Ecosystems.Abstract: Ecosystem
-using ...Ecosystems.Species.Abstract: AbstractSpecies
-using ...Ecosystems.Species.Phenotypes.Abstract: PhenotypeCreator
 
 function create_jobs(
     job_creator::JobCreator,
@@ -16,6 +7,4 @@ function create_jobs(
     phenotype_creators::Vector{<:PhenotypeCreator},
 )
     throw(ErrorException("`create_jobs` not implemented for $(typeof(job_creator))"))
-end
-
 end

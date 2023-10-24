@@ -1,14 +1,13 @@
 module Measurements
 
-export Abstract
+export Common, Statistical
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
-#include("types/individual_identity.jl")
-#using .IndividualIdentity: IndividualIdentityMeasureSet
+include("common/common.jl")
+using .Common: Common
 
-include("types/types.jl")
-using .Types
+include("statistical/statistical.jl")
+using .Statistical: Statistical
 
 end

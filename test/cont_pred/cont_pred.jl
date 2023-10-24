@@ -54,7 +54,7 @@ end
     domain_mock = PredictionGameDomain(:Control)
     entity1_mock = MockPhenotype(Inf32)
     entity2_mock = MockPhenotype(-Inf32)
-    environment_creator = TapeEnvironmentCreator(
+    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
         domain=domain_mock, episode_length=2, communication_dimension=2
     )
     environment_mock = create_environment(
@@ -99,7 +99,7 @@ end
     domain_mock = PredictionGameDomain(:Affinitive)
     entity1_mock = MockPhenotypeWithTape([tan(π / 4) for _ in 1:4])  # Moves right for 8 steps
     entity2_mock = MockPhenotypeWithTape([-tan(π / 4) for _ in 1:4]) # Moves left for 8 steps
-    environment_mock = create_environment(TapeEnvironmentCreator(
+    environment_mock = create_environment(ContinuousPredictionGameEnvironmentCreatorr(
         domain=domain_mock, episode_length=4, communication_dimension=0
     ), 
         Phenotype[entity1_mock, entity2_mock]
@@ -140,7 +140,7 @@ end
     entity2_mock = MockPhenotypeWithTape([tan(π / 4) for _ in 1:16])  # Moves right for 16 steps
     
     environment_mock = create_environment(
-        TapeEnvironmentCreator(
+        ContinuousPredictionGameEnvironmentCreatorr(
             domain=domain_mock, episode_length=16, communication_dimension = 0
         ), 
         Phenotype[entity1_mock, entity2_mock]
@@ -170,7 +170,7 @@ end
     entity1_mock = MockPhenotypeWithTape([tan(π / 4) for _ in 1:16])  # Moves right (clockwise) for 16 steps
     entity2_mock = MockPhenotypeWithTape([-tan(π / 4) for _ in 1:16])  # Moves left (counterclockwise) for 16 steps
     
-    environment_mock = create_environment(TapeEnvironmentCreator(
+    environment_mock = create_environment(ContinuousPredictionGameEnvironmentCreatorr(
         domain=domain_mock, episode_length=16), 
         Phenotype[entity1_mock, entity2_mock]
     )
@@ -212,7 +212,7 @@ end
 #     entity1_mock = MockPhenotypeWithTape([π/16 for _ in 1:8])  # Moves right
 #     entity2_mock = MockPhenotypeWithTape([π/16 for _ in 1:8])  # Moves right
 #     environment_mock = create_environment(
-#         TapeEnvironmentCreator(domain=domain_mock, episode_length=8), Phenotype[entity1_mock, entity2_mock])
+#         ContinuousPredictionGameEnvironmentCreatorr(domain=domain_mock, episode_length=8), Phenotype[entity1_mock, entity2_mock])
 #     
 #     initial_distance = get_clockwise_distance(environment_mock.position_1, environment_mock.position_2)
 #     for _ in 1:8
@@ -226,7 +226,7 @@ end
 #     # Both entities move towards π/2 for 4 steps, then to 3π/2 for another 4 steps.
 #     entity1_mock = MockPhenotypeWithTape([[π/16 for _ in 1:4] ; [-π/16 for _ in 1:4]])  # 4 right, 4 left
 #     entity2_mock = MockPhenotypeWithTape([[π/16 for _ in 1:4] ; [-π/16 for _ in 1:4]])  # 4 right, 4 left
-#     environment_mock = create_environment(TapeEnvironmentCreator(domain=domain_mock, episode_length=8), Phenotype[entity1_mock, entity2_mock])
+#     environment_mock = create_environment(ContinuousPredictionGameEnvironmentCreatorr(domain=domain_mock, episode_length=8), Phenotype[entity1_mock, entity2_mock])
 #     
 #     for _ in 1:4
 #         next!(environment_mock)
@@ -246,7 +246,7 @@ end
 #     domain_mock = ContinuousPredictionGameDomain(:Control)
 #     entity1_mock = MockPhenotype()
 #     entity2_mock = MockPhenotype()
-#     environment_mock = TapeEnvironment(domain_mock, entity1_mock, entity2_mock, 10, π, 0.0)
+#     environment_mock = ContinuousPredictionGameEnvironment(domain_mock, entity1_mock, entity2_mock, 10, π, 0.0)
 #     outcome = get_outcome_set(environment_mock)
 #     @test outcome == sum(environment_mock.distances) / (π * 10)
 # end

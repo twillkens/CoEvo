@@ -1,11 +1,4 @@
-module Interfaces
-
 export archive!, save_genotype!
-
-using JLD2: Group
-using ..Archivers.Abstract: Archiver
-using ...Reporters.Abstract: Report
-using ...Species.Genotypes.Abstract: Genotype
 
 function archive!(
     archiver::Archiver,
@@ -22,6 +15,4 @@ function save_genotype!(archiver::Archiver, genotype_group::Group, genotype::Gen
     throw(ErrorException("save_genotype! not implemented for 
         $(typeof(archiver)) and 
         $(typeof(genotype))"))
-end
-
 end

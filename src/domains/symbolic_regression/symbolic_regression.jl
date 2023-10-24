@@ -2,20 +2,16 @@ module SymbolicRegression
 
 export SymbolicRegressionDomain
 
-import ...Metrics.Interfaces: measure
+import ...Domains: measure
 
 using Base: @kwdef
-using ...Metrics.Abstract: Metric
-using ..Domains.Abstract: Domain
+using ...Metrics: Metric
+using ...Metrics.Evaluations: AbsoluteError
+using ..Domains: Domain
 
-
-@kwdef struct SymbolicRegressionDomain{O <: OutcomeMetric} <: Domain{O}
-    outcome_metric::O
+@kwdef struct SymbolicRegressionDomain{M <: Metric} <: Domain{M}
+    outcome_metric::M
     target_function::Function
-end
-
-@kwdef struct AbsoluteError <: OutcomeMetric
-    name::String = "AbsoluteError"
 end
 
 function SymbolicRegressionDomain(target_function::Function)

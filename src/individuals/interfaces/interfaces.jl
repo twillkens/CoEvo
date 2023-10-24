@@ -1,9 +1,4 @@
-module Interfaces
-
-using Random: AbstractRNG
-using ...Counters: Counter
-using ...Genotypes.Abstract: GenotypeCreator
-using ..Individuals.Abstract: IndividualCreator
+export create_individuals
 
 function create_individuals(
     individual_creator::IndividualCreator,
@@ -16,6 +11,4 @@ function create_individuals(
     individual_creator_type = typeof(individual_creator)
     genotype_creator_type = typeof(genotype_creator)
     throw(ErrorException("create_individuals not implemented for $individual_creator_type and $genotype_creator_type"))
-end
-
 end

@@ -2,10 +2,10 @@ module Genotypes
 
 export GenotypeSize, GenotypeSum
 
-import ..Metrics.Interfaces: measure
+import ..Metrics: measure
 
-using ...Genotypes.Abstract: Genotype
-using ..Metrics.Abstract: Metric
+using ...Genotypes: Genotype
+using ..Metrics: Metric
 
 Base.@kwdef struct GenotypeSize <: Metric 
     name::String = "GenotypeSize"

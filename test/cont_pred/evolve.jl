@@ -69,7 +69,7 @@ function cont_pred_eco_creator(;
             interactions = Dict(
                 interaction_id1 => BasicInteraction(
                     id = interaction_id1,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMatching()
                         ),
@@ -80,7 +80,7 @@ function cont_pred_eco_creator(;
                 ),
                 interaction_id2 => BasicInteraction(
                     id = interaction_id2,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         domain = ContinuousPredictionGameDomain(
                             Competitive()
                         ),
@@ -172,7 +172,7 @@ function cont_pred_eco_creator(;
             interactions = Dict(
                 interaction_id1 => BasicInteraction(
                     id = interaction_id1,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         ContinuousPredictionGameDomain(
                             CooperativeMismatching()
                         ),
@@ -183,7 +183,7 @@ function cont_pred_eco_creator(;
                 ),
                 interaction_id2 => BasicInteraction(
                     id = interaction_id2,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         ContinuousPredictionGameDomain(
                             Competitive()
                         ),

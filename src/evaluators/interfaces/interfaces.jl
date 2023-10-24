@@ -1,12 +1,4 @@
-module Interfaces
-
 export create_evaluation
-
-using Random: AbstractRNG
-using DataStructures: SortedDict
-
-using ..Evaluators.Abstract: Evaluator 
-using ...Species.Abstract: AbstractSpecies
 
 # TODO: Add observations to the interface.
 
@@ -19,6 +11,4 @@ function create_evaluation(
 )
     throw(ErrorException(
         "`create_evaluation` not implemented for $evaluator and $species."))
-end
-
 end

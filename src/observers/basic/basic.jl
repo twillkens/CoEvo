@@ -2,8 +2,8 @@ module Basic
 
 export BasicObserver, BasicObservation
 
-using ...Metrics.Abstract: Metric
-using ..Observers.Abstract: Observation, Observer
+using ...Metrics: Metric
+using ..Observers: Observation, Observer
 
 mutable struct BasicObserver{M <: Metric} <: Observer{M}
     metric::M

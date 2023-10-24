@@ -2,20 +2,21 @@ module NumbersGame
 
 export NumbersGameDomain, Control, Sum, Gradient, Focusing, Relativism
 
-import ..Domains.Interfaces: measure
+import ..Domains: measure
 
 using Base: @kwdef
-using ..Domains.Abstract: OutcomeMetric, Domain
+using ...Metrics: Metric
+using ..Domains: Domain
 
-struct NumbersGameDomain{O <: OutcomeMetric} <: Domain{O}
-    outcome_metric::O
+struct NumbersGameDomain{M <: Metric} <: Domain{M}
+    outcome_metric::M
 end
 
 function outcome_decision(result::Bool)
     return result ? [1.0, 0.0] : [0.0, 1.0]
 end
 
-@kwdef struct Control <: OutcomeMetric 
+@kwdef struct Control <: Metric 
     name::String = "Control"
 end
 
@@ -23,7 +24,7 @@ function measure(::NumbersGameDomain{Control}, A::Vector{<:Real}, B::Vector{<:Re
     return [1.0, 1.0]
 end
 
-@kwdef struct Sum <: OutcomeMetric 
+@kwdef struct Sum <: Metric 
     name::String = "Sum"
 end
 
@@ -32,7 +33,7 @@ function measure(::NumbersGameDomain{Sum}, A::Vector{<:Real}, B::Vector{<:Real})
     return outcome_decision(sumA > sumB)
 end
 
-@kwdef struct Gradient <: OutcomeMetric 
+@kwdef struct Gradient <: Metric 
     name::Symbol = "Gradient"
 end
 
@@ -41,7 +42,7 @@ function measure(::NumbersGameDomain{Gradient}, A::Vector{<:Real}, B::Vector{<:R
     return outcome_decision(sum(compare_results) > length(A) / 2)
 end
 
-@kwdef struct Focusing <: OutcomeMetric 
+@kwdef struct Focusing <: Metric 
     name::Symbol = "Focusing"
 end
 
@@ -50,7 +51,7 @@ function measure(::NumbersGameDomain{Focusing}, A::Vector{<:Real}, B::Vector{<:R
     return outcome_decision(A[idx] > B[idx])
 end
 
-@kwdef struct Relativism <: OutcomeMetric 
+@kwdef struct Relativism <: Metric 
     name::Symbol = "Relativism"
 end
 

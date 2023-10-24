@@ -24,7 +24,7 @@ using ....Ecosystems.Species.Selectors.Types.Tournament: TournamentSelector
 using ....Ecosystems.Jobs.Basic: BasicJobCreator
 
 using ....Ecosystems.Interactions.Concrete.Basic: BasicInteraction
-using ....Ecosystems.Interactions.Environments.Concrete.Tape: TapeEnvironmentCreator
+using ....Ecosystems.Interactions.Environments.Concrete.Tape: ContinuousPredictionGameEnvironmentCreatorr
 using ....Ecosystems.Interactions.Domains.Concrete: PredictionGameDomain
 using ....Ecosystems.Reporters.Types.Basic: BasicReporter
 using ....Ecosystems.Reporters.Types.Runtime: RuntimeReporter
@@ -252,7 +252,7 @@ function make_environment_creators(configuration::PredictionGameTrialConfigurati
     communication_dimension = configuration.communication_dimension
     game = configuration.game
     if game == :continuous_prediction_game
-        environment_creator_type = TapeEnvironmentCreator
+        environment_creator_type = ContinuousPredictionGameEnvironmentCreatorr
     else
         throw(ArgumentError("Unrecognized game: $game"))
     end

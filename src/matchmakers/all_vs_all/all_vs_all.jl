@@ -1,11 +1,11 @@
 module AllvsAll
 
-import ..MatchMakers.Interfaces: make_matches
+import ..MatchMakers: make_matches
 
 using Random: AbstractRNG
-using ...Species.Abstract: AbstractSpecies
+using ...Species: AbstractSpecies
 using ...Matches.Basic: BasicMatch
-using ..MatchMakers.Abstract: MatchMaker
+using ..MatchMakers: MatchMaker
 
 Base.@kwdef struct AllvsAllMatchMaker <: MatchMaker 
     cohorts::Vector{Symbol} = [:population, :children]

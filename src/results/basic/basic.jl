@@ -2,11 +2,11 @@ module Basic
 
 export BasicResult
 
-import ..Results.Interfaces: get_individual_outcomes, get_observations
+import ..Results: get_individual_outcomes, get_observations
 
 using DataStructures: SortedDict
-using ...Observers.Abstract: Observation
-using ..Results.Abstract: Result
+using ...Observers: Observation
+using ..Results: Result
 
 struct BasicResult{O <: Observation}
     interaction_id::String

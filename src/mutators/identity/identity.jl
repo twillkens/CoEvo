@@ -2,12 +2,12 @@ module Identity
 
 export IdentityMutator
 
-import ...Mutators.Interfaces: mutate
+import ..Mutators: mutate
 
 using Random: AbstractRNG
 using ...Counters: Counter
-using ...Genotypes.Abstract: Genotype
-using ..Mutators.Abstract: Mutator
+using ...Genotypes: Genotype
+using ..Mutators: Mutator
 
 struct IdentityMutator <: Mutator end
 

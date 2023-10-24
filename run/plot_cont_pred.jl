@@ -5,8 +5,8 @@ using CoEvo.TapeMethods.ContinuousPredictionGame: scaled_arctangent, apply_movem
 using CoEvo.TapeMethods.ContinuousPredictionGame: get_outcome_set, get_clockwise_distance, get_counterclockwise_distance
 import CoEvo.Phenotypes.Interfaces: act!, reset!
 
-function pretty_print(env::TapeEnvironment)
-    #println("TapeEnvironment:")
+function pretty_print(env::ContinuousPredictionGameEnvironment)
+    #println("ContinuousPredictionGameEnvironment:")
     #println("  Domain: ", env.domain)
     #println("  Entity 1: ", env.entity_1)
     #println("  Entity 2: ", env.entity_2)
@@ -91,7 +91,7 @@ phenotype_2 = create_phenotype(LinearizedFunctionGraphPhenotypeCreator(), genoty
 
 domain_mock = ContinuousPredictionGameDomain(:CooperativeMatching)
 
-environment = create_environment(TapeEnvironmentCreator(
+environment = create_environment(ContinuousPredictionGameEnvironmentCreatorr(
     domain=domain_mock, episode_length=32), 
     Phenotype[phenotype_1, phenotype_2]
 )

@@ -1,18 +1,21 @@
 module Mutators
 
-export Abstract, Interfaces, Identity, GnarlNetworks, FiniteStateMachines, FunctionGraphs
+export Identity, GeneticPrograms, GnarlNetworks, FiniteStateMachines, FunctionGraphs
+
+using Random: AbstractRNG
+using ..Counters: Counter
+using ..Genotypes: Genotype
+using ..Individuals: Individual
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
 include("identity/identity.jl")
 using .Identity: Identity
 
-#include("genetic_programs/genetic_programs.jl")
-#using .GeneticPrograms: GeneticPrograms, GeneticProgramMutator
+include("genetic_programs/genetic_programs.jl")
+using .GeneticPrograms: GeneticPrograms
 
 include("gnarl/gnarl.jl")
 using .GnarlNetworks: GnarlNetworks

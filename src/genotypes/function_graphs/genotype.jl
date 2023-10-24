@@ -92,7 +92,7 @@ function create_ids_and_nodes(
     function_symbol::Symbol,
     n_nodes::Int
 )
-    node_ids = next!(gene_id_counter, n_nodes)
+    node_ids = count!(gene_id_counter, n_nodes)
     nodes = Dict(
         id => FunctionGraphNode(
             id = id, 
@@ -110,7 +110,7 @@ function create_output_ids_and_nodes(
     input_node_ids::Vector{Int},
 )
     n_output_nodes = genotype_creator.n_outputs * genotype_creator.n_nodes_per_output
-    output_node_ids = next!(gene_id_counter, n_output_nodes)
+    output_node_ids = count!(gene_id_counter, n_output_nodes)
     output_nodes = Dict(
         map(output_node_ids) do id
             input_connection_id = rand(random_number_generator, input_node_ids)[1]

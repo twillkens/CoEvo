@@ -2,12 +2,12 @@ module Identity
 
 export IdentityReplacer
 
-import ...Interfaces: replace 
+import ..Replacers: replace 
 
 using Random: AbstractRNG
-using ...Species.Abstract: AbstractSpecies
-using ...Evaluators.Abstract: Evaluation
-using ..Replacers.Abstract: Replacer
+using ...Species: AbstractSpecies
+using ...Evaluators: Evaluation
+using ..Replacers: Replacer
 
 struct IdentityReplacer <: Replacer end
 

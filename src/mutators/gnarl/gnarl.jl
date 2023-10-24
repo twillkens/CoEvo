@@ -6,16 +6,14 @@ export get_next_layer, get_previous_layer
 export replace_connection, redirect_or_replace_connection, remove_node_from_genotype
 export remove_node_2, redirect_connection
 
-import ...Mutators.Interfaces: mutate
+import ...Mutators: mutate
 
 using StatsBase: Weights, sample
 using Random: AbstractRNG, shuffle!
-using ...Counters.Abstract: Counter
-using ...Counters.Interfaces: count!
-using ...Genotypes.Abstract: Genotype
+using ...Counters: Counter, count!
 using ...Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkConnectionGene
 using ...Genotypes.GnarlNetworks: GnarlNetworkNodeGene, get_neuron_positions
-using ..Mutators.Abstract: Mutator
+using ..Mutators: Mutator
 
 function get_next_layer(genotype::GnarlNetworkGenotype, nodes::Vector{Float32})
     next_layer = [

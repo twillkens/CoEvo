@@ -2,7 +2,7 @@ module Basic
 
 export BasicCounter
 
-import ..Counters.Interfaces: count!
+import ..Counters: count!
 
 mutable struct BasicCounter
     current_value::Int

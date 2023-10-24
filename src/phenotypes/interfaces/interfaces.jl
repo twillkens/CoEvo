@@ -1,8 +1,4 @@
-module Interfaces
-
 export create_phenotype, act!, reset!
-
-using ..Phenotypes.Abstract: Phenotype, PhenotypeCreator, Genotype
 
 function create_phenotype(phenotype_creator::PhenotypeCreator, genotype::Genotype)::Phenotype
     throw(ErrorException(
@@ -20,6 +16,4 @@ end
 
 function reset!(phenotype::Phenotype)
     throw(ErrorException("reset! not implemented for $phenotype"))
-end
-
 end

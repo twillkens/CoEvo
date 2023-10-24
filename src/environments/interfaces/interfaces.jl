@@ -1,11 +1,4 @@
-module Interfaces
-
-export create_environment, next!, get_outcome_set, is_active, observe!
-
-using ..Environments.Abstract: Environment, EnvironmentCreator
-using ....Species.Phenotypes.Abstract: Phenotype
-using ...Interactions.Observers.Abstract: Observer
-
+export create_environment, step!, get_outcome_set, is_active, observe!
 
 function create_environment(
     environment_creator::EnvironmentCreator, 
@@ -21,7 +14,7 @@ function observe!(environment::Environment, observer::Observer)
     error("`observe!`` not implemented for $(typeof(environment)), $(typeof(observer))")
 end
 
-function next!(environment::Environment)::Nothing
+function step!(environment::Environment)::Nothing
     throw(ErrorException(
         "`next!` not implemented for environment $environment"
         )
@@ -40,6 +33,4 @@ function is_active(environment::Environment)::Bool
         "`is_active` not implemented for environment $environment"
         )
     )
-end
-
 end

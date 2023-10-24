@@ -3,14 +3,13 @@ module FiniteStateMachines
 export FiniteStateMachineMutator
 export add_state, remove_state, change_link, change_label
 
-import ..Mutators.Interfaces: mutate
+import ..Mutators: mutate
 
 using Random: AbstractRNG, rand
 using StatsBase: sample, Weights
-using ...Counters.Abstract: Counter
-using ...Counters.Interfaces: count!
+using ...Counters: Counter, count!
 using ...Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
-using ..Mutators.Abstract: Mutator
+using ..Mutators: Mutator
 
 function add_state(
     genotype::FiniteStateMachineGenotype{T}, 
@@ -48,8 +47,10 @@ function filter_links(genotype::FiniteStateMachineGenotype{T}, todelete::T) wher
 end
 
 function filter_states(genotype::FiniteStateMachineGenotype{T}, to_delete::T) where T
-    ones = to_delete in genotype.ones ? filter(state -> state != to_delete, genotype.ones) : genotype.ones
-    zeros = to_delete in genotype.zeros ? filter(state -> state != to_delete, genotype.zeros) : genotype.zeros
+    ones = to_delete in genotype.ones ? 
+        filter(state -> state != to_delete, genotype.ones) : genotype.ones
+    zeros = to_delete in genotype.zeros ? 
+        filter(state -> state != to_delete, genotype.zeros) : genotype.zeros
     return ones, zeros
 end
 
@@ -113,10 +114,9 @@ function mutate(
     for mutation_function in mutation_functions
         genotype = mutation_function(random_number_generator, gene_id_counter, genotype)
     end
-    if length(union(genotype.ones, genotype.zeros)) != length(genotype.ones) + length(genotype.zeros)
-        # println("mutation_function: $mutation_functions")
-        # println("genotype_before: $genotype_before")
-        # println("genotype_after: $genotype")
+    if length(
+        union(genotype.ones, genotype.zeros)) != length(genotype.ones) + length(genotype.zeros
+    )
         throw(ErrorException("Duplicate states in genotype"))
     end
     return genotype
@@ -170,7 +170,9 @@ function remove_state(
     return genotype
 end
 
-function change_link(random_number_generator::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype)
+function change_link(
+    random_number_generator::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype
+)
     state = rand(random_number_generator, union(genotype.ones, genotype.zeros))
     new_destination = rand(random_number_generator, union(genotype.ones, genotype.zeros))
     bit = rand(random_number_generator, Bool)
@@ -178,7 +180,9 @@ function change_link(random_number_generator::AbstractRNG, ::Counter, genotype::
     return genotype
 end
 
-function change_label(random_number_generator::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype)
+function change_label(
+    random_number_generator::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype
+)
     state = rand(random_number_generator, union(genotype.ones, genotype.zeros))
     genotype = change_label(genotype, state)
     return genotype

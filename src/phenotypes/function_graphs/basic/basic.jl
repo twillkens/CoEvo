@@ -2,12 +2,12 @@ module Basic
 
 export BasicFunctionGraphPhenotype, FunctionGraphStatefulNode
 
-using ....Genotypes.Interfaces: minimize
+import ...Phenotypes: create_phenotype, act!, reset!
+
+using ....Genotypes: minimize
 using ....Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
 using ....Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP, evaluate
-using ....Phenotypes.Abstract: Phenotype, PhenotypeCreator
-
-import ....Phenotypes.Interfaces: create_phenotype, act!, reset!
+using ....Phenotypes: Phenotype, PhenotypeCreator
 
 Base.@kwdef struct FunctionGraphSmallConnection
     input_node_id::Int

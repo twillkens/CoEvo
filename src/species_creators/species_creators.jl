@@ -1,12 +1,16 @@
 module SpeciesCreators
 
-export Abstract, Interfaces, Basic
+export Basic
+
+using Random: AbstractRNG
+using ..Species: AbstractSpecies
+using ..Counters: Counter
+using ..Evaluators: Evaluation
+using ..Individuals: Individual
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
 include("basic/basic.jl")
 using .Basic: Basic

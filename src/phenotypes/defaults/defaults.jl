@@ -9,7 +9,7 @@ module Defaults
 
 export DefaultPhenotypeCreator
 
-using ...Phenotypes.Abstract: PhenotypeCreator
+using ..Phenotypes: PhenotypeCreator
 
 """
     DefaultPhenotypeCreator

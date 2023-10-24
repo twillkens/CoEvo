@@ -2,20 +2,16 @@ module Basic
 
 export BasicJob, BasicJobCreator
 
+import ..Jobs: create_jobs
+using ...MatchMakers: make_matches
+
 using Random: AbstractRNG
-
-using ..Jobs.Abstract: Job, JobCreator
-using ...Ecosystems.Abstract: Ecosystem
-using ...Interactions.Abstract: Interaction
-using ...Interactions.MatchMakers.Matches.Abstract: Match
-using ...Species.Phenotypes.Abstract: Phenotype
-using ...Species.Abstract: AbstractSpecies, SpeciesCreator
-using ...Species.Phenotypes.Interfaces: create_phenotype
-using ...Species.Phenotypes.Abstract: PhenotypeCreator
-
-import ..Jobs.Interfaces: create_jobs
-import ...Interactions.MatchMakers.Interfaces: make_matches
-
+using ...Phenotypes: Phenotype, PhenotypeCreator, create_phenotype
+using ...Species: AbstractSpecies 
+using ...SpeciesCreators: SpeciesCreator
+using ...Matches: Match
+using ...Interactions: Interaction
+using ..Jobs: Job, JobCreator
 
 struct BasicJob{I <: Interaction, P <: Phenotype, M <: Match} <: Job
     interactions::Dict{String, I}
@@ -23,12 +19,10 @@ struct BasicJob{I <: Interaction, P <: Phenotype, M <: Match} <: Job
     matches::Vector{M}
 end
 
-
 Base.@kwdef struct BasicJobCreator{I <: Interaction} <: JobCreator
     interactions::Vector{I} 
     n_workers::Int = 1
 end
-
 
 function make_partitions(items::Vector{T}, n_partitions::Int) where T
     n = length(items)
@@ -49,20 +43,6 @@ function make_partitions(items::Vector{T}, n_partitions::Int) where T
     end
     return partitions
 end
-"""
-    (cfg::JobCfg)(eco::Ecosystem) -> Vector{InteractionResult}
-
-Using the given job configuration, construct and execute interaction jobs based on the ecosystem. 
-Results from all interactions are aggregated and returned.
-
-# Arguments
-- `cfg::JobCfg`: The job configuration detailing interactions and number of workers.
-- `eco::Ecosystem`: The ecosystem providing entities for interaction.
-
-# Returns
-- A `Vector` of `InteractionResult` detailing outcomes of all interactions executed.
-"""
-
 
 function create_phenotype_dict(
     all_species::Vector{<:AbstractSpecies},

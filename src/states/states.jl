@@ -1,11 +1,10 @@
 module States
 
-export Abstract, Concrete
+export Basic
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
-include("concrete/concrete.jl")
-using .Concrete: Concrete
+include("basic/basic.jl")
+using .Basic: Basic
 
 end

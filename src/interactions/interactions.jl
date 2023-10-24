@@ -16,31 +16,13 @@ and reporters to facilitate interactive interaction configuration.
 module Interactions
 
 # Exported Structures
-export Abstract, Domains, MatchMakers, Observers, Results, Environments
-export Interfaces, Concrete
+export Basic
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
-
-include("deps/domains/domains.jl")
-using .Domains: Domains
-
-include("deps/matchmakers/matchmakers.jl")
-using .MatchMakers: MatchMakers
-
-include("deps/observers/observers.jl")
-using .Observers: Observers
-
-include("deps/results/results.jl")
-using .Results: Results 
-
-include("deps/environments/environments.jl")
-using .Environments: Environments
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
-include("concrete/concrete.jl")
-using .Concrete: Concrete
+include("basic/basic.jl")
+using .Basic: Basic
 
 end

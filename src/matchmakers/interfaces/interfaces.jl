@@ -3,9 +3,9 @@ module Interfaces
 export make_matches
 
 using Random: AbstractRNG
-using ...Matches.Abstract: Match
-using ...Species.Abstract: AbstractSpecies
-using ..MatchMakers.Abstract: MatchMaker
+using ...Matches: Match
+using ...Species: AbstractSpecies
+using ..MatchMakers: MatchMaker
 
 function make_matches(
     matchmaker::MatchMaker, 

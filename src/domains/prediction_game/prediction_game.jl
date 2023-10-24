@@ -2,16 +2,17 @@ module PredictionGame
 
 export PredictionGameDomain, Control, Adversarial, Affinitive, Avoidant
 
-import ..Domains.Interfaces: measure
+import ..Domains: measure
 
 using Base: @kwdef
-using ..Domains.Abstract: OutcomeMetric, Domain
+using ...Metrics: Metric
+using ..Domains: Domain
 
-struct PredictionGameDomain{M <: OutcomeMetric} <: Domain{M}
+struct PredictionGameDomain{M <: Metric} <: Domain{M}
     outcome_metric::M
 end
 
-@kwdef struct Control <: OutcomeMetric
+@kwdef struct Control <: Metric
     name::String = "Control"
 end
 
@@ -20,7 +21,7 @@ function measure(::PredictionGameDomain{Control}, ::Float64)
     return outcome_set
 end
 
-@kwdef struct Adversarial <: OutcomeMetric
+@kwdef struct Adversarial <: Metric
     name::String = "Adversarial"
 end
 
@@ -29,7 +30,7 @@ function measure(::PredictionGameDomain{Adversarial}, distance_score::Float64)
     return outcome_set
 end
 
-@kwdef struct Affinitive <: OutcomeMetric
+@kwdef struct Affinitive <: Metric
     name::String = "Affinitive"
 end
 
@@ -38,7 +39,7 @@ function measure(::PredictionGameDomain{Affinitive}, distance_score::Float64)
     return outcome_set
 end
 
-@kwdef struct Avoidant <: OutcomeMetric
+@kwdef struct Avoidant <: Metric
     name::String = "Avoidant"
 end
 

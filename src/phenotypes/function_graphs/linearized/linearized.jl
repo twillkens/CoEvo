@@ -4,12 +4,12 @@ export LinearizedFunctionGraphPhenotype, LinearizedFunctionGraphNode
 export LinearizedFunctionGraphConnection
 export LinearizedFunctionGraphPhenotypeCreator
 
-import ...Phenotypes.Interfaces: create_phenotype, act!, reset!
+import ...Phenotypes: create_phenotype, act!, reset!
 
-using ....Genotypes.Interfaces: minimize
+using ....Genotypes: minimize
 using ....Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
 using ....Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP, evaluate
-using ...Phenotypes.Abstract: Phenotype, PhenotypeCreator
+using ...Phenotypes: Phenotype, PhenotypeCreator
 
 struct LinearizedFunctionGraphPhenotypeCreator <: PhenotypeCreator end
 

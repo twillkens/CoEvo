@@ -2,13 +2,13 @@ module Truncation
 
 export TruncationReplacer
 
-import ...Replacers.Interfaces: replace
+import ..Replacers: replace
 
 using Random: AbstractRNG
-using ...Species.Abstract: AbstractSpecies
-using ...Evaluators.Abstract: Evaluation
+using ...Species: AbstractSpecies
+using ...Evaluators: Evaluation
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluation
-using ..Replacers.Abstract: Replacer
+using ..Replacers: Replacer
 
 # Returns the best npop individuals from both the population and children
 Base.@kwdef struct TruncationReplacer <: Replacer

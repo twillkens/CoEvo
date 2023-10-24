@@ -1,9 +1,8 @@
 module MatchMakers
 
-export Abstract, Interfaces, AllvsAll
+export AllvsAll
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
 using .Interfaces: Interfaces

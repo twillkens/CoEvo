@@ -2,12 +2,12 @@ module Null
 
 export NullEvaluation, NullEvaluator
 
-import ...Evaluators.Interfaces: create_evaluation
+import ...Evaluators: create_evaluation
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
-using ...Species.Abstract: AbstractSpecies
-using ..Evaluators.Abstract: Evaluation, Evaluator
+using ...Species: AbstractSpecies
+using ..Evaluators: Evaluation, Evaluator
 
 struct NullEvaluation <: Evaluation end
 

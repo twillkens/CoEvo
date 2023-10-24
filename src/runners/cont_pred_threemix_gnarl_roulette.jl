@@ -21,7 +21,7 @@ using ...Recombiners.Types.Clone: CloneRecombiner
 using ...Jobs.Basic: BasicJobCreator
 
 using ...Ecosystems.Interactions.Concrete.Basic: BasicInteraction
-using ...Environments.Concrete.Tape: TapeEnvironmentCreator
+using ...Environments.Concrete.Tape: ContinuousPredictionGameEnvironmentCreatorr
 using ...Domains.Concrete.ContinuousPredictionGame: ContinuousPredictionGameDomain
 using ...MatchMakers.AllvsAll: AllvsAllMatchMaker
 using ...Performers.Concrete.Cache: CachePerformer
@@ -113,7 +113,7 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
             interactions = Dict(
                 interaction_id_1 => BasicInteraction(
                     id = interaction_id_1,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMatching()
                         ),
@@ -125,7 +125,7 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
                 ),
                 interaction_id_2 => BasicInteraction(
                     id = interaction_id_2,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         domain = ContinuousPredictionGameDomain(
                             Competitive()
                         ),
@@ -137,7 +137,7 @@ function cont_pred_threemix_gnarl_roulette_eco_creator(;
                 ),
                 interaction_id_3 => BasicInteraction(
                     id = interaction_id_3,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMismatching()
                         ),

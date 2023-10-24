@@ -1,8 +1,4 @@
-module Utilities
-
 export get_or_make_group!
-
-using JLD2: Group, JLDFile
 
 """
     get_or_make_group!(group::Union{File, Group}, path::String)
@@ -43,6 +39,4 @@ A convenience overload that converts the key to a string and then accesses or cr
 """
 function get_or_make_group!(group::Union{JLDFile, Group}, key::Union{Symbol, UInt32, Int})
     get_or_make_group!(group, string(key))
-end
-
 end

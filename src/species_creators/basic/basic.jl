@@ -2,26 +2,21 @@ module Basic
 
 export BasicSpeciesCreator
 
-import ..SpeciesCreators.Interfaces: create_species
+import ..SpeciesCreators: create_species
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using ...Counters.Abstract: Counter
-using ...Individuals.Abstract: Individual, IndividualCreator
-using ...Individuals.Interfaces: create_individuals
-using ...Genotypes.Abstract: GenotypeCreator
-using ...Phenotypes.Abstract: PhenotypeCreator
+using ...Counters: Counter
+using ...Individuals: Individual, IndividualCreator, create_individuals
+using ...Genotypes: GenotypeCreator
+using ...Phenotypes: PhenotypeCreator
 using ...Species.Basic: BasicSpecies
-using ...Evaluators.Abstract: Evaluator, Evaluation
-using ...Replacers.Abstract: Replacer
-using ...Replacers.Interfaces: replace
-using ...Selectors.Abstract: Selector
-using ...Selectors.Interfaces: select
-using ...Recombiners.Abstract: Recombiner
-using ...Recombiners.Interfaces: recombine
-using ...Mutators.Abstract: Mutator
-using ...Mutators.Interfaces: mutate
-using ..SpeciesCreators.Abstract: SpeciesCreator
+using ...Evaluators: Evaluator, Evaluation
+using ...Replacers: Replacer, replace
+using ...Selectors: Selector, select
+using ...Recombiners: Recombiner, recombine
+using ...Mutators: Mutator, mutate
+using ..SpeciesCreators: SpeciesCreator
 
 Base.@kwdef struct BasicSpeciesCreator{
     G <: GenotypeCreator,

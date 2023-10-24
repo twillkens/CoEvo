@@ -2,7 +2,7 @@ module Common
 
 export NullMetric, RuntimeMetric, AllSpeciesIdentity
 
-using ...Metrics.Abstract: Metric
+using ...Metrics: Metric
 
 Base.@kwdef struct NullMetric <: Metric 
     name::String = "NullMetric"

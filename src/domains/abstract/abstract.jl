@@ -1,11 +1,3 @@
-module Abstract
+export Domain
 
-export OutcomeMetric, Domain
-
-using ...Metrics.Abstract: Metric
-
-abstract type OutcomeMetric <: Metric end
-
-abstract type Domain{O <: OutcomeMetric} end
-
-end
+abstract type Domain{M <: Metric} end

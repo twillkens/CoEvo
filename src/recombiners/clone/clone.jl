@@ -2,13 +2,12 @@ module Clone
 
 export CloneRecombiner
 
-import ...Recombiners.Interfaces: recombine
+import ..Recombiners: recombine
 
 using Random: AbstractRNG
-using ...Counters.Abstract: Counter
-using ...Counters.Interfaces: count!
+using ...Counters: Counter, count!
 using ...Individuals: Individual
-using ..Recombiners.Abstract: Recombiner
+using ..Recombiners: Recombiner
 
 Base.@kwdef struct CloneRecombiner <: Recombiner end
 

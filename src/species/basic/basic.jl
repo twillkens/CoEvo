@@ -2,8 +2,8 @@ module Basic
 
 export BasicSpecies
 
-using ...Individuals.Abstract: Individual
-using ..Species.Abstract: AbstractSpecies
+using ...Individuals: Individual
+using ..Species: AbstractSpecies
 
 """
     BasicSpecies{P <: PhenotypeCreator, I <: Individual}

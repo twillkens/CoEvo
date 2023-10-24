@@ -1,11 +1,4 @@
-module Interfaces
-
 export create_genotypes, minimize, get_size
-
-using Random: AbstractRNG
-
-using ...Counters.Abstract: Counter
-using ..Genotypes.Abstract: Genotype, GenotypeCreator
 
 function create_genotypes(
     genotype_creator::GenotypeCreator, 
@@ -28,6 +21,4 @@ function get_size(genotype::Genotype)::Int
     throw(ErrorException(
         "Default genotype size for $genotype, not implemented."
     ))
-end
-
 end

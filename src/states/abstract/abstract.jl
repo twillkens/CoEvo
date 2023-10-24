@@ -1,9 +1,5 @@
-module Abstract 
+export State, StateCreator
 
-export CoevolutionaryState, CoevolutionaryStateCreator
+abstract type State end
 
-abstract type CoevolutionaryState end
-
-abstract type CoevolutionaryStateCreator end
-
-end
+abstract type StateCreator end

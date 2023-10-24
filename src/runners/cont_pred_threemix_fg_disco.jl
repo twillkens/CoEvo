@@ -22,7 +22,7 @@ using ...Recombiners.Types.Clone: CloneRecombiner
 using ...Jobs.Basic: BasicJobCreator
 
 using ...Ecosystems.Interactions.Concrete.Basic: BasicInteraction
-using ...Environments.Concrete.Tape: TapeEnvironmentCreator
+using ...Environments.Concrete.Tape: ContinuousPredictionGameEnvironmentCreatorr
 using ...Domains.Concrete.ContinuousPredictionGame: ContinuousPredictionGameDomain
 using ...MatchMakers.AllvsAll: AllvsAllMatchMaker
 using ...Performers.Concrete.Cache: CachePerformer
@@ -125,7 +125,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
             interactions = Dict(
                 interaction_id1 => BasicInteraction(
                     id = interaction_id1,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMatching()
                             #Control()
@@ -138,7 +138,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                 ),
                 interaction_id2 => BasicInteraction(
                     id = interaction_id2,
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         domain = ContinuousPredictionGameDomain(
                             Competitive()
                             #Control()
@@ -151,7 +151,7 @@ function cont_pred_threemix_function_graphs_disco_eco_creator(;
                 ),
                 interaction_id3 => BasicInteraction(
                     id = interaction_id3, 
-                    environment_creator = TapeEnvironmentCreator(
+                    environment_creator = ContinuousPredictionGameEnvironmentCreatorr(
                         domain = ContinuousPredictionGameDomain(
                             CooperativeMismatching()
                             #Control()

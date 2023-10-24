@@ -2,7 +2,7 @@ module Basic
 
 export BasicMatch
 
-using ..Matches.Abstract: Match
+using ..Matches: Match
 
 import Base: ==, hash
 

@@ -1,33 +1,26 @@
-"""
-    Problems
-
-The `Problems` module offers structures and functionality associated with 
-various problems. Currently, it includes the `NumbersGameProblem` and 
-its associated interaction function.
-
-# Structures
-- `NumbersGameProblem`: Represents the definition of the Numbers Game problem.
-
-# Functions
-- `interact`: Defines the interaction mechanics for the Numbers Game problem.
-
-# Dependencies
-- `NumbersGame`: Contains structures and functions specific to the Numbers Game problem.
-"""
 module Environments
 
-export Abstract, Interfaces, Concrete
+export Stateless, LinguisticPredictionGame, CollisionGame
+export ContinuousPredictionGame
+
+using ..Phenotypes: Phenotype
+using ..Domains: Domain
+using ..Observers: Observer
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
-# Exported Structures and Functions
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
-# Dependencies
-include("concrete/concrete.jl")
-using .Concrete: Concrete
+include("stateless/stateless.jl")
+using .Stateless: Stateless
 
+include("linguistic_prediction_game/linguistic_prediction_game.jl")
+using .LinguisticPredictionGame: LinguisticPredictionGame
+
+include("collision_game/collision_game.jl")
+using .CollisionGame: CollisionGame
+
+include("continuous_prediction_game/continuous_prediction_game.jl")
+using  .ContinuousPredictionGame: ContinuousPredictionGame
 
 end

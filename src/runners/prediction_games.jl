@@ -25,7 +25,7 @@ using ...Recombiners.Types.Clone: CloneRecombiner
 using ...Jobs.Basic: BasicJobCreator
 
 using ...Ecosystems.Interactions.Concrete.Basic: BasicInteraction
-using ...Environments.Concrete.Tape: TapeEnvironmentCreator
+using ...Environments.Concrete.Tape: ContinuousPredictionGameEnvironmentCreatorr
 using ...Domains.Concrete: PredictionGameDomain
 using ...MatchMakers.AllvsAll: AllvsAllMatchMaker
 using ...Performers.Concrete.Cache: CachePerformer
@@ -299,7 +299,7 @@ function make_environment_creators(configuration::PredictionGameTrialConfigurati
     communication_dimension = configuration.communication_dimension
     game = configuration.game
     if game == :continuous_prediction_game
-        environment_creator_type = TapeEnvironmentCreator
+        environment_creator_type = ContinuousPredictionGameEnvironmentCreatorr
     else
         throw(ArgumentError("Unrecognized game: $game"))
     end

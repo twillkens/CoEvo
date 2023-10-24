@@ -1,17 +1,19 @@
 module Archivers
 
-export Abstract, Interfaces, Utilities, Concrete
+export Basic
+
+using JLD2: JLDFile, Group
+using ..Reporters: Report
+using ..Genotypes: Genotype
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
 include("utilities/utilities.jl")
-using .Utilities: Utilities
 
-include("concrete/concrete.jl")
-using .Concrete: Concrete
+include("basic/basic.jl")
+using .Basic: Basic
+
 
 end

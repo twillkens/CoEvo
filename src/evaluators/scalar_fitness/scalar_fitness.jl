@@ -2,14 +2,14 @@ module ScalarFitness
 
 export ScalarFitnessEvaluation, ScalarFitnessEvaluator, ScalarFitnessRecord
 
-import ...Evaluators.Interfaces: create_evaluation
+import ...Evaluators: create_evaluation
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
 using StatsBase: mean
-using ...Species.Abstract: AbstractSpecies
-using ...Individuals.Abstract: Individual
-using ..Evaluators.Abstract: Evaluation, Evaluator
+using ...Species: AbstractSpecies
+using ...Individuals: Individual
+using ..Evaluators: Evaluation, Evaluator
 
 struct ScalarFitnessRecord
     id::Int

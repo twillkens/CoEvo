@@ -1,9 +1,4 @@
-module Interfaces
-
-using Random: AbstractRNG
-using ...Counters: Counter
-using ...Individuals.Abstract: Individual
-using ..Recombiners.Abstract: Recombiner
+export recombine
 
 function recombine(
     recombiner::Recombiner,
@@ -12,6 +7,4 @@ function recombine(
     ::Vector{Individual}
 )
     throw(ErrorException("recombine not implemented for $recombiner"))
-end
-
 end

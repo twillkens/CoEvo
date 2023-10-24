@@ -1,12 +1,16 @@
 module Selectors
 
-export Abstract, Interfaces, Identity, FitnessProportionate, Tournament
+export Identity, FitnessProportionate, Tournament
+
+using Random: AbstractRNG
+using DataStructures: OrderedDict
+using ..Individuals: Individual
+using ..Species: AbstractSpecies
+using ..Evaluators: Evaluation
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
 include("identity/identity.jl")
 using .Identity: Identity
