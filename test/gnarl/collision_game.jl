@@ -4,6 +4,8 @@
 
 @testset "CollisionGame" begin
 # Mock the necessary parts
+using CoEvo
+using .Domains.PredictionGame: Affinitive, Adversarial, Avoidant, Control
 
 # Always Moving Forward Genotype
 forward_genotype = GnarlNetworkGenotype(
@@ -11,7 +13,7 @@ forward_genotype = GnarlNetworkGenotype(
     n_output_nodes = 2,
     hidden_nodes = [],
     connections = [
-        GnarlNetworkConnectionGene(
+        ConnectionGene(
             id = 1,
             origin = 0.0,  # Bias node
             destination = 1.0,  # Forward movement node
@@ -26,7 +28,7 @@ backward_genotype = GnarlNetworkGenotype(
     n_output_nodes = 2,
     hidden_nodes = [],
     connections = [
-        GnarlNetworkConnectionGene(
+        ConnectionGene(
             id = 2,
             origin = 0.0,  # Bias node
             destination = 1.0,  # Backward movement node

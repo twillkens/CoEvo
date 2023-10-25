@@ -17,7 +17,7 @@ using .Vectors: Vectors
 include("genetic_programs/genetic_programs.jl")
 using .GeneticPrograms: GeneticPrograms
 
-include("gnarl/gnarl.jl")
+include("gnarl_networks/gnarl_networks.jl")
 using .GnarlNetworks: GnarlNetworks
 
 include("finite_state_machines/finite_state_machines.jl")

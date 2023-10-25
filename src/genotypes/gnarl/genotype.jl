@@ -3,8 +3,8 @@ export GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
 Base.@kwdef struct GnarlNetworkGenotype <: Genotype
     n_input_nodes::Int
     n_output_nodes::Int
-    hidden_nodes::Vector{GnarlNetworkNodeGene}
-    connections::Vector{GnarlNetworkConnectionGene}
+    hidden_nodes::Vector{NodeGene}
+    connections::Vector{ConnectionGene}
 end
 
 function get_size(genotype::GnarlNetworkGenotype)
@@ -44,8 +44,8 @@ function create_genotypes(
         GnarlNetworkGenotype(
             genotype_creator.n_input_nodes,
             genotype_creator.n_output_nodes,
-            Vector{GnarlNetworkNodeGene}(),
-            Vector{GnarlNetworkConnectionGene}()
+            Vector{NodeGene}(),
+            Vector{ConnectionGene}()
         ) for i in 1:n_population
     ]
 

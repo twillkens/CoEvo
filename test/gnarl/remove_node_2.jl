@@ -9,13 +9,13 @@ using .Mutators.Types.GnarlNetworks: redirect_connection, get_neuron_positions
 using StableRNGs: StableRNG
 
 # Sample data setup
-input_node = GnarlNetworkNodeGene(1, -1.0f0)
-hidden_node1 = GnarlNetworkNodeGene(2, 0.5f0)
-hidden_node2 = GnarlNetworkNodeGene(3, 0.7f0)
-output_node = GnarlNetworkNodeGene(4, 1.0f0)
+input_node = NodeGene(1, -1.0f0)
+hidden_node1 = NodeGene(2, 0.5f0)
+hidden_node2 = NodeGene(3, 0.7f0)
+output_node = NodeGene(4, 1.0f0)
 
-conn1 = GnarlNetworkConnectionGene(1, input_node.position, hidden_node1.position, 0.5f0)
-conn2 = GnarlNetworkConnectionGene(2, hidden_node1.position, output_node.position, 0.5f0)
+conn1 = ConnectionGene(1, input_node.position, hidden_node1.position, 0.5f0)
+conn2 = ConnectionGene(2, hidden_node1.position, output_node.position, 0.5f0)
 
 genotype = GnarlNetworkGenotype(1, 1, [hidden_node1, hidden_node2], [conn1, conn2])
 random_number_generator = StableRNG(42)
@@ -56,7 +56,7 @@ end
 
 @testset "Redirection Cascading" begin
     # Adding a new connection to simulate cascade scenario
-    conn3 = GnarlNetworkConnectionGene(3, hidden_node2.position, output_node.position, 0.5f0)
+    conn3 = ConnectionGene(3, hidden_node2.position, output_node.position, 0.5f0)
     genotype_with_cascade = GnarlNetworkGenotype(genotype.n_input_nodes, genotype.n_output_nodes, genotype.hidden_nodes, [conn1, conn2, conn3])
     
     # This should cause the redirect_or_replace_connection function to cascade through hidden_node2 to find an available node
@@ -66,7 +66,7 @@ end
 
 @testset "Replace Connection Functionality" begin
     old_genotype = deepcopy(genotype)
-    new_conn = GnarlNetworkConnectionGene(4, input_node.position, output_node.position, 0.5f0)
+    new_conn = ConnectionGene(4, input_node.position, output_node.position, 0.5f0)
     new_genotype = replace_connection(old_genotype, conn1, new_conn)
     
     # Check if the old connection is replaced and the new connection exists
@@ -88,36 +88,36 @@ end
 end
 
 input_nodes = [
-    GnarlNetworkNodeGene(id=1, position=-3.0),
-    GnarlNetworkNodeGene(id=2, position=-2.0),
-    GnarlNetworkNodeGene(id=3, position=-1.0)
+    NodeGene(id=1, position=-3.0),
+    NodeGene(id=2, position=-2.0),
+    NodeGene(id=3, position=-1.0)
 ]
 
-bias_node = GnarlNetworkNodeGene(id=4, position=0.0)
+bias_node = NodeGene(id=4, position=0.0)
 
 hidden_nodes = [
-    GnarlNetworkNodeGene(id=5, position=0.2),
-    GnarlNetworkNodeGene(id=6, position=0.5),
-    GnarlNetworkNodeGene(id=7, position=0.8)
+    NodeGene(id=5, position=0.2),
+    NodeGene(id=6, position=0.5),
+    NodeGene(id=7, position=0.8)
 ]
 
 output_nodes = [
-    GnarlNetworkNodeGene(id=8, position=1.0),
-    GnarlNetworkNodeGene(id=9, position=2.0),
-    GnarlNetworkNodeGene(id=10, position=3.0)
+    NodeGene(id=8, position=1.0),
+    NodeGene(id=9, position=2.0),
+    NodeGene(id=10, position=3.0)
 ]
 
 connections = [
-    GnarlNetworkConnectionGene(id=1, origin=-3.0, destination=0.2, weight=0.5f0),
-    GnarlNetworkConnectionGene(id=2, origin=-2.0, destination=0.5, weight=0.6f0),
-    GnarlNetworkConnectionGene(id=3, origin=-1.0, destination=0.8, weight=0.7f0),
-    GnarlNetworkConnectionGene(id=4, origin=0.0, destination=0.2, weight=1.0f0),
-    GnarlNetworkConnectionGene(id=5, origin=0.2, destination=0.5, weight=0.9f0),
-    GnarlNetworkConnectionGene(id=6, origin=0.5, destination=0.8, weight=0.8f0),
-    GnarlNetworkConnectionGene(id=7, origin=0.8, destination=1.0, weight=0.6f0),
-    GnarlNetworkConnectionGene(id=8, origin=0.2, destination=1.0, weight=0.5f0),
-    GnarlNetworkConnectionGene(id=9, origin=0.5, destination=2.0, weight=0.6f0),
-    GnarlNetworkConnectionGene(id=10, origin=0.8, destination=3.0, weight=0.7f0)
+    ConnectionGene(id=1, origin=-3.0, destination=0.2, weight=0.5f0),
+    ConnectionGene(id=2, origin=-2.0, destination=0.5, weight=0.6f0),
+    ConnectionGene(id=3, origin=-1.0, destination=0.8, weight=0.7f0),
+    ConnectionGene(id=4, origin=0.0, destination=0.2, weight=1.0f0),
+    ConnectionGene(id=5, origin=0.2, destination=0.5, weight=0.9f0),
+    ConnectionGene(id=6, origin=0.5, destination=0.8, weight=0.8f0),
+    ConnectionGene(id=7, origin=0.8, destination=1.0, weight=0.6f0),
+    ConnectionGene(id=8, origin=0.2, destination=1.0, weight=0.5f0),
+    ConnectionGene(id=9, origin=0.5, destination=2.0, weight=0.6f0),
+    ConnectionGene(id=10, origin=0.8, destination=3.0, weight=0.7f0)
 ]
 
 genotype = GnarlNetworkGenotype(
@@ -133,8 +133,8 @@ genotype = GnarlNetworkGenotype(
 end
 
 @testset "replace_connection function" begin
-    old_conn = GnarlNetworkConnectionGene(id=5, origin=0.2, destination=0.5, weight=0.9f0)
-    new_conn = GnarlNetworkConnectionGene(id=5, origin=0.2, destination=2.0, weight=0.9f0)
+    old_conn = ConnectionGene(id=5, origin=0.2, destination=0.5, weight=0.9f0)
+    new_conn = ConnectionGene(id=5, origin=0.2, destination=2.0, weight=0.9f0)
     replaced_genotype = replace_connection(genotype, old_conn, new_conn)
     
     @test !in(old_conn, replaced_genotype.connections)
@@ -142,7 +142,7 @@ end
 end
 
 @testset "redirect_or_replace_connection function" begin
-    connection = GnarlNetworkConnectionGene(id=2, origin=-2.0, destination=0.5, weight=0.6f0)
+    connection = ConnectionGene(id=2, origin=-2.0, destination=0.5, weight=0.6f0)
     new_conn = redirect_or_replace_connection(random_number_generator, genotype, 0.5f0, connection, :incoming)
     @test new_conn.origin == connection.origin
     @test new_conn.destination != connection.destination

@@ -11,8 +11,8 @@ import ...Mutators: mutate
 using StatsBase: Weights, sample
 using Random: AbstractRNG, shuffle!
 using ...Counters: Counter, count!
-using ...Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkConnectionGene
-using ...Genotypes.GnarlNetworks: GnarlNetworkNodeGene, get_neuron_positions
+using ...Genotypes.GnarlNetworks: GnarlNetworkGenotype, ConnectionGene
+using ...Genotypes.GnarlNetworks: NodeGene, get_neuron_positions
 using ..Mutators: Mutator
 
 function get_next_layer(genotype::GnarlNetworkGenotype, nodes::Vector{Float32})
@@ -53,7 +53,7 @@ function is_valid_new_connection(genotype, node_to_remove_position, origin, dest
     return true
 end
 
-#function remove_connection(genotype::GnarlNetworkGenotype, conn::GnarlNetworkConnectionGene)
+#function remove_connection(genotype::GnarlNetworkGenotype, conn::ConnectionGene)
 #    return GnarlNetworkGenotype(
 #        genotype.n_input_nodes, genotype.n_output_nodes, genotype.hidden_nodes, 
 #        filter(x -> x.id != conn.id, genotype.connections)
@@ -65,7 +65,7 @@ function redirect_connection(
     random_number_generator::AbstractRNG, 
     genotype::GnarlNetworkGenotype, 
     node_to_remove_position::Float32,
-    connection::GnarlNetworkConnectionGene
+    connection::ConnectionGene
 )
     available_destinations = setdiff(get_neuron_positions(genotype), [connection.origin])
     valid_destinations = filter(
@@ -85,8 +85,8 @@ end
 
 function replace_connection(
     genotype::GnarlNetworkGenotype, 
-    old_conn::GnarlNetworkConnectionGene, 
-    new_conn::GnarlNetworkConnectionGene
+    old_conn::ConnectionGene, 
+    new_conn::ConnectionGene
 )
     #println("old_conn: $old_conn")
     #println("new_conn: $new_conn")
@@ -140,7 +140,7 @@ end
 function attempt_cascade(
     genotype::GnarlNetworkGenotype, 
     node_to_remove_position::Float32, 
-    connection::GnarlNetworkConnectionGene, 
+    connection::ConnectionGene, 
     direction::Symbol
 )
     current_nodes = direction == :incoming ? [connection.destination] : [connection.origin]
@@ -180,18 +180,18 @@ function redirect_or_replace_connection(random_number_generator, genotype, node_
             origin, destination = new_origin, connection.destination
         end
     end
-    return GnarlNetworkConnectionGene(connection.id, origin, destination, connection.weight)
+    return ConnectionGene(connection.id, origin, destination, connection.weight)
 end
 
 # Remaining functions stay mostly unchanged, but you'd need to handle the case where redirect_or_replace_connection returns nothing, in which case you'd remove the connection.
 
-function remove_node_from_genotype(genotype::GnarlNetworkGenotype, node_to_remove::GnarlNetworkNodeGene)
+function remove_node_from_genotype(genotype::GnarlNetworkGenotype, node_to_remove::NodeGene)
     return GnarlNetworkGenotype(
         genotype.n_input_nodes, genotype.n_output_nodes, filter(node -> node != node_to_remove, genotype.hidden_nodes), genotype.connections
     )
 end
 
-function remove_node_2(random_number_generator::AbstractRNG, genotype::GnarlNetworkGenotype, node_to_remove::GnarlNetworkNodeGene)
+function remove_node_2(random_number_generator::AbstractRNG, genotype::GnarlNetworkGenotype, node_to_remove::NodeGene)
     #println("------------REMOVE NODE 2------------")
     #println("node_to_remove: $node_to_remove")
     incoming_connections = filter(conn -> conn.destination == node_to_remove.position && conn.destination != conn.origin, genotype.connections)
@@ -236,7 +236,7 @@ end
 function redirect_connection(
     random_number_generator::AbstractRNG,
     genotype::GnarlNetworkGenotype,
-    connection::GnarlNetworkConnectionGene,
+    connection::ConnectionGene,
 )
     # Fetch all neuron positions except the current connection's origin
     available_destinations = setdiff(get_neuron_positions(genotype), [connection.origin])
@@ -261,7 +261,7 @@ function redirect_connection(
     # Choose a random available destination
     new_destination = rand(random_number_generator, available_destinations)
 
-    return GnarlNetworkConnectionGene(
+    return ConnectionGene(
         id = connection.id, 
         origin = connection.origin, 
         destination = new_destination, 
@@ -288,9 +288,9 @@ end
 
 "Mutate the weight of genes"
 function mutate_weight(
-    random_number_generator::AbstractRNG, connection::GnarlNetworkConnectionGene, weight_factor::Float64
+    random_number_generator::AbstractRNG, connection::ConnectionGene, weight_factor::Float64
 )
-    connection = GnarlNetworkConnectionGene(
+    connection = ConnectionGene(
         connection.id, 
         connection.origin, 
         connection.destination, 
@@ -325,7 +325,7 @@ function mutate_weights(random_number_generator::AbstractRNG, genotype::GnarlNet
 end
 
 function add_node(genotype::GnarlNetworkGenotype, gene_id::Int, position::Float32)
-    node = GnarlNetworkNodeGene(gene_id, position)
+    node = NodeGene(gene_id, position)
     hidden_nodes = [genotype.hidden_nodes; node]
     genotype = GnarlNetworkGenotype(
         genotype.n_input_nodes, genotype.n_output_nodes, hidden_nodes, genotype.connections
@@ -379,9 +379,9 @@ end
 
 function remove_node(
     genotype::GnarlNetworkGenotype, 
-    node_to_remove::GnarlNetworkNodeGene,
-    connections_to_remove::Vector{GnarlNetworkConnectionGene},
-    connections_to_add::Vector{GnarlNetworkConnectionGene}
+    node_to_remove::NodeGene,
+    connections_to_remove::Vector{ConnectionGene},
+    connections_to_add::Vector{ConnectionGene}
 )
     remaining_nodes = filter(x -> x != node_to_remove, genotype.hidden_nodes)
     pruned_connections = filter(x -> x ∉ connections_to_remove, genotype.connections)
@@ -409,7 +409,7 @@ function create_connection(
         throw("Invalid connection")
     end
     gene_id = count!(gene_id_counter)
-    new_connection = GnarlNetworkConnectionGene(gene_id, origin, destination, 0.0f0)
+    new_connection = ConnectionGene(gene_id, origin, destination, 0.0f0)
     return new_connection
 end
 
@@ -429,7 +429,7 @@ function remove_node(random_number_generator::AbstractRNG, gene_id_counter::Coun
     pruned_genotype = GnarlNetworkGenotype(
         genotype.n_input_nodes, genotype.n_output_nodes, pruned_nodes, pruned_connections
     )
-    connections_to_add = GnarlNetworkConnectionGene[]
+    connections_to_add = ConnectionGene[]
     for i in 1:length(connections_to_remove)
         result = create_connection(random_number_generator, gene_id_counter, pruned_genotype)
         if result !== nothing
@@ -444,7 +444,7 @@ end
 function add_connection(
     genotype::GnarlNetworkGenotype, gene_id::Int, origin::Float32, destination::Float32
 )
-    new_connection = GnarlNetworkConnectionGene(gene_id, origin, destination, 0.0f0)
+    new_connection = ConnectionGene(gene_id, origin, destination, 0.0f0)
     genotype = GnarlNetworkGenotype(
         genotype.n_input_nodes, 
         genotype.n_output_nodes, 
@@ -473,7 +473,7 @@ function add_connection(random_number_generator::AbstractRNG, gene_id_counter::C
 end
 
 function remove_connection(
-    genotype::GnarlNetworkGenotype, connection::GnarlNetworkConnectionGene
+    genotype::GnarlNetworkGenotype, connection::ConnectionGene
 )
     remaining_connections = filter(x -> x != connection, genotype.connections)
     genotype = GnarlNetworkGenotype(

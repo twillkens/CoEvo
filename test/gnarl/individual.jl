@@ -1,26 +1,33 @@
 using Test
-using Random
-using StableRNGs: StableRNG
-#include("../../src/CoEvo.jl")
-#using CoEvo
 
 @testset "Individual" begin
 
+using Random
+using CoEvo
 
-# Mock the required external modules/functions for testing purposes
+using StableRNGs: StableRNG
+using .Counters.Basic: BasicCounter
+using .Genotypes: create_genotypes, get_size, minimize
+using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
+using .Genotypes.GnarlNetworks: NodeGene, ConnectionGene, get_required_nodes
+using .Phenotypes: create_phenotype
+using .Mutators.GnarlNetworks: mutate_weights, add_node, remove_node, add_connection
+using .Mutators.GnarlNetworks: remove_connection, mutate, redirect_or_replace_connection
+using .Mutators.GnarlNetworks: redirect_connection, replace_connection
+using .Mutators.GnarlNetworks: get_next_layer, get_previous_layer, GnarlNetworkMutator
 
 # Create a basic genotype to work with
 basic_genotype() = GnarlNetworkGenotype(
     2,
     1,
-    [GnarlNetworkNodeGene(1, 0.3f0), GnarlNetworkNodeGene(2, 0.4f0)],
-    [GnarlNetworkConnectionGene(1, 0.3f0, 0.4f0, 0.5f0)]
+    [NodeGene(1, 0.3f0), NodeGene(2, 0.4f0)],
+    [ConnectionGene(1, 0.3f0, 0.4f0, 0.5f0)]
 )
 
 @testset "GnarlNetworks Mutation Tests" begin
 
     random_number_generator = StableRNG(42)
-    counter = Counter(1)
+    counter = BasicCounter(1)
     mutator = GnarlNetworkMutator()
 
     @testset "mutate_weight" begin
@@ -65,10 +72,11 @@ basic_genotype() = GnarlNetworkGenotype(
     end
 
 end
+
 @testset "GnarlNetworks Genotypes Tests" begin
 
     random_number_generator = StableRNG(42)  # Deterministic RNG for reproducibility
-    counter = Counter(1)
+    counter = BasicCounter(1)
     genotype_creator = GnarlNetworkGenotypeCreator(2, 1)
 
     @testset "Genotype creation" begin
@@ -95,14 +103,14 @@ end
 basic_genotype2() = GnarlNetworkGenotype(
     2,
     2,
-    [GnarlNetworkNodeGene(1, 0.3f0), GnarlNetworkNodeGene(2, 0.4f0)],
+    [NodeGene(1, 0.3f0), NodeGene(2, 0.4f0)],
     [
-        GnarlNetworkConnectionGene(1, 0.3f0, 0.4f0, 0.1f0),
-        GnarlNetworkConnectionGene(2, -1.0f0, 0.4f0, 0.2f0),
-        GnarlNetworkConnectionGene(3, -2.0f0, 0.3f0, 0.3f0),
-        GnarlNetworkConnectionGene(4, 0.0f0, 1.0f0, 1.0f0),
-        GnarlNetworkConnectionGene(5, 0.0f0, 2.0f0, 1.0f0),
-        GnarlNetworkConnectionGene(6, 0.4f0, 1.0f0, 0.6f0),
+        ConnectionGene(1, 0.3f0, 0.4f0, 0.1f0),
+        ConnectionGene(2, -1.0f0, 0.4f0, 0.2f0),
+        ConnectionGene(3, -2.0f0, 0.3f0, 0.3f0),
+        ConnectionGene(4, 0.0f0, 1.0f0, 1.0f0),
+        ConnectionGene(5, 0.0f0, 2.0f0, 1.0f0),
+        ConnectionGene(6, 0.4f0, 1.0f0, 0.6f0),
     ]
 )
 @testset "GnarlNetworks Phenotype Tests" begin
@@ -140,8 +148,6 @@ basic_genotype2() = GnarlNetworkGenotype(
 end
 
 @testset "GNARL Methods" begin
-    using .GnarlMethods: get_neuron_positions, get_inputs, get_outputs, get_required_nodes, minimize as gnarl_minimize
-
     @testset "get_required_nodes" begin
         in_pos = Set(Float32.([-2.0, -1.0, 0.0]))
         hidden_pos = Set(Float32.([0.5, 0.75]))
@@ -152,8 +158,13 @@ end
             (0.75, 2.0), 
             (0.75, 0.75)
         ])
-        @test get_required_nodes(in_pos, hidden_pos, out_pos, conn_tups, true) == Set(Float32.([0.5]))
-        @test get_required_nodes(in_pos, hidden_pos, out_pos, conn_tups, false) == Set(Float32.([0.5, 0.75]))
+        @test get_required_nodes(
+            in_pos, hidden_pos, out_pos, conn_tups, true
+        ) == Set(Float32.([0.5]))
+
+        @test get_required_nodes(
+            in_pos, hidden_pos, out_pos, conn_tups, false
+        ) == Set(Float32.([0.5, 0.75]))
     end
 
     @testset "minimize" begin
@@ -161,30 +172,30 @@ end
             3,
             2,
             [
-                GnarlNetworkNodeGene(4, 0.1), 
-                GnarlNetworkNodeGene(5, 0.2), 
-                GnarlNetworkNodeGene(6, 0.3), 
-                GnarlNetworkNodeGene(7, 0.4), 
-                GnarlNetworkNodeGene(8, 0.5), 
-                GnarlNetworkNodeGene(9, 0.6)
+                NodeGene(4, 0.1), 
+                NodeGene(5, 0.2), 
+                NodeGene(6, 0.3), 
+                NodeGene(7, 0.4), 
+                NodeGene(8, 0.5), 
+                NodeGene(9, 0.6)
             ],
             [
-                GnarlNetworkConnectionGene(12, -2.0, 0.2, 0.0), 
-                GnarlNetworkConnectionGene(13, 0.0, 0.4, 0.0),
-                GnarlNetworkConnectionGene(14, 0.2, 0.3, 0.0),
-                GnarlNetworkConnectionGene(15, 0.2, 1.0, 0.0),
-                GnarlNetworkConnectionGene(16, 0.3, 0.2, 0.0),
-                GnarlNetworkConnectionGene(17, 0.3, 2.0, 0.0),
-                GnarlNetworkConnectionGene(18, 0.4, 0.6, 0.0),
-                GnarlNetworkConnectionGene(19, 0.5, 0.5, 0.0),
-                GnarlNetworkConnectionGene(20, 0.5, 2.0, 0.0),
-                GnarlNetworkConnectionGene(21, 0.6, 0.4, 0.0)
+                ConnectionGene(12, -2.0, 0.2, 0.0), 
+                ConnectionGene(13, 0.0, 0.4, 0.0),
+                ConnectionGene(14, 0.2, 0.3, 0.0),
+                ConnectionGene(15, 0.2, 1.0, 0.0),
+                ConnectionGene(16, 0.3, 0.2, 0.0),
+                ConnectionGene(17, 0.3, 2.0, 0.0),
+                ConnectionGene(18, 0.4, 0.6, 0.0),
+                ConnectionGene(19, 0.5, 0.5, 0.0),
+                ConnectionGene(20, 0.5, 2.0, 0.0),
+                ConnectionGene(21, 0.6, 0.4, 0.0)
             ]
         )
 
-        g2 = gnarl_minimize(g)
+        g2 = minimize(g)
 
-        @test g2.hidden_nodes == [GnarlNetworkNodeGene(5, 0.2), GnarlNetworkNodeGene(6, 0.3)]
+        @test g2.hidden_nodes == [NodeGene(5, 0.2), NodeGene(6, 0.3)]
         @test length(g2.connections) == 5
     end
 

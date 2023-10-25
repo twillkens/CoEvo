@@ -1,4 +1,4 @@
-using ...Genotypes.GnarlNetworks: GnarlNetworkNodeGene, GnarlNetworkConnectionGene
+using ...Genotypes.GnarlNetworks: NodeGene, ConnectionGene
 using ...Genotypes.GnarlNetworks: GnarlNetworkGenotype
 
 function save_genotype!(

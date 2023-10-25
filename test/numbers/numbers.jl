@@ -4,6 +4,7 @@ using Test
 
 println("Starting tests for NumbersGame...")
 
+using StableRNGs: StableRNG
 using CoEvo
 using .Counters.Basic: BasicCounter
 using .Genotypes.Vectors: BasicVectorGenotypeCreator
@@ -12,7 +13,7 @@ using .Phenotypes: Phenotype
 using .Phenotypes.Defaults: DefaultPhenotypeCreator
 using .Phenotypes.Vectors: BasicVectorPhenotype
 using .Evaluators: create_evaluation
-using .Evaluators.ScalarFitness: ScalarFitnessEvaluator
+using .Evaluators.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
 using .Replacers.Generational: GenerationalReplacer
 using .Selectors.FitnessProportionate: FitnessProportionateSelector
 using .Recombiners.Clone: CloneRecombiner
@@ -66,6 +67,7 @@ confirms the outcomes when different phenotypes interact within the specified do
  
      @test fitnessB == 0
  end
+
  @testset "NumbersGameProblem with Focusing" begin
      phenoA = BasicVectorPhenotype([4, 16])  # Vector representation
      phenoB = BasicVectorPhenotype([5, 14])
@@ -132,13 +134,15 @@ confirms the outcomes when different phenotypes interact within the specified do
          recombiner = CloneRecombiner(),
          mutators = [IdentityMutator()],
      )
-     species = create_species(species_creator, random_number_generator, individual_id_counter, gene_id_counter) 
+     species = create_species(
+        species_creator, random_number_generator, individual_id_counter, gene_id_counter
+    ) 
      dummy_outcomes = generate_nested_dict(n_population, n_population)
-     evaluation = create_evaluation(species_creator.evaluator, random_number_generator, species, dummy_outcomes)
-     reporter = BasicReporter(metric = AllSpeciesFitness())
-     species_evaluations = Dict(species => evaluation)
-     #measurement = measure(reporter, species_evaluations, Observation[])
- #
+     evaluation = create_evaluation(
+        species_creator.evaluator, random_number_generator, species, dummy_outcomes
+    )
+
+    @test typeof(evaluation) <: ScalarFitnessEvaluation
 end
 
 @testset "NumberGameConfiguration" begin
@@ -149,85 +153,6 @@ end
     @test typeof(ecosystem) <: BasicEcosystem
 end
 
+println("Finished tests for NumbersGame.")
+
 end
-#
-#"""
-#    `evolve!` Functionality Test
-#
-#Tests the primary evolutionary function `evolve!` within a co-evolutionary context.
-#Ensures the successful progression of generations and expected state changes.
-#"""
-#
-#@testset "evolve!" begin
-#
-#function dummy_eco_creator(;
-#    id::String = "test",
-#    trial::Int = 1,
-#    random_number_generator::AbstractRNG = StableRNG(42),
-#    n_population::Int = 2,
-#    species_id1::String = "a",
-#    species_id2::String = "b",
-#    interaction_id::String = "NumbersGame{Sum}",
-#    default_vector::Vector{Float64} = fill(0.0, 1),
-#    n_elite::Int = 10
-#)
-#    ecosystem_creator = BasicEcosystemCreator(
-#        id = id,
-#        trial = trial,
-#        random_number_generator = random_number_generator,
-#        species_creators = [
-#            BasicSpeciesCreator(
-#                id = species_id1,
-#                n_population = n_population,
-#                genotype_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
-#                phenotype_creator = DefaultPhenotypeCreator(),
-#                evaluator = ScalarFitnessEvaluator(),
-#                replacer = GenerationalReplacer(n_elite = n_elite),
-#                selector = FitnessProportionateSelector(n_parents = n_population),
-#                recombiner = CloneRecombiner(),
-#                mutators = [NoiseInjectionMutator(noise_std = 0.1)],
-#            ),
-#            BasicSpeciesCreator(
-#                id = species_id2,
-#                n_population = n_population,
-#                genotype_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
-#                phenotype_creator = DefaultPhenotypeCreator(),
-#                evaluator = ScalarFitnessEvaluator(),
-#                replacer = GenerationalReplacer(n_elite = n_elite),
-#                selector = FitnessProportionateSelector(n_parents = n_population),
-#                recombiner = CloneRecombiner(),
-#                mutators = [NoiseInjectionMutator(noise_std = 0.1)],
-#            ),
-#        ],
-#        job_creator = BasicJobCreator(
-#            n_workers = 1,
-#            interactions = [
-#                BasicInteraction(
-#                    id = interaction_id,
-#                    environment_creator = StatelessEnvironmentCreator(NumbersGameDomain(:Sum)),
-#                    species_ids = [species_id1, species_id2],
-#                    matchmaker = AllvsAllMatchMaker(cohorts = [:population, :children]),
-#                ),
-#            ],
-#        ),
-#        performer = BasicPerformer(n_workers = 1),
-#        state_creator = BasicCoevolutionaryStateCreator(),
-#        reporters = Reporter[
-#        ],
-#        archiver = BasicArchiver(),
-#        runtime_reporter = RuntimeReporter(print_interval = 0),
-#    )
-#    return ecosystem_creator
-#
-#end
-#
-##ecosystem_creator = dummy_eco_creator()
-#
-##eco = evolve!(ecosystem_creator, n_generations=10)
-#
-#ecosystem_creator = dummy_eco_creator(n_population = 4, n_elite = 2)
-#eco = evolve!(ecosystem_creator, n_generations=10)
-#end
-#
-#println("Finished tests for NumbersGame.")
-#end

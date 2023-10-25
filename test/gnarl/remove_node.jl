@@ -1,22 +1,16 @@
 using Test
-include("../../src/CoEvo.jl")
-using .CoEvo
-using .Mutators.Types.GnarlNetworks: remove_node_2, redirect_or_replace_connection
-using .Mutators.Types.GnarlNetworks: get_next_layer, get_previous_layer
-using .Mutators.Types.GnarlNetworks: replace_connection
-using .Mutators.Types.GnarlNetworks: redirect_connection, get_neuron_positions
-using Random
 
-using StableRNGs: StableRNG
+@testset "Remove Node" begin
 
+using CoEvo
 # Sample data setup
 function test_redirect_or_replace_connection()
     # Setting up a simple genotype for testing
-    node1 = GnarlNetworkNodeGene(1, 0.25)
-    node2 = GnarlNetworkNodeGene(2, 0.5)
-    node3 = GnarlNetworkNodeGene(3, 0.75)
-    conn1 = GnarlNetworkConnectionGene(1, 0.25, 0.5, 0.9)
-    conn2 = GnarlNetworkConnectionGene(2, 0.5, 0.75, 0.8)
+    node1 = NodeGene(1, 0.25)
+    node2 = NodeGene(2, 0.5)
+    node3 = NodeGene(3, 0.75)
+    conn1 = ConnectionGene(1, 0.25, 0.5, 0.9)
+    conn2 = ConnectionGene(2, 0.5, 0.75, 0.8)
     genotype = GnarlNetworkGenotype(1, 1, [node1, node2, node3], [conn1, conn2])
     
     # Running the redirect_or_replace function
@@ -36,13 +30,13 @@ test_redirect_or_replace_connection()
 using StableRNGs
 random_number_generator = StableRNG(42)
 
-input_node = GnarlNetworkNodeGene(1, -1.0f0)
-hidden_node1 = GnarlNetworkNodeGene(2, 0.5f0)
-hidden_node2 = GnarlNetworkNodeGene(3, 0.7f0)
-output_node = GnarlNetworkNodeGene(4, 1.0f0)
+input_node = NodeGene(1, -1.0f0)
+hidden_node1 = NodeGene(2, 0.5f0)
+hidden_node2 = NodeGene(3, 0.7f0)
+output_node = NodeGene(4, 1.0f0)
 
-conn1 = GnarlNetworkConnectionGene(1, input_node.position, hidden_node1.position, 0.5f0)
-conn2 = GnarlNetworkConnectionGene(2, hidden_node1.position, output_node.position, 0.5f0)
+conn1 = ConnectionGene(1, input_node.position, hidden_node1.position, 0.5f0)
+conn2 = ConnectionGene(2, hidden_node1.position, output_node.position, 0.5f0)
 
 genotype = GnarlNetworkGenotype(1, 1, [hidden_node1, hidden_node2], [conn1, conn2])
 
@@ -99,4 +93,6 @@ genotype = GnarlNetworkGenotype(1, 1, [hidden_node1, hidden_node2], [conn1, conn
         @test all(conn -> conn.origin in valid_positions && conn.destination in valid_positions, mutated_genotype.connections)
 
     end
+end
+
 end
