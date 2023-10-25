@@ -82,7 +82,7 @@ function collision_game_eco_creator(;
                 BasicInteraction(
                     id = host_mutualist_affinitive,
                     environment_creator = CollisionGameEnvironmentCreator(
-                        domain = CollisionGameDomain(
+                        domain = PredictionGameDomain(
                             Affinitive(),
                         ),
                         initial_distance = initial_distance,
@@ -94,7 +94,7 @@ function collision_game_eco_creator(;
                 BasicInteraction(
                     id = host_parasite_adversarial,
                     environment_creator = CollisionGameEnvironmentCreator(
-                        domain = CollisionGameDomain(
+                        domain = PredictionGameDomain(
                             Adversarial()
                         ),
                         initial_distance = initial_distance,
@@ -106,7 +106,7 @@ function collision_game_eco_creator(;
                 BasicInteraction(
                     id = parasite_mutualist_avoidant,
                     environment_creator = CollisionGameEnvironmentCreator(
-                        domain = CollisionGameDomain(
+                        domain = PredictionGameDomain(
                             Avoidant()
                         ),
                         initial_distance = initial_distance,
@@ -223,7 +223,7 @@ function collision_game_disco_eco_creator(;
                 BasicInteraction(
                     id = host_mutualist_affinitive,
                     environment_creator = CollisionGameEnvironmentCreator(
-                        domain = CollisionGameDomain(
+                        domain = PredictionGameDomain(
                             Affinitive(),
                         ),
                         initial_distance = initial_distance,
@@ -235,7 +235,7 @@ function collision_game_disco_eco_creator(;
                 BasicInteraction(
                     id = host_parasite_adversarial,
                     environment_creator = CollisionGameEnvironmentCreator(
-                        domain = CollisionGameDomain(
+                        domain = PredictionGameDomain(
                             Adversarial()
                         ),
                         initial_distance = initial_distance,
@@ -247,7 +247,7 @@ function collision_game_disco_eco_creator(;
                 BasicInteraction(
                     id = parasite_mutualist_avoidant,
                     environment_creator = CollisionGameEnvironmentCreator(
-                        domain = CollisionGameDomain(
+                        domain = PredictionGameDomain(
                             Avoidant()
                         ),
                         initial_distance = initial_distance,

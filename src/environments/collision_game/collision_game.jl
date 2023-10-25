@@ -102,8 +102,9 @@ end
 function get_outcome_set(
     environment::CollisionGameEnvironment # {D, <:Phenotype}
 ) # where {D <: CollisionGameDomain}
-    have_collided = entities_have_collided(environment)
-    outcome_set = measure(environment.domain, have_collided)
+    collision_occured = entities_have_collided(environment)
+    distance_score = collision_occured ? 0.0 : 1.0
+    outcome_set = measure(environment.domain, distance_score)
     return outcome_set
 end
 
