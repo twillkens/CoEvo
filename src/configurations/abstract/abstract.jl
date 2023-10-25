@@ -1,5 +1,3 @@
-module Abstract
+export Configuration
 
 abstract type Configuration end
-
-end

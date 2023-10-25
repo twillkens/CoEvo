@@ -1,10 +1,7 @@
-module Interfaces
-
 export create_ecosystem, evolve!
 
-using ..Ecosystems.Abstract: Ecosystem, EcosystemCreator
-using ..Interactions.Results: Result
-using ..Reporters.Abstract: Report
+using ..Results: Result
+using ..Reporters: Report
 
 function create_ecosystem(ecosystem_creator::EcosystemCreator)::Ecosystem
     throw(ErrorException(
@@ -31,6 +28,4 @@ function evolve!(eco::Ecosystem, ecosystem_creator::EcosystemCreator, n_generati
         "`evolve!` not implemented for $eco"
         )
     )
-end
-
 end

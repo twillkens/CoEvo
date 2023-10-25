@@ -1,17 +1,25 @@
 module Configurations
 
-export Abstract, Interfaces, Helpers, Concrete
+export PredictionGames
+
+import ..Ecosystems: evolve!
+
+using JLD2: @save
+using StableRNGs: StableRNG
+using ..Performers.Cache: CachePerformer
+using ..Counters: Counter
+using ..MatchMakers.AllvsAll: AllvsAllMatchMaker
+using ..Replacers.Truncation: TruncationReplacer
+using ..Recombiners.Clone: CloneRecombiner
+using ..Ecosystems: EcosystemCreator
 
 include("abstract/abstract.jl")
-using .Abstract: Abstract
 
 include("interfaces/interfaces.jl")
-using .Interfaces: Interfaces
 
 include("helpers/helpers.jl")
-using .Helpers: Helpers
 
-include("concrete/concrete.jl")
-using .Concrete: Concrete
+include("prediction_games/prediction_games.jl")
+using .PredictionGames: PredictionGames, PredictionGameTrialConfiguration
 
 end

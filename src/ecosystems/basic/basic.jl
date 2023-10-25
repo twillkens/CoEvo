@@ -1,37 +1,30 @@
 module Basic
 
 export BasicEcosystem, BasicEcosystemCreator
-export evolve!
+
+import ..Ecosystems: create_ecosystem, evolve!
 
 using DataStructures: SortedDict
 using Random: AbstractRNG
 using StableRNGs: StableRNG
-
-using ..Abstract: Ecosystem, EcosystemCreator
-using ..Utilities.Counters: Counter
-using ..Species.Abstract: AbstractSpecies, SpeciesCreator
-using ..Species.Interfaces: create_species
-using ..Species.Individuals: Individual
-using ..Species.Evaluators.Abstract: Evaluation, Evaluator
-using ..Species.Evaluators.Interfaces: create_evaluation
-using ..Species.Basic: BasicSpeciesCreator
-using ..Jobs.Abstract: JobCreator
-using ..Performers.Abstract: Performer
-using ..Interactions.Abstract: Interaction
-using ..Interactions.Results: Result, get_individual_outcomes, get_observations
-using ..Interactions.Observers.Abstract: Observation
-using ..Reporters.Types.Runtime: RuntimeReporter, create_runtime_report
-using ..Reporters.Abstract: Reporter, Report
-using ..Reporters.Interfaces: create_report
-using ..Archivers.Abstract: Archiver
-using ..Archivers.Interfaces: archive!
-using  ..Jobs.Interfaces: create_jobs
-using ..Performers.Interfaces: perform
-using ..Interactions.Observers.Concrete.Null: NullObservation
-using ..States.Concrete: BasicCoevolutionaryStateCreator, BasicCoevolutionaryState
-using ..States.Abstract: CoevolutionaryStateCreator, CoevolutionaryState
-
-import ..Ecosystems.Interfaces: create_ecosystem, evolve!
+using ...Counters: Counter
+using ...Species: AbstractSpecies
+using ...Evaluators: Evaluation, Evaluator, create_evaluation
+using ...SpeciesCreators: SpeciesCreator, create_species
+using ...SpeciesCreators.Basic: BasicSpeciesCreator
+using ...Jobs: JobCreator, create_jobs
+using ...Performers: Performer
+using ...Interactions: Interaction
+using ...Results: Result, get_individual_outcomes, get_observations
+using ...Observers: Observation
+using ...Observers.Null: NullObservation
+using ...Reporters.Runtime: RuntimeReporter, create_runtime_report
+using ...Reporters: Reporter, Report, create_report
+using ...Archivers: Archiver, archive!, archive_reports!
+using ...Performers: perform
+using ...States.Basic: BasicCoevolutionaryStateCreator, BasicCoevolutionaryState
+using ...States: State, StateCreator
+using ..Ecosystems: Ecosystem, EcosystemCreator
 
 
 struct BasicEcosystem{S <: AbstractSpecies} <: Ecosystem
@@ -47,7 +40,7 @@ Base.@kwdef struct BasicEcosystemCreator{
     S <: SpeciesCreator, 
     J <: JobCreator, 
     P <: Performer,
-    C <: CoevolutionaryStateCreator,
+    C <: StateCreator,
     R <: Reporter,
     A <: Archiver,
 } <: EcosystemCreator
@@ -90,25 +83,16 @@ function create_ecosystem(ecosystem_creator::BasicEcosystemCreator)
     return eco
 end
 
-function collect_observations(results::Vector{<:Result})
-    observations = vcat([result.observations for result in results]...)
-    if length(observations) == 0
-        return [NullObservation()]
-    end
-    return observations
-end
-
-
 
 function evaluate_species(
+    evaluators::Vector{<:Evaluator},
     random_number_generator::AbstractRNG,
     species::Vector{<:AbstractSpecies},
-    evaluators::Vector{<:Evaluator},
     individual_outcomes::Dict{Int, SortedDict{Int, Float64}},
     observations::Vector{<:Observation},
 )
     evaluations = [
-        create_evaluation(evaluator, random_number_generator, species, individual_outcomes) #observations
+        create_evaluation(evaluator, random_number_generator, species, individual_outcomes)
         for (evaluator, species) in zip(evaluators, species)
     ]
     
@@ -125,7 +109,7 @@ function evaluate_species(
         species_creator.evaluator for species_creator in ecosystem_creator.species_creators
     ]
     evaluations = evaluate_species(
-        ecosystem_creator.random_number_generator, ecosystem.species, evaluators, individual_outcomes, observations
+        evaluators, ecosystem_creator.random_number_generator, ecosystem.species, individual_outcomes, observations
     )
     return evaluations
 end
@@ -154,18 +138,13 @@ function create_state(
     return state
 end
 
-function create_all_reports(reporters::Vector{<:Reporter}, state::CoevolutionaryState)
+function create_all_reports(state::State, reporters::Vector{<:Reporter})
     reports = [create_report(reporter, state) for reporter in reporters]
     return reports
 end
 
-function archive_reports!(archiver::Archiver, gen::Int, reports::Vector{<:Report})
-    [archive!(archiver, gen, report) for report in reports]
-    return nothing
-end
-
 function construct_new_species(
-    species_creators::Vector{<:BasicSpeciesCreator}, state::BasicCoevolutionaryState
+    state::BasicCoevolutionaryState, species_creators::Vector{<:BasicSpeciesCreator}
 )
     new_species = [
         create_species(
@@ -189,7 +168,7 @@ function create_ecosystem(
     reports::Vector{Report}
 )
     individual_outcomes = get_individual_outcomes(results)
-    observations = collect_observations(results)
+    observations = get_observations(results)
     evaluations = evaluate_species(
         ecosystem_creator, ecosystem, individual_outcomes, observations
     )
@@ -202,9 +181,9 @@ function create_ecosystem(
         evaluations,
         observations,
     )
-    generation_reports = create_all_reports(ecosystem_creator.reporters, state)
+    generation_reports = create_all_reports(state, ecosystem_creator.reporters)
     append!(reports, generation_reports)
-    archive_reports!(ecosystem_creator.archiver, gen, reports)
+    archive_reports!(ecosystem_creator.archiver, reports)
     if gen % ecosystem_creator.garbage_collection_interval == 0
         Base.GC.gc()
     end

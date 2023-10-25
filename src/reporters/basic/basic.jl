@@ -8,6 +8,7 @@ using ...States: State
 using ..Reporters: Reporter, Report, create_report
 
 struct BasicReport{MET, MEA} <: Report{MET, MEA}
+    generation::Int
     to_print::Bool
     to_save::Bool
     metric::MET
@@ -26,6 +27,7 @@ function create_report(reporter::BasicReporter, state::State)
     to_save = reporter.save_interval > 0 && generation % reporter.save_interval == 0
     measurement = measure(reporter.metric, state)
     report = BasicReport(
+        generation,
         to_print,
         to_save,
         reporter.metric,

@@ -2,7 +2,7 @@ module Basic
 
 export BasicArchiver
 
-import ...Archivers: archive!, save_genotype!
+import ...Archivers: archive!, save_genotype!, save_measurement!
 
 using DataStructures: OrderedDict
 using JLD2: JLDFile, Group, jldopen

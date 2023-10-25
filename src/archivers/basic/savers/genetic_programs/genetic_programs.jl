@@ -1,7 +1,7 @@
 using ...Genotypes.GeneticPrograms: GeneticProgramGenotype, ExpressionNode
 
 function save_genotype!(
-    archiver::BasicArchiver,
+    ::BasicArchiver,
     genotype_group::Group, 
     geno::GeneticProgramGenotype
 )

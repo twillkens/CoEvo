@@ -3,6 +3,7 @@ module Archivers
 export Basic
 
 using JLD2: JLDFile, Group
+using ..Measurements: Measurement
 using ..Reporters: Report
 using ..Genotypes: Genotype
 
@@ -14,6 +15,5 @@ include("utilities/utilities.jl")
 
 include("basic/basic.jl")
 using .Basic: Basic
-
 
 end

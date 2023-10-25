@@ -1,20 +1,5 @@
-module Helpers
-
 export make_counters, make_random_number_generator, make_performer, make_recombiner
 export make_replacer, make_matchmaker, evolve!
-
-using JLD2: @save
-using StableRNGs: StableRNG
-using ..Configurations.Abstract: Configuration
-using ..Configurations.Interfaces: make_ecosystem_creator
-using ...Ecosystems.Performers.Concrete.Cache: CachePerformer
-using ...Ecosystems.Utilities.Counters: Counter
-using ...Ecosystems.Interactions.MatchMakers.AllvsAll: AllvsAllMatchMaker
-using ...Ecosystems.Species.Replacers.Types.Truncation: TruncationReplacer
-using ...Ecosystems.Species.Recombiners.Types.Clone: CloneRecombiner
-
-
-import ...Ecosystems.Interfaces: evolve!
 
 function make_counters(configuration::Configuration)
     individual_id_counter = Counter(configuration.individual_id_counter_state)
@@ -79,6 +64,4 @@ function evolve!(configuration::Configuration; n_generations::Int = 100)
     @save archive_path configuration = configuration
     ecosystem = evolve!(ecosystem_creator, n_generations = n_generations)
     return ecosystem
-end
-
 end

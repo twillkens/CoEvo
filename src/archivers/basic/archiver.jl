@@ -4,18 +4,20 @@ end
 
 function archive!(
     ::BasicArchiver, 
-    gen::Int, 
     report::RuntimeReport
 )
     if report.to_print
         println("-----------------------------------------------------------")
-        println("Generation: $gen")
+        println("Generation: $(report.generation)")
         println("Evaluation time: $(report.eval_time)")
         println("Reproduction time: $(report.reproduce_time)")
     end
 end
 
-function save_measurement!(group::Group, measurement::BasicStatisticalMeasurement)
+function save_measurement!(
+    ::BasicArchiver, group::Group, measurement::BasicStatisticalMeasurement
+)
+    group["n_samples"] = measurement.n_samples
     group["sum"] = measurement.sum
     group["upper_confidence"] = measurement.upper_confidence
     group["mean"] = measurement.mean
@@ -38,9 +40,12 @@ function archive!(
     report::BasicReport{<:Metric, GroupStatisticalMeasurement}
 )
     if report.to_print
-        for (species_id, measurement) in sort(collect(report.measurement.measurements), by = x -> x[1])
+        sorted_measurments = sort(collect(report.measurement.measurements), by = x -> x[1])
+        for (species_id, measurement) in sorted_measurments
+            mean, minimum = measurement.mean, measurement.minimum
+            maximum, std = measurement.maximum, measurement.std
             println("---$(report.metric.name): $species_id---")
-            println("Mean: $(measurement.mean), Min: $(measurement.minimum), Max: $(measurement.maximum), Std: $(measurement.std)", )
+            println("Mean: $mean, Min: $minimum, Max: $maximum, Std: $std", )
         end
     end
     if report.to_save
@@ -52,7 +57,7 @@ function archive!(
         
         for (species_id, measurement) in report.measurement.measurements
             species_group = get_or_make_group!(gen_group, species_id)
-            save_measurement!(species_group, measurement)
+            save_measurement!(archiver, species_group, measurement)
         end
         
         close(jld2_file)
