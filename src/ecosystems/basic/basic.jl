@@ -187,7 +187,7 @@ function create_ecosystem(
     if gen % ecosystem_creator.garbage_collection_interval == 0
         Base.GC.gc()
     end
-    all_new_species = construct_new_species(ecosystem_creator.species_creators, state)
+    all_new_species = construct_new_species(state, ecosystem_creator.species_creators)
     new_eco = BasicEcosystem(ecosystem_creator.id, all_new_species)
     
     return new_eco

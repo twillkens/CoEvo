@@ -30,7 +30,7 @@ function Base.show(io::IO, enode::ExpressionNode)
     print(io, "$(enode.parent_id) <= $(enode.id) => $(enode.val)$children")
 end
 
-Base.@kwdef mutable struct GeneticProgramGenotype <: GeneticProgramGenotype
+Base.@kwdef mutable struct GeneticProgramGenotype <: Genotype
     root_id::Int = 1
     functions::Dict{Int, ExpressionNode} = Dict{Int, ExpressionNode}()
     terminals::Dict{Int, ExpressionNode} = Dict{Int, ExpressionNode}()
@@ -52,7 +52,7 @@ function Base.show(io::IO, geno::GeneticProgramGenotype)
     print(io, ")")
 end
 
-Base.@kwdef struct GeneticProgramGenotypeCreator <: GeneticProgramGenotypeCreator 
+Base.@kwdef struct GeneticProgramGenotypeCreator <: GenotypeCreator 
     default_terminal_value::Union{Symbol, Function, Real} = 0.0
 end
 

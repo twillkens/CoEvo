@@ -13,10 +13,10 @@ function mutate(
     mutator::Mutator,
     random_number_generator::AbstractRNG,
     gene_id_counter::Counter,
-    individuals::Vector{<:Individual},
+    individuals::Vector{<:BasicIndividual},
 )
     individuals = [
-        Individual(
+        BasicIndividual(
             individual.id,
             mutate(mutator, random_number_generator, gene_id_counter, individual.genotype),
             individual.parent_ids

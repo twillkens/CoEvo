@@ -11,7 +11,7 @@ using ...Metrics: Metric
 using ...Metrics.Common: AllSpeciesIdentity
 using ...Metrics.Evaluations: AllSpeciesFitness, AbsoluteError
 using ...Metrics.Genotypes: GenotypeSum, GenotypeSize
-using ...Measurements: GroupStatisticalMeasurement, BasicStatisticalMeasurement
+using ...Measurements.Statistical: GroupStatisticalMeasurement, BasicStatisticalMeasurement
 using ...Measurements.Common: AllSpeciesMeasurement
 using ...Reporters: Report
 using ...Reporters.Basic: BasicReport

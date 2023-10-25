@@ -35,7 +35,8 @@ function filter_cached_matches(performer::CachePerformer, job::BasicJob)
     
     # Return the modified job without the matches that are already cached
     # and the cached results
-    return BasicJob(job.interactions, job.phenotypes, uncached_matches), cached_results
+    filtered_job = BasicJob(job.interactions, job.phenotypes, uncached_matches)
+    return filtered_job, cached_results
 end
 
 function perform(performer::CachePerformer, jobs::Vector{J}) where {J <: Job}
@@ -46,7 +47,10 @@ function perform(performer::CachePerformer, jobs::Vector{J}) where {J <: Job}
     new_results = perform(basic_performer, filtered_jobs)
     empty!(performer.cache)
     [
-        push!(performer.cache, BasicMatch(result.interaction_id, result.individual_ids) => result)
+        push!(
+            performer.cache, 
+            BasicMatch(result.interaction_id, result.individual_ids) => result
+        )
         for result in new_results
     ]
     all_results = [cached_results ; new_results]

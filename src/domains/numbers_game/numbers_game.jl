@@ -34,7 +34,7 @@ function measure(::NumbersGameDomain{Sum}, A::Vector{<:Real}, B::Vector{<:Real})
 end
 
 @kwdef struct Gradient <: Metric 
-    name::Symbol = "Gradient"
+    name::String = "Gradient"
 end
 
 function measure(::NumbersGameDomain{Gradient}, A::Vector{<:Real}, B::Vector{<:Real})
@@ -43,7 +43,7 @@ function measure(::NumbersGameDomain{Gradient}, A::Vector{<:Real}, B::Vector{<:R
 end
 
 @kwdef struct Focusing <: Metric 
-    name::Symbol = "Focusing"
+    name::String = "Focusing"
 end
 
 function measure(::NumbersGameDomain{Focusing}, A::Vector{<:Real}, B::Vector{<:Real})
@@ -52,7 +52,7 @@ function measure(::NumbersGameDomain{Focusing}, A::Vector{<:Real}, B::Vector{<:R
 end
 
 @kwdef struct Relativism <: Metric 
-    name::Symbol = "Relativism"
+    name::String = "Relativism"
 end
 
 function measure(::NumbersGameDomain{Relativism}, A::Vector{<:Real}, B::Vector{<:Real})

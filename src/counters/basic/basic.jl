@@ -4,7 +4,9 @@ export BasicCounter
 
 import ..Counters: count!
 
-mutable struct BasicCounter
+using ..Counters: Counter
+
+mutable struct BasicCounter <: Counter
     current_value::Int
 end
 

@@ -34,3 +34,8 @@ function is_active(environment::Environment)::Bool
         )
     )
 end
+
+function observe!(environment::Environment, observer::NullObserver)
+    return nothing
+end
+

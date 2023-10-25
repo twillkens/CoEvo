@@ -1,6 +1,6 @@
-module PredictionGames
+module PredictionGame
 
-export make_ecosystem_creator, PredictionGameTrialConfiguration
+export make_ecosystem_creator, PredictionGameConfiguration
 
 import ...Configurations: make_ecosystem_creator
 
@@ -14,7 +14,8 @@ using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeC
 using ...Phenotypes.Defaults: DefaultPhenotypeCreator
 using ...Evaluators.NSGAII: NSGAIIEvaluator
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
-using ...Mutators: FunctionGraphMutator, GnarlNetworkMutator
+using ...Mutators.FunctionGraphs: FunctionGraphMutator
+using ...Mutators.GnarlNetworks: GnarlNetworkMutator
 using ...Selectors.Tournament: TournamentSelector
 using ...Selectors.FitnessProportionate: FitnessProportionateSelector
 using ...Selectors.Tournament: TournamentSelector
@@ -36,7 +37,7 @@ using ...Ecosystems.Basic: BasicEcosystemCreator
 using ..Configurations: Configuration, make_counters, make_random_number_generator
 using ..Configurations: make_recombiner, make_replacer, make_matchmaker, make_performer
 
-@kwdef mutable struct PredictionGameTrialConfiguration <: Configuration
+@kwdef mutable struct PredictionGameConfiguration <: Configuration
     substrate::Symbol = :function_graphs
     reproduction_method::Symbol = :disco
     game::Symbol = :continuous_prediction_game
@@ -64,7 +65,7 @@ using ..Configurations: make_recombiner, make_replacer, make_matchmaker, make_pe
     performer::Symbol = :cache
 end
 
-function make_interaction_pairs(configuration::PredictionGameTrialConfiguration)
+function make_interaction_pairs(configuration::PredictionGameConfiguration)
     INTERACTION_PAIR_DICT = Dict(
         :two_species_control => [["A", "B"]],
         :two_species_cooperative => [["Host", "Mutualist"]],
@@ -84,7 +85,7 @@ function make_interaction_pairs(configuration::PredictionGameTrialConfiguration)
     return interaction_pairs
 end
 
-function make_domains(configuration::PredictionGameTrialConfiguration)
+function make_domains(configuration::PredictionGameConfiguration)
     DOMAIN_DICT = Dict(
         :two_species_control => [:Control],
         :two_species_cooperative => [:Affinitive],
@@ -102,7 +103,7 @@ function make_domains(configuration::PredictionGameTrialConfiguration)
     return domains
 end
 
-function make_reporters(configuration::PredictionGameTrialConfiguration)
+function make_reporters(configuration::PredictionGameConfiguration)
     reporters = Reporter[]
     report_type = configuration.report_type
     print_interval = 0
@@ -145,7 +146,7 @@ function make_reporters(configuration::PredictionGameTrialConfiguration)
     return runtime_reporter, reporters
 end
 
-function make_reproducer_types(configuration::PredictionGameTrialConfiguration)
+function make_reproducer_types(configuration::PredictionGameConfiguration)
     reproduction_method = configuration.reproduction_method
     if reproduction_method == :roulette
         evaluator = ScalarFitnessEvaluator()
@@ -164,7 +165,7 @@ function make_reproducer_types(configuration::PredictionGameTrialConfiguration)
     return evaluator, selector
 end
 
-function make_substrate_types(configuration::PredictionGameTrialConfiguration)
+function make_substrate_types(configuration::PredictionGameConfiguration)
     substrate = configuration.substrate
     communication_dimension = configuration.communication_dimension
     if substrate == :function_graphs
@@ -190,7 +191,7 @@ function make_substrate_types(configuration::PredictionGameTrialConfiguration)
 end
 
 
-function make_species_ids(configuration::PredictionGameTrialConfiguration)
+function make_species_ids(configuration::PredictionGameConfiguration)
     SPECIES_ID_DICT = Dict(
         :two_species_control => ["A", "B"],
         :two_species_cooperative => ["Host", "Mutualist"],
@@ -208,7 +209,7 @@ function make_species_ids(configuration::PredictionGameTrialConfiguration)
     return species_ids
 end
 
-function make_species_creators(configuration::PredictionGameTrialConfiguration)
+function make_species_creators(configuration::PredictionGameConfiguration)
     species_ids = make_species_ids(configuration)
     genotype_creator, phenotype_creator, mutators = make_substrate_types(configuration)
     evaluator, selector = make_reproducer_types(configuration)
@@ -231,7 +232,7 @@ function make_species_creators(configuration::PredictionGameTrialConfiguration)
     return species_creators
 end
 
-function make_environment_creators(configuration::PredictionGameTrialConfiguration)
+function make_environment_creators(configuration::PredictionGameConfiguration)
     domains = make_domains(configuration)
     episode_length = configuration.episode_length
     communication_dimension = configuration.communication_dimension
@@ -252,7 +253,7 @@ function make_environment_creators(configuration::PredictionGameTrialConfigurati
     return environment_creators
 end
 
-function make_interactions(configuration::PredictionGameTrialConfiguration)
+function make_interactions(configuration::PredictionGameConfiguration)
     interaction_pairs = make_interaction_pairs(configuration)
     matchmaker = make_matchmaker(configuration)
     environment_creators = make_environment_creators(configuration)
@@ -277,7 +278,7 @@ function make_interactions(configuration::PredictionGameTrialConfiguration)
     return interactions
 end
 
-function make_job_creator(configuration::PredictionGameTrialConfiguration)
+function make_job_creator(configuration::PredictionGameConfiguration)
     interactions = make_interactions(configuration)
     job_creator = BasicJobCreator(
         n_workers = configuration.n_workers, interactions = interactions
@@ -286,7 +287,7 @@ function make_job_creator(configuration::PredictionGameTrialConfiguration)
 end
 
 
-function make_ecosystem_id(configuration::PredictionGameTrialConfiguration)
+function make_ecosystem_id(configuration::PredictionGameConfiguration)
     substrate = configuration.substrate
     reproduction_method = configuration.reproduction_method
     game = configuration.game
@@ -299,7 +300,7 @@ function make_ecosystem_id(configuration::PredictionGameTrialConfiguration)
     return id
 end
 
-function make_archive_path(configuration::PredictionGameTrialConfiguration)
+function make_archive_path(configuration::PredictionGameConfiguration)
     substrate = configuration.substrate
     reproduction_method = configuration.reproduction_method
     game = configuration.game
@@ -309,13 +310,13 @@ function make_archive_path(configuration::PredictionGameTrialConfiguration)
     return jld2_path
 end
 
-function make_archiver(configuration::PredictionGameTrialConfiguration)
+function make_archiver(configuration::PredictionGameConfiguration)
     archive_path = make_archive_path(configuration)
     archiver = BasicArchiver(archive_path = archive_path)
     return archiver
 end
 
-function make_state_creator(configuration::PredictionGameTrialConfiguration)
+function make_state_creator(configuration::PredictionGameConfiguration)
     state_creator = configuration.state_creator
     if state_creator == :basic_coevolutionary
         state_creator = BasicCoevolutionaryStateCreator()
@@ -326,7 +327,7 @@ function make_state_creator(configuration::PredictionGameTrialConfiguration)
 end
 
 function make_ecosystem_creator(
-    configuration::PredictionGameTrialConfiguration = PredictionGameTrialConfiguration()
+    configuration::PredictionGameConfiguration = PredictionGameConfiguration()
 )
     id = make_ecosystem_id(configuration)
     trial = configuration.trial

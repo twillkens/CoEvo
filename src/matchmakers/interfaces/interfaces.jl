@@ -1,11 +1,4 @@
-module Interfaces
-
 export make_matches
-
-using Random: AbstractRNG
-using ...Matches: Match
-using ...Species: AbstractSpecies
-using ..MatchMakers: MatchMaker
 
 function make_matches(
     matchmaker::MatchMaker, 
@@ -17,6 +10,4 @@ function make_matches(
         "`make_matches` not implemented for matchmaker $matchmaker and species $all_species."
         )
     )
-end
-
 end

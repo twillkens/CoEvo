@@ -1,4 +1,6 @@
-function measure(metric::GenotypeSize,state::State)
+import ...Metrics: measure
+
+function measure(metric::GenotypeSize, state::State)
     species_evaluations = Dict(
         species => evaluation for (species, evaluation) in zip(state.species, state.evaluations)
     )

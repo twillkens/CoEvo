@@ -2,10 +2,12 @@ module Basic
 
 export BasicReport, BasicReporter
 
+import ..Reporters: create_report
+
 using DataStructures: OrderedDict
 using ...Metrics: Metric, measure
 using ...States: State
-using ..Reporters: Reporter, Report, create_report
+using ..Reporters: Reporter, Report
 
 struct BasicReport{MET, MEA} <: Report{MET, MEA}
     generation::Int

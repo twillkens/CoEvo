@@ -7,6 +7,7 @@ import ...Interactions: interact
 using ...Phenotypes: Phenotype
 using ...MatchMakers: MatchMaker
 using ...Observers: Observer, create_observation
+using ...Observers.Null: NullObserver
 using ...Environments: EnvironmentCreator, Environment, create_environment, step!
 using ...Environments: get_outcome_set, is_active, observe!
 using ...Results.Basic: BasicResult
@@ -21,7 +22,7 @@ Base.@kwdef struct BasicInteraction{
     environment_creator::E
     species_ids::Vector{String}
     matchmaker::M
-    observers::Vector{O} = Observer[]
+    observers::Vector{O} = [NullObserver()]
 end
 
 all_observe!(environment::Environment, observers::Vector{<:Observer}) = [

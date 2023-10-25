@@ -2,6 +2,8 @@ module Results
 
 export Basic
 
+using DataStructures: SortedDict
+
 include("abstract/abstract.jl")
 
 include("interfaces/interfaces.jl")

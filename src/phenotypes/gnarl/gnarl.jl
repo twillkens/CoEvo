@@ -3,8 +3,10 @@ module GnarlNetworks
 export GnarlNetworkPhenotype, GnarlNetworkPhenotypeNeuron, GnarlNetworkPhenotypeInputConnection
 export GnarlNetworkPhenotypeNodeOperation
 
+import ..Phenotypes: act!, reset!, create_phenotype
+
 using ...Genotypes.GnarlNetworks: GnarlNetworkGenotype, get_neuron_positions
-using ..Phenotypes: Phenotype, PhenotypeCreator, act!, reset!, create_phenotype
+using ..Phenotypes: Phenotype, PhenotypeCreator
 
 struct GnarlNetworkPhenotypeNeuron
     position::Float32
