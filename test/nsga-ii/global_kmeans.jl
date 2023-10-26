@@ -57,7 +57,7 @@ using .Evaluators.NSGAII
     @test derived_tests[3] == [2.0, 4.0]
     @test derived_tests[4] == [2.0, 3.0]
 
-    evaluation = create_evaluation(evaluator, random_number_generator, species, outcomes)
+    evaluation = evaluate(evaluator, random_number_generator, species, outcomes)
     winner_ids = [
         nsga_tournament(random_number_generator, evaluation.records, 2).id for _ in 1:10_000
     ]

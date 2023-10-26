@@ -1,6 +1,6 @@
 module Basic
 
-export BasicEcosystem, BasicEcosystemCreator
+export BasicEcosystem, BasicEcosystemCreator, create_ecosystem, evolve!
 
 import ..Ecosystems: create_ecosystem, evolve!
 
@@ -9,7 +9,7 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using ...Counters: Counter
 using ...Species: AbstractSpecies
-using ...Evaluators: Evaluation, Evaluator, create_evaluation
+using ...Evaluators: Evaluation, Evaluator, evaluate
 using ...SpeciesCreators: SpeciesCreator, create_species
 using ...SpeciesCreators.Basic: BasicSpeciesCreator
 using ...Jobs: JobCreator, create_jobs
@@ -68,7 +68,6 @@ function show(io::IO, c::BasicEcosystemCreator)
 end
 
 function create_ecosystem(ecosystem_creator::BasicEcosystemCreator)
-    # Determine species IDs and populate species dictionary
     all_species = [
         create_species(
             species_creator,
@@ -92,7 +91,7 @@ function evaluate_species(
     observations::Vector{<:Observation},
 )
     evaluations = [
-        create_evaluation(evaluator, random_number_generator, species, individual_outcomes)
+        evaluate(evaluator, random_number_generator, species, individual_outcomes)
         for (evaluator, species) in zip(evaluators, species)
     ]
     
@@ -109,7 +108,11 @@ function evaluate_species(
         species_creator.evaluator for species_creator in ecosystem_creator.species_creators
     ]
     evaluations = evaluate_species(
-        evaluators, ecosystem_creator.random_number_generator, ecosystem.species, individual_outcomes, observations
+        evaluators, 
+        ecosystem_creator.random_number_generator, 
+        ecosystem.species, 
+        individual_outcomes, 
+        observations
     )
     return evaluations
 end

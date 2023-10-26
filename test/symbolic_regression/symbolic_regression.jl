@@ -1,13 +1,7 @@
 using Test
 
-"""
-    CoEvo Test Suite
-
-This test suite focuses on validating and verifying the functionality of the `CoEvo` module.
-The `CoEvo` module provides tools and structures for co-evolutionary simulations.
-"""
-
 @testset "SymbolicRegression" begin
+
 println("Starting tests for SymbolicRegression...")
 
 #include("../src/CoEvo.jl")

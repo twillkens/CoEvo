@@ -2,14 +2,11 @@ using Test
 
 @testset "NSGA-II: Sort" begin
 
-using CoEvo
-
 using Random
 using StableRNGs: StableRNG
 using DataStructures: SortedDict
-using .Criteria: Maximize, Minimize
-using .Evaluators.NSGAII: NSGAIIRecord, nsga_sort!, dominates, get_derived_tests
-using .Evaluators.NSGAII: fast_non_dominated_sort!, crowding_distance_assignment!
+using CoEvo.Names
+using CoEvo.Evaluators.NSGAII
 
 @testset "fast_non_dominated_sort!" begin
     tests1 = NSGAIIRecord(id = 1, tests = [1.0, 1.0, 1.0, 1.0])

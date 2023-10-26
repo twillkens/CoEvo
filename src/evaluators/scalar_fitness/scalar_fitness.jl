@@ -2,7 +2,7 @@ module ScalarFitness
 
 export ScalarFitnessEvaluation, ScalarFitnessEvaluator, ScalarFitnessRecord
 
-import ...Evaluators: create_evaluation
+import ...Evaluators: evaluate
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
@@ -26,7 +26,7 @@ Base.@kwdef struct ScalarFitnessEvaluator <: Evaluator
     epsilon::Float64 = 1e-6
 end
 
-function create_evaluation(
+function evaluate(
     evaluator::ScalarFitnessEvaluator,
     ::AbstractRNG,
     species::AbstractSpecies,

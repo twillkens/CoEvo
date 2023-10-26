@@ -3,7 +3,8 @@ module CoEvo
 export Counters, Genotypes, Phenotypes, Individuals, Species, Criteria, Evaluators, Replacers
 export Selectors, Recombiners, Mutators, SpeciesCreators, Metrics, Domains, Matches
 export MatchMakers, Observers, Results, Environments, Interactions, Jobs, Performers
-export Measurements, States, Reporters, Archivers, Ecosystems, Configurations
+export Measurements, States, Reporters, Archivers, Ecosystems, Names, Configurations, run!
+export NumbersGameConfiguration, PredictionGameConfiguration
 
 include("counters/counters.jl")
 using .Counters: Counters
@@ -117,8 +118,14 @@ println("loaded ecosystems")
 #using .Loaders: Loaders
 #println("loaded loaders")
 
+include("names/names.jl")
+using .Names: Names
+println("loaded names")
+
 include("configurations/configurations.jl")
-using .Configurations: Configurations
+using .Configurations: Configurations, run!
+using .Configurations.NumbersGame: NumbersGameConfiguration
+using .Configurations.PredictionGame: PredictionGameConfiguration
 println("loaded configurations")
 
 end

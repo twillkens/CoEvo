@@ -5,15 +5,14 @@ using Test
 println("Starting tests for GeneticPrograms...")
 
 using CoEvo
+using CoEvo.Names
 using StableRNGs: StableRNG
 using DataStructures: OrderedDict
-using .Genotypes.GeneticPrograms: get_node, GeneticProgramGenotype, ExpressionNode
-using .Genotypes.GeneticPrograms: protected_division, Terminal
-using .Genotypes.GeneticPrograms: FuncAlias, protected_sine, if_less_then_else
-using .Mutators.GeneticPrograms: add_function as gp_add_function, remove_function as gp_remove_function, splice_function, swap_node
-using .Mutators.GeneticPrograms: inject_noise
-using .Phenotypes: act!, create_phenotype
-using .Phenotypes.Defaults: DefaultPhenotypeCreator
+using .Genotypes.GeneticPrograms
+using .Mutators.GeneticPrograms: add_function as gp_add_function
+using .Mutators.GeneticPrograms: remove_function as gp_remove_function
+using .Mutators.GeneticPrograms: splice_function, swap_node, inject_noise
+
 """
     dummygeno() -> BasicGeneticProgramGenotype
 

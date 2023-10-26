@@ -2,7 +2,7 @@ module Null
 
 export NullEvaluation, NullEvaluator
 
-import ...Evaluators: create_evaluation
+import ...Evaluators: evaluate
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
@@ -13,7 +13,7 @@ struct NullEvaluation <: Evaluation end
 
 Base.@kwdef struct NullEvaluator <: Evaluator end
 
-function create_evaluation(
+function evaluate(
     ::AbstractRNG,
     ::NullEvaluator,
     ::AbstractSpecies,

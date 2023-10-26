@@ -1,3 +1,4 @@
+# TODO: Refactor to accomodate different communication dimensions
 module CollisionGame
 
 export CollisionGameEnvironment, CollisionGameEnvironmentCreator

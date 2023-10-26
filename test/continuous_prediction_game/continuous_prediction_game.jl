@@ -1,17 +1,11 @@
 using Test
 
-using CoEvo
-
 import CoEvo.Phenotypes: Phenotype, act!, reset!
 
 @testset "ContinuousPredictionGame" begin
 
-using .Domains.PredictionGame: PredictionGameDomain
-using .Environments: step!, is_active, get_outcome_set, create_environment
-using .Environments.ContinuousPredictionGame: ContinuousPredictionGame as CPGEnvironment
-using .CPGEnvironment: ContinuousPredictionGameEnvironmentCreator
-using .CPGEnvironment: scaled_arctangent, apply_movement, get_action!, get_outcome_set
-using .CPGEnvironment: get_counterclockwise_distance, get_clockwise_distance
+using CoEvo
+using CoEvo.Environments.ContinuousPredictionGame
 
 struct MockPhenotype <: Phenotype 
     movement_constant::Float32

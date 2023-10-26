@@ -6,28 +6,7 @@ println("Starting tests for NumbersGame...")
 
 using StableRNGs: StableRNG
 using CoEvo
-using .Counters.Basic: BasicCounter
-using .Genotypes.Vectors: BasicVectorGenotypeCreator
-using .Individuals.Basic: BasicIndividualCreator
-using .Phenotypes: Phenotype
-using .Phenotypes.Defaults: DefaultPhenotypeCreator
-using .Phenotypes.Vectors: BasicVectorPhenotype
-using .Evaluators: create_evaluation
-using .Evaluators.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
-using .Replacers.Generational: GenerationalReplacer
-using .Selectors.FitnessProportionate: FitnessProportionateSelector
-using .Recombiners.Clone: CloneRecombiner
-using .Mutators.Identity: IdentityMutator
-using .SpeciesCreators: create_species
-using .SpeciesCreators.Basic: BasicSpeciesCreator
-using .Metrics.Evaluations: AllSpeciesFitness
-using .Domains.NumbersGame: NumbersGameDomain
-using .Environments: create_environment, get_outcome_set
-using .Environments.Stateless: StatelessEnvironmentCreator
-using .Reporters.Basic: BasicReporter
-using .Ecosystems.Basic: BasicEcosystem, BasicEcosystemCreator
-using .Configurations: make_ecosystem_creator, evolve!
-using .Configurations.NumbersGame: NumbersGameConfiguration
+using CoEvo.Names
 
 """
     NumbersGameProblem with Gradient
@@ -138,7 +117,7 @@ confirms the outcomes when different phenotypes interact within the specified do
         species_creator, random_number_generator, individual_id_counter, gene_id_counter
     ) 
      dummy_outcomes = generate_nested_dict(n_population, n_population)
-     evaluation = create_evaluation(
+     evaluation = evaluate(
         species_creator.evaluator, random_number_generator, species, dummy_outcomes
     )
 
@@ -147,9 +126,7 @@ end
 
 @testset "NumberGameConfiguration" begin
     configuration = NumbersGameConfiguration(n_population = 4)
-    ecosystem_creator = make_ecosystem_creator(configuration)
-    @test typeof(ecosystem_creator) <: BasicEcosystemCreator
-    ecosystem = evolve!(configuration, n_generations = 10)
+    ecosystem = run!(configuration, n_generations = 10)
     @test typeof(ecosystem) <: BasicEcosystem
 end
 

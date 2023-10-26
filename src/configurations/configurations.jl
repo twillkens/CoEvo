@@ -1,25 +1,12 @@
 module Configurations
 
-export PredictionGame
+export NumbersGame, PredictionGame
 
 import ..Ecosystems: evolve!
 
 using JLD2: @save
 using StableRNGs: StableRNG
-using ..Performers.Cache: CachePerformer
-using ..Counters.Basic: BasicCounter
-using ..MatchMakers.AllvsAll: AllvsAllMatchMaker
-using ..Replacers.Truncation: TruncationReplacer
-using ..Recombiners.Clone: CloneRecombiner
 using ..Ecosystems: EcosystemCreator
-using ..Ecosystems.Basic: BasicEcosystemCreator
-using ..Selectors.FitnessProportionate: FitnessProportionateSelector
-using ..Selectors.Tournament: TournamentSelector
-using ..Evaluators.ScalarFitness: ScalarFitnessEvaluator
-using ..Evaluators.NSGAII: NSGAIIEvaluator
-using ..Jobs.Basic: BasicJobCreator
-using ..Archivers.Basic: BasicArchiver
-using ..States.Basic: BasicCoevolutionaryStateCreator
 
 include("abstract/abstract.jl")
 

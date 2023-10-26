@@ -1,8 +1,8 @@
-export create_evaluation
+export evaluate
 
 # TODO: Add observations to the interface.
 
-function create_evaluation(
+function evaluate(
     evaluator::Evaluator,
     random_number_generator::AbstractRNG,
     species::AbstractSpecies,
@@ -10,5 +10,5 @@ function create_evaluation(
     #observations::Vector{<:Observation}
 )
     throw(ErrorException(
-        "`create_evaluation` not implemented for $evaluator and $species."))
+        "`evaluate` not implemented for $evaluator and $species."))
 end

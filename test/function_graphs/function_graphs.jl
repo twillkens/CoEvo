@@ -3,29 +3,19 @@ using Test
 @testset "FunctionGraphs" begin
 
 using JLD2
-using ProgressBars
 using Base: @kwdef
 using CoEvo
 using Random: AbstractRNG
 using StableRNGs: StableRNG
-using StatsBase: sample, Weights
 
-import Base: ==
 using Random  # For StableRNG
 
-using .Counters.Basic
-using .Genotypes.FunctionGraphs
-using .Mutators.FunctionGraphs
-using .Mutators.FunctionGraphs: add_function as fg_add_function, remove_function as fg_remove_function
-using .Phenotypes
-using .Phenotypes.Defaults
-using .Phenotypes.FunctionGraphs.Linearized
-using .Phenotypes.FunctionGraphs.Basic
-using .Genotypes
-#using .Loaders
-using .Archivers
-using .Archivers.Basic
-
+using CoEvo.Names
+using CoEvo.Genotypes.FunctionGraphs
+using CoEvo.Mutators.FunctionGraphs
+using CoEvo.Mutators.FunctionGraphs: add_function as fg_add_function, remove_function as fg_remove_function
+using CoEvo.Phenotypes.FunctionGraphs.Linearized
+using CoEvo.Phenotypes.FunctionGraphs.Basic
 
 println("Starting tests for FunctionGraphs...")
 

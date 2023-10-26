@@ -1,6 +1,6 @@
 module NSGAII
 
-import ..Evaluators: create_evaluation
+import ..Evaluators: evaluate
 
 using Random: AbstractRNG, rand
 using DataStructures: SortedDict

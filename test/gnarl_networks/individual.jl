@@ -3,17 +3,10 @@ using Test
 @testset "Individual" begin
 
 using Random
-using CoEvo
-
 using StableRNGs: StableRNG
-using .Counters.Basic: BasicCounter
-using .Genotypes: create_genotypes, get_size, minimize
-using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
-using .Genotypes.GnarlNetworks: NodeGene, ConnectionGene, get_required_nodes
-using .Phenotypes: create_phenotype
-using .Mutators.GnarlNetworks: mutate_weights, add_node, remove_node, add_connection
-using .Mutators.GnarlNetworks: remove_connection, mutate 
-using .Mutators.GnarlNetworks: GnarlNetworkMutator
+using CoEvo.Names
+using CoEvo.Genotypes.GnarlNetworks
+using CoEvo.Mutators.GnarlNetworks
 
 # Create a basic genotype to work with
 basic_genotype() = GnarlNetworkGenotype(

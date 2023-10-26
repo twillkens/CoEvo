@@ -4,8 +4,8 @@ using Test
 
 include("utils/utils.jl")
 include("numbers/numbers.jl")
-include("gp/gp.jl")
-#include("sym_regress/sym_regress.jl")
+include("genetic_programs/genetic_programs.jl")
+##include("sym_regress/sym_regress.jl")
 include("gnarl_networks/gnarl_networks.jl")
 include("nsga-ii/nsga-ii.jl")
 include("continuous_prediction_game/continuous_prediction_game.jl")

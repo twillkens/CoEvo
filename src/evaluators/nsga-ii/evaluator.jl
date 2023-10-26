@@ -1,5 +1,5 @@
 export NSGAIIEvaluator, NSGAIIEvaluation
-export create_evaluation, make_individual_tests, calculate_fitnesses
+export evaluate, make_individual_tests, calculate_fitnesses
 export check_for_nan_in_fitnesses, create_records
 
 Base.@kwdef struct NSGAIIEvaluator <: Evaluator 
@@ -56,7 +56,7 @@ function create_records(
     records
 end
 
-function create_evaluation(
+function evaluate(
     evaluator::NSGAIIEvaluator,
     random_number_generator::AbstractRNG,
     species::AbstractSpecies,
@@ -91,7 +91,7 @@ function create_evaluation(
 end
 
 
-#function create_evaluation(
+#function evaluate(
 #    evaluator::NSGAIIEvaluator,
 #    random_number_generator::AbstractRNG,
 #    species::AbstractSpecies,
