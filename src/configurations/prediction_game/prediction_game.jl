@@ -10,6 +10,7 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using ...Genotypes.GnarlNetworks: GnarlNetworkGenotypeCreator
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotypeCreator
+using ...Individuals.Basic: BasicIndividualCreator
 using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeCreator
 using ...Phenotypes.Defaults: DefaultPhenotypeCreator
 using ...Evaluators.NSGAII: NSGAIIEvaluator
@@ -22,13 +23,14 @@ using ...Selectors.Tournament: TournamentSelector
 using ...SpeciesCreators.Basic: BasicSpeciesCreator
 using ...Domains.PredictionGame: PredictionGameDomain
 using ...Domains.PredictionGame: Control, Adversarial, Affinitive, Avoidant
-using ...Metrics.Common: AllSpeciesIdentity
 using ...Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironmentCreator
+using ...Environments.CollisionGame: CollisionGameEnvironmentCreator
 using ...Interactions.Basic: BasicInteraction
 using ...Jobs.Basic: BasicJobCreator
 using ...Reporters: Reporter
 using ...Reporters.Basic: BasicReporter
 using ...Reporters.Runtime: RuntimeReporter
+using ...Metrics.Common: AllSpeciesIdentity
 using ...Metrics.Genotypes: GenotypeSize
 using ...Metrics.Evaluations: AllSpeciesFitness
 using ...Archivers.Basic: BasicArchiver
@@ -49,6 +51,7 @@ using ..Configurations: make_recombiner, make_replacer, make_matchmaker, make_pe
     gene_id_counter_state::Int = 1
     n_workers::Int = 1
     n_population::Int = 50
+    n_children::Int = n_population
     communication_dimension::Int = 1
     n_nodes_per_output::Int = 4
     n_truncate::Int = n_population
@@ -179,7 +182,7 @@ function make_substrate_types(configuration::PredictionGameConfiguration)
         mutators = [FunctionGraphMutator()]
     elseif substrate == :gnarl_networks
         genotype_creator = GnarlNetworkGenotypeCreator(
-            n_input_nodes = 2 + communication_dimension, 
+            n_input_nodes = 1 + communication_dimension, 
             n_output_nodes = 1 + communication_dimension
         )
         phenotype_creator = DefaultPhenotypeCreator()
@@ -215,11 +218,14 @@ function make_species_creators(configuration::PredictionGameConfiguration)
     evaluator, selector = make_reproducer_types(configuration)
     replacer = make_replacer(configuration)
     recombiner = make_recombiner(configuration)
+    individual_creator = BasicIndividualCreator()
     species_creators = [
         BasicSpeciesCreator(
             id = species_id,
             n_population = configuration.n_population,
+            n_children = configuration.n_children,
             genotype_creator = genotype_creator,
+            individual_creator = individual_creator,
             phenotype_creator = phenotype_creator,
             evaluator = evaluator,
             replacer = replacer,
@@ -239,6 +245,8 @@ function make_environment_creators(configuration::PredictionGameConfiguration)
     game = configuration.game
     if game == :continuous_prediction_game
         environment_creator_type = ContinuousPredictionGameEnvironmentCreator
+    elseif game == :collision_game
+        environment_creator_type = CollisionGameEnvironmentCreator
     else
         throw(ArgumentError("Unrecognized game: $game"))
     end

@@ -13,6 +13,7 @@ Base.@kwdef struct CollisionGameEnvironmentCreator{D <: Domain} <: EnvironmentCr
     domain::D
     initial_distance::Float64 = 5.0
     episode_length::Int = 128
+    communication_dimension::Int = 1
 end
 
 Base.@kwdef mutable struct CollisionGameEnvironment{

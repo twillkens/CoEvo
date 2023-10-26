@@ -288,22 +288,6 @@ function swap_node(
     swap_node(geno, node1.id, node_id2)
 end
 
-
-"""
-    splice_function(geno::GeneticProgramGenotype, segment_top_id::Int, 
-                    segment_bottom_child_id::Int, target_id::Int)
-
-Splice the execution tree of the genotype at the specified points. The function takes a 
-segment of the execution tree, represented by `segment_top` and `segment_bottom_child`, 
-and splice it between a node taken from a separate linearge (`target`) and the other node's parent.
-
-
-Returns:
-- A modified genotype with the specified splicing applied.
-
-Throws:
-- Error if any of the node IDs are invalid or if the splicing operation cannot be completed.
-"""
 function splice_function(
     geno::GeneticProgramGenotype, 
     segment_top_id::Int, 
@@ -366,20 +350,7 @@ function splice_function(
     end
     return geno
 end
-"""
-    splice_function(rng::AbstractRNG, gene_id_counter::Counter, ::GeneticProgramMutator, geno::GeneticProgramGenotype)
 
-Randomly splice a function node's subtree into another part of the genotype tree.
-
-# Arguments:
-- `rng::AbstractRNG`: Random number generator.
-- `gene_id_counter::Counter`: Counter for unique gene IDs.
-- `::GeneticProgramMutator`: Mutator operations for genetic programming.
-- `geno::GeneticProgramGenotype`: Genotype to splice function into.
-
-# Returns:
-- A new `GeneticProgramGenotype` with the spliced function subtree.
-"""
 function splice_function(
     rng::AbstractRNG, 
     ::Counter,

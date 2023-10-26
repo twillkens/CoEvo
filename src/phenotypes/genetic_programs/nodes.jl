@@ -1,6 +1,5 @@
 export LinearNode, linearize, NodeType, FUNCTION, TERMINAL, CONDITIONAL, ELSEJUMP
 
-
 # Enum to distinguish between node types
 @enum NodeType FUNCTION TERMINAL CONDITIONAL ELSEJUMP
 

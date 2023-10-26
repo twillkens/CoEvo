@@ -1,39 +1,18 @@
-#include("../../src/CoEvo.jl")
-using Random
-using StableRNGs: StableRNG
 using Test
-#using DataStructures
-
-using CoEvo.NSGAIIMethods: NSGAIIRecord, nsga_sort!, Max, Min, dominates
-using CoEvo.NSGAIIMethods: fast_non_dominated_sort!, crowding_distance_assignment!
 
 @testset "NSGA-II" begin
+
 println("Starting tests for NSGA-II and Disco...")
 
-function generate_nested_dict(first_layer_size::Int, second_layer_size::Int)
-    # Initialize an empty dictionary
-    my_dict = Dict{Int, Dict{Int, Float64}}()
+using CoEvo
 
-    # Loop for the first layer
-    for i in 1:first_layer_size
-        # Initialize the second layer dictionary
-        second_layer_dict = Dict{Int, Float64}()
+using Random
+using StableRNGs: StableRNG
+using DataStructures: SortedDict
+using .Criteria: Maximize, Minimize
+using .Evaluators.NSGAII: NSGAIIRecord, nsga_sort!, dominates
+using .Evaluators.NSGAII: fast_non_dominated_sort!, crowding_distance_assignment!
 
-        # Loop for the second layer
-        for j in (11:(10 + second_layer_size))
-            # Generate a random Float64 value between 0 and 1
-            random_float = rand()
-
-            # Add the random value to the second layer dictionary
-            second_layer_dict[j] = random_float
-        end
-
-        # Add the second layer dictionary to the first layer
-        my_dict[i] = second_layer_dict
-    end
-    
-    return my_dict
-end
 @testset "Disco" begin
     
 @testset "fast_non_dominated_sort!" begin
@@ -44,7 +23,7 @@ end
     alltests = [tests1, tests2, tests3, tests4]
     records = [tests3, tests4, tests2, tests1]
 
-    fast_non_dominated_sort!(records, Max())
+    fast_non_dominated_sort!(records, Maximize())
     sort!(records, by = record -> record.rank, alg=Base.Sort.QuickSort)
     @test records[1].id == 1
     @test records[2].id == 2
@@ -70,7 +49,7 @@ end
                 tests6, tests7, tests8, tests9, tests10]
     pop = alltests
                                         
-    sorted_pop = nsga_sort!(shuffle(pop), Min())
+    sorted_pop = nsga_sort!(shuffle(pop), Minimize())
     @test pop[1].rank == 1
     @test pop[1].crowding ≈ Inf16
     @test findfirst(x -> x == pop[1], pop) in [1, 2, 3, 4]
@@ -103,36 +82,6 @@ end
     @test findfirst(x -> x == pop[10], pop) in [10]
 end
 
-# @testset "Disco" begin
-#     gen = 1
-#     random_number_generator = StableRNG(42)
-#     individual_id_counter = Counter()
-#     gene_id_counter = Counter()
-#     species_id = "subjects"
-#     n_population = 10
-# 
-#     default_vector = collect(1:10)
-# 
-#     # Define species configuration similar to spawner
-#     species_creator = BasicSpeciesCreator(
-#         id = species_id,
-#         n_population = n_population,
-#         genotype_creator = BasicVectorGenotypeCreator(
-#             default_vector = default_vector
-#         ),
-#         phenotype_creator = DefaultPhenotypeCreator(),
-#         evaluator = NSGAIIEvaluator(),
-#         replacer = GenerationalReplacer(),
-#         selector = FitnessProportionateSelector(n_parents = 2),
-#         recombiner = CloneRecombiner(),
-#         mutators = [IdentityMutator()],
-#     )
-#     species = create_species(species_creator, random_number_generator, individual_id_counter, gene_id_counter) 
-#     dummy_outcomes = generate_nested_dict(n_population, n_population)
-#     evaluation = create_evaluation(species_creator.evaluator, random_number_generator, species, dummy_outcomes)
-#     @test length(evaluation.records) == n_population
-# end
-
 
 @testset "nsga!-2" begin
     # source: https://www.ntnu.no/wiki/download/attachments/195538363/lecture%205.pdf?version=1&modificationDate=1598695184000&api=v2
@@ -157,7 +106,7 @@ end
     function_minimiums = [0.1, 0.0]
     function_maximums = [1.0, 60.0]
 
-    sortedpop = nsga_sort!(shuffle(pop), Min(), function_minimiums, function_maximums)
+    sortedpop = nsga_sort!(shuffle(pop), Minimize(), function_minimiums, function_maximums)
     front1 = [1, 2, 3]
     front2 = [4, 5, 6, 7]
     front3 = [8, 9, 10, 11]
@@ -253,7 +202,6 @@ outcomes = Dict(
     #5 => outcomes_5,
     #6 => outcomes_6
 )
-using DataStructures: SortedDict
 
 ids = [1, 2, 3]
 #ids = [1, 2, 3, 4, 5, 6]

@@ -1,13 +1,15 @@
 using Test
+
+@testset "Mutation" begin
+
 using Random
 using StableRNGs
 using StatsBase
-#include("../../src/CoEvo.jl")
-using .CoEvo
-using .FiniteStateMachineMutators: FiniteStateMachineMutator, add_state, remove_state
-using .FiniteStateMachineMutators: change_link, change_label 
-
-@testset "Mutation" begin
+using CoEvo
+using .Counters.Basic: BasicCounter
+using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
+using .Mutators.FiniteStateMachines: FiniteStateMachineMutator
+using .Mutators.FiniteStateMachines: add_state, remove_state, change_link, change_label
 
 @testset "add_state" begin
     start = 1
@@ -53,23 +55,6 @@ using .FiniteStateMachineMutators: change_link, change_label
     )
     @test fsm.links == expected
 
-    #minimized_genotype, merged_state_map = minimize_verbose(fsm)
-
-    #@test minimized_genotype.start == merged_state_map[1]
-    #@test length(minimized_genotype.links) == 8
-    #@test minimized_genotype.ones == Set([merged_state_map[1], merged_state_map[2], merged_state_map[4]])
-    #@test minimized_genotype.zeros == Set([merged_state_map[5]])
-    #expected = Dict{Tuple{Int, Bool}, Int}(
-    #    (merged_state_map[1], 0) => merged_state_map[2],
-    #    (merged_state_map[1], 1) => merged_state_map[1],
-    #    (merged_state_map[2], 0) => merged_state_map[2],
-    #    (merged_state_map[2], 1) => merged_state_map[4],
-    #    (merged_state_map[4], 0) => merged_state_map[2],
-    #    (merged_state_map[4], 1) => merged_state_map[5],
-    #    (merged_state_map[5], 0) => merged_state_map[2],
-    #    (merged_state_map[5], 1) => merged_state_map[1],
-    #)
-    #@test minimized_genotype.links == expected
 end
 
 @testset "remove_state" begin
@@ -108,13 +93,6 @@ end
         (5, 1) => 5,
     )
     @test fsm.links == expected
-
-#    minimized_genotype, merged_state_map = minimize_verbose(fsm)
-#
-#    @test minimized_genotype.start == merged_state_map[1]
-#    @test length(minimized_genotype.links) == 8
-#    @test minimized_genotype.ones == Set([merged_state_map[1], merged_state_map[2], merged_state_map[4]])
-#    @test minimized_genotype.zeros == Set([merged_state_map[5]])
 end
 
 @testset "rmstate2" begin
@@ -261,8 +239,7 @@ end
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter()
-    gene_id_counter.curr = 7
+    gene_id_counter = BasicCounter(7)
     mutator = FiniteStateMachineMutator()
 
     n = 10
@@ -272,7 +249,7 @@ end
 
     @test length(union(fsm.ones, fsm.zeros)) == 16
     @test length(fsm.links) == 32
-    @test gene_id_counter.curr == 17
+    @test gene_id_counter.current_value == 17
 end
 # 
 @testset "rand-remove_state" begin
@@ -300,8 +277,7 @@ end
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter()
-    gene_id_counter.curr = 8
+    gene_id_counter = BasicCounter(8)
     n = 4
     for i in 1:n
         fsm = remove_state(random_number_generator, gene_id_counter, fsm)
@@ -339,7 +315,7 @@ end
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter()
+    gene_id_counter = BasicCounter()
     n = 4
     for i in 1:n
         fsm = change_link(random_number_generator, gene_id_counter, fsm)
@@ -373,7 +349,7 @@ end
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter()
+    gene_id_counter = BasicCounter()
     n = 4
     for i in 1:n
         fsm = change_label(random_number_generator, gene_id_counter, fsm)
@@ -405,8 +381,7 @@ end
     )
     fsm = FiniteStateMachineGenotype(start, ones, zeros, links)
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter()
-    gene_id_counter.curr = 7
+    gene_id_counter = BasicCounter(7)
     n = 4
     for i in 1:n
         fsm = add_state(random_number_generator, gene_id_counter, fsm)
@@ -435,6 +410,5 @@ end
     @test fsm.ones != ones
     @test fsm.zeros != zeros
 end
-# 
 
 end

@@ -91,7 +91,7 @@ phenotype_2 = create_phenotype(LinearizedFunctionGraphPhenotypeCreator(), genoty
 
 domain_mock = ContinuousPredictionGameDomain(:CooperativeMatching)
 
-environment = create_environment(ContinuousPredictionGameEnvironmentCreatorr(
+environment = create_environment(ContinuousPredictionGameEnvironmentCreator(
     domain=domain_mock, episode_length=32), 
     Phenotype[phenotype_1, phenotype_2]
 )

@@ -12,9 +12,8 @@ using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreato
 using .Genotypes.GnarlNetworks: NodeGene, ConnectionGene, get_required_nodes
 using .Phenotypes: create_phenotype
 using .Mutators.GnarlNetworks: mutate_weights, add_node, remove_node, add_connection
-using .Mutators.GnarlNetworks: remove_connection, mutate, redirect_or_replace_connection
-using .Mutators.GnarlNetworks: redirect_connection, replace_connection
-using .Mutators.GnarlNetworks: get_next_layer, get_previous_layer, GnarlNetworkMutator
+using .Mutators.GnarlNetworks: remove_connection, mutate 
+using .Mutators.GnarlNetworks: GnarlNetworkMutator
 
 # Create a basic genotype to work with
 basic_genotype() = GnarlNetworkGenotype(

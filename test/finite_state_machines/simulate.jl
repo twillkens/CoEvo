@@ -1,12 +1,20 @@
 using Test
-#include("../../src/CoEvo.jl")
-using .CoEvo
 
 @testset "Simulate" begin
 
+using CoEvo
+
+using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
+using .Phenotypes: Phenotype, create_phenotype
+using .Phenotypes.Defaults: DefaultPhenotypeCreator
+using .Phenotypes.FiniteStateMachines: FiniteStateMachinePhenotype
+using .Domains.PredictionGame: PredictionGameDomain
+using .Environments: create_environment, is_active, step!, get_outcome_set
+using .Environments.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
+
 phenotype_creator = DefaultPhenotypeCreator()
+
 @testset "newsimple" begin
-        
     # Construct FiniteStateMachinePhenotype for fsm1
     ones = Set(["A1"])
     zeros = Set(["A0"])
@@ -39,7 +47,7 @@ phenotype_creator = DefaultPhenotypeCreator()
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
-        next!(environment)
+        step!(environment)
     end
     outcome_set = get_outcome_set(environment)
     @test outcome_set == [0.5, 0.5]
@@ -52,7 +60,6 @@ phenotype_creator = DefaultPhenotypeCreator()
 end
 
 @testset "newcoop1" begin
-        
     # Construct FiniteStateMachinePhenotype for fsm1
     ones = Set(["A1"])
     zeros = Set(["A0"])
@@ -83,17 +90,16 @@ end
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
-        next!(environment)
+        step!(environment)
     end
     outcome_set = get_outcome_set(environment)
     
-    # Adjusted the tests to fit the new structure. 
     @test outcome_set ≈ [1/3, 1/3]
     @test environment.states1 == ["A0", "A1", "A1", "A0", "A1"]
     @test environment.states2 == ["B0", "B0", "B1", "B1", "B0"]
     @test environment.bits1 == [0, 1, 1, 0, 1]
     @test environment.bits2 == [0, 0, 1, 1, 0]
-    @test environment.loop_start == 2  # This assumes loop starts at 3rd state; adjust as necessary.
+    @test environment.loop_start == 2  
     @test environment.timestep == 5
 end
 
@@ -125,21 +131,20 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = PredictionGameDomain(:Adversarial)  # Updated to reflect Mismatch Competition
+    domain = PredictionGameDomain(:Adversarial)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
-        next!(environment)
+        step!(environment)
     end
     outcome_set = get_outcome_set(environment)
     
-    # Adjusted the tests to fit the new structure. 
     @test outcome_set ≈ [1/3, 2/3]
     @test environment.states1 == ["A0", "A1", "A1", "A0", "A1"]
     @test environment.states2 == ["B0", "B0", "B1", "B1", "B0"]
     @test environment.bits1 == [0, 1, 1, 0, 1]
     @test environment.bits2 == [0, 0, 1, 1, 0]
-    @test environment.loop_start == 2  # This assumes loop starts at 3rd state; adjust as necessary.
+    @test environment.loop_start == 2  
     @test environment.timestep == 5
 end
 
@@ -179,7 +184,7 @@ end
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
-        next!(environment)
+        step!(environment)
     end
     outcome_set = get_outcome_set(environment)
     
@@ -188,7 +193,7 @@ end
     @test environment.states2 == ["a", "a", "b", "c", "a"]
     @test environment.bits1 == [0, 1, 1, 1, 1]
     @test environment.bits2 == [1, 1, 0, 1, 1]
-    @test environment.loop_start == 2  # This assumes loop starts at 3rd state; adjust as necessary.
+    @test environment.loop_start == 2 
     @test environment.timestep == 5
 end
 
@@ -226,23 +231,18 @@ end
 
     domain = PredictionGameDomain(:Adversarial)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
-    # println(fsm1)
-    # println(typeof(fsm1))
-    # println(fsm2)
-    # println(typeof(fsm2))
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
-        next!(environment)
+        step!(environment)
     end
     outcome_set = get_outcome_set(environment)
     
-    # Adjusted the tests to fit the new structure. 
     @test outcome_set ≈ [2/3, 1/3]
     @test environment.states1 == ["a", "b", "b", "c", "b"]
     @test environment.states2 == ["a", "a", "b", "c", "a"]
     @test environment.bits1 == [0, 1, 1, 1, 1]
     @test environment.bits2 == [1, 1, 0, 1, 1]
-    @test environment.loop_start == 2  # This assumes loop starts at 3rd state; adjust as necessary.
+    @test environment.loop_start == 2 
     @test environment.timestep == 5
 end
 

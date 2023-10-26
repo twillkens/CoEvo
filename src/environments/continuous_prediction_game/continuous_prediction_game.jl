@@ -1,6 +1,6 @@
 module ContinuousPredictionGame
 
-import ..Environments: get_outcome_set, step!, is_active
+import ..Environments: get_outcome_set, step!, is_active, create_environment
 
 using ...Domains: Domain, measure
 using ...Phenotypes: Phenotype, act!, reset!

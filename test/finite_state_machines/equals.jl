@@ -1,5 +1,12 @@
+using Test
 
-@testset "FiniteStateMachineGenotype Equals" begin
+@testset "Equals" begin
+
+using Random
+using StableRNGs
+using CoEvo
+using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
+
 @testset "basic equals" begin
     start = 1
     ones = Set([1, 2, 3, 4])

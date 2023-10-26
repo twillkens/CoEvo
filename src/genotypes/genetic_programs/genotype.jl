@@ -52,6 +52,13 @@ function Base.show(io::IO, geno::GeneticProgramGenotype)
     print(io, ")")
 end
 
+function Base.:(==)(a::GeneticProgramGenotype, b::GeneticProgramGenotype)
+    return a.root_id == b.root_id &&
+           a.functions == b.functions &&
+           a.terminals == b.terminals
+end
+
+
 Base.@kwdef struct GeneticProgramGenotypeCreator <: GenotypeCreator 
     default_terminal_value::Union{Symbol, Function, Real} = 0.0
 end

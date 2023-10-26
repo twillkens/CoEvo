@@ -1,27 +1,12 @@
 using Test
+
+@testset "Minimize" begin
+
 using Random
 using StableRNGs
-#include("../../src/CoEvo.jl")
-using .CoEvo
-using .FiniteStateMachineMinimizers: minimize, minimize_verbose
-
-verbose = false
-
-function printtest(source, example, maxfsm, minfsm)
-    if verbose
-        println("------")
-        println("Source: ", source)
-        println("Example: ", example)
-        println()
-        println("Entire machine")
-        printFSM(maxfsm)
-        println()
-        println("Minimized machine")
-        printFSM(minfsm)
-    end
-end
-
-@testset "Hopcroft" begin
+using CoEvo
+using .Genotypes: minimize 
+using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype, minimize_verbose
 
 @testset "cornell1" begin
     source = "http://www.cs.cornell.edu/courses/cs2800/2013fa/Handouts/minimization.pdf"
@@ -32,15 +17,15 @@ end
     ones  = Set(["0", "3"])
     zeros = Set(["1", "2"])
     links = Dict(
-                ("0", a) => "1",
-                ("0", b) => "2",
-                ("1", a) => "3",
-                ("1", b) => "3",
-                ("2", a) => "3",
-                ("2", b) => "3",
-                ("3", a) => "3",
-                ("3", b) => "3",
-                )
+        ("0", a) => "1",
+        ("0", b) => "2",
+        ("1", a) => "3",
+        ("1", b) => "3",
+        ("2", a) => "3",
+        ("2", b) => "3",
+        ("3", a) => "3",
+        ("3", b) => "3",
+    )
 
     max1 = FiniteStateMachineGenotype(start, ones, zeros, links)
     minimized_genotype, _ = minimize_verbose(max1)
@@ -55,8 +40,6 @@ end
     @test minimized_genotype.links[("1/2", b)] == "3/"
     @test minimized_genotype.links[("3/",  a)] == "3/"
     @test minimized_genotype.links[("3/",  b)] == "3/"
-
-    # printtest(source, example, max1, minimized_genotype)
 end
 
 @testset "cornell1int" begin
@@ -94,8 +77,6 @@ end
         (merged_state_map[3], b) => merged_state_map[3],
     )
     @test minimized_genotype.links == links
-
-    # printtest(source, example, max1, minimized_genotype)
 end
 # # 
 @testset "cornell2" begin
@@ -141,8 +122,6 @@ end
     @test minimized_genotype.links[(eight, b)] == nine
     @test minimized_genotype.links[(nine,  a)] == nine
     @test minimized_genotype.links[(nine,  b)] == nine
-
-    # printtest(source, example, max1, minimized_genotype)
 end
 # 
 @testset "cornell2int" begin
@@ -191,8 +170,6 @@ end
         (nine,  b) => nine,
     )
     @test minimized_genotype.links == links
-
-    # printtest(source, example, max1, minimized_genotype)
 end
 # 
 # 
@@ -237,8 +214,6 @@ end
     @test minimized_genotype.links[(seven, b)] == eight
     @test minimized_genotype.links[(eight, a)] == eight
     @test minimized_genotype.links[(eight, b)] == eight
-
-    # printtest(source, example, max1, minimized_genotype)
 end
 # 
 @testset "cornell3int" begin
@@ -284,8 +259,6 @@ end
         (eight, b) => eight,
     )
     @test minimized_genotype.links == links
-
-    # printtest(source, example, max1, minimized_genotype)
 end
 # 
 # @testset "cornell4" begin
