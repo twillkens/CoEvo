@@ -11,7 +11,7 @@ struct RuntimeMetric <: Metric end
 struct RuntimeMeasurement <: Measurement end
 
 struct RuntimeReport{M, MEA} <: Report{M, MEA}
-    gen::Int
+    generation::Int
     metric::M
     measurement::MEA
     eco_id::String
@@ -35,14 +35,14 @@ end
 function create_runtime_report(
     reporter::RuntimeReporter, 
     eco_id::String, 
-    gen::Int, 
+    generation::Int, 
     eval_time::Float64, 
     reproduce_time::Float64
 )
-    to_print = reporter.print_interval > 0 && gen % reporter.print_interval == 0
-    to_save = reporter.save_interval > 0 && gen % reporter.save_interval == 0
+    to_print = reporter.print_interval > 0 && generation % reporter.print_interval == 0
+    to_save = reporter.save_interval > 0 && generation % reporter.save_interval == 0
     report = RuntimeReport(
-        gen, 
+        generation, 
         RuntimeMetric(),
         RuntimeMeasurement(),
         eco_id,
