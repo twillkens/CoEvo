@@ -7,7 +7,7 @@ import ..Ecosystems: create_ecosystem, evolve!
 using DataStructures: SortedDict
 using Random: AbstractRNG
 using StableRNGs: StableRNG
-using ...Counters: Counter
+using ...Counters: Counter, Basic.BasicCounter
 using ...Species: AbstractSpecies
 using ...Evaluators: Evaluation, Evaluator, create_evaluation
 using ...SpeciesCreators: SpeciesCreator, create_species
@@ -53,8 +53,8 @@ Base.@kwdef struct BasicEcosystemCreator{
     state_creator::C
     reporters::Vector{R}
     archiver::A
-    individual_id_counter::Counter = Counter()
-    gene_id_counter::Counter = Counter()
+    individual_id_counter::Counter = BasicCounter(0)
+    gene_id_counter::Counter = BasicCounter(0)
     runtime_reporter::RuntimeReporter = RuntimeReporter()
     garbage_collection_interval::Int = 50
 end
