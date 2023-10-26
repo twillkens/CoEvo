@@ -130,7 +130,6 @@ function nsga_sort!(
     sorted_indivs
 end
 
-
 function nsga_tournament(
     random_number_generator::AbstractRNG, parents::Array{<:NSGAIIRecord}, tourn_size::Int64
 ) 

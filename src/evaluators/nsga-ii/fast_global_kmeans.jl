@@ -1,27 +1,11 @@
 export get_derived_tests, get_fast_global_clustering_result
+export KMeansClusteringResult, KDNode, FastGlobal
+export compute_bic, compute_b_values, compute_b_value
+export squared_euclidean_distance, euclidean_distance
+export is_power2, build_tree!, generate_power2_keys, generate_non_power2_keys
+export get_kmeans_clustering_result
 
-#using LinearAlgebra
-
-
-## Calculating Euclidean VDistance
-#function eucli_dist(sample, center)
-#    return sqrt(sum((sample .- center).^2))
-#end
-#
-## Calculating Squared Euclidean Distance
-#function sq_eucli_dist(sample, center)
-#    return sum((sample .- center).^2)
-#end
-
-#@inline function eucli_dist(sample::Vector{T}, center::Vector{T}) where T
-#    return sqrt(dot(sample .- center, sample .- center))
-#end
-#
-#@inline function sq_eucli_dist(sample::Vector{T}, center::Vector{T}) where T
-#    return dot(sample .- center, sample .- center)
-#end
-
-@inline function eucli_dist(sample::Vector{T}, center::Vector{T}) where T
+@inline function euclidean_distance(sample::Vector{T}, center::Vector{T}) where T
     @assert length(sample) == length(center)
     s = zero(T)
     @simd for i in eachindex(sample)
@@ -31,7 +15,7 @@ export get_derived_tests, get_fast_global_clustering_result
     return sqrt(s)
 end
 
-@inline function sq_eucli_dist(sample::Vector{T}, center::Vector{T}) where T
+@inline function squared_euclidean_distance(sample::Vector{T}, center::Vector{T}) where T
     @assert length(sample) == length(center)
     s = zero(T)
     @simd for i in eachindex(sample)
@@ -56,6 +40,7 @@ function compute_bic(log_likelihood::Float64, k::Int, n::Int)
 end
 
 
+
 function get_kmeans_clustering_result(
     random_number_generator::AbstractRNG,
     samples::Vector{Vector{Float64}}, 
@@ -64,6 +49,18 @@ function get_kmeans_clustering_result(
     centroids::Vector{Vector{Float64}},
     maximum_iterations::Int = 500
 )
+    if cluster_count > length(samples)
+        throw(ArgumentError("cluster_count cannot be greater than the number of samples"))
+    end
+    if cluster_count < 1
+        throw(ArgumentError("cluster_count cannot be less than 1"))
+    end
+    if tolerance < 0.0
+        throw(ArgumentError("tolerance cannot be less than 0.0"))
+    end
+    if length(samples) < 1
+        throw(ArgumentError("samples cannot be empty"))
+    end
     previous_error = 0.0
     current_error = 0.0
     partition = [Vector{Vector{Float64}}() for _ in 1:cluster_count]
@@ -77,11 +74,11 @@ function get_kmeans_clustering_result(
 
         # Assign each sample to the closest centroid
         for (sample_index, sample) in enumerate(samples)
-            min_distance = eucli_dist(sample, centroids[1])
+            min_distance = euclidean_distance(sample, centroids[1])
             assigned_cluster = 1
 
             for i in 2:cluster_count
-                distance = eucli_dist(sample, centroids[i])
+                distance = euclidean_distance(sample, centroids[i])
                 if distance < min_distance
                     min_distance = distance
                     assigned_cluster = i
@@ -92,7 +89,6 @@ function get_kmeans_clustering_result(
             push!(partition[assigned_cluster], sample)
         end
 
-
         for (idx, cluster_samples) in enumerate(partition)
             if isempty(cluster_samples)
                 centroids[idx] = rand(random_number_generator, samples)
@@ -101,14 +97,12 @@ function get_kmeans_clustering_result(
             end
         end
 
-
         current_error = 0.0
         for idx in 1:cluster_count
             for sample in partition[idx]
-                current_error += sq_eucli_dist(sample, centroids[idx])
+                current_error += squared_euclidean_distance(sample, centroids[idx])
             end
         end
-
 
         # Check for convergence
         if abs(current_error - previous_error) < tolerance
@@ -128,7 +122,6 @@ function get_kmeans_clustering_result(
 
     return result
 end
-
 
 struct KDNode
     bucket::Vector{Vector{Float64}}
@@ -221,8 +214,8 @@ function compute_b_value(
     benefit_value = 0.0
     for (idx, cluster) in enumerate(current_clusters)
         for sample in cluster
-            dist_to_current_centroid = sq_eucli_dist(sample, current_centroids[idx])
-            dist_to_potential_centroid = sq_eucli_dist(sample, potential_centroid)
+            dist_to_current_centroid = squared_euclidean_distance(sample, current_centroids[idx])
+            dist_to_potential_centroid = squared_euclidean_distance(sample, potential_centroid)
             benefit_contribution = max(dist_to_current_centroid - dist_to_potential_centroid, 0.0)
             benefit_value += benefit_contribution
         end
@@ -255,7 +248,9 @@ function get_fast_global_clustering_result(
     max_clusters = max_clusters == -1 ? length(samples) : max_clusters
     fg = FastGlobal(max_clusters, length(samples[1]))
     initial_centroids = [rand(random_number_generator, samples)]
-    current_result = get_kmeans_clustering_result(random_number_generator, samples, 1, tolerance, initial_centroids)
+    current_result = get_kmeans_clustering_result(
+        random_number_generator, samples, 1, tolerance, initial_centroids
+    )
 
     build_tree!(fg, samples)
 
@@ -299,74 +294,9 @@ function get_derived_tests(
     test_columns = [collect(row) for row in eachrow(hcat(test_vectors...))]
     result = get_fast_global_clustering_result(random_number_generator, test_columns, max_clusters)
     derived_test_matrix = hcat(result.centroids...)
-    derived_tests = SortedDict(
+    derived_tests = SortedDict{Int, Vector{Float64}}(
         id => collect(derived_test)
         for (id, derived_test) in zip(keys(indiv_tests), eachrow(derived_test_matrix))
     )
     return derived_tests
 end
-
-
-#function get_kmeans_clustering_result(
-#    random_number_generator::AbstractRNG,
-#    samples::Vector{Vector{Float64}}, 
-#    cluster_count::Int, 
-#    tolerance::Float64, 
-#    centroids::Vector{Vector{Float64}},
-#    maximum_iterations::Int = 500
-#)
-#    # Initializing the sum of squared error
-#    previous_error = 0.0
-#    current_error = 0.0
-#    partition = [Vector{Vector{Float64}}() for _ in 1:cluster_count]
-#    cluster_indices = [Vector{Int}() for _ in 1:cluster_count]
-#    current_iteration = 1
-#
-#    while current_iteration <= maximum_iterations
-#        # Create an empty partition for each centroid
-#        partition = [Vector{Vector{Float64}}() for _ in 1:cluster_count]
-#        cluster_indices = [Vector{Int}() for _ in 1:cluster_count]
-#
-#        # Assign each sample to the closest centroid
-#        for (sample_index, sample) in enumerate(samples)
-#            distances = [eucli_dist(sample, centroid) for centroid in centroids]
-#            assigned_cluster = argmin(distances)
-#            push!(cluster_indices[assigned_cluster], sample_index)
-#            push!(partition[assigned_cluster], sample)
-#        end
-#
-#        # Recompute the centroids of the clusters
-#        for (idx, cluster_samples) in enumerate(partition)
-#            if isempty(cluster_samples)
-#                cluster_samples = [rand(random_number_generator, samples)]  # handle empty clusters
-#            end
-#            initial_centroid = mean(cluster_samples)
-#            centroids[idx] = initial_centroid
-#        end
-#
-#        # Compute the current clustering error
-#        current_error = sum(
-#            sq_eucli_dist(sample, centroids[idx]) 
-#            for idx in 1:cluster_count 
-#            for sample in partition[idx]
-#        )
-#
-#        # Check if the change in error is below the tolerance to determine convergence
-#        if abs(current_error - previous_error) < tolerance
-#            break
-#        end
-#
-#        # Update the error for the next iteration
-#        previous_error = current_error
-#        current_iteration += 1
-#    end
-#
-#    error = round(current_error, sigdigits=4)
-#
-#    log_likelihood = -0.5 * error
-#    bic = compute_bic(log_likelihood, cluster_count, length(samples))
-#
-#    result = KMeansClusteringResult(error, centroids, cluster_indices, partition, bic)
-#
-#    return result
-#end

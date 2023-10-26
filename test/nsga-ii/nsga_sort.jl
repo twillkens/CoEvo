@@ -1,8 +1,6 @@
 using Test
 
-@testset "NSGA-II" begin
-
-println("Starting tests for NSGA-II and Disco...")
+@testset "NSGA-II: Sort" begin
 
 using CoEvo
 
@@ -10,11 +8,9 @@ using Random
 using StableRNGs: StableRNG
 using DataStructures: SortedDict
 using .Criteria: Maximize, Minimize
-using .Evaluators.NSGAII: NSGAIIRecord, nsga_sort!, dominates
+using .Evaluators.NSGAII: NSGAIIRecord, nsga_sort!, dominates, get_derived_tests
 using .Evaluators.NSGAII: fast_non_dominated_sort!, crowding_distance_assignment!
 
-@testset "Disco" begin
-    
 @testset "fast_non_dominated_sort!" begin
     tests1 = NSGAIIRecord(id = 1, tests = [1.0, 1.0, 1.0, 1.0])
     tests2 = NSGAIIRecord(id = 2, tests = [1.0, 1.0, 1.0, 0.0])
@@ -30,7 +26,6 @@ using .Evaluators.NSGAII: fast_non_dominated_sort!, crowding_distance_assignment
     @test records[3].id == 3
     @test records[4].id == 4
 end
-
 
 @testset "nsga!-1" begin
     # source: https://www.ntnu.no/wiki/download/attachments/195538363/lecture%205.pdf?version=1&modificationDate=1598695184000&api=v2
@@ -152,65 +147,6 @@ end
 
     @test pop[12].rank == 3
     @test findfirst(x -> x == pop[12], sortedpop) in front3
-
 end
 
-end
-println("Finished tests for NSGA-II and Disco.")
-
-
-outcomes_1 = Dict(
-    4 => 1.0,
-    5 => 0.0,
-    6 => 0.0
-)
-
-outcomes_2 = Dict(
-    4 => 0.8,
-    5 => 0.0,
-    6 => 0.0
-)
-
-outcomes_3 = Dict(
-    4 => 0.0,
-    5 => 0.0,
-    6 => 1.0
-)
-
-outcomes_4 = Dict(
-    4 => 0.7,
-    5 => 0.0,
-    6 => 0.9
-)
-
-outcomes_5 = Dict(
-    4 => 0.0,
-    5 => 1.0,
-    6 => 0.0
-)
-
-outcomes_6 = Dict(
-    4 => 0.0,
-    5 => 1.0,
-    6 => 0.0
-)
-outcomes = Dict(
-    1 => outcomes_1,
-    2 => outcomes_2,
-    3 => outcomes_3,
-    #4 => outcomes_4,
-    #5 => outcomes_5,
-    #6 => outcomes_6
-)
-
-ids = [1, 2, 3]
-#ids = [1, 2, 3, 4, 5, 6]
-individual_tests = SortedDict{Int, Vector{Float64}}(
-    id => [pair.second for pair in sort(collect(outcomes[id]), by = x -> x[1])]
-    for id in keys(ids)
-)
-
-# println(individual_tests)
-# tests = get_derived_tests(individual_tests, UInt32(32))
-# println(tests)
 end
