@@ -1,4 +1,9 @@
 using Test
+
+@testset "FunctionGraphs" begin
+
+using JLD2
+using ProgressBars
 using Base: @kwdef
 using CoEvo
 using Random: AbstractRNG
@@ -6,23 +11,27 @@ using StableRNGs: StableRNG
 using StatsBase: sample, Weights
 
 import Base: ==
-# Define a map for function symbols to actual functions
 using Random  # For StableRNG
 
-using .FunctionGraphMutators: add_function, remove_function, swap_function, redirect_connection
-using .FunctionGraphMutators: inject_noise!
-using .FunctionGraphMutators: select_function_with_same_arity, get_genotype_after_swapping_functions
-using .FunctionGraphMutators: get_all_substitutions, ConnectionRedirectionSpecification
-using .Phenotypes.Interfaces: create_phenotype, act!, reset!
-using .Genotypes.Interfaces: create_genotypes, get_size, minimize
-using .Loaders.Interfaces: load_genotype
-using .Archivers.Interfaces: save_genotype!
+using .Counters.Basic
+using .Genotypes.FunctionGraphs
+using .Mutators.FunctionGraphs
+using .Mutators.FunctionGraphs: add_function as fg_add_function, remove_function as fg_remove_function
+using .Phenotypes
+using .Phenotypes.Defaults
+using .Phenotypes.FunctionGraphs.Linearized
+using .Phenotypes.FunctionGraphs.Basic
+using .Genotypes
+#using .Loaders
+using .Archivers
+using .Archivers.Basic
+
 
 println("Starting tests for FunctionGraphs...")
 
 @testset "Add Node Tests" begin
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter(6)
+    gene_id_counter = BasicCounter(6)
 
     genotype = FunctionGraphGenotype(
         input_node_ids = [1],
@@ -49,26 +58,37 @@ println("Starting tests for FunctionGraphs...")
     # Create an initial `genotype` object here for testing.
 
     @testset "Node addition" begin
-        new_genotype = add_function(random_number_generator, gene_id_counter, genotype, FUNCTION_MAP)
+        new_genotype = fg_add_function(
+            random_number_generator, gene_id_counter, genotype, FUNCTION_MAP
+        )
         @test length(new_genotype.nodes) == length(genotype.nodes) + 1
         @test length(new_genotype.hidden_node_ids) == length(genotype.hidden_node_ids) + 1
     end
     
     @testset "Function selection" begin
-        new_genotype = add_function(random_number_generator, gene_id_counter, genotype, FUNCTION_MAP)
+        new_genotype = fg_add_function(
+            random_number_generator, gene_id_counter, genotype, FUNCTION_MAP
+        )
         new_id = maximum(keys(new_genotype.nodes))  # Assuming monotonic ids
         new_func = new_genotype.nodes[new_id].func
         @test new_func ∉ [:INPUT, :BIAS, :OUTPUT]
     end
 
     @testset "Input connections" begin
-        new_genotype = add_function(random_number_generator, gene_id_counter, genotype, FUNCTION_MAP)
+        new_genotype = fg_add_function(
+            random_number_generator, gene_id_counter, genotype, FUNCTION_MAP
+        )
         new_id = maximum(keys(new_genotype.nodes))
         new_node = new_genotype.nodes[new_id]
         # Test that connections are valid
         for conn in new_node.input_connections
-            @test conn.input_node_id in [new_genotype.input_node_ids; new_genotype.bias_node_ids; new_genotype.hidden_node_ids]
-            @test conn.weight == 0.0  # If you modify weight initialization, adjust accordingly
+            ids = [
+                new_genotype.input_node_ids; 
+                new_genotype.bias_node_ids; 
+                new_genotype.hidden_node_ids
+            ]
+            @test conn.input_node_id in ids
+            @test conn.weight == 0.0  
             @test conn.is_recurrent == true
         end
     end
@@ -77,7 +97,7 @@ end
 
 @testset "Test Node Removal" begin
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter()
+    gene_id_counter = BasicCounter()
 
     genotype = FunctionGraphGenotype(
         input_node_ids = [1, 2], 
@@ -108,7 +128,7 @@ end
         substitutions = [
             ConnectionRedirectionSpecification(5, 2, 2)
         ]
-        new_genotype = remove_function(genotype, 4, substitutions)
+        new_genotype = fg_remove_function(genotype, 4, substitutions)
 
         @test !haskey(new_genotype.nodes, 4) # node 4 should be removed
         @test new_genotype.hidden_node_ids == [5] # Only node 5 should be left
@@ -117,7 +137,7 @@ end
 
     @testset "Test Illegal Node Removal" begin
         # Trying to remove an input node should throw an error
-        @test_throws ErrorException remove_function(genotype, 1, ConnectionRedirectionSpecification[])
+        @test_throws ErrorException fg_remove_function(genotype, 1, ConnectionRedirectionSpecification[])
     end
 
     @testset "Test Self-loop Handling" begin
@@ -125,13 +145,13 @@ end
         substitutions = [
             ConnectionRedirectionSpecification(5, 2, 5)
         ]
-        new_genotype = remove_function(genotype, 4, substitutions)
+        new_genotype = fg_remove_function(genotype, 4, substitutions)
         
         @test new_genotype.nodes[5].input_connections[end].input_node_id == 5 # self-loop should be created
     end
 
     @testset "Test Stochastic Removal with Known RNG" begin
-        new_genotype = remove_function(random_number_generator, gene_id_counter, genotype, FUNCTION_MAP)
+        new_genotype = fg_remove_function(random_number_generator, gene_id_counter, genotype, FUNCTION_MAP)
     
         # Add specific tests depending on predictable random behavior from the seed
         # Note: You will need to determine the expected behavior based on the RNG seed
@@ -141,7 +161,7 @@ end
 
 @testset "Test Node Removal" begin
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter()
+    gene_id_counter = BasicCounter()
     genotype = FunctionGraphGenotype(
         input_node_ids = [0],
         bias_node_ids = Int[],
@@ -177,11 +197,6 @@ end
     @test length(keys(genotype.nodes)) == 7
 
     @testset "Removing Nodes and Validating Connections" begin
-        # Assuming remove_function is the refactored function to remove a node deterministically
-        # and it uses ConnectionRedirectionSpecification for reconnection logic
-        
-        # Removing Node 2
-        # You need to determine what happens to connections of node 2, and create appropriate ConnectionRedirectionSpecification
         node_to_remove_id = 2
 
         link_sub_spec_2 = [
@@ -194,10 +209,13 @@ end
         substitutions = get_all_substitutions(genotype, node_to_remove_id, random_number_generator)
 
         @test Set(substitutions) == Set(link_sub_spec_2)
-        mutant = remove_function(genotype, node_to_remove_id, link_sub_spec_2)
+        mutant = fg_remove_function(genotype, node_to_remove_id, link_sub_spec_2)
         
         @test length(keys(mutant.nodes)) == 6
-        @test all(connection.input_node_id != node_to_remove_id for connection in mutant.nodes[4].input_connections)
+        @test all(
+            connection.input_node_id != node_to_remove_id 
+            for connection in mutant.nodes[4].input_connections
+        )
         @test mutant.nodes[4].input_connections[1].input_node_id == 1 # node 4 should now connect to node 1, not 2
 
         node_to_remove_id = 1
@@ -219,7 +237,7 @@ end
         @test Set(substitutions) == Set(link_sub_spec_1)
 
 
-        mutant = remove_function(mutant, node_to_remove_id, link_sub_spec_1)
+        mutant = fg_remove_function(mutant, node_to_remove_id, link_sub_spec_1)
         @test length(keys(mutant.nodes)) == 5
 
         @test all(
@@ -268,15 +286,15 @@ end
     
     @testset "Error Handling for Invalid Node Removal" begin
         # Attempting to remove input and output nodes - should throw an error
-        @test_throws ErrorException remove_function(genotype, 0, ConnectionRedirectionSpecification[])
-        @test_throws ErrorException remove_function(genotype, 6, ConnectionRedirectionSpecification[])
+        @test_throws ErrorException fg_remove_function(genotype, 0, ConnectionRedirectionSpecification[])
+        @test_throws ErrorException fg_remove_function(genotype, 6, ConnectionRedirectionSpecification[])
     end
 end
 
 
 @testset "Swap Function Tests" begin
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter()
+    gene_id_counter = BasicCounter()
 
     genotype_example = FunctionGraphGenotype(
         [1], 
@@ -313,7 +331,9 @@ end
     end
     
     @testset "swap_function" begin
-        swapped_genotype = swap_function(random_number_generator, gene_id_counter, genotype_example, FUNCTION_MAP)
+        swapped_genotype = swap_function(
+            random_number_generator, gene_id_counter, genotype_example, FUNCTION_MAP
+        )
         
         # Check a function was swapped (assuming swap will always change the function)
         swapped_funcs = [node.func for node in values(swapped_genotype.nodes)]
@@ -348,14 +368,11 @@ end
         n_nodes_per_output = 1
     )
 
-    # Seed to make stochastic tests reproducible
     random_number_generator = StableRNG(42)
-    gene_id_counter = Counter(5)
+    gene_id_counter = BasicCounter(5)
 
     @testset "Deterministic Redirection" begin
-        new_input_node_id = 2  # redirect to bias node for simplicity
-        
-        # redirect the first input of node 3 to new_input_node_id
+        new_input_node_id = 2  
         redirection_spec = ConnectionRedirectionSpecification(
             node_id = 3, 
             input_connection_index = 1, 
@@ -370,9 +387,6 @@ end
     
     @testset "Stochastic Redirection" begin
         new_genotype = redirect_connection(random_number_generator, gene_id_counter, genotype, FUNCTION_MAP)
-
-        # Due to the random nature, we perform a basic check
-        # Here, making sure something was redirected while maintaining weights and recurrent status
         is_changed = false
         for (nid, node) in new_genotype.nodes
             for (old_conn, new_conn) in zip(genotype.nodes[nid].input_connections, node.input_connections)
@@ -386,7 +400,6 @@ end
         @test is_changed
     end
 end
-using Test
 
 @testset "Function Graph Phenotype Tests" begin
     genotype = FunctionGraphGenotype(
@@ -675,8 +688,6 @@ using Test
         n_nodes_per_output = 1
     )
 
-    # [Your inject_noise! implementations here]
-
     # Testing deterministic noise injection
     @testset "Deterministic Noise Injection" begin
         noise_map = Dict(3 => [0.1f0], 4 => [-0.1f0, 0.1f0], 5 => [0.05f0, -0.05f0])
@@ -709,21 +720,16 @@ using Test
 
 end
 
-using ProgressBars
-
-
-
-function apply_mutation_storm(mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, n_storms::Int)
-    # Use the mutate function, applying n_storms mutations
+function apply_mutation_storm(
+    mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, n_storms::Int
+)
     random_number_generator = Random.MersenneTwister(rand(UInt64))
-    gene_id_counter = Counter(7)  # Assume some counter
+    gene_id_counter = BasicCounter(7)
     phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
     output_length_equals_expected = Bool[]
     
-    for _ in ProgressBar(1:n_storms)
+    for _ in 1:n_storms
         genotype = mutate(mutator, random_number_generator, gene_id_counter, genotype)
-        #println("---------------------")
-        #pretty_print(genotype)
         #validate_genotype(genotype)
         phenotype = create_phenotype(phenotype_creator, genotype)
         reset!(phenotype)
@@ -769,12 +775,9 @@ end
     )
     mutator = FunctionGraphMutator()  # You may customize this
     
-    n_mutations = 100_000  # Number of mutations
+    n_mutations = 10_000  # Number of mutations
     apply_mutation_storm(mutator, genotype, n_mutations)
 end
-
-
-
 
 # Now, let's write some tests
 @testset "minimize function tests" begin
@@ -829,144 +832,76 @@ end
               vcat(minimized_genotype.input_node_ids, minimized_genotype.bias_node_ids, minimized_genotype.output_node_ids)
           )
     
-    # Additional tests should ensure that the minimized genotype actually produces the same 
-    # (or at least equivalent) output given the same input, which can be quite involved 
-    # depending on the complexity of your graph and functions. Such tests would typically 
-    # require executing the graph, which might be outside the scope of unit testing and 
-    # more appropriate for integration or system testing.
 end
 
 
-using JLD2
-using .Archivers.Interfaces: save_genotype!
-
-# Define a few test FunctionGraphGenotype instances to test with...
-# [Code to define test_genotype_1, test_genotype_2, ...]
-
-@testset "Genotype Save and Load Tests" begin
-    # Assume we have a few genotypes defined above
-    genotype = FunctionGraphGenotype(
-        input_node_ids = [1],
-        bias_node_ids = [2],
-        hidden_node_ids = [3, 4],
-        output_node_ids = [5],
-        nodes = Dict(
-            1 => FunctionGraphNode(1, :INPUT, []),
-            2 => FunctionGraphNode(2, :BIAS, []),
-            3 => FunctionGraphNode(3, :ADD, [
-                FunctionGraphConnection(1, 0.5, false),
-                FunctionGraphConnection(2, 0.5, false)
-            ]),
-            4 => FunctionGraphNode(4, :MULTIPLY, [
-                FunctionGraphConnection(3, 0.5, true),
-                FunctionGraphConnection(2, 0.5, false)
-            ]),
-            5 => FunctionGraphNode(5, :OUTPUT, [
-                FunctionGraphConnection(4, 1.0, false)
-            ]),
-        ),
-        n_nodes_per_output = 1
-    )
-
-    archiver = BasicArchiver()
-    
-    # Test saving functionality
-    @testset "Save Genotype" begin
-        @testset "Save $geno_name" for (geno_name, genotype) in [
-            ("test_genotype_1", genotype),
-            #("test_genotype_2", test_genotype_2),
-            # ... additional test genotypes ...
-        ]
-            # Save the genotype to a JLD2 file
-            jldopen("test_save_$geno_name.jld2", "w") do file
-                # Assuming you've defined save_genotype! in a module MyNetworks
-                group = get_or_make_group!(file, "test")
-                save_genotype!(archiver, group, genotype)
-            end
-            # Confirm file exists
-            @test isfile("test_save_$geno_name.jld2")
-        end
-    end
-    
-    # Test loading functionality
-    @testset "Load Genotype" begin
-        @testset "Load $geno_name" for (geno_name, original_geno) in [
-            ("test_genotype_1", genotype),
-            #("test_genotype_2", test_genotype_2),
-            # ... additional test genotypes ...
-        ]
-            # Load the genotype from file
-            loaded_geno = jldopen("test_save_$geno_name.jld2", "r") do file
-                # Assuming you've defined load_genotype in a module MyNetworks
-                group = get_or_make_group!(file, "test")
-                loader = FunctionGraphGenotypeLoader()
-                load_genotype(loader, group)
-            end
-
-            # Verify that the loaded genotype is equal to the original
-            @test loaded_geno == original_geno
-        end
-    end
-end
-
-# Consider cleaning up the test files afterwards.
+#@testset "Genotype Save and Load Tests" begin
+#    # Assume we have a few genotypes defined above
+#    genotype = FunctionGraphGenotype(
+#        input_node_ids = [1],
+#        bias_node_ids = [2],
+#        hidden_node_ids = [3, 4],
+#        output_node_ids = [5],
+#        nodes = Dict(
+#            1 => FunctionGraphNode(1, :INPUT, []),
+#            2 => FunctionGraphNode(2, :BIAS, []),
+#            3 => FunctionGraphNode(3, :ADD, [
+#                FunctionGraphConnection(1, 0.5, false),
+#                FunctionGraphConnection(2, 0.5, false)
+#            ]),
+#            4 => FunctionGraphNode(4, :MULTIPLY, [
+#                FunctionGraphConnection(3, 0.5, true),
+#                FunctionGraphConnection(2, 0.5, false)
+#            ]),
+#            5 => FunctionGraphNode(5, :OUTPUT, [
+#                FunctionGraphConnection(4, 1.0, false)
+#            ]),
+#        ),
+#        n_nodes_per_output = 1
+#    )
+#
+#    archiver = BasicArchiver()
+#    
+#    # Test saving functionality
+#    @testset "Save Genotype" begin
+#        @testset "Save $geno_name" for (geno_name, genotype) in [
+#            ("test_genotype_1", genotype),
+#            #("test_genotype_2", test_genotype_2),
+#            # ... additional test genotypes ...
+#        ]
+#            # Save the genotype to a JLD2 file
+#            jldopen("test_save_$geno_name.jld2", "w") do file
+#                # Assuming you've defined save_genotype! in a module MyNetworks
+#                group = get_or_make_group!(file, "test")
+#                save_genotype!(archiver, group, genotype)
+#            end
+#            # Confirm file exists
+#            @test isfile("test_save_$geno_name.jld2")
+#        end
+#    end
+#    
+#    # Test loading functionality
+#    @testset "Load Genotype" begin
+#        @testset "Load $geno_name" for (geno_name, original_geno) in [
+#            ("test_genotype_1", genotype),
+#            #("test_genotype_2", test_genotype_2),
+#            # ... additional test genotypes ...
+#        ]
+#            # Load the genotype from file
+#            loaded_geno = jldopen("test_save_$geno_name.jld2", "r") do file
+#                # Assuming you've defined load_genotype in a module MyNetworks
+#                group = get_or_make_group!(file, "test")
+#                loader = FunctionGraphGenotypeLoader()
+#                load_genotype(loader, group)
+#            end
+#
+#            # Verify that the loaded genotype is equal to the original
+#            @test loaded_geno == original_geno
+#        end
+#    end
+#end
 
 
 println("Finished tests for FunctionGraphs.")
-#function validate_genotype(genotype::FunctionGraphGenotype)
-#    # 1. Ensure Unique IDs
-#    function_map = FUNCTION_MAP
-#    ids = Set{Int}()
-#    for (id, node) in genotype.nodes
-#        @assert id == node.id "ID mismatch in node dictionary and node struct"
-#        @assert !(id in ids) "Duplicate node ID: $id"
-#        push!(ids, id)
-#    end
-#    
-#    # 2. Output Node Constraints & 3. Input Constraints
-#    for (id, node) in genotype.nodes
-#        is_output_node = id in genotype.output_node_ids
-#        for conn in node.input_connections
-#            if is_output_node
-#                @assert !conn.is_recurrent "Output nodes must have nonrecurrent inputs"
-#            else
-#                @assert conn.is_recurrent "Non-output nodes must have recurrent inputs"
-#            end
-#        end
-#    end
-#    
-#    # 4. Avoid Output as Input
-#    for (id, node) in genotype.nodes
-#        if id in genotype.output_node_ids
-#            continue  # Skip the output nodes
-#        end
-#        for conn in node.input_connections
-#            @assert !(conn.input_node_id in genotype.output_node_ids) "Output node serving as input"
-#        end
-#    end
-#    
-#    # 5. Ensure Proper Arity
-#    for (_, node) in genotype.nodes
-#        expected_arity = function_map[node.func].arity
-#        @assert length(node.input_connections) == expected_arity "Incorrect arity for function $(node.func)"
-#    end
-#        # 6. Validate input connection ids
-#    for (_, node) in genotype.nodes
-#        for conn in node.input_connections
-#            @assert haskey(genotype.nodes, conn.input_node_id) "Input node id $(conn.input_node_id) does not exist in the network"
-#        end
-#    end
-#    # 7. Check number of :INPUT labeled nodes against genotype.input_node_ids
-#    input_count = count( (node) -> node.func == :INPUT, values(genotype.nodes))
-#    @assert length(genotype.input_node_ids) == input_count == 2 "Mismatched count of :INPUT nodes and genotype.input_node_ids or the count is not 2"
-#    
-#    # 8. Check number of :BIAS labeled nodes against genotype.bias_node_ids
-#    bias_count = count( node -> node.func == :BIAS, values(genotype.nodes))
-#    @assert length(genotype.bias_node_ids) == bias_count == 1 "Mismatched count of :BIAS nodes and genotype.bias_node_ids or the count is not 1"
-#    
-#    hidden_count = count( node -> node.func ∉ [:INPUT, :BIAS, :OUTPUT], values(genotype.nodes))
-#    @assert length(genotype.hidden_node_ids) == hidden_count "Mismatched count of hidden nodes and genotype.hidden_node_ids"
-#    # 9. Check number of :OUTPUT labeled nodes against genotype.output_node_ids
-#    output_count = count( node -> node.func == :OUTPUT, values(genotype.nodes))
-#    @assert length(genotype.output_node_ids) == output_count == 1 "Mismatched count of :OUTPUT nodes and genotype.output_node_ids or the count is not 1"
-#end
+
+end

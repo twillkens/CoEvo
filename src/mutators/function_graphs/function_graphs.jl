@@ -2,6 +2,9 @@ module FunctionGraphs
 
 export FunctionGraphMutator, add_function, remove_function, swap_function
 export redirect_connection, identity, inject_noise!, ConnectionRedirectionSpecification
+export get_all_substitutions, get_substitutions_for_node, get_genotype_after_swapping_functions
+export select_function_with_same_arity, create_input_connections, select_function
+export mutate
 
 import Base: identity
 import ..Mutators: mutate

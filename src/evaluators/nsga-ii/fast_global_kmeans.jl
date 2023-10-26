@@ -39,16 +39,10 @@ function compute_bic(log_likelihood::Float64, k::Int, n::Int)
     return -2 * log_likelihood + k * log(n)
 end
 
-
-
-function get_kmeans_clustering_result(
-    random_number_generator::AbstractRNG,
-    samples::Vector{Vector{Float64}}, 
-    cluster_count::Int, 
-    tolerance::Float64, 
-    centroids::Vector{Vector{Float64}},
-    maximum_iterations::Int = 500
-)
+# Ensure the input parameters are valid
+function validate_parameters(
+    samples::Vector{Vector{Float64}}, cluster_count::Int, tolerance::Float64
+)::Nothing
     if cluster_count > length(samples)
         throw(ArgumentError("cluster_count cannot be greater than the number of samples"))
     end
@@ -58,69 +52,103 @@ function get_kmeans_clustering_result(
     if tolerance < 0.0
         throw(ArgumentError("tolerance cannot be less than 0.0"))
     end
-    if length(samples) < 1
+    if isempty(samples)
         throw(ArgumentError("samples cannot be empty"))
     end
+end
+
+# Reset the clusters
+function reset_clusters!(
+    partition::Vector{Vector{Vector{Float64}}}, cluster_indices::Vector{Vector{Int}}
+)::Nothing
+    foreach(empty!, partition)
+    foreach(empty!, cluster_indices)
+end
+
+# Assign samples to the closest centroid
+function assign_samples_to_clusters!(
+    samples::Vector{Vector{Float64}}, 
+    centroids::Vector{Vector{Float64}}, 
+    cluster_count::Int, 
+    cluster_indices::Vector{Vector{Int}}, 
+    partition::Vector{Vector{Vector{Float64}}}
+)::Nothing
+    for (sample_index, sample) in enumerate(samples)
+        min_distance = euclidean_distance(sample, centroids[1])
+        assigned_cluster = 1
+        for i in 2:cluster_count
+            distance = euclidean_distance(sample, centroids[i])
+            if distance < min_distance
+                min_distance = distance
+                assigned_cluster = i
+            end
+        end
+        push!(cluster_indices[assigned_cluster], sample_index)
+        push!(partition[assigned_cluster], sample)
+    end
+end
+
+# Update the centroids using the samples assigned to each cluster
+function update_centroids!(
+    partition::Vector{Vector{Vector{Float64}}}, 
+    centroids::Vector{Vector{Float64}}, 
+    random_number_generator::AbstractRNG, 
+    samples::Vector{Vector{Float64}}
+)::Nothing
+    for (idx, cluster_samples) in enumerate(partition)
+        if isempty(cluster_samples)
+            centroids[idx] = rand(random_number_generator, samples)
+        else
+            centroids[idx] = mean(cluster_samples)
+        end
+    end
+end
+
+# Compute the clustering error
+function compute_clustering_error(
+    partition::Vector{Vector{Vector{Float64}}}, 
+    centroids::Vector{Vector{Float64}}, 
+    cluster_count::Int
+)::Float64
+    error = 0.0
+    for idx in 1:cluster_count
+        for sample in partition[idx]
+            error += squared_euclidean_distance(sample, centroids[idx])
+        end
+    end
+    return error
+end
+
+function get_kmeans_clustering_result(
+    random_number_generator::AbstractRNG,
+    samples::Vector{Vector{Float64}}, 
+    cluster_count::Int, 
+    tolerance::Float64, 
+    centroids::Vector{Vector{Float64}},
+    maximum_iterations::Int = 500
+)::KMeansClusteringResult
+    validate_parameters(samples, cluster_count, tolerance)
     previous_error = 0.0
     current_error = 0.0
-    partition = [Vector{Vector{Float64}}() for _ in 1:cluster_count]
-    cluster_indices = [Vector{Int}() for _ in 1:cluster_count]
-    current_iteration = 1
+    partition = [Vector{Float64}[] for _ in 1:cluster_count]
+    cluster_indices = [Int[] for _ in 1:cluster_count]
 
-    while current_iteration <= maximum_iterations
-        # Reset partitions
-        foreach(empty!, partition)
-        foreach(empty!, cluster_indices)
-
-        # Assign each sample to the closest centroid
-        for (sample_index, sample) in enumerate(samples)
-            min_distance = euclidean_distance(sample, centroids[1])
-            assigned_cluster = 1
-
-            for i in 2:cluster_count
-                distance = euclidean_distance(sample, centroids[i])
-                if distance < min_distance
-                    min_distance = distance
-                    assigned_cluster = i
-                end
-            end
-
-            push!(cluster_indices[assigned_cluster], sample_index)
-            push!(partition[assigned_cluster], sample)
-        end
-
-        for (idx, cluster_samples) in enumerate(partition)
-            if isempty(cluster_samples)
-                centroids[idx] = rand(random_number_generator, samples)
-            else
-                centroids[idx] = mean(cluster_samples)
-            end
-        end
-
-        current_error = 0.0
-        for idx in 1:cluster_count
-            for sample in partition[idx]
-                current_error += squared_euclidean_distance(sample, centroids[idx])
-            end
-        end
-
-        # Check for convergence
+    for _ in 1:maximum_iterations
+        reset_clusters!(partition, cluster_indices)
+        assign_samples_to_clusters!(samples, centroids, cluster_count, cluster_indices, partition)
+        update_centroids!(partition, centroids, random_number_generator, samples)
+        current_error = compute_clustering_error(partition, centroids, cluster_count)
         if abs(current_error - previous_error) < tolerance
             break
         end
-
         previous_error = current_error
-        current_iteration += 1
     end
 
     error = round(current_error, sigdigits=4)
-
     log_likelihood = -0.5 * error
     bic = compute_bic(log_likelihood, cluster_count, length(samples))
-
-    result = KMeansClusteringResult(error, centroids, cluster_indices, partition, bic)
-
-    return result
+    
+    return KMeansClusteringResult(error, centroids, cluster_indices, partition, bic)
 end
 
 struct KDNode
@@ -190,10 +218,15 @@ function generate_non_power2_keys(fg::FastGlobal)
     next_bucket_index = cur_bucket_index + 1
 
     # Generate the required keys
-    additional_bucket_keys = [string(next_bucket_index) * "." * string(i) for i in 1:additional_keys_needed]
+    additional_bucket_keys = [
+        string(next_bucket_index) * "." * string(i) for i in 1:additional_keys_needed
+    ]
 
     # Generate the final list of bucket keys
-    bucket_keys = [string(cur_bucket_index) * "." * string(i) for i in (num_bucket_index - additional_keys_needed + 1):num_bucket_index]
+    bucket_keys = [
+        string(cur_bucket_index) * "." * string(i) 
+        for i in (num_bucket_index - additional_keys_needed + 1):num_bucket_index
+    ]
     append!(bucket_keys, additional_bucket_keys)
 
     # Check if all keys exist in fg.partitions

@@ -10,7 +10,7 @@ using DataStructures: OrderedDict
 using .Genotypes.GeneticPrograms: get_node, GeneticProgramGenotype, ExpressionNode
 using .Genotypes.GeneticPrograms: protected_division, Terminal
 using .Genotypes.GeneticPrograms: FuncAlias, protected_sine, if_less_then_else
-using .Mutators.GeneticPrograms: add_function, remove_function, splice_function, swap_node
+using .Mutators.GeneticPrograms: add_function as gp_add_function, remove_function as gp_remove_function, splice_function, swap_node
 using .Mutators.GeneticPrograms: inject_noise
 using .Phenotypes: act!, create_phenotype
 using .Phenotypes.Defaults: DefaultPhenotypeCreator
@@ -60,7 +60,7 @@ end
     genotype = dummygeno()
 
     @testset "addfunc" begin
-        new_geno = add_function(genotype, 4, +, [5, 6], Terminal[2.5, :x])
+        new_geno = gp_add_function(genotype, 4, +, [5, 6], Terminal[2.5, :x])
         @test length(new_geno.functions) == 2
         @test get_node(new_geno, 4).val == +
         @test get_node(new_geno, 5).val == 2.5
@@ -68,7 +68,7 @@ end
     end
 
     @testset "rmfunc" begin
-        new_geno = remove_function(genotype, 1, 2)
+        new_geno = gp_remove_function(genotype, 1, 2)
         @test length(new_geno.functions) == 0
         @test length(new_geno.terminals) == 1
         @test !haskey(new_geno.functions, 1)
@@ -106,7 +106,7 @@ end
         newnode_child_gids = [12, 13]
         newnode_child_vals = [12.0, 13.0]
 
-        new_geno = add_function(
+        new_geno = gp_add_function(
             genotype, newnode_gid, newnode_val, newnode_child_gids, newnode_child_vals
         )
 
