@@ -1,39 +1,38 @@
 export FunctionGraphGenotype, FunctionGraphGenotypeCreator
-export FunctionGraphConnection, FunctionGraphNode, pretty_print
+export FunctionGraphConnection, FunctionGraphNode
+export create_genotypes, create_ids_and_nodes, create_output_ids_and_nodes
 
+"""
+    FunctionGraphConnection
+
+Represents a connection in a function graph. It defines an input node via its ID, 
+a weight for the connection, and a flag indicating if the connection is recurrent.
+"""
 @kwdef mutable struct FunctionGraphConnection
     input_node_id::Int
     weight::Float64
     is_recurrent::Bool
 end
 
-function Base.:(==)(a::FunctionGraphConnection, b::FunctionGraphConnection)
-    return a.input_node_id == b.input_node_id && 
-           isapprox(a.weight, b.weight) && 
-           a.is_recurrent == b.is_recurrent
-end
+"""
+    FunctionGraphNode
 
-function Base.hash(a::FunctionGraphConnection, h::UInt)
-    return hash(a.input_node_id, hash(a.weight, hash(a.is_recurrent, h)))
-end
-
-
+Represents a node in a function graph. Each node has a unique ID, a function (represented 
+by a symbol), and a list of input connections (`FunctionGraphConnection`).
+"""
 @kwdef struct FunctionGraphNode
     id::Int
     func::Symbol
     input_connections::Vector{FunctionGraphConnection}
 end
 
-function Base.:(==)(a::FunctionGraphNode, b::FunctionGraphNode)
-    return a.id == b.id && 
-           a.func == b.func && 
-           a.input_connections == b.input_connections  # Note: relies on `==` for FunctionGraphConnection
-end
+"""
+    FunctionGraphGenotype
 
-function Base.hash(a::FunctionGraphNode, h::UInt)
-    return hash(a.id, hash(a.func, hash(a.input_connections, h)))  # Note: relies on `hash` for FunctionGraphConnection
-end
-
+Defines the genotype for a function graph. This genotype contains nodes segregated 
+into input, bias, hidden, and output categories. Additionally, a dictionary (`nodes`) 
+maps node IDs to their corresponding `FunctionGraphNode` structures.
+"""
 @kwdef struct FunctionGraphGenotype <: Genotype
     input_node_ids::Vector{Int}
     bias_node_ids::Vector{Int}
@@ -43,42 +42,12 @@ end
     n_nodes_per_output::Int
 end
 
-function Base.:(==)(a::FunctionGraphGenotype, b::FunctionGraphGenotype)
-    # Check each field for equality
-    return a.input_node_ids == b.input_node_ids && 
-           a.bias_node_ids == b.bias_node_ids &&
-           a.hidden_node_ids == b.hidden_node_ids &&
-           a.output_node_ids == b.output_node_ids &&
-           a.nodes == b.nodes  # Note: relies on `==` for FunctionGraphNode
-end
+"""
+    FunctionGraphGenotypeCreator
 
-
-function get_size(genotype::FunctionGraphGenotype)
-    return length(genotype.hidden_node_ids)
-end
-
-function pretty_print(genotype::FunctionGraphGenotype)
-    println("FunctionGraphGenotype:")
-    println("  Input Nodes: ", join(genotype.input_node_ids, ", "))
-    println("  Bias Nodes: ", join(genotype.bias_node_ids, ", "))
-    println("  Hidden Nodes: ", join(genotype.hidden_node_ids, ", "))
-    println("  Output Nodes: ", join(genotype.output_node_ids, ", "))
-
-    println("\nNodes:")
-    for (id, node) in genotype.nodes
-        println("  Node ID: ", id)
-        println("    Function: ", node.func)
-        println("    Connections:")
-        for conn in node.input_connections
-            println("      Connected to Node ID: ", conn.input_node_id)
-            println("        Weight: ", conn.weight)
-            println("        Recurrent: ", conn.is_recurrent ? "Yes" : "No")
-        end
-        println()  # Empty line for better readability between nodes
-    end
-end
-
-
+Structure to facilitate the creation of `FunctionGraphGenotype`. It specifies the 
+number of inputs, biases, outputs, and nodes associated with each output.
+"""
 @kwdef struct FunctionGraphGenotypeCreator <: GenotypeCreator
     n_inputs::Int
     n_bias::Int
@@ -87,6 +56,12 @@ end
 end
 
 
+"""
+    create_ids_and_nodes(gene_id_counter::Counter, function_symbol::Symbol, n_nodes::Int)
+
+Create a set of node IDs and their corresponding `FunctionGraphNode` instances, given 
+a function symbol and the desired number of nodes.
+"""
 function create_ids_and_nodes(
     gene_id_counter::Counter,
     function_symbol::Symbol,
@@ -103,6 +78,12 @@ function create_ids_and_nodes(
     return node_ids, nodes
 end
 
+"""
+    create_output_ids_and_nodes(genotype_creator, random_number_generator, gene_id_counter, input_node_ids)
+
+Given a genotype creator and some input node IDs, generates output node IDs 
+and their associated `FunctionGraphNode` instances.
+"""
 function create_output_ids_and_nodes(
     genotype_creator::FunctionGraphGenotypeCreator, 
     random_number_generator::AbstractRNG,
@@ -161,47 +142,4 @@ function create_genotypes(
     end
 
     return genotypes
-end
-
-function minimize(genotype::FunctionGraphGenotype)
-    # A Set to store IDs of essential nodes.
-    essential_nodes_ids = Set{Int}()
-    
-    # A function to recursively find essential nodes by traversing input connections.
-    function find_essential_nodes(node_id::Int)
-        # Avoid repeated work if the node is already identified as essential.
-        if node_id in essential_nodes_ids
-            return
-        end
-        
-        # Add the current node to essential nodes.
-        push!(essential_nodes_ids, node_id)
-        
-        # Recursively call for all input connections of the current node.
-        for conn in genotype.nodes[node_id].input_connections
-            find_essential_nodes(conn.input_node_id)
-        end
-    end
-    
-    # Initialize the search from each output node.
-    for output_node_id in genotype.output_node_ids
-        find_essential_nodes(output_node_id)
-    end
-    
-    # Ensuring input, bias, and output nodes are always essential.
-    union!(essential_nodes_ids, genotype.input_node_ids, genotype.bias_node_ids, genotype.output_node_ids)
-
-    # Construct the minimized genotype, keeping only essential nodes.
-    minimized_nodes = Dict(id => node for (id, node) in genotype.nodes if id in essential_nodes_ids)
-
-    # Return a new FunctionGraphGenotype with minimized nodes and unaltered input, bias, and output nodes.
-    minimized_genotype = FunctionGraphGenotype(
-        input_node_ids = genotype.input_node_ids, 
-        bias_node_ids = genotype.bias_node_ids, 
-        hidden_node_ids = filter(id -> id in essential_nodes_ids, genotype.hidden_node_ids), 
-        output_node_ids = genotype.output_node_ids, 
-        nodes = minimized_nodes,
-        n_nodes_per_output = genotype.n_nodes_per_output
-    )
-    return minimized_genotype
 end

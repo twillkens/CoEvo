@@ -57,11 +57,32 @@ function create_genotypes(
     return genotypes
 end
 
+"""
+    ScalarRangeGenotypeCreator
+
+A genotype creator that creates vector genotypes where each genotype has a scalar value from 
+a defined range.
+
+# Fields
+- `start_value`: The start value of the scalar range.
+- `stop_value`: The stop value of the scalar range.
+
+# Notes
+The `create_genotypes` function for this creator generates a list of genotypes, each having a scalar 
+value taken from a range defined by `start_value` and `stop_value`.
+"""
+
 Base.@kwdef struct ScalarRangeGenotypeCreator <: VectorGenotypeCreator
     start_value::Float64 = -2.0
     stop_value::Float64 = 2.0
 end
 
+"""
+    create_genotypes(genotype_creator::ScalarRangeGenotypeCreator, ...)
+
+Creates a list of vector genotypes, where each genotype has a scalar value from the range 
+defined by the `ScalarRangeGenotypeCreator`.
+"""
 function create_genotypes(
     genotype_creator::ScalarRangeGenotypeCreator,
     ::AbstractRNG,

@@ -1,19 +1,68 @@
 export get_neuron_positions, get_inputs, get_outputs, get_required_nodes
 
+"""
+    get_neuron_positions(genotype::GnarlNetworkGenotype)
+
+Return a sorted list of all neuron positions in the given genotype.
+
+# Arguments:
+- `genotype::GnarlNetworkGenotype`: The genotype for which neuron positions are sought.
+
+# Returns:
+- An array of Float32 values representing the sorted neuron positions.
+"""
 function get_neuron_positions(genotype::GnarlNetworkGenotype)
     fixed_positions = Float32.(-genotype.n_input_nodes:genotype.n_output_nodes)
     hidden_positions = Float32.([node.position for node in genotype.hidden_nodes])
     neuron_positions = sort([fixed_positions; hidden_positions])
     return neuron_positions
 end
+
+"""
+    get_inputs(genotype::GnarlNetworkGenotype)
+
+Retrieve the positions of input nodes for the given genotype.
+
+# Arguments:
+- `genotype::GnarlNetworkGenotype`: The genotype for which input node positions are sought.
+
+# Returns:
+- A set of Float32 values representing the positions of input nodes.
+"""
 function get_inputs(genotype::GnarlNetworkGenotype)
     Set(Float32(i) for i in -genotype.n_input_nodes:0)
 end
 
+"""
+    get_outputs(genotype::GnarlNetworkGenotype)
+
+Retrieve the positions of output nodes for the given genotype.
+
+# Arguments:
+- `genotype::GnarlNetworkGenotype`: The genotype for which output node positions are sought.
+
+# Returns:
+- A set of Float32 values representing the positions of output nodes.
+"""
 function get_outputs(genotype::GnarlNetworkGenotype)
     Set(Float32(i) for i in 1:genotype.n_output_nodes)
 end
 
+"""
+    get_required_nodes(input_nodes, hidden_nodes, output_nodes, connection_pairs, from_inputs)
+
+Get the set of required nodes based on connections, either moving forward from inputs or backward from outputs.
+
+# Arguments:
+- `input_nodes::Set{Float32}`: The set of input node positions.
+- `hidden_nodes::Set{Float32}`: The set of hidden node positions.
+- `output_nodes::Set{Float32}`: The set of output node positions.
+- `connection_pairs::Set{Tuple{Float32, Float32}}`: The set of tuples representing connections.
+- `from_inputs::Bool`: Direction to traverse. If true, the function moves forward from inputs; otherwise, it moves backward from outputs.
+
+# Returns:
+- A set of Float32 values representing the positions of required nodes.
+"""
 function get_required_nodes(
     input_nodes::Set{Float32},
     hidden_nodes::Set{Float32},
@@ -40,6 +89,20 @@ function get_required_nodes(
     Set(hidden_node for hidden_node in hidden_nodes if hidden_node in required_nodes)
 end
 
+"""
+    get_required_nodes(input_nodes, hidden_nodes, output_nodes, connection_pairs)
+
+Find the intersection of required nodes moving forward from inputs and backward from outputs.
+
+# Arguments:
+- `input_nodes::Set{Float32}`: The set of input node positions.
+- `hidden_nodes::Set{Float32}`: The set of hidden node positions.
+- `output_nodes::Set{Float32}`: The set of output node positions.
+- `connection_pairs::Set{Tuple{Float32, Float32}}`: The set of tuples representing connections.
+
+# Returns:
+- A set of Float32 values representing the positions of required nodes.
+"""
 function get_required_nodes(
     input_nodes::Set{Float32}, 
     hidden_nodes::Set{Float32}, 
@@ -55,7 +118,33 @@ function get_required_nodes(
     required_nodes = intersect(required_input_nodes, required_output_nodes)
     return required_nodes
 end
-# the minimize function is used to remove unnecessary hidden_nodes nodes 
+
+"""
+    get_size(genotype::GnarlNetworkGenotype)
+
+Determine the size of the given genotype based on its number of connections.
+
+# Arguments:
+- `genotype::GnarlNetworkGenotype`: The genotype for which the size is sought.
+
+# Returns:
+- An integer representing the number of connections in the genotype.
+"""
+function get_size(genotype::GnarlNetworkGenotype)
+    return length(genotype.connections)
+end
+
+"""
+    minimize(genotype::GnarlNetworkGenotype)
+
+Minimize the given genotype by retaining only necessary connections and nodes.
+
+# Arguments:
+- `genotype::GnarlNetworkGenotype`: The genotype to be minimized.
+
+# Returns:
+- A new GnarlNetworkGenotype object with only necessary connections and nodes.
+"""
 function minimize(genotype::GnarlNetworkGenotype)
     input_nodes = get_inputs(genotype)
     hidden_nodes = Set(hidden_node.position for hidden_node in genotype.hidden_nodes)

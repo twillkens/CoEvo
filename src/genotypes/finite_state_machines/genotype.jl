@@ -1,5 +1,16 @@
 export FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator
 
+"""
+    FiniteStateMachineGenotype{T}
+
+Represents a finite state machine as a genotype.
+
+# Fields:
+- `start::T`: The initial state of the FSM.
+- `ones::Set{T}`: States labeled as "1".
+- `zeros::Set{T}`: States labeled as "0".
+- `links::Dict{Tuple{T, Bool}, T}`: Dictionary mapping from a state and an input (true/false) to the next state.
+"""
 struct FiniteStateMachineGenotype{T} <: Genotype
     start::T
     ones::Set{T}
@@ -18,10 +29,24 @@ function Base.show(io::IO, fsm::FiniteStateMachineGenotype)
     end
 end
 
+"""
+    FiniteStateMachineGenotypeCreator
+
+A structure used for generating instances of `FiniteStateMachineGenotype`.
+"""
 struct FiniteStateMachineGenotypeCreator <: GenotypeCreator end
 
 Base.length(genotype::FiniteStateMachineGenotype) = length(genotype.ones) + length(genotype.zeros)
 
+"""
+    create_genotype(
+        ::FiniteStateMachineGenotypeCreator,
+        id::Int,
+        start_state_label::Bool
+    )
+
+Generates a new `FiniteStateMachineGenotype` instance with a single state and the provided label.
+"""
 function create_genotype(
     ::FiniteStateMachineGenotypeCreator,
     id::Int,
@@ -34,6 +59,22 @@ function create_genotype(
     return genotype
 end
 
+"""
+    create_genotypes(
+        genotype_creator::FiniteStateMachineGenotypeCreator,
+        random_number_generator::AbstractRNG, 
+        gene_id_counter::Counter,
+        n_population::Int
+    )
+
+Generate a list of FSM genotypes, each having a single state.
+
+# Arguments
+- `genotype_creator::FiniteStateMachineGenotypeCreator`: Instance to facilitate genotype creation.
+- `random_number_generator::AbstractRNG`: RNG to assist random state label generation.
+- `gene_id_counter::Counter`: Counter to keep track of gene IDs.
+- `n_population::Int`: Number of genotypes in the population.
+"""
 function create_genotype(
     genotype_creator::FiniteStateMachineGenotypeCreator,
     random_number_generator::AbstractRNG,
@@ -60,6 +101,11 @@ function Base.:(==)(fsm1::FiniteStateMachineGenotype, fsm2::FiniteStateMachineGe
     return is_isomorphic(fsm1, fsm2)
 end
 
+"""
+    is_isomorphic(fsm1::FiniteStateMachineGenotype, fsm2::FiniteStateMachineGenotype)
+
+Check the isomorphism between two FSM genotypes to ascertain their functional equivalence.
+"""
 function is_isomorphic(fsm1::FiniteStateMachineGenotype, fsm2::FiniteStateMachineGenotype)
     # Check if both FSMs have the same number of states
     if length(fsm1.ones) != length(fsm2.ones) || length(fsm1.zeros) != length(fsm2.zeros)
@@ -99,7 +145,15 @@ function is_isomorphic(fsm1::FiniteStateMachineGenotype, fsm2::FiniteStateMachin
     return dfs(fsm1.start, fsm2.start, Dict())
 end
 
+"""
+    Base.hash(x::FiniteStateMachineGenotype{T}, h::UInt=zero(UInt)) where T
 
+Compute the hash of the FSM genotype for consistent and efficient lookups and comparisons.
+
+# Arguments
+- `x::FiniteStateMachineGenotype{T}`: FSM genotype instance.
+- `h::UInt=zero(UInt)`: Optional seed for the hashing process.
+"""
 function fsm_hash(fsm::FiniteStateMachineGenotype{T}, h::UInt) where T
     result = []
 

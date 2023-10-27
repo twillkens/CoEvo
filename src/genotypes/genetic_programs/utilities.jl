@@ -57,7 +57,7 @@ function protected_exponentiation(x, y, undef=10e6)
 end
 
 """
-    iflt conditional operation.
+    if_less_then_else conditional operation.
 """
 function if_less_then_else(first_arg, second_arg, then_arg, else_arg)
     first_arg = isa(first_arg, Expr) ? eval(first_arg) : first_arg

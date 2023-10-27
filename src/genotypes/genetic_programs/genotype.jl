@@ -1,5 +1,16 @@
 export ExpressionNode, GeneticProgramGenotype, GeneticProgramGenotypeCreator
 
+"""
+    ExpressionNode
+
+Represents a node within the expression tree of the genetic program genotype.
+
+# Fields:
+- `id::Int`: Unique identifier for the node.
+- `parent_id::Union{Int, Nothing}`: Identifier for the parent node. `Nothing` for root node.
+- `val::Union{Symbol, Function, Real}`: Value contained in the node. It can be a function, a symbol or a real number.
+- `child_ids::Vector{Int}`: List of identifiers for child nodes.
+"""
 mutable struct ExpressionNode
     id::Int
     parent_id::Union{Int, Nothing}
@@ -30,6 +41,16 @@ function Base.show(io::IO, enode::ExpressionNode)
     print(io, "$(enode.parent_id) <= $(enode.id) => $(enode.val)$children")
 end
 
+"""
+    GeneticProgramGenotype
+
+Represents the genetic program's genotype structure.
+
+# Fields:
+- `root_id::Int`: Identifier for the root node.
+- `functions::Dict{Int, ExpressionNode}`: Dictionary mapping node IDs to function nodes.
+- `terminals::Dict{Int, ExpressionNode}`: Dictionary mapping node IDs to terminal nodes (leaves).
+"""
 Base.@kwdef mutable struct GeneticProgramGenotype <: Genotype
     root_id::Int = 1
     functions::Dict{Int, ExpressionNode} = Dict{Int, ExpressionNode}()
@@ -58,11 +79,23 @@ function Base.:(==)(a::GeneticProgramGenotype, b::GeneticProgramGenotype)
            a.terminals == b.terminals
 end
 
+"""
+    GeneticProgramGenotypeCreator
 
+Utility structure to aid in the creation of `GeneticProgramGenotype` instances.
+
+# Fields:
+- `default_terminal_value::Union{Symbol, Function, Real}`: Default value for terminal nodes during genotype creation.
+"""
 Base.@kwdef struct GeneticProgramGenotypeCreator <: GenotypeCreator 
     default_terminal_value::Union{Symbol, Function, Real} = 0.0
 end
 
+"""
+    create_genotype(geno_creator::GeneticProgramGenotypeCreator, gene_id_counter::Counter)
+
+Generate a new `GeneticProgramGenotype` instance with a single terminal node using the default value.
+"""
 function create_genotype(
     geno_creator::GeneticProgramGenotypeCreator,
     gene_id_counter::Counter

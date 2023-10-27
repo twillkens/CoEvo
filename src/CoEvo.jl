@@ -1,3 +1,46 @@
+"""
+    CoEvo
+
+The `CoEvo` module provides functionality and utilities for co-evolutionary algorithms.
+
+# Main Components:
+
+- `Counters`: Tools and utilities for maintaining and managing counters.
+- `Genotypes`: Represents the genetic encoding of an individual.
+- `Phenotypes`: Represents the expressed traits or characteristics of an individual.
+- `Individuals`: Utilities and functions related to individual organisms.
+- `Species`: Functions and structures related to species categorization and management.
+- `Criteria`: Defines criteria for evaluation and selection processes.
+- `Evaluators`: Tools for evaluating individuals based on specific criteria.
+- `Replacers`: Methods to determine which individuals should be replaced in the population.
+- `Selectors`: Tools for selecting individuals for reproduction.
+- `Recombiners`: Methods for combining genetic information.
+- `Mutators`: Functions to introduce genetic mutations.
+- `SpeciesCreators`: Utilities for creating new species or subspecies.
+- `Metrics`: Tools for measuring various attributes or qualities.
+- `Domains`: Represents the domain or environment in which entities exist.
+- `Matches`: Represents interactions or competitions between individuals or species.
+- `MatchMakers`: Functions to determine potential matches or interactions.
+- `Observers`: Monitoring and logging utilities.
+- `Results`: Utilities for storing and analyzing results.
+- `Environments`: Defines the external conditions or world in which individuals or species interact.
+- `Interactions`: Represents direct interactions between individuals or species.
+- `Jobs`: Task scheduling and management tools.
+- `Performers`: Utilities for performing specific tasks or operations.
+- `Measurements`: Tools for taking various measurements or metrics.
+- `States`: Represents the state or status of an entity.
+- `Reporters`: Reporting and data visualization utilities.
+- `Archivers`: Tools for archiving and retrieving data.
+- `Ecosystems`: Functions related to broader ecosystems or communities.
+- `Names`: Utilities for naming conventions and structures.
+- `Configurations`: Configuration management tools including game configurations.
+
+# Notes:
+The `Loaders` component, although present in the source, is currently not used or loaded.
+
+# Usage:
+See specific sub-modules and functions for detailed usage instructions.
+"""
 module CoEvo
 
 export Counters, Genotypes, Phenotypes, Individuals, Species, Criteria, Evaluators, Replacers

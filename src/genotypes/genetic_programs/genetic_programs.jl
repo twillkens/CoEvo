@@ -1,3 +1,8 @@
+"""
+    module GeneticPrograms
+
+Provides structures and utilities for genotype representations of genetic programs.
+"""
 module GeneticPrograms
 
 import ..Genotypes: create_genotypes   

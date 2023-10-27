@@ -6,9 +6,11 @@ using Random: AbstractRNG
 using ...Counters: Counter
 using ..Genotypes: Genotype, GenotypeCreator, Gene
 
-include("genes.jl")
-
 include("genotype.jl")
+
+include("equals.jl")
+
+include("show.jl")
 
 include("methods.jl")
 

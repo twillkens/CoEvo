@@ -83,79 +83,73 @@ println("Starting tests for Archivers...")
 #     @test length(ecosystem.species["Subjects"].pop) == 2
 # end
 
+#@testset "Genotype Save and Load Tests" begin
+#    # Assume we have a few genotypes defined above
+#    genotype = FunctionGraphGenotype(
+#        input_node_ids = [1],
+#        bias_node_ids = [2],
+#        hidden_node_ids = [3, 4],
+#        output_node_ids = [5],
+#        nodes = Dict(
+#            1 => FunctionGraphNode(1, :INPUT, []),
+#            2 => FunctionGraphNode(2, :BIAS, []),
+#            3 => FunctionGraphNode(3, :ADD, [
+#                FunctionGraphConnection(1, 0.5, false),
+#                FunctionGraphConnection(2, 0.5, false)
+#            ]),
+#            4 => FunctionGraphNode(4, :MULTIPLY, [
+#                FunctionGraphConnection(3, 0.5, true),
+#                FunctionGraphConnection(2, 0.5, false)
+#            ]),
+#            5 => FunctionGraphNode(5, :OUTPUT, [
+#                FunctionGraphConnection(4, 1.0, false)
+#            ]),
+#        ),
+#        n_nodes_per_output = 1
+#    )
+#
+#    archiver = BasicArchiver()
+#    
+#    # Test saving functionality
+#    @testset "Save Genotype" begin
+#        @testset "Save $geno_name" for (geno_name, genotype) in [
+#            ("test_genotype_1", genotype),
+#            #("test_genotype_2", test_genotype_2),
+#            # ... additional test genotypes ...
+#        ]
+#            # Save the genotype to a JLD2 file
+#            jldopen("test_save_$geno_name.jld2", "w") do file
+#                # Assuming you've defined save_genotype! in a module MyNetworks
+#                group = get_or_make_group!(file, "test")
+#                save_genotype!(archiver, group, genotype)
+#            end
+#            # Confirm file exists
+#            @test isfile("test_save_$geno_name.jld2")
+#        end
+#    end
+#    
+#    # Test loading functionality
+#    @testset "Load Genotype" begin
+#        @testset "Load $geno_name" for (geno_name, original_geno) in [
+#            ("test_genotype_1", genotype),
+#            #("test_genotype_2", test_genotype_2),
+#            # ... additional test genotypes ...
+#        ]
+#            # Load the genotype from file
+#            loaded_geno = jldopen("test_save_$geno_name.jld2", "r") do file
+#                # Assuming you've defined load_genotype in a module MyNetworks
+#                group = get_or_make_group!(file, "test")
+#                loader = FunctionGraphGenotypeLoader()
+#                load_genotype(loader, group)
+#            end
+#
+#            # Verify that the loaded genotype is equal to the original
+#            @test loaded_geno == original_geno
+#        end
+#    end
+#end
 
 
-@testset "evolve!" begin
-
-function dummy_eco_creator(;
-    id::String = "test",
-    trial::Int = 1,
-    random_number_generator::AbstractRNG = StableRNG(42),
-    n_population::Int = 2,
-    species_id1::String = "a",
-    species_id2::String = "b",
-    interaction_id::String = "NumbersGame{Sum}",
-    default_vector::Vector{Float64} = fill(0.0, 1),
-    n_elite::Int = 10
-)
-    ecosystem_creator = BasicEcosystemCreator(
-        id = id,
-        trial = trial,
-        random_number_generator = random_number_generator,
-        species_creators = Dict(
-            species_id1 => BasicSpeciesCreator(
-                id = species_id1,
-                n_population = n_population,
-                genotype_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
-                phenotype_creator = DefaultPhenotypeCreator(),
-                evaluator = ScalarFitnessEvaluator(),
-                replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_population),
-                recombiner = CloneRecombiner(),
-                mutators = [NoiseInjectionMutator(noise_std = 0.1)],
-            ),
-            species_id2 => BasicSpeciesCreator(
-                id = species_id2,
-                n_population = n_population,
-                genotype_creator = BasicVectorGenotypeCreator(default_vector = default_vector),
-                phenotype_creator = DefaultPhenotypeCreator(),
-                evaluator = ScalarFitnessEvaluator(),
-                replacer = GenerationalReplacer(n_elite = n_elite),
-                selector = FitnessProportionateSelector(n_parents = n_population),
-                recombiner = CloneRecombiner(),
-                mutators = [NoiseInjectionMutator(noise_std = 0.1)],
-            ),
-        ),
-        job_creator = BasicJobCreator(
-            n_workers = 1,
-            interactions = Dict(
-                interaction_id => BasicInteraction(
-                    id = interaction_id,
-                    environment_creator = StatelessEnvironmentCreator(NumbersGameDomain(:Sum)),
-                    species_ids = [species_id1, species_id2],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
-                ),
-            ),
-        ),
-        performer = BasicPerformer(n_workers = 1),
-        reporters = Reporter[
-            #BasicReporter(metric = AllSpeciesFitness()),
-            #BasicReporter(metric = GenotypeSum())
-        ],
-        archiver = BasicArchiver(),
-        runtime_reporter = RuntimeReporter(print_interval = 0),
-    )
-    return ecosystem_creator
-
-end
-
-#ecosystem_creator = dummy_eco_creator()
-
-#eco = evolve!(ecosystem_creator, n_generations=10)
-
-#ecosystem_creator = dummy_eco_creator(n_population = 100)
-#eco = evolve!(ecosystem_creator, n_generations=10)
-end
 
 println("Finished tests for Archivers.")
 end

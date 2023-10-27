@@ -6,7 +6,7 @@ import ...Phenotypes: create_phenotype, act!, reset!
 
 using ....Genotypes: minimize
 using ....Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
-using ....Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP, evaluate
+using ....Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP, evaluate_function
 using ....Phenotypes: Phenotype, PhenotypeCreator
 
 Base.@kwdef struct FunctionGraphSmallConnection
@@ -111,13 +111,13 @@ end
 function apply_func(node_func::GraphFunction, input_values::Vector{Float32})::Float32
     # Specific function applications for known arities
     if node_func.arity == 1
-        value = evaluate(node_func, input_values[1])::Float32
+        value = evaluate_function(node_func, input_values[1])::Float32
         if typeof(value) !== Float32
             throw(ErrorException("Function $(node_func.name) returned $(typeof(value)) instead of Float32"))
         end
         return value
     elseif node_func.arity == 2
-        value = evaluate(node_func, input_values[1], input_values[2])::Float32
+        value = evaluate_function(node_func, input_values[1], input_values[2])::Float32
         if typeof(value) !== Float32
             throw(ErrorException("Function $(node_func.name) returned $(typeof(value)) instead of Float32"))
         end

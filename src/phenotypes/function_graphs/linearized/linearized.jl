@@ -8,7 +8,7 @@ import ...Phenotypes: create_phenotype, act!, reset!
 
 using ....Genotypes: minimize
 using ....Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
-using ....Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP, evaluate
+using ....Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP, evaluate_function
 using ...Phenotypes: Phenotype, PhenotypeCreator
 
 struct LinearizedFunctionGraphPhenotypeCreator <: PhenotypeCreator end
@@ -182,7 +182,7 @@ function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{
                     input_node.previous_value : input_node.current_value
                 node.input_values[input_index] = connection.weight * value
             end
-            node.current_value = evaluate(node.func, node.input_values)
+            node.current_value = evaluate_function(node.func, node.input_values)
         end
         # First, reset all output_values to 0
         for i in eachindex(phenotype.output_values)

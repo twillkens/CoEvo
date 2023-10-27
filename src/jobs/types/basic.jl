@@ -3,13 +3,13 @@ module Basic
 export BasicJob, BasicJobCreator
 
 import ..Jobs: create_jobs
-using ...MatchMakers: make_matches
 
 using Random: AbstractRNG
 using ...Phenotypes: Phenotype, PhenotypeCreator, create_phenotype
 using ...Species: AbstractSpecies 
 using ...SpeciesCreators: SpeciesCreator
 using ...Matches: Match
+using ...MatchMakers: make_matches
 using ...Interactions: Interaction
 using ..Jobs: Job, JobCreator
 
