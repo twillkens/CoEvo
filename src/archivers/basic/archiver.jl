@@ -36,7 +36,6 @@ end
 
 function archive!(
     archiver::BasicArchiver, 
-    gen::Int, 
     report::BasicReport{<:Metric, GroupStatisticalMeasurement}
 )
     if report.to_print
@@ -50,7 +49,7 @@ function archive!(
     end
     if report.to_save
         jld2_file = jldopen(archiver.archive_path, "a+")
-        base_path = "measurements/$gen/$(report.metric.name)"
+        base_path = "measurements/$(report.generation)/$(report.metric.name)"
         
         # Create or access the group for the generation
         gen_group = get_or_make_group!(jld2_file, base_path)
@@ -64,20 +63,6 @@ function archive!(
     end
 end
 
-
-function archive!(
-    ::BasicArchiver, 
-    gen::Int, 
-    report::BasicReport{AbsoluteError, BasicStatisticalMeasurement}
-)
-    measurement = report.measurement
-    println("----")
-    println("AbsoluteError")
-    println("Min: ", measurement.minimum)
-    println("Mean: ", measurement.mean)
-    println("Max: ", measurement.maximum)
-end
-
 # # Save an individual to a JLD2.Group
 function save_individual!(
     archiver::BasicArchiver, indiv_group::Group, individual::Individual
@@ -89,25 +74,21 @@ end
 
 function archive!(
     archiver::BasicArchiver, 
-    gen::Int, 
     report::BasicReport{<:AllSpeciesIdentity, <:AllSpeciesMeasurement}
 )
     if report.to_save
         jld2_file = jldopen(archiver.archive_path, "a+")
-        base_path = "individuals/$gen"
-        #println("base_path: $base_path")
+        base_path = "individuals/$(report.generation)"
         for (species_id, species) in report.measurement.species
-            individuals = gen == 1 ? species.population : species.children
+            individuals = report.generation == 1 ? species.population : species.children
             species_path = "$base_path/$species_id"
             species_group = get_or_make_group!(jld2_file, species_path)
             species_group["population_ids"] = [
                 individual.id for individual in species.population
             ]
-            #println("species_path: $species_path")
             for individual in individuals
                 individual_id = string(individual.id)
                 individual_path = "$species_path/children/$individual_id"
-                #println("individual_path: $individual_path")
                 individual_group = get_or_make_group!(jld2_file, individual_path)
                 save_individual!(archiver, individual_group, individual)
             end

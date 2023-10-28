@@ -1,6 +1,6 @@
 import ...Metrics: measure
 
-function measure(metric::GenotypeSize, state::State)
+function measure(metric::GenotypeSize, state::BasicCoevolutionaryState)
     species_evaluations = Dict(
         species => evaluation for (species, evaluation) in zip(state.species, state.evaluations)
     )
@@ -20,7 +20,7 @@ function measure(metric::GenotypeSize, state::State)
     return measurement
 end
 
-function measure(::GenotypeSum, state::State)
+function measure(::GenotypeSum, state::BasicCoevolutionaryState)
     species_evaluations = Dict(
         species => evaluation for (species, evaluation) in zip(state.species, state.evaluations)
     )
@@ -35,7 +35,6 @@ function measure(::GenotypeSum, state::State)
     measurement = GroupStatisticalMeasurement(species_measurements)
     return measurement
 end
-
 function measure(::AllSpeciesFitness, state::State)
     species_evaluations = Dict(
         species => evaluation for (species, evaluation) in zip(state.species, state.evaluations)
@@ -43,15 +42,33 @@ function measure(::AllSpeciesFitness, state::State)
 
     species_measurements = Dict(
         species.id => BasicStatisticalMeasurement(
+            typeof(evaluation) == NSGAIIEvaluation ? 
+            [record.fitness for record in evaluation.scalar_fitness_evaluation.records] : 
             [record.fitness for record in evaluation.records]
         ) 
-        for (species, evaluation) in species_evaluations
-            if typeof(evaluation) != NullEvaluation
+        for (species, evaluation) in species_evaluations if typeof(evaluation) != NullEvaluation
     )
-        
+
     measurement = GroupStatisticalMeasurement(species_measurements)
     return measurement
 end
+
+#function measure(::AllSpeciesFitness, state::State)
+#    species_evaluations = Dict(
+#        species => evaluation for (species, evaluation) in zip(state.species, state.evaluations)
+#    )
+#
+#    species_measurements = Dict(
+#        species.id => BasicStatisticalMeasurement(
+#            [record.fitness for record in evaluation.records]
+#        ) 
+#        for (species, evaluation) in species_evaluations
+#            if typeof(evaluation) != NullEvaluation
+#    )
+#        
+#    measurement = GroupStatisticalMeasurement(species_measurements)
+#    return measurement
+#end
 
 function measure(::AllSpeciesIdentity, state::State)
     species = Dict(species.id => species for species in state.species)

@@ -3,16 +3,17 @@ using Test
 @testset "Global K-Means Clustering " begin
 
 using CoEvo
+using CoEvo.Names
 
 using LinearAlgebra
 using Random
 using StableRNGs: StableRNG
 using StatsBase: mean
 using DataStructures: SortedDict
-using .Genotypes.Vectors: BasicVectorGenotype
-using .Individuals.Basic: BasicIndividual
-using .Species.Basic: BasicSpecies
-using .Evaluators.NSGAII
+#using .Genotypes.Vectors: BasicVectorGenotype
+#using .Individuals.Basic: BasicIndividual
+#using .Species.Basic: BasicSpecies
+#using .Evaluators.NSGAII
 
 @testset "Compression of the Interaction Matrix" begin
     random_number_generator = StableRNG(42)
@@ -31,7 +32,8 @@ using .Evaluators.NSGAII
     evaluator = NSGAIIEvaluator(
         maximize = true,
         perform_disco = true,
-        max_clusters = 2
+        max_clusters = 2,
+        ScalarFitnessEvaluator = ScalarFitnessEvaluator(),
     )
 
     population = [
@@ -96,7 +98,7 @@ end
     rng = MersenneTwister(123)
     samples = [[1.0, 1.0], [2.0, 2.0], [10.0, 10.0], [11.0, 11.0]]
     initial_centroids = [[1.0, 1.0], [10.0, 10.0]]
-    result = get_kmeans_clustering_result(rng, samples, 2, 0.001, initial_centroids)
+    result = get_kmeans_clustering_result(rng, samples, 2, initial_centroids)
     @test result.centroids == initial_centroids
     @test length(result.clusters) == 2
 end
@@ -106,7 +108,7 @@ end
     rng = MersenneTwister(123)
     samples = [[1.0, 1.0], [2.0, 2.0], [10.0, 10.0], [11.0, 11.0]]
     initial_centroids = [[0.0, 0.0], [20.0, 20.0]]
-    result = get_kmeans_clustering_result(rng, samples, 2, 0.001, initial_centroids)
+    result = get_kmeans_clustering_result(rng, samples, 2, initial_centroids)
     @test abs(result.error) ≈ 2.0
 end
 
@@ -115,7 +117,7 @@ end
     rng = MersenneTwister(123)
     samples = [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0], [1.0, 1.0]]
     initial_centroids = [[1.0, 1.0]]
-    result = get_kmeans_clustering_result(rng, samples, 1, 0.001, initial_centroids)
+    result = get_kmeans_clustering_result(rng, samples, 1, initial_centroids)
     @test result.centroids == initial_centroids
     @test length(result.clusters) == 1
 end
@@ -125,7 +127,7 @@ end
     rng = MersenneTwister(123)
     samples = Vector{Vector{Float64}}()
     initial_centroids = Vector{Vector{Float64}}()
-    @test_throws Exception get_kmeans_clustering_result(rng, samples, 0, 0.001, initial_centroids)
+    @test_throws Exception get_kmeans_clustering_result(rng, samples, 0, initial_centroids)
 end
 
 # 5. Centroid Replacement Test
@@ -133,7 +135,7 @@ end
     rng = MersenneTwister(123)
     samples = [[1.0, 1.0], [2.0, 2.0], [10.0, 10.0], [11.0, 11.0]]
     initial_centroids = [[1.0, 1.0], [20.0, 20.0]]  # The second centroid will not have any points closer to it.
-    result = get_kmeans_clustering_result(rng, samples, 2, 0.001, initial_centroids)
+    result = get_kmeans_clustering_result(rng, samples, 2, initial_centroids)
     @test !any(c -> c == [20.0, 20.0], result.centroids)
 end
 
@@ -141,7 +143,7 @@ end
 @testset "Fast Global KMeans Tests" begin
    rng = MersenneTwister(123)
    samples = [[2.0, 3.0], [8.0, 10.0], [5.0, 7.0], [7.0, 9.0], [6.0, 8.0]]
-   result = get_fast_global_clustering_result(rng, samples, 2, 0.001)
+   result = get_fast_global_clustering_result(rng, samples, max_clusters = 2)
    @test length(result.centroids) == 2
    @test result.error <= 20.0 
 end
@@ -152,7 +154,7 @@ end
         [1.0, 0.0], 
         [0.0, 1.0],
     ]
-    result = get_fast_global_clustering_result(rng, samples, -1, 0.001)
+    result = get_fast_global_clustering_result(rng, samples, max_clusters = -1)
     @test length(result.centroids) == 2
     @test result.error <= 20.0 
 end
@@ -167,7 +169,7 @@ end
         [0.0, 0.0, 0.85],
         [0.0, 0.0, 1.1],
     ]
-    result = get_fast_global_clustering_result(rng, samples, -1, 0.001)
+    result = get_fast_global_clustering_result(rng, samples, max_clusters = -1)
     @test length(result.centroids) == 3
     @test result.error <= 20.0 
 end

@@ -10,6 +10,7 @@ using ...Genotypes: get_size, minimize
 using ...Species: AbstractSpecies
 using ...Evaluators: Evaluation
 using ...Evaluators.Null: NullEvaluation
+using ...Evaluators.NSGAII: NSGAIIEvaluation
 using ...Observers: Observation
 using ...Metrics: measure
 using ...Metrics.Evaluations: TestBasedFitness, AllSpeciesFitness

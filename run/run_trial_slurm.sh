@@ -11,4 +11,5 @@
 module load julia
 
 SEED=$(head /dev/urandom | tr -dc 0-9 | head -c 10)
-julia trial.jl $SLURM_ARRAY_TASK_ID $SEED
+julia --project=. trial.jl $SLURM_ARRAY_TASK_ID $SEED $SLURM_NTASKS
+```

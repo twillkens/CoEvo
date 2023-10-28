@@ -26,7 +26,11 @@ function replace(
 )
     candidates = [species.population ; species.children]
     ids = [record.id for record in evaluation.records]
-    truncated_ids = Set(ids[1:replacer.n_truncate])
+    #println("candidate_ids:", ids)
+    #println("ids: ", ids)
+    end_index = length(ids) - replacer.n_truncate
+    truncated_ids = Set(ids[1:end_index])
+    #println("truncated_ids: ", truncated_ids)
     new_population = filter(individual -> individual.id in truncated_ids, candidates)
     return new_population
 end

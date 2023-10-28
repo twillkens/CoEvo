@@ -17,6 +17,8 @@ export PredictionGameConfiguration
     tournament_size::Int = 3
     max_clusters::Int = 5
     cohorts::Vector{Symbol} = [:population, :children]
+    #cohorts::Vector{Symbol} = [:children]
     episode_length::Int = 16
     report_type::Symbol = :silent_test
 end
+

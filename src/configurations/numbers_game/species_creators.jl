@@ -7,6 +7,7 @@ function make_reproducer_types(configuration::NumbersGameConfiguration)
     elseif reproduction_method == :disco
         evaluator = NSGAIIEvaluator(
             maximize = true, perform_disco = true, max_clusters = configuration.max_clusters,
+            scalar_fitness_evaluator = ScalarFitnessEvaluator(),
         )
         selector = TournamentSelector(
             n_parents = configuration.n_population, 

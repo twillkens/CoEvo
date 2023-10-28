@@ -3,9 +3,11 @@ export evaluate, make_individual_tests, calculate_fitnesses
 export check_for_nan_in_fitnesses, create_records
 
 Base.@kwdef struct NSGAIIEvaluator <: Evaluator 
+    scalar_fitness_evaluator::ScalarFitnessEvaluator = ScalarFitnessEvaluator()
     maximize::Bool = true
     perform_disco::Bool = true
     max_clusters::Int = -1
+    distance_method::Symbol = :disco_average
     function_minimums::Union{Vector{Float64}, Nothing} = nothing
     function_maximums::Union{Vector{Float64}, Nothing} = nothing
 end
@@ -13,6 +15,7 @@ end
 struct NSGAIIEvaluation <: Evaluation
     species_id::String
     records::Vector{NSGAIIRecord}
+    scalar_fitness_evaluation::ScalarFitnessEvaluation
 end
 
 function make_individual_tests(
@@ -62,12 +65,16 @@ function evaluate(
     species::AbstractSpecies,
     outcomes::Dict{Int, SortedDict{Int, Float64}}
 )
+    scalar_fitness_evaluation = evaluate(
+        evaluator.scalar_fitness_evaluator, random_number_generator, species, outcomes
+    )
     individuals = [species.population ; species.children]
     filter!(individual -> individual.id in keys(outcomes), individuals)
     
     individual_tests = make_individual_tests(individuals, outcomes)
 
     fitnesses = calculate_fitnesses(individual_tests)
+    #println("fitnesses: ", fitnesses)
     check_for_nan_in_fitnesses(fitnesses)
 
     if evaluator.perform_disco
@@ -85,7 +92,7 @@ function evaluate(
     sorted_records = nsga_sort!(
         records, criterion, evaluator.function_minimums, evaluator.function_maximums
     )
-    evaluation = NSGAIIEvaluation(species.id, sorted_records)
+    evaluation = NSGAIIEvaluation(species.id, sorted_records, scalar_fitness_evaluation)
 
     return evaluation
 end
