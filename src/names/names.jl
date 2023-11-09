@@ -65,8 +65,8 @@ export BasicSpecies
 using ..Species.Basic: BasicSpecies
 
 # PhenotypeCreators
-export Phenotype, PhenotypeCreator, create_phenotype, act!
-using ..Phenotypes: Phenotype, PhenotypeCreator, create_phenotype, act!
+export Phenotype, PhenotypeCreator, create_phenotype, act!, reset!
+using ..Phenotypes: Phenotype, PhenotypeCreator, create_phenotype, act!, reset!
 
 export DefaultPhenotypeCreator
 using ..Phenotypes.Defaults: DefaultPhenotypeCreator
@@ -132,8 +132,11 @@ using ..SpeciesCreators.Basic: BasicSpeciesCreator
 export MatchMaker, make_matches
 using ..MatchMakers: MatchMaker, make_matches
 
-export AllvsAllMatchMaker
-using ..MatchMakers.AllvsAll: AllvsAllMatchMaker
+export AllVersusAllMatchMaker
+using ..MatchMakers.AllVersusAll: AllVersusAllMatchMaker
+
+export OneVersusAllMatchMaker
+using ..MatchMakers.OneVersusAll: OneVersusAllMatchMaker
 
 # Domains
 export Domain
@@ -186,17 +189,25 @@ export CachePerformer
 using ..Performers.Cache: CachePerformer
 
 # Metrics
-export Metrics, measure
-using ..Metrics: Metrics, measure
+export Metrics, Metric, Measurement, Aggregator, measure, get_name, aggregate
+using ..Metrics: Metrics, Metric, Measurement, Aggregator, measure, get_name, aggregate
 
-export AllSpeciesIdentity
-using ..Metrics.Common: AllSpeciesIdentity
+export NullMetric, RuntimeMetric, GlobalStateMetric, BasicMeasurement, BasicGroupMeasurement
+using ..Metrics.Common: NullMetric, RuntimeMetric, GlobalStateMetric
+using ..Metrics.Common: BasicMeasurement, BasicGroupMeasurement
 
-export GenotypeSize, GenotypeSum
-using ..Metrics.Genotypes: GenotypeSize, GenotypeSum
+export BasicFeatureAggregator, BasicQuantileAggregator, OneSampleTTestAggregator, HigherMomentAggregator
+using ..Metrics.Aggregators: BasicFeatureAggregator, BasicQuantileAggregator
+using ..Metrics.Aggregators: OneSampleTTestAggregator, HigherMomentAggregator
 
-export AllSpeciesFitness
-using ..Metrics.Evaluations: AllSpeciesFitness
+export EvaluationMetric, FitnessEvaluationMetric
+using ..Metrics.Evaluations: EvaluationMetric, FitnessEvaluationMetric
+
+export IndividualMetric
+using ..Metrics.Individuals: IndividualMetric
+
+export GenotypeMetric, SizeGenotypeMetric, SumGenotypeMetric
+using ..Metrics.Genotypes: GenotypeMetric, SizeGenotypeMetric, SumGenotypeMetric
 
 # StateCreators
 

@@ -3,10 +3,11 @@ module Environments
 export Stateless, LinguisticPredictionGame, CollisionGame
 export ContinuousPredictionGame
 
+import ..Observers: observe!
+
 using ..Phenotypes: Phenotype
 using ..Domains: Domain
 using ..Observers: Observer
-using ..Observers.Null: NullObserver
 
 include("abstract/abstract.jl")
 

@@ -1,4 +1,4 @@
-export create_environment, step!, get_outcome_set, is_active, observe!
+export create_environment, get_phenotypes, step!, get_outcome_set, is_active, observe!
 
 function create_environment(
     environment_creator::EnvironmentCreator, 
@@ -10,8 +10,21 @@ function create_environment(
     )
 end
 
-function observe!(environment::Environment, observer::Observer)
-    error("`observe!`` not implemented for $(typeof(environment)), $(typeof(observer))")
+function get_phenotypes(environment::Environment)::Vector{Phenotype}
+    throw(ErrorException(
+        "`get_phenotypes` not implemented for $environment"
+        )
+    )
+end
+
+function observe!(observer::Observer, environment::Environment)
+    error("`observe!` not implemented for $(typeof(observer)) and $(typeof(environment))")
+end
+
+function observe!(observer::PhenotypeObserver, environment::Environment)
+    for phenotype in get_phenotypes(environment)
+        observe!(observer, phenotype)
+    end
 end
 
 function step!(environment::Environment)::Nothing

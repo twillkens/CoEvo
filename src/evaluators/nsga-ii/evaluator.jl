@@ -1,6 +1,6 @@
 export NSGAIIEvaluator, NSGAIIEvaluation
 export evaluate, make_individual_tests, calculate_fitnesses
-export check_for_nan_in_fitnesses, create_records
+export check_for_nan_in_fitnesses, create_records, evaluate, get_fitnesses
 
 Base.@kwdef struct NSGAIIEvaluator <: Evaluator 
     scalar_fitness_evaluator::ScalarFitnessEvaluator = ScalarFitnessEvaluator()
@@ -97,6 +97,9 @@ function evaluate(
     return evaluation
 end
 
+function get_fitnesses(evaluation::NSGAIIEvaluation)
+    return [record.fitness for record in evaluation.scalar_fitness_evaluation.records]
+end
 
 #function evaluate(
 #    evaluator::NSGAIIEvaluator,

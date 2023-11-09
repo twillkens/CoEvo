@@ -2,7 +2,7 @@ module Archivers
 
 export Basic
 
-using JLD2: JLDFile, Group
+using HDF5: File, Group, create_group
 using ..Measurements: Measurement
 using ..Reporters: Report
 using ..Genotypes: Genotype

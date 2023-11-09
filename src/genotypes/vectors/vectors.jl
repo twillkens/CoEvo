@@ -6,6 +6,7 @@ export BasicVectorGenotype, BasicVectorGenotypeCreator, ScalarRangeGenotypeCreat
 import ...Genotypes: create_genotypes
 
 using Random: AbstractRNG
+using HDF5: Group
 using ...Counters: Counter
 using ..Genotypes: Genotype, GenotypeCreator
 
@@ -97,6 +98,11 @@ function create_genotypes(
     ))
     genotypes = [BasicVectorGenotype([scalar]) for scalar in scalars]
     return genotypes
+end
+
+function load_genotype(::BasicVectorGenotypeCreator, genotype_group::Group)
+    genes = genotype_group["genes"]
+    return BasicVectorGenotype(genes)
 end
 
 end

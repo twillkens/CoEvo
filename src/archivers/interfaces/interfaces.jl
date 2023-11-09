@@ -1,4 +1,4 @@
-export archive!, save_genotype!, save_measurement!, archive_reports!
+export archive!, save_genotype!, save_measurement!
 
 function archive!(archiver::Archiver, report::Report)
     throw(ErrorException("archive! not implemented for 
@@ -19,7 +19,7 @@ function save_measurement!(archiver::Archiver, species_group::Group, measurement
         $(typeof(measurement))"))
 end
 
-function archive_reports!(archiver::Archiver, reports::Vector{<:Report})
+function archive!(archiver::Archiver, reports::Vector{<:Report})
     [archive!(archiver, report) for report in reports]
     return nothing
 end

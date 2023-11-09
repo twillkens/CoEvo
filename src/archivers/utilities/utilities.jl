@@ -3,7 +3,7 @@ export get_or_make_group!
 """
     get_or_make_group!(group::Union{File, Group}, path::String)
 
-Accesses or creates a group within a JLD2 file based on the given path. If the path doesn't exist, 
+Accesses or creates a group within an HDF5 file based on the given path. If the path doesn't exist, 
 this function will create the necessary nested groups.
 
 # Arguments:
@@ -13,13 +13,13 @@ this function will create the necessary nested groups.
 # Returns:
 - The group corresponding to the final part of the path.
 """
-function get_or_make_group!(group::Union{JLDFile, Group}, path::String)
+function get_or_make_group!(group::Union{File, Group}, path::String)
     # Split the path into parts
     parts = split(path, '/')
     
     # Iteratively create or access groups based on path parts
     for part in parts
-        group = part ∉ keys(group) ? Group(group, part) : group[part]
+        group = part ∉ keys(group) ? create_group(group, part) : group[part]
     end
     
     return group
@@ -37,6 +37,6 @@ A convenience overload that converts the key to a string and then accesses or cr
 # Returns:
 - The group corresponding to the key.
 """
-function get_or_make_group!(group::Union{JLDFile, Group}, key::Union{Symbol, UInt32, Int})
+function get_or_make_group!(group::Union{File, Group}, key::Union{Symbol, UInt32, Int})
     get_or_make_group!(group, string(key))
 end

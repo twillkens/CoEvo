@@ -71,7 +71,7 @@ function sym_regress_eco_creator(;
                             target_function = x -> x^2 + x + π
                         )),
                     species_ids = [species_id1, species_id2],
-                    matchmaker = AllvsAllMatchMaker(type = :plus),
+                    matchmaker = AllVersusAllMatchMaker(type = :plus),
                 ),
             ),
         ),

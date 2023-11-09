@@ -1,4 +1,4 @@
-using JLD2
+using HDF5
 using DataFrames
 using CSV
 using Plots: plot, plot!, title!, xlabel!, ylabel!, savefig
@@ -62,7 +62,7 @@ function extract_measurements(
         if !isfile(jld2_file_path)
             break
         end
-        file = JLD2.jldopen(jld2_file_path, "r")
+        file = h5open(jld2_file_path, "r")
         
         for gen in generations
             submetric_value = load_submetric_value(file, gen, species_id, metric, submetric)

@@ -1,6 +1,6 @@
 module MatchMakers
 
-export AllvsAll
+export AllVersusAll, OneVersusAll
 
 using Random: AbstractRNG
 using ..Matches: Match
@@ -11,6 +11,9 @@ include("abstract/abstract.jl")
 include("interfaces/interfaces.jl")
 
 include("all_vs_all/all_vs_all.jl")
-using .AllvsAll: AllvsAll
+using .AllVersusAll: AllVersusAll
+
+include("one_vs_all/one_vs_all.jl")
+using .OneVersusAll: OneVersusAll
 
 end

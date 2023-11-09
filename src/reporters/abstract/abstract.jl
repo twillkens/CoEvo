@@ -1,5 +1,5 @@
 export Report, Reporter
 
-abstract type Report{MET <: Metric, MEA <: Measurement} end
+abstract type Report end
 
-abstract type Reporter{M <: Metric} end
+abstract type Reporter end

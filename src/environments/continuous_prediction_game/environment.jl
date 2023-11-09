@@ -55,3 +55,7 @@ function create_environment(
     )
     return environment
 end
+
+function get_phenotypes(environment::ContinuousPredictionGameEnvironment)
+    return [environment.entity_1, environment.entity_2]
+end

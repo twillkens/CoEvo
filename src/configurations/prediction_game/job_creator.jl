@@ -78,7 +78,7 @@ function make_interactions(configuration::PredictionGameConfiguration)
             id = id,
             environment_creator = environment_creator,
             species_ids = interaction_pair,
-            matchmaker = AllvsAllMatchMaker(cohorts = configuration.cohorts),
+            matchmaker = AllVersusAllMatchMaker(cohorts = configuration.cohorts),
         ) 
         for (id, environment_creator, interaction_pair) in 
             zip(ids, environment_creators, interaction_pairs)

@@ -1,10 +1,10 @@
 export PredictionGameConfiguration
 
 @kwdef mutable struct PredictionGameConfiguration <: Configuration
-    substrate::Symbol = :function_graphs
-    reproduction_method::Symbol = :disco
-    game::Symbol = :continuous_prediction_game
-    ecosystem_topology::Symbol = :three_species_mix
+    substrate::String = "function_graphs"
+    reproduction_method::String = "disco"
+    game::String = "continuous_prediction_game"
+    ecosystem_topology::String = "three_species_mix"
     trial::Int = 1
     seed::Int = 777
     random_number_generator::Union{AbstractRNG, Nothing} = nothing
@@ -16,9 +16,8 @@ export PredictionGameConfiguration
     n_nodes_per_output::Int = 4
     tournament_size::Int = 3
     max_clusters::Int = 5
-    cohorts::Vector{Symbol} = [:population, :children]
-    #cohorts::Vector{Symbol} = [:children]
+    cohorts::Vector{String} = ["population", "children"]
     episode_length::Int = 16
-    report_type::Symbol = :silent_test
+    report_type::String = "silent_test"
 end
 

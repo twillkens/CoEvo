@@ -10,7 +10,7 @@ function run!(configuration::PredictionGameConfiguration; n_generations::Int = 1
         if isfile(archive_path)
             throw(ArgumentError("File already exists: $archive_path"))
         end
-        @save archive_path configuration = configuration
+        h5write(archive_path, "configuration", configuration)
     end
     ecosystem = evolve!(ecosystem_creator, n_generations = n_generations)
     return ecosystem

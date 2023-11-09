@@ -27,7 +27,7 @@ Base.@kwdef struct BasicInteraction{
 end
 
 all_observe!(environment::Environment, observers::Vector{<:Observer}) = [
-   observe!(environment, observer) for observer in observers
+   observe!(observer, environment) for observer in observers
 ]
 
 function interact(environment::Environment, observers::Vector{<:Observer})

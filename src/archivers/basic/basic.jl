@@ -5,7 +5,7 @@ export BasicArchiver
 import ...Archivers: archive!, save_genotype!, save_measurement!
 
 using DataStructures: OrderedDict
-using JLD2: JLDFile, Group, jldopen
+using HDF5: File, Group, h5open
 using ...Individuals: Individual
 using ...Metrics: Metric
 using ...Metrics.Common: AllSpeciesIdentity
@@ -20,7 +20,16 @@ using ..Archivers: Archiver, get_or_make_group!
 
 include("archiver.jl")
 
-include("savers/savers.jl")
+include("measurements/measurements.jl")
 
+include("fsms/fsms.jl")
+
+include("genetic_programs/genetic_programs.jl")
+
+include("gnarl_networks/gnarl_networks.jl")
+
+include("vectors/vectors.jl")
+
+include("function_graphs/function_graphs.jl")
 
 end

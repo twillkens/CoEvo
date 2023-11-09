@@ -381,6 +381,7 @@ end
 Base.@kwdef struct FunctionGraphMutator <: Mutator
     # Number of structural changes to perform per generation
     n_mutations::Int = 1
+    validate_genotypes::Bool = false
     # Uniform probability of each type of structural change
     mutation_probabilities::Dict{Symbol, Float64} = Dict(
         :add_function => 1 / 8,
@@ -506,7 +507,9 @@ function mutate(
         )
     end
     inject_noise!(random_number_generator, genotype, std_dev = mutator.noise_std)
-    validate_genotype(genotype, n_input_nodes, n_bias_nodes, n_hidden_nodes, n_output_nodes)
+    if mutator.validate_genotypes
+        validate_genotype(genotype, n_input_nodes, n_bias_nodes, n_hidden_nodes, n_output_nodes)
+    end
     return genotype
 end
 

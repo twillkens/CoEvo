@@ -1,15 +1,12 @@
 module Observers
 
-export Basic, Null
+export Common
 
 include("abstract/abstract.jl")
 
 include("interfaces/interfaces.jl")
 
-include("basic/basic.jl")
-using .Basic: Basic
-
-include("null/null.jl")
-using .Null: Null
+include("common/common.jl")
+using .Common: Common
 
 end

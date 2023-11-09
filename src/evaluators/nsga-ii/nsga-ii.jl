@@ -1,6 +1,6 @@
 module NSGAII
 
-import ..Evaluators: evaluate
+import ..Evaluators: evaluate, get_fitnesses
 
 using Random: AbstractRNG, rand
 using DataStructures: SortedDict
