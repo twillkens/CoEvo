@@ -1,6 +1,6 @@
 module Basic
 
-export BasicReport, BasicReporter, create_report
+export NullReport, BasicReport, BasicReporter, create_report
 
 import ..Reporters: create_report
 
@@ -9,12 +9,15 @@ using ...Metrics: Metric, Measurement, measure
 using ...States: State
 using ..Reporters: Reporter, Report
 
-struct BasicReport{MET <: Metric, MEA <: Measurement} <: Report
-    generation::Int
-    to_print::Bool
-    to_save::Bool
+struct NullReport <: Report end
+
+Base.@kwdef struct BasicReport{MET <: Metric, MEA <: Measurement} <: Report
     metric::MET
-    measurement::MEA
+    measurements::Vector{MEA}
+    trial::Int = 1
+    generation::Int = 1
+    to_print::Bool = true
+    to_save::Bool = false
 end
 
 Base.@kwdef struct BasicReporter{M} <: Reporter
@@ -24,11 +27,16 @@ Base.@kwdef struct BasicReporter{M} <: Reporter
 end
 
 function create_report(reporter::BasicReporter, state::State)
+    metric = reporter.metric
+    trial = state.trial
     generation = state.generation
     to_print = reporter.print_interval > 0 && generation % reporter.print_interval == 0
     to_save = reporter.save_interval > 0 && generation % reporter.save_interval == 0
-    measurement = measure(reporter.metric, state)
-    report = BasicReport(generation, to_print, to_save, reporter.metric, measurement)
+    if !to_print && !to_save
+        return NullReport()
+    end
+    measurements = measure(metric, state)
+    report = BasicReport(metric, measurements, trial, generation, to_print, to_save)
     return report
 end
 

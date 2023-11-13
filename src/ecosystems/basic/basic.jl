@@ -12,7 +12,7 @@ using JLD2: @save
 using ...Counters: Counter
 using ...Counters.Basic: BasicCounter
 using ...Species: AbstractSpecies
-using ...Evaluators: Evaluation, Evaluator, evaluate
+using ...Evaluators: Evaluation, Evaluator
 using ...SpeciesCreators: SpeciesCreator, create_species
 using ...SpeciesCreators.Basic: BasicSpeciesCreator
 using ...Jobs: JobCreator, create_jobs
@@ -21,7 +21,6 @@ using ...Interactions: Interaction
 using ...Results: Result, get_individual_outcomes, get_observations
 using ...Observers: Observation
 #using ...Observers.Null: NullObservation
-using ...Reporters.Runtime: RuntimeReporter, create_runtime_report
 using ...Reporters: Reporter, Report, create_reports
 using ...Archivers: Archiver, archive!
 using ...Performers: perform

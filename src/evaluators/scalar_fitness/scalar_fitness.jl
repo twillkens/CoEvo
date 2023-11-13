@@ -21,7 +21,7 @@ struct ScalarFitnessRecord
 end
 
 struct ScalarFitnessEvaluation <: Evaluation
-    species_id::String
+    id::String
     records::Vector{ScalarFitnessRecord}
 end
 

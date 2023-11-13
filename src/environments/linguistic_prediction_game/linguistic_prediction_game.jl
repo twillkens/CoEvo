@@ -43,7 +43,7 @@ function create_environment(
     state2, bit2 = fsm_B.start
     state_pair_log = Dict((state1, state2) => 1)
     datatype = typeof(phenotypes[1]).parameters[1]
-    return LinguisticPredictionGameEnvironment(
+    environment = LinguisticPredictionGameEnvironment(
         domain = environment_creator.domain,
         phenotypes = [phenotype for phenotype in phenotypes],
         timestep = 1,
@@ -58,6 +58,7 @@ function create_environment(
         bits2 = Bool[],
         state_pair_log = state_pair_log
     )
+    return environment
 end
 
 function is_active(environment::LinguisticPredictionGameEnvironment)

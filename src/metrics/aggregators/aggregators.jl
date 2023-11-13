@@ -1,26 +1,28 @@
 module Aggregators
 
-export Aggregator, BasicFeatureAggregator, BasicQuantileAggregator, aggregate
+export Aggregator, BasicStatisticalAggregator, BasicQuantileAggregator, aggregate
 export HigherMomentAggregator, OneSampleTTestAggregator
 
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
 using HypothesisTests: OneSampleTTest, confint
 
 using ..Metrics: Metric, Measurement, Aggregator
-using ..Metrics.Common: BasicMeasurement, BasicGroupMeasurement
+using ..Metrics.Common: BasicMeasurement
 
-struct BasicFeatureAggregator <: Aggregator end
+struct BasicStatisticalAggregator <: Aggregator end
 
 function aggregate(
-    ::BasicFeatureAggregator, measurements::Vector{BasicMeasurement{R}}
-) where R <: Real
+    ::BasicStatisticalAggregator, 
+    base_path::String,
+    measurements::Vector{<:BasicMeasurement}
+)
     values = [measurement.value for measurement in measurements]
     measurements = [
-        BasicMeasurement("n_values", length(values)),
-        BasicMeasurement("sum", sum(values)),
-        BasicMeasurement("mean", mean(values)),
-        BasicMeasurement("var", var(values)),
-        BasicMeasurement("std", std(values)),
+        BasicMeasurement("$base_path/n_values", length(values)),
+        BasicMeasurement("$base_path/sum", sum(values)),
+        BasicMeasurement("$base_path/mean", mean(values)),
+        BasicMeasurement("$base_path/var", var(values)),
+        BasicMeasurement("$base_path/std", std(values)),
     ]
     return measurements
 end
@@ -28,16 +30,18 @@ end
 struct BasicQuantileAggregator <: Aggregator end
 
 function aggregate(
-    ::BasicQuantileAggregator, measurements::Vector{BasicMeasurement{R}}
-) where R <: Real
+    ::BasicQuantileAggregator, 
+    base_path::String,
+    measurements::Vector{<:BasicMeasurement}
+)
     values = [measurement.value for measurement in measurements]
     quantiles = nquantile(values, 4)
     measurements = [
-        BasicMeasurement("minimum", quantiles[1]),
-        BasicMeasurement("lower_quartile", quantiles[2]),
-        BasicMeasurement("median", quantiles[3]),
-        BasicMeasurement("upper_quartile", quantiles[4]),
-        BasicMeasurement("maximum", quantiles[5]),
+        BasicMeasurement("$base_path/minimum", quantiles[1]),
+        BasicMeasurement("$base_path/lower_quartile", quantiles[2]),
+        BasicMeasurement("$base_path/median", quantiles[3]),
+        BasicMeasurement("$base_path/upper_quartile", quantiles[4]),
+        BasicMeasurement("$base_path/maximum", quantiles[5]),
     ]
     return measurements
 end
@@ -45,12 +49,14 @@ end
 struct HigherMomentAggregator <: Aggregator end
 
 function aggregate(
-    ::HigherMomentAggregator, measurements::Vector{BasicMeasurement{R}}
-) where R <: Real
+    ::HigherMomentAggregator, 
+    base_path::String,
+    measurements::Vector{<:BasicMeasurement}
+)
     values = [measurement.value for measurement in measurements]
     measurements = [
-        BasicMeasurement("skew", skewness(values)),
-        BasicMeasurement("kurt", kurtosis(values)),
+        BasicMeasurement("$base_path/skew", skewness(values)),
+        BasicMeasurement("$base_path/kurt", kurtosis(values)),
     ]
     return measurements
 end
@@ -58,13 +64,15 @@ end
 struct OneSampleTTestAggregator <: Aggregator end
 
 function aggregate(
-    ::OneSampleTTestAggregator, measurements::Vector{BasicMeasurement{R}}
-) where R <: Real
+    ::OneSampleTTestAggregator, 
+    base_path::String,
+    measurements::Vector{<:BasicMeasurement}
+)
     values = [measurement.value for measurement in measurements]
     loconf, hiconf = confint(OneSampleTTest(values))
     measurements = [
-        BasicMeasurement("lower_confidence", loconf),
-        BasicMeasurement("upper_confidence", hiconf),
+        BasicMeasurement("$base_path/lower_confidence", loconf),
+        BasicMeasurement("$base_path/upper_confidence", hiconf),
     ]
     return measurements
 end

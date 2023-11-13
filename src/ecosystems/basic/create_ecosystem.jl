@@ -6,7 +6,6 @@ function create_ecosystem(
     evaluation_time::Float64,
     ecosystem::Ecosystem, 
     results::Vector{<:Result}, 
-    reports::Vector{Report}
 )
     individual_outcomes = get_individual_outcomes(results)
     observations = get_observations(results)
@@ -24,13 +23,12 @@ function create_ecosystem(
         evaluations,
         observations,
     )
-    generation_reports = create_reports(state, ecosystem_creator.reporters)
-    append!(reports, generation_reports)
+    reports = create_reports(ecosystem_creator.reporters, state)
     archive!(ecosystem_creator.archiver, reports)
     if generation % ecosystem_creator.garbage_collection_interval == 0
         Base.GC.gc()
     end
-    all_new_species = create_species(state, ecosystem_creator.species_creators)
+    all_new_species = create_species(ecosystem_creator.species_creators, state)
     new_ecosystem = BasicEcosystem(ecosystem_creator.id, all_new_species)
     
     return new_ecosystem

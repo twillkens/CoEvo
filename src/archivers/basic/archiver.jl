@@ -2,11 +2,11 @@ Base.@kwdef struct BasicArchiver <: Archiver
     archive_path::String = "archive.h5"
 end
 
-function archive!(archiver::Archiver, measurement::BasicMeasurement, group::Group)
-    group["value"] = measurement.value
+function archive!(::BasicArchiver, ::NullReport)
+    return
 end
 
-function archive!(::BasicArchiver, report::RuntimeReport)
+function archive!(::BasicArchiver, report::BasicReport{RuntimeMetric, <:BasicMeasurement})
     if report.to_print
         println("-----------------------------------------------------------")
         println("Generation: $(report.generation)")
@@ -31,27 +31,10 @@ function archive!(archiver::BasicArchiver, species::BasicSpecies, group::Group)
     end
 end
 
-function archive!(archiver::BasicArchiver, measurement::SaveAllSpeciesMeasurement, group::Group)
+function archive!(archiver::BasicArchiver, measurement::SnapshotSpeciesMeasurement, group::Group)
     for species in measurement.all_species
         species_id = species.id
         species_group = Group(group, "species/$species_id")
         archive!(archiver, species, species_group)
-    end
-end
-
-function archive!(archiver::BasicArchiver, measurement::GroupMeasurement, group::Group)
-    for (name, sub_measurement) in measurement.measurements
-        sub_group = Group(group, name)
-        archive!(archiver, sub_measurement, sub_group)
-    end
-end
-
-function archive!(archiver::BasicArchiver, report::Report)
-    if report.to_save
-        h5_file = h5open(archiver.archive_path, "r+")
-        base_path = "generations/$(report.generation)/$(report.measurement.id)"
-        group = get_or_make_group!(h5_file, base_path)
-        archive!(archiver, report.measurement, group)
-        close(h5_file)
     end
 end

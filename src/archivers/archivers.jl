@@ -3,9 +3,9 @@ module Archivers
 export Basic
 
 using HDF5: File, Group, create_group
-using ..Measurements: Measurement
 using ..Reporters: Report
 using ..Genotypes: Genotype
+using ..Metrics: Measurement
 
 include("abstract/abstract.jl")
 

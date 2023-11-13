@@ -2,20 +2,18 @@ module Basic
 
 export BasicArchiver
 
-import ...Archivers: archive!, save_genotype!, save_measurement!
+import ...Archivers: archive!
 
 using DataStructures: OrderedDict
 using HDF5: File, Group, h5open
-using ...Individuals: Individual
-using ...Metrics: Metric
-using ...Metrics.Common: AllSpeciesIdentity
-using ...Metrics.Evaluations: AllSpeciesFitness, AbsoluteError
-using ...Metrics.Genotypes: GenotypeSum, GenotypeSize
-using ...Measurements.Statistical: GroupStatisticalMeasurement, BasicStatisticalMeasurement
-using ...Measurements.Common: AllSpeciesMeasurement
+using ...Individuals.Basic: BasicIndividual
+using ...Species.Basic: BasicSpecies
+using ...Metrics: Metric, Measurement, get_name
+using ...Metrics.Common: RuntimeMetric, BasicMeasurement
+using ...Metrics.Species: SnapshotSpeciesMetric, SnapshotSpeciesMeasurement
+using ...Metrics.Species: StatisticalSpeciesMetric
 using ...Reporters: Report
-using ...Reporters.Basic: BasicReport
-using ...Reporters.Runtime: RuntimeReport
+using ...Reporters.Basic: NullReport, BasicReport
 using ..Archivers: Archiver, get_or_make_group!
 
 include("archiver.jl")

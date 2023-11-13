@@ -1,38 +1,34 @@
 module Common
 
-export NullMetric, RuntimeMetric, GlobalStateMetric, BasicMeasurement, BasicGroupMeasurement
+export NullMetric, RuntimeMetric, GlobalStateMetric, BasicMeasurement
 
 using Base: @kwdef
 using ...Evaluators
 using ...Species
 using ..Metrics: Metric, Measurement, measure, get_name
 
-
 struct NullMetric <: Metric end
 
-struct GlobalStateMetric <: Metric end
+Base.@kwdef struct GlobalStateMetric <: Metric 
+    name::String = "global_state"
+    to_print::Union{String, Vector{String}} = "none"
+    to_save::Union{String, Vector{String}} = "all"
+end
 
-struct RuntimeMetric <: Metric end
+Base.@kwdef struct RuntimeMetric <: Metric 
+    name::String = "runtime"
+    to_print::Union{String, Vector{String}} = "all"
+    to_save::Union{String, Vector{String}} = "none"
+end
 
 struct BasicMeasurement{T} <: Measurement
     name::String
     value::T
 end
 
-function BasicMeasurement(metric::Metric, value::T) where T
+function BasicMeasurement(metric::Metric, value::Any)
     name = get_name(metric)
     measurement = BasicMeasurement(name, value)
-    return measurement
-end
-
-struct BasicGroupMeasurement{M <: Measurement} <: Measurement
-    name::String
-    measurements::Vector{M}
-end
-
-function BasicGroupMeasurement(metric::Metric, measurements::Vector{M}) where M <: Measurement
-    name = get_name(metric)
-    measurement = BasicGroupMeasurement(name, measurements)
     return measurement
 end
 

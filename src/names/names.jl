@@ -156,7 +156,7 @@ using ..Environments: step!
 export StatelessEnvironmentCreator
 using ..Environments.Stateless: StatelessEnvironmentCreator
 
-export ContinuousPredictionGameEnvironmentCreator, ContinuousPredictionGameEnvironment
+export ContinuousPredictionGameEnvironment, ContinuousPredictionGameEnvironmentCreator
 using ..Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironment
 using ..Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironmentCreator
 
@@ -192,19 +192,16 @@ using ..Performers.Cache: CachePerformer
 export Metrics, Metric, Measurement, Aggregator, measure, get_name, aggregate
 using ..Metrics: Metrics, Metric, Measurement, Aggregator, measure, get_name, aggregate
 
-export NullMetric, RuntimeMetric, GlobalStateMetric, BasicMeasurement, BasicGroupMeasurement
-using ..Metrics.Common: NullMetric, RuntimeMetric, GlobalStateMetric
-using ..Metrics.Common: BasicMeasurement, BasicGroupMeasurement
+export NullMetric, RuntimeMetric, GlobalStateMetric, BasicMeasurement
+using ..Metrics.Common: NullMetric, RuntimeMetric, GlobalStateMetric, BasicMeasurement
 
-export BasicFeatureAggregator, BasicQuantileAggregator, OneSampleTTestAggregator, HigherMomentAggregator
-using ..Metrics.Aggregators: BasicFeatureAggregator, BasicQuantileAggregator
+export BasicStatisticalAggregator, BasicQuantileAggregator
+export OneSampleTTestAggregator, HigherMomentAggregator
+using ..Metrics.Aggregators: BasicStatisticalAggregator, BasicQuantileAggregator
 using ..Metrics.Aggregators: OneSampleTTestAggregator, HigherMomentAggregator
 
 export EvaluationMetric, FitnessEvaluationMetric
 using ..Metrics.Evaluations: EvaluationMetric, FitnessEvaluationMetric
-
-export IndividualMetric
-using ..Metrics.Individuals: IndividualMetric
 
 export GenotypeMetric, SizeGenotypeMetric, SumGenotypeMetric
 using ..Metrics.Genotypes: GenotypeMetric, SizeGenotypeMetric, SumGenotypeMetric
@@ -223,9 +220,6 @@ using ..Reporters: Reporter, create_report
 
 export BasicReporter
 using ..Reporters.Basic: BasicReporter
-
-export RuntimeReporter
-using ..Reporters.Runtime: RuntimeReporter
 
 # Archivers
 export Archiver, archive!

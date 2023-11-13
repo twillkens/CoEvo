@@ -7,7 +7,8 @@ import ..Observers: observe!
 
 using ..Phenotypes: Phenotype
 using ..Domains: Domain
-using ..Observers: Observer
+using ..Observers: Observer, PhenotypeObserver
+using ..Observers.Common: NullObserver
 
 include("abstract/abstract.jl")
 

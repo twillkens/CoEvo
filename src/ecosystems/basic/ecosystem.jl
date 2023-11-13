@@ -23,7 +23,6 @@ Base.@kwdef struct BasicEcosystemCreator{
     archiver::A
     individual_id_counter::Counter = BasicCounter(0)
     gene_id_counter::Counter = BasicCounter(0)
-    runtime_reporter::RuntimeReporter = RuntimeReporter()
     garbage_collection_interval::Int = 50
 end
 

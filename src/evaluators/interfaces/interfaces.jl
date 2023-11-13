@@ -28,7 +28,7 @@ function evaluate(
     return evaluations
 end
 
-function get_fitnesses(evaluation:::Evaluation)
+function get_fitnesses(evaluation::Evaluation)
     throw(ErrorException(
         "`get_fitnesses` not implemented for $evaluation.")
     )

@@ -8,6 +8,7 @@ import ...Phenotypes: create_phenotype, act!, reset!
 
 using ....Genotypes
 using ....Genotypes.FunctionGraphs
+using ....Genotypes.FunctionGraphs: FUNCTION_MAP
 using ...Phenotypes
 
 struct LinearizedFunctionGraphPhenotypeCreator <: PhenotypeCreator end

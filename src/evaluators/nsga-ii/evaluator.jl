@@ -13,7 +13,7 @@ Base.@kwdef struct NSGAIIEvaluator <: Evaluator
 end
 
 struct NSGAIIEvaluation <: Evaluation
-    species_id::String
+    id::String
     records::Vector{NSGAIIRecord}
     scalar_fitness_evaluation::ScalarFitnessEvaluation
 end
