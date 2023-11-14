@@ -16,7 +16,7 @@ Represents a species population and its offspring.
 - `population::OrderedDict{Int, I}`: Current population.
 - `children::OrderedDict{Int, I}`: Offspring of the population.
 """
-struct BasicSpecies{I <: Individual} <: AbstractSpecies
+Base.@kwdef struct BasicSpecies{I <: Individual} <: AbstractSpecies
     id::String
     population::Vector{I}
     children::Vector{I}

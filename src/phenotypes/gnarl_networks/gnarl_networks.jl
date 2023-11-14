@@ -36,6 +36,7 @@ struct NodeOperation
 end
 
 struct GnarlNetworkPhenotype <: Phenotype
+    id::Int
     n_input_nodes::Int
     n_output_nodes::Int
     neurons::Dict{Float32, Neuron}
@@ -58,7 +59,7 @@ function Base.show(io::IO, phenotype::GnarlNetworkPhenotype)
     println(io, "GnarlNetwork Phenotype(#Input Nodes: $(phenotype.n_input_nodes), #Output Nodes: $(phenotype.n_output_nodes), #Neurons: $(length(phenotype.neurons)), #Operations: $(length(phenotype.operations)))")
 end
 
-function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype)
+function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype, id::Int)
     neuron_positions = get_neuron_positions(genotype)
     neurons = Dict(
         position => Neuron(position, 0.0f0)
@@ -84,7 +85,7 @@ function create_phenotype(::PhenotypeCreator, genotype::GnarlNetworkGenotype)
         for position in neuron_positions
     ]
     phenotype = GnarlNetworkPhenotype(
-        genotype.n_input_nodes, genotype.n_output_nodes, neurons, operations
+        id, genotype.n_input_nodes, genotype.n_output_nodes, neurons, operations
     )
     return phenotype
 end

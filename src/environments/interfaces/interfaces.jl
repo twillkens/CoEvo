@@ -1,14 +1,19 @@
 export create_environment, get_phenotypes, step!, get_outcome_set, is_active, observe!
 
 function create_environment(
-    environment_creator::EnvironmentCreator, 
-    phenotypes::Vector{Phenotype},
-    phenotype_ids::Vector{Int},
-) #where {P <: Phenotype}
+    environment_creator::EnvironmentCreator, phenotype_1::Phenotype, phenotype_2::Phenotype
+)
     throw(ErrorException(
-        "`create_environment` not implemented for $environment_creator and $phenotypes with ids $phenotype_ids"
+        "`create_environment` not implemented for $environment_creator with phenotypes $phenotype_1 and $phenotype_2"
         )
     )
+end
+
+function create_environment(
+    environment_creator::EnvironmentCreator, 
+    phenotypes::Vector{<:Phenotype},
+) #where {P <: Phenotype}
+    create_environment(environment_creator, phenotypes[1], phenotypes[2])
 end
 
 function get_phenotypes(environment::Environment)::Vector{Pair{Int, Phenotype}}

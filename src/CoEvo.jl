@@ -56,13 +56,13 @@ include("genotypes/genotypes.jl")
 using .Genotypes: Genotypes
 println("loaded genotypes")
 
-include("phenotypes/phenotypes.jl")
-using .Phenotypes: Phenotypes
-println("loaded phenotypes")
-
 include("individuals/individuals.jl")
 using .Individuals: Individuals
 println("loaded individuals")
+
+include("phenotypes/phenotypes.jl")
+using .Phenotypes: Phenotypes
+println("loaded phenotypes")
 
 include("species/species.jl")
 using .Species: Species

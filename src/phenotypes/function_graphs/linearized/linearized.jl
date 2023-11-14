@@ -29,6 +29,7 @@ end
 end
 
 @kwdef struct LinearizedFunctionGraphPhenotype <: Phenotype
+    id::Int
     n_input_nodes::Int
     n_bias_nodes::Int
     n_hidden_nodes::Int
@@ -130,7 +131,7 @@ function make_linearized_nodes(
 end
 
 function create_phenotype(
-    ::LinearizedFunctionGraphPhenotypeCreator, genotype::FunctionGraphGenotype
+    ::LinearizedFunctionGraphPhenotypeCreator, genotype::FunctionGraphGenotype, id::Int
 )::LinearizedFunctionGraphPhenotype
     genotype = minimize(genotype)
     layers = construct_layers(genotype)
@@ -142,6 +143,7 @@ function create_phenotype(
     output_values = zeros(Float32, n_outputs)
 
     phenotype = LinearizedFunctionGraphPhenotype(
+        id = id,
         n_input_nodes = length(genotype.input_node_ids),
         n_bias_nodes = length(genotype.bias_node_ids),
         n_hidden_nodes = length(genotype.hidden_node_ids),

@@ -10,7 +10,7 @@ export BasicCoevolutionaryState, BasicCoevolutionaryStateCreator, create_species
     individual_id_counter::Counter  # Counter for generating unique individual IDs
     gene_id_counter::Counter  # Counter for generating unique gene IDs
     species::Vector{<:AbstractSpecies}  # Species in the ecosystem
-    individual_outcomes::Dict{Int, SortedDict{Int, Float64}}  # Processed outcomes for each individual
+    individual_outcomes::Dict{Int, Dict{Int, Float64}}  # Processed outcomes for each individual
     evaluations::Vector{<:Evaluation}  # Species evaluations based on the results
     observations::Vector{<:Observation}  # Extracted observations from results
 end

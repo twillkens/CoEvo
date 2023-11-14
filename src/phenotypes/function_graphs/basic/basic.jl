@@ -60,6 +60,7 @@ end
 
 
 @kwdef struct BasicFunctionGraphPhenotype <: Phenotype
+    id::Int
     input_node_ids::Vector{Int}
     bias_node_ids::Vector{Int}
     hidden_node_ids::Vector{Int}
@@ -88,9 +89,10 @@ function init_stateful_nodes_from_genotype(genotype::FunctionGraphGenotype)
     return all_nodes
 end
 
-function create_phenotype(::PhenotypeCreator, genotype::FunctionGraphGenotype)
+function create_phenotype(::PhenotypeCreator, genotype::FunctionGraphGenotype, id::Int)
     stateful_nodes = init_stateful_nodes_from_genotype(genotype)
     phenotype = BasicFunctionGraphPhenotype(
+        id = id,
         input_node_ids = genotype.input_node_ids, 
         bias_node_ids = genotype.bias_node_ids,
         hidden_node_ids = genotype.hidden_node_ids,

@@ -48,7 +48,7 @@ function interact(
     phenotypes::Vector{Phenotype},
 ) where {E <: EnvironmentCreator, M <: MatchMaker, O <: Observer}
     environment_creator = interaction.environment_creator
-    environment = create_environment(environment_creator, phenotypes, individual_ids)
+    environment = create_environment(environment_creator, phenotypes)
     outcome_set = interact(environment, interaction.observers)
     observations = create_observations(interaction.observers)
     result = BasicResult(interaction.id, individual_ids, outcome_set, observations)

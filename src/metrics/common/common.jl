@@ -11,7 +11,7 @@ struct NullMetric <: Metric end
 
 Base.@kwdef struct GlobalStateMetric <: Metric 
     name::String = "global_state"
-    to_print::Union{String, Vector{String}} = "none"
+    to_print::Union{String, Vector{String}} = "all"
     to_save::Union{String, Vector{String}} = "all"
 end
 
@@ -29,6 +29,11 @@ end
 function BasicMeasurement(metric::Metric, value::Any)
     name = get_name(metric)
     measurement = BasicMeasurement(name, value)
+    return measurement
+end
+
+function BasicMeasurement(value::Any)
+    measurement = BasicMeasurement("", value)
     return measurement
 end
 

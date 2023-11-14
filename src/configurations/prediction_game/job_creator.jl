@@ -3,15 +3,15 @@ export make_job_creator
 
 function make_interaction_pairs(configuration::PredictionGameConfiguration)
     INTERACTION_PAIR_DICT = Dict(
-        :two_species_control => [["A", "B"]],
-        :two_species_cooperative => [["Host", "Mutualist"]],
-        :two_species_competitive => [["Host", "Parasite"]],
-        :three_species_control => [["A", "B"],["B", "C"], ["C", "A"]],
-        :three_species_mix => [
+        "two_species_control" => [["A", "B"]],
+        "two_species_cooperative" => [["Host", "Mutualist"]],
+        "two_species_competitive" => [["Host", "Parasite"]],
+        "three_species_control" => [["A", "B"],["B", "C"], ["C", "A"]],
+        "three_species_mix" => [
             ["Host", "Mutualist"], ["Parasite", "Host"], ["Mutualist", "Parasite"]
         ],
-        :three_species_cooperative => [["A", "B"], ["C", "A"], ["B", "C"]],
-        :three_species_competitive => [["A", "B"], ["B", "C"], ["C", "A"]],
+        "three_species_cooperative" => [["A", "B"], ["C", "A"], ["B", "C"]],
+        "three_species_competitive" => [["A", "B"], ["B", "C"], ["C", "A"]],
     )
     ecosystem_topology = configuration.ecosystem_topology
     if ecosystem_topology ∉ keys(INTERACTION_PAIR_DICT)
@@ -23,13 +23,13 @@ end
 
 function make_domains(configuration::PredictionGameConfiguration)
     DOMAIN_DICT = Dict(
-        :two_species_control => [:Control],
-        :two_species_cooperative => [:Affinitive],
-        :two_species_competitive => [:Adversarial],
-        :three_species_control => [:Control, :Control, :Control],
-        :three_species_mix => [:Affinitive, :Adversarial, :Avoidant],
-        :three_species_cooperative => [:Affinitive, :Affinitive, :Avoidant],
-        :three_species_competitive => [:Adversarial, :Adversarial, :Adversarial],
+        "two_species_control" => ["Control"],
+        "two_species_cooperative" => ["Affinitive"],
+        "two_species_competitive" => ["Adversarial"],
+        "three_species_control" => ["Control", "Control", "Control"],
+        "three_species_mix" => ["Affinitive", "Adversarial", "Avoidant"],
+        "three_species_cooperative" => ["Affinitive", "Affinitive", "Avoidant"],
+        "three_species_competitive" => ["Adversarial", "Adversarial", "Adversarial"],
     )
     ecosystem_topology = configuration.ecosystem_topology
     if ecosystem_topology ∉ keys(DOMAIN_DICT)
@@ -44,9 +44,9 @@ function make_environment_creators(configuration::PredictionGameConfiguration)
     episode_length = configuration.episode_length
     communication_dimension = configuration.communication_dimension
     game = configuration.game
-    if game == :continuous_prediction_game
+    if game == "continuous_prediction_game"
         environment_creator_type = ContinuousPredictionGameEnvironmentCreator
-    elseif game == :collision_game
+    elseif game == "collision_game"
         environment_creator_type = CollisionGameEnvironmentCreator
     else
         throw(ArgumentError("Unrecognized game: $game"))

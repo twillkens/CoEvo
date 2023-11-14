@@ -14,7 +14,6 @@ Base.@kwdef mutable struct ContinuousPredictionGameEnvironment{
     domain::D
     entity_1::P1
     entity_2::P2
-    entity_ids::Vector{Int}
     episode_length::Int
     timestep::Int = 0
     position_1::Float32 = Float32(π)
@@ -33,7 +32,6 @@ end
 function create_environment(
     environment_creator::ContinuousPredictionGameEnvironmentCreator{D},
     phenotypes::Vector{Phenotype},
-    phenotype_ids::Vector{Int},
 ) where {D <: Domain}
     reset!(phenotypes[1])
     reset!(phenotypes[2])
@@ -41,7 +39,6 @@ function create_environment(
         domain = environment_creator.domain,
         entity_1 = phenotypes[1],
         entity_2 = phenotypes[2],
-        entity_ids = phenotype_ids,
         episode_length = environment_creator.episode_length,
         timestep = 0,
         position_1 = Float32(π),
@@ -60,7 +57,5 @@ function create_environment(
 end
 
 function get_phenotypes(environment::ContinuousPredictionGameEnvironment)
-    entity_id_1 = environment.entity_ids[1]
-    entity_id_2 = environment.entity_ids[2]
-    return [entity_id_1 => environment.entity_1, entity_id_2 => environment.entity_2]
+    return [environment.entity_1, environment.entity_2]
 end

@@ -60,15 +60,15 @@ function measure(::NumbersGameDomain{Relativism}, A::Vector{<:Real}, B::Vector{<
     return outcome_decision(A[idx] > B[idx])
 end
 
-function NumbersGameDomain(metric::Symbol)
-    symbol_to_metric = Dict(
-        :Control => Control,
-        :Sum => Sum,
-        :Gradient => Gradient,
-        :Focusing => Focusing,
-        :Relativism => Relativism
+function NumbersGameDomain(metric_string::String)
+    string_to_metric = Dict(
+        "Control" => Control,
+        "Sum" => Sum,
+        "Gradient" => Gradient,
+        "Focusing" => Focusing,
+        "Relativism" => Relativism
     )
-    outcome_metric = symbol_to_metric[metric]()
+    outcome_metric = string_to_metric[metric_string]()
     domain = NumbersGameDomain(outcome_metric)
     return domain
 end

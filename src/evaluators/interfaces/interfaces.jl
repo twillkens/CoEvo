@@ -1,4 +1,4 @@
-export evaluate, get_fitnesses
+export evaluate, get_raw_fitnesses, get_scaled_fitnesses
 
 # TODO: Add observations to the interface.
 
@@ -6,7 +6,7 @@ function evaluate(
     evaluator::Evaluator,
     random_number_generator::AbstractRNG,
     species::AbstractSpecies,
-    outcomes::Dict{Int, SortedDict{Int, Float64}},
+    outcomes::Dict{Int, Dict{Int, Float64}},
     #observations::Vector{<:Observation}
 )
     throw(ErrorException(
@@ -17,7 +17,7 @@ function evaluate(
     evaluators::Vector{<:Evaluator},
     random_number_generator::AbstractRNG,
     species::Vector{<:AbstractSpecies},
-    individual_outcomes::Dict{Int, SortedDict{Int, Float64}},
+    individual_outcomes::Dict{Int, Dict{Int, Float64}},
     #observations::Vector{<:Observation},
 )
     evaluations = [
@@ -28,8 +28,14 @@ function evaluate(
     return evaluations
 end
 
-function get_fitnesses(evaluation::Evaluation)
+function get_raw_fitnesses(evaluation::Evaluation)
     throw(ErrorException(
-        "`get_fitnesses` not implemented for $evaluation.")
+        "`get_raw_fitnesses` not implemented for $evaluation.")
+    )
+end
+
+function get_scaled_fitnesses(evaluation::Evaluation)
+    throw(ErrorException(
+        "`get_scaled_fitnesses` not implemented for $evaluation.")
     )
 end

@@ -43,7 +43,7 @@ phenotype_creator = DefaultPhenotypeCreator()
     genotype = FiniteStateMachineGenotype(start, ones, zeros, links)
     fsm2 = create_phenotype(phenotype_creator, genotype)
 
-    domain = PredictionGameDomain(:Affinitive)
+    domain = PredictionGameDomain("Affinitive")
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
@@ -86,7 +86,7 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = PredictionGameDomain(:Affinitive)
+    domain = PredictionGameDomain("Affinitive")
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
@@ -131,7 +131,7 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = PredictionGameDomain(:Adversarial)
+    domain = PredictionGameDomain("Adversarial")
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
@@ -180,7 +180,7 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = PredictionGameDomain(:Affinitive)
+    domain = PredictionGameDomain("Affinitive")
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)
@@ -229,7 +229,7 @@ end
     )
     fsm2 = FiniteStateMachinePhenotype((start, start_bit), links)
 
-    domain = PredictionGameDomain(:Adversarial)
+    domain = PredictionGameDomain("Adversarial")
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     environment = create_environment(environment_creator, Phenotype[fsm1, fsm2])
     while is_active(environment)

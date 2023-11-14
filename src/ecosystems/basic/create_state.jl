@@ -6,7 +6,7 @@ function create_state(
     last_reproduction_time::Float64,
     evaluation_time::Float64,
     ecosystem::Ecosystem,
-    individual_outcomes::Dict{Int, SortedDict{Int, Float64}},
+    individual_outcomes::Dict{Int, Dict{Int, Float64}},
     evaluations::Vector{<:Evaluation},
     observations::Vector{<:Observation},
 )

@@ -3,9 +3,10 @@ module Aggregators
 export Aggregator, BasicStatisticalAggregator, BasicQuantileAggregator, aggregate
 export HigherMomentAggregator, OneSampleTTestAggregator
 
+import ..Metrics: aggregate
+
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
 using HypothesisTests: OneSampleTTest, confint
-
 using ..Metrics: Metric, Measurement, Aggregator
 using ..Metrics.Common: BasicMeasurement
 

@@ -3,10 +3,10 @@ export make_reproducer_types, make_substrate_types, make_species_ids, make_speci
 function number_of_species(configuration::PredictionGameConfiguration)
     ecosystem_topology = configuration.ecosystem_topology
     two_species_ecologies = [
-        :two_species_control, :two_species_cooperative, :two_species_competitive
+        "two_species_control", "two_species_cooperative", "two_species_competitive"
     ]
     three_species_ecologies = [
-        :three_species_control, :three_species_mix, :three_species_cooperative, :three_species_competitive
+        "three_species_control", "three_species_mix", "three_species_cooperative", "three_species_competitive"
     ]
     if ecosystem_topology in two_species_ecologies
         return 2
@@ -22,10 +22,10 @@ function make_reproducer_types(configuration::PredictionGameConfiguration)
                       (number_of_species(configuration) - 1)
     reproduction_method = configuration.reproduction_method
     scalar_fitness_evaluator = ScalarFitnessEvaluator(maximum_fitness = maximum_fitness)
-    if reproduction_method == :roulette
+    if reproduction_method == "roulette"
         evaluator = scalar_fitness_evaluator
         selector = FitnessProportionateSelector(n_parents = configuration.n_population)
-    elseif reproduction_method == :disco
+    elseif reproduction_method == "disco"
         evaluator = NSGAIIEvaluator(
             maximize = true, 
             perform_disco = true, 
@@ -46,7 +46,7 @@ end
 function make_substrate_types(configuration::PredictionGameConfiguration)
     substrate = configuration.substrate
     communication_dimension = configuration.communication_dimension
-    if substrate == :function_graphs
+    if substrate == "function_graphs"
         mutation_probabilities::Dict{Symbol, Float64} = Dict(
             :add_function => 1 / 8,
             :remove_function => 1 / 8,
@@ -63,7 +63,7 @@ function make_substrate_types(configuration::PredictionGameConfiguration)
         )
         phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
         mutators = [FunctionGraphMutator(mutation_probabilities = mutation_probabilities)]
-    elseif substrate == :gnarl_networks
+    elseif substrate == "gnarl_networks"
         genotype_creator = GnarlNetworkGenotypeCreator(
             n_input_nodes = 1 + communication_dimension, 
             n_output_nodes = 1 + communication_dimension
@@ -78,13 +78,13 @@ end
 
 function make_species_ids(configuration::PredictionGameConfiguration)
     SPECIES_ID_DICT = Dict(
-        :two_species_control => ["A", "B"],
-        :two_species_cooperative => ["Host", "Mutualist"],
-        :two_species_competitive => ["Host", "Parasite"],
-        :three_species_control => ["A", "B", "C"],
-        :three_species_mix => ["Host", "Mutualist", "Parasite"],
-        :three_species_cooperative => ["A", "B", "C"],
-        :three_species_competitive => ["A", "B", "C"],
+        "two_species_control" => ["A", "B"],
+        "two_species_cooperative" => ["Host", "Mutualist"],
+        "two_species_competitive" => ["Host", "Parasite"],
+        "three_species_control" => ["A", "B", "C"],
+        "three_species_mix" => ["Host", "Mutualist", "Parasite"],
+        "three_species_cooperative" => ["A", "B", "C"],
+        "three_species_competitive" => ["A", "B", "C"],
     )
     ecosystem_topology = configuration.ecosystem_topology
     if ecosystem_topology ∉ keys(SPECIES_ID_DICT)

@@ -1,8 +1,10 @@
 module Evaluations
 
-export EvaluationMetric, FitnessEvaluationMetric, measure
+export EvaluationMetric, measure, RawFitnessEvaluationMetric, ScaledFitnessEvaluationMetric
 
-using ...Evaluators: Evaluation, get_fitnesses
+import ..Metrics: measure
+
+using ...Evaluators: Evaluation, get_raw_fitnesses, get_scaled_fitnesses
 using ..Metrics: Metric, Measurement, Aggregator, aggregate
 using ..Metrics.Common: BasicMeasurement
 using ..Metrics.Aggregators: BasicStatisticalAggregator, BasicQuantileAggregator
@@ -16,14 +18,25 @@ function measure(metric::EvaluationMetric, evaluations::Vector{<:Evaluation})
     return measurements
 end
 
-Base.@kwdef struct FitnessEvaluationMetric{A <: Aggregator} <:  EvaluationMetric
-    name::String = "Fitness"
+Base.@kwdef struct RawFitnessEvaluationMetric <:  EvaluationMetric
+    name::String = "raw_fitness"
 end
 
-function measure(metric::FitnessEvaluationMetric, evaluation::Evaluation)
-    fitnesses = get_fitnesses(evaluation)
-    measurements = [BasicMeasurement(metric, fitness) for fitness in fitnesses]
+Base.@kwdef struct ScaledFitnessEvaluationMetric <:  EvaluationMetric
+    name::String = "scaled_fitness"
+end
+
+function measure(::RawFitnessEvaluationMetric, evaluation::Evaluation)
+    fitnesses = get_raw_fitnesses(evaluation)
+    measurements = [BasicMeasurement("raw_fitness", fitness) for fitness in fitnesses]
+    return measurements
+end
+
+function measure(::ScaledFitnessEvaluationMetric, evaluation::Evaluation)
+    fitnesses = get_scaled_fitnesses(evaluation)
+    measurements = [BasicMeasurement("scaled_fitness", fitness) for fitness in fitnesses]
     return measurements
 end
 
 end
+

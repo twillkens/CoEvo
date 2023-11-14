@@ -40,7 +40,7 @@ backward_genotype = GnarlNetworkGenotype(
     ]
 )
 
-domain = PredictionGameDomain(:Control)
+domain = PredictionGameDomain("Control")
 creator = CollisionGameEnvironmentCreator(
     domain = domain, 
     initial_distance = 5.0, 
@@ -124,7 +124,7 @@ end
 
 @testset "get_outcome_set" begin
     creator = CollisionGameEnvironmentCreator(
-        domain = PredictionGameDomain(:Control), 
+        domain = PredictionGameDomain("Control"), 
         initial_distance = 5.0, 
         episode_length = 10
     )
@@ -140,7 +140,7 @@ end
 
 
     creator = CollisionGameEnvironmentCreator(
-        domain = PredictionGameDomain(:Affinitive), 
+        domain = PredictionGameDomain("Affinitive"), 
         initial_distance = 5.0, 
         episode_length = 10
     )
@@ -163,7 +163,7 @@ end
     @test outcome_set == [0.0, 0.0]
 
     creator = CollisionGameEnvironmentCreator(
-        domain = PredictionGameDomain(:Adversarial), 
+        domain = PredictionGameDomain("Adversarial"), 
         initial_distance = 5.0, 
         episode_length = 10
     )
@@ -186,7 +186,7 @@ end
     @test outcome_set == [0.0, 1.0]
 
     creator = CollisionGameEnvironmentCreator(
-        domain = PredictionGameDomain(:Avoidant), 
+        domain = PredictionGameDomain("Avoidant"), 
         initial_distance = 5.0, 
         episode_length = 10
     )

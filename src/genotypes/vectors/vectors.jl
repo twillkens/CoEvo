@@ -30,6 +30,7 @@ end
 Base.length(individual::VectorGenotype) = length(individual.genes)
 Base.:(==)(indiv1::VectorGenotype, indiv2::BasicVectorGenotype) = indiv1.genes == indiv2.genes
 Base.hash(individual::VectorGenotype, h::UInt) = hash(individual.genes, h)
+Base.sum(individual::VectorGenotype) = sum(individual.genes)
 
 """
     BasicVectorGenotypeCreator{T <: Real}

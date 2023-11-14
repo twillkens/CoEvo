@@ -9,31 +9,30 @@ using LinearAlgebra
 using Random
 using StableRNGs: StableRNG
 using StatsBase: mean
-using DataStructures: SortedDict
-#using .Genotypes.Vectors: BasicVectorGenotype
-#using .Individuals.Basic: BasicIndividual
-#using .Species.Basic: BasicSpecies
-#using .Evaluators.NSGAII
+using .Genotypes.Vectors: BasicVectorGenotype
+using .Individuals.Basic: BasicIndividual
+using .Species.Basic: BasicSpecies
+using .Evaluators.NSGAII
 
 @testset "Compression of the Interaction Matrix" begin
     random_number_generator = StableRNG(42)
 
-    tests_1 = SortedDict(1 => 5.0, 2 => 1.0, 3 => 3.0, 4 => 1.0)
-    tests_2 = SortedDict(1 => 5.0, 2 => 2.0, 3 => 5.0, 4 => 1.0)
-    tests_3 = SortedDict(1 => 1.0, 2 => 3.0, 3 => 3.0, 4 => 5.0)
-    tests_4 = SortedDict(1 => 2.0, 2 => 3.0, 3 => 2.0, 4 => 3.0)
+    tests_1 = Dict(1 => 5.0, 2 => 1.0, 3 => 3.0, 4 => 1.0)
+    tests_2 = Dict(1 => 5.0, 2 => 2.0, 3 => 5.0, 4 => 1.0)
+    tests_3 = Dict(1 => 1.0, 2 => 3.0, 3 => 3.0, 4 => 5.0)
+    tests_4 = Dict(1 => 2.0, 2 => 3.0, 3 => 2.0, 4 => 3.0)
 
-    outcomes = Dict{Int64, SortedDict{Int, Float64}}(
+    outcomes = Dict{Int64, Dict{Int, Float64}}(
         1 => tests_1,
         2 => tests_2,
         3 => tests_3,
         4 => tests_4,
     )
     evaluator = NSGAIIEvaluator(
+        scalar_fitness_evaluator = ScalarFitnessEvaluator(),
         maximize = true,
         perform_disco = true,
         max_clusters = 2,
-        ScalarFitnessEvaluator = ScalarFitnessEvaluator(),
     )
 
     population = [
@@ -44,15 +43,11 @@ using DataStructures: SortedDict
         BasicIndividual(id, BasicVectorGenotype([0.0]), Int[]) for id in 5:8
     ]
 
-    species = BasicSpecies(
-        "species_1",
-        population,
-        children
-    )
+    species = BasicSpecies("species_1", population, children)
 
     individual_tests = make_individual_tests(species.population, outcomes)
 
-    derived_tests = get_derived_tests(random_number_generator, individual_tests, 2)
+    derived_tests = get_derived_tests(random_number_generator, individual_tests, 2, :euclidean)
 
     @test derived_tests[1] == [4.0, 1.0]
     @test derived_tests[2] == [5.0, 1.5]

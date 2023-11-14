@@ -48,14 +48,14 @@ function measure(::PredictionGameDomain{Avoidant}, distance_score::Float64)
     return outcome_set
 end
 
-function PredictionGameDomain(metric::Symbol)
-    symbol_to_metric = Dict(
-        :Control => Control,
-        :Adversarial => Adversarial,
-        :Affinitive => Affinitive,
-        :Avoidant => Avoidant,
+function PredictionGameDomain(metric_string::String)
+    string_to_metric = Dict(
+        "Control" => Control,
+        "Adversarial" => Adversarial,
+        "Affinitive" => Affinitive,
+        "Avoidant" => Avoidant,
     )
-    metric = symbol_to_metric[metric]()
+    metric = string_to_metric[metric_string]()
     domain = PredictionGameDomain(metric)
     return domain
 end

@@ -1,7 +1,7 @@
 export measure, get_name, aggregate
 
 function measure(metric::Metric, args...)
-    throw(ErrorException("measure not implemented for metric: $metric with args: $args"))
+    throw(ErrorException("measure not implemented for metric: $metric with args: $(typeof(args))"))
 end
 
 function get_name(metric::Metric)

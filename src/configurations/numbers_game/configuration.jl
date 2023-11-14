@@ -2,8 +2,8 @@
 @kwdef mutable struct NumbersGameConfiguration <: Configuration
     trial::Int = 1
     seed::Int = 777
-    reproduction_method::Symbol = :disco
-    outcome_metric::Symbol = :Control
+    reproduction_method::String = "disco"
+    outcome_metric::String = "Control"
     random_number_generator::Union{AbstractRNG, Nothing} = nothing
     noise_standard_deviation::Float64 = 0.1
     individual_id_counter_state::Int = 1
@@ -13,6 +13,6 @@
     n_children::Int = n_population
     tournament_size::Int = 3
     max_clusters::Int = 5
-    cohorts::Vector{Symbol} = [:population, :children]
-    report_type::Symbol = :silent_test
+    cohorts::Vector{String} = ["population", "children"]
+    report_type::String = "silent_test"
 end

@@ -3,7 +3,7 @@
 function evaluate(
     ecosystem_creator::BasicEcosystemCreator, 
     ecosystem::Ecosystem, 
-    individual_outcomes::Dict{Int, SortedDict{Int, Float64}}, 
+    individual_outcomes::Dict{Int, Dict{Int, Float64}}, 
     observations::Vector{<:Observation}
 )
     evaluators = [

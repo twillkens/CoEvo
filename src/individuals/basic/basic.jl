@@ -15,6 +15,14 @@ struct BasicIndividual{G <: Genotype} <: Individual
     parent_ids::Vector{Int}
 end
 
+function BasicIndividual(genotype::Genotype)
+    return BasicIndividual(0, genotype, Int[])
+end
+
+function BasicIndividual(id::Int, genotype::Genotype)
+    return BasicIndividual(id, genotype, Int[])
+end
+
 struct BasicIndividualCreator <: IndividualCreator end
 
 function create_individuals(

@@ -2,7 +2,7 @@ module ScalarFitness
 
 export ScalarFitnessEvaluation, ScalarFitnessEvaluator, ScalarFitnessRecord
 
-import ..Evaluators: evaluate, get_fitnesses
+import ..Evaluators: evaluate, get_raw_fitnesses, get_scaled_fitnesses
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
@@ -35,7 +35,7 @@ function evaluate(
     evaluator::ScalarFitnessEvaluator,
     ::AbstractRNG,
     species::AbstractSpecies,
-    outcomes::Dict{Int, SortedDict{Int, Float64}}
+    outcomes::Dict{Int, Dict{Int, Float64}}
 )
     individuals = [species.population ; species.children]
     filter!(individual -> individual.id in keys(outcomes), individuals)
@@ -81,8 +81,12 @@ function evaluate(
     return evaluation
 end
 
-function get_fitnesses(evaluation::ScalarFitnessEvaluation)
-    return [record.fitness for record in evaluation.records]
+function get_raw_fitnesses(evaluation::ScalarFitnessEvaluation)
+    return [record.raw_fitness for record in evaluation.records]
+end
+
+function get_scaled_fitnesses(evaluation::ScalarFitnessEvaluation)
+    return [record.scaled_fitness for record in evaluation.records]
 end
 
 end

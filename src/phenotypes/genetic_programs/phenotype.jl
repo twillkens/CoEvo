@@ -1,26 +1,26 @@
 export GeneticProgramPhenotype
 
 mutable struct GeneticProgramPhenotype <: Phenotype
+    id::Int
     tape::Vector{Real}
     head::Int
     linear_nodes::Vector{LinearNode}
 end
 
 function GeneticProgramPhenotype(
-    genotype::GeneticProgramGenotype, tape::Vector{<:Real} = [0.0]
+    genotype::GeneticProgramGenotype, id::Int = 1, tape::Vector{<:Real} = [0.0]
 )
     linear_nodes = linearize(genotype)
     head = length(tape)
-    GeneticProgramPhenotype(tape, head, linear_nodes)
+    GeneticProgramPhenotype(id, tape, head, linear_nodes)
 end
 
-function create_phenotype(::PhenotypeCreator, geno::GeneticProgramGenotype)
-    GeneticProgramPhenotype(geno)
+function create_phenotype(::PhenotypeCreator, geno::GeneticProgramGenotype, id::Int)
+    GeneticProgramPhenotype(geno, id)
 end
 
 function reset!(phenotype::GeneticProgramPhenotype)
     phenotype.head = length(phenotype.tape)
-    
 end
 
 

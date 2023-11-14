@@ -6,35 +6,50 @@ function archive!(::BasicArchiver, ::NullReport)
     return
 end
 
-function archive!(::BasicArchiver, report::BasicReport{RuntimeMetric, <:BasicMeasurement})
-    if report.to_print
-        println("-----------------------------------------------------------")
-        println("Generation: $(report.generation)")
-        println("Evaluation time: $(report.eval_time)")
-        println("Reproduction time: $(report.reproduce_time)")
-    end
+function archive!(::BasicArchiver, ::Vector{<:NullReport})
+    return
 end
 
-function archive!(archiver::BasicArchiver, individual::BasicIndividual, group::Group)
-    group["parent_ids"] = individual.parent_ids
-    genotype_group = Group(group, "genotype")
-    archive!(archiver, genotype_group, individual.genotype)
+function get_category(full_key::String)::String
+    split_keys = split(full_key, "/")
+    return join(split_keys[1:end-1], "/")
 end
 
-function archive!(archiver::BasicArchiver, species::BasicSpecies, group::Group)
-    population_ids = [individual.id for individual in species.population]
-    group["population_ids"] = population_ids
-    for child in species.children
-        child_id = string(child.id)
-        child_group = Group(group, "children/$child_id")
-        archive!(archiver, child_group, child)
-    end
+function get_label(full_key::String)::String
+    split_keys = split(full_key, "/")
+    return split_keys[end]
 end
 
-function archive!(archiver::BasicArchiver, measurement::SnapshotSpeciesMeasurement, group::Group)
-    for species in measurement.all_species
-        species_id = species.id
-        species_group = Group(group, "species/$species_id")
-        archive!(archiver, species, species_group)
+function archive!(::BasicArchiver, value::Any, group::Group, label::String)
+    group[label] = value
+end
+
+function archive!(archiver::BasicArchiver, value::Genotype, group::Group, label::String)
+    group = get_or_make_group!(group, label)
+    archive!(archiver, value, group)
+end
+
+function archive!(
+    archiver::BasicArchiver, measurement::BasicMeasurement, file::File, base_path::String = ""
+)
+    category_path = get_category(measurement.name)
+    group_path = "$(base_path)/$(category_path)"
+    group = get_or_make_group!(file, group_path)
+    label = get_label(measurement.name)
+    archive!(archiver, measurement.value, group, label)
+end
+
+function archive!(archiver::BasicArchiver, reports::Vector{<:BasicReport})
+    reports_to_print = [report for report in reports if report.to_print]
+    print_reports(reports_to_print)
+
+    file = h5open(archiver.archive_path, "r+")
+    reports_to_save = [report for report in reports if report.to_save]
+    for report in reports_to_save
+        base_path = "generations/$(report.generation)"
+        for measurement in report.measurements
+            archive!(archiver, measurement, file, base_path)
+        end
     end
+    close(file)
 end
