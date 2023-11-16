@@ -15,7 +15,7 @@ struct BasicResult{O <: Observation} <: Result
     observations::Vector{O}
 end
 
-function get_individual_outcomes(result::BasicResult)
+function get_individual_outcomes(result::B) where {B <: BasicResult}
     if length(result.individual_ids) != 2
         throw(ErrorException("BasicResult must have exactly two individual IDs"))
     end
