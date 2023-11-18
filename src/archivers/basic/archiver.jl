@@ -36,7 +36,6 @@ end
 
 function archive!(
     archiver::BasicArchiver, 
-    gen::Int, 
     report::BasicReport{<:Metric, GroupStatisticalMeasurement}
 )
     if report.to_print
