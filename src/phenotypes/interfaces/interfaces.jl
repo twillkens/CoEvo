@@ -7,7 +7,7 @@ function create_phenotype(phenotype_creator::PhenotypeCreator, genotype::Genotyp
 end
 
 function create_phenotype(phenotype_creator::PhenotypeCreator, genotype::Genotype)
-    return create_phenotype(phenotype_creator, genotype, 1)
+    return create_phenotype(phenotype_creator, genotype, 0)
 end
 
 function create_phenotype(

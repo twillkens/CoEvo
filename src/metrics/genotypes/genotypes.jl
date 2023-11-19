@@ -37,10 +37,9 @@ function get_name(metric::SizeGenotypeMetric)
 end
 
 function measure(metric::SizeGenotypeMetric, genotype::Genotype)
-    name = get_name(metric)
     genotype = metric.perform_minimization ? minimize(genotype) : genotype
     genotype_size = get_size(genotype)
-    measurement = BasicMeasurement(name, genotype_size)
+    measurement = BasicMeasurement(metric, genotype_size)
     return measurement
 end
 
@@ -49,9 +48,8 @@ Base.@kwdef struct SumGenotypeMetric <: GenotypeMetric
 end
 
 function measure(metric::SumGenotypeMetric, genotype::Genotype)
-    name = get_name(metric)
     genotype_sum = sum(genotype)
-    measurement = BasicMeasurement(name, genotype_sum)
+    measurement = BasicMeasurement(metric, genotype_sum)
     return measurement
 end
 

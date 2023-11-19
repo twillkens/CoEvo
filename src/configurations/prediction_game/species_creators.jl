@@ -6,7 +6,8 @@ function number_of_species(configuration::PredictionGameConfiguration)
         "two_species_control", "two_species_cooperative", "two_species_competitive"
     ]
     three_species_ecologies = [
-        "three_species_control", "three_species_mix", "three_species_cooperative", "three_species_competitive"
+        "three_species_control", 
+        "three_species_mix", "three_species_cooperative", "three_species_competitive"
     ]
     if ecosystem_topology in two_species_ecologies
         return 2
@@ -48,11 +49,11 @@ function make_substrate_types(configuration::PredictionGameConfiguration)
     communication_dimension = configuration.communication_dimension
     if substrate == "function_graphs"
         mutation_probabilities::Dict{Symbol, Float64} = Dict(
-            :add_function => 1 / 8,
-            :remove_function => 1 / 8,
-            :swap_function => 1 / 8,
-            :redirect_connection => 1 / 8,
-            :identity => 1 /2
+            :add_function => 1 / 4,
+            :remove_function => 1 / 4,
+            :swap_function => 1 / 4,
+            :redirect_connection => 1 / 4,
+            #:identity => 1 /2
         )
 
         genotype_creator = FunctionGraphGenotypeCreator(
@@ -79,10 +80,10 @@ end
 function make_species_ids(configuration::PredictionGameConfiguration)
     SPECIES_ID_DICT = Dict(
         "two_species_control" => ["A", "B"],
-        "two_species_cooperative" => ["Host", "Mutualist"],
-        "two_species_competitive" => ["Host", "Parasite"],
+        "two_species_cooperative" => ["H", "M"],
+        "two_species_competitive" => ["H", "P"],
         "three_species_control" => ["A", "B", "C"],
-        "three_species_mix" => ["Host", "Mutualist", "Parasite"],
+        "three_species_mix" => ["H", "M", "P"],
         "three_species_cooperative" => ["A", "B", "C"],
         "three_species_competitive" => ["A", "B", "C"],
     )

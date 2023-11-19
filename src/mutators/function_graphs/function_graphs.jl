@@ -384,11 +384,11 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
     validate_genotypes::Bool = false
     # Uniform probability of each type of structural change
     mutation_probabilities::Dict{Symbol, Float64} = Dict(
-        :add_function => 1 / 8,
-        :remove_function => 1 / 8,
-        :swap_function => 1 / 8,
-        :redirect_connection => 1 / 8,
-        :identity => 1 /2
+        :add_function => 1 / 4,
+        :remove_function => 1 / 4,
+        :swap_function => 1 / 4,
+        :redirect_connection => 1 / 4,
+        # :identity => 0 / 2
     )
     mutation_map::Dict{Symbol, Function} = Dict(
         :add_function => add_function,

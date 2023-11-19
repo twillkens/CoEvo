@@ -97,7 +97,6 @@ function create_node_id_to_position_dict(ordered_node_ids::Vector{Int})
     return Dict(id => idx for (idx, id) in enumerate(ordered_node_ids))
 end
 
-
 function make_linearized_nodes(
     genotype::FunctionGraphGenotype, 
     ordered_node_ids::Vector{Int}, 

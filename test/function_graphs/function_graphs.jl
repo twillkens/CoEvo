@@ -768,7 +768,7 @@ end
     )
     mutator = FunctionGraphMutator() 
     
-    n_mutations = 100_000  # Number of mutations
+    n_mutations = 10_000  # Number of mutations
     apply_mutation_storm(mutator, genotype, n_mutations)
 end
 

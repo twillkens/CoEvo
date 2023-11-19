@@ -4,12 +4,10 @@ export make_job_creator
 function make_interaction_pairs(configuration::PredictionGameConfiguration)
     INTERACTION_PAIR_DICT = Dict(
         "two_species_control" => [["A", "B"]],
-        "two_species_cooperative" => [["Host", "Mutualist"]],
-        "two_species_competitive" => [["Host", "Parasite"]],
+        "two_species_cooperative" => [["H", "M"]],
+        "two_species_competitive" => [["P", "H"]],
         "three_species_control" => [["A", "B"],["B", "C"], ["C", "A"]],
-        "three_species_mix" => [
-            ["Host", "Mutualist"], ["Parasite", "Host"], ["Mutualist", "Parasite"]
-        ],
+        "three_species_mix" => [["H", "M"], ["P", "H"], ["M", "P"]],
         "three_species_cooperative" => [["A", "B"], ["C", "A"], ["B", "C"]],
         "three_species_competitive" => [["A", "B"], ["B", "C"], ["C", "A"]],
     )

@@ -1,6 +1,6 @@
 export NSGAIIEvaluator, NSGAIIEvaluation
-export evaluate, make_individual_tests, calculate_fitnesses
-export check_for_nan_in_fitnesses, create_records, evaluate, get_fitnesses
+export evaluate, make_individual_tests, calculate_fitnesses, check_for_nan_in_fitnesses
+export create_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
 
 Base.@kwdef struct NSGAIIEvaluator <: Evaluator 
     scalar_fitness_evaluator::ScalarFitnessEvaluator = ScalarFitnessEvaluator()
@@ -17,7 +17,6 @@ struct NSGAIIEvaluation <: Evaluation
     records::Vector{NSGAIIRecord}
     scalar_fitness_evaluation::ScalarFitnessEvaluation
 end
-
 
 function convert_to_sorteddict(dict::Dict{Int, Dict{Int, Float64}})::SortedDict{Int, SortedDict{Int, Float64}}
     sorted_outer = SortedDict{Int, SortedDict{Int, Float64}}()

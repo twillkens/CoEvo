@@ -6,6 +6,7 @@ import ..Reporters: create_report, print_reports
 
 using DataStructures: OrderedDict
 using ...Metrics: Metric, Measurement, measure
+using ...Metrics.Common: NullMetric
 using ...States: State
 using ..Reporters: Reporter, Report
 
@@ -33,7 +34,7 @@ function create_report(reporter::BasicReporter, state::State)
     to_print = reporter.print_interval > 0 && generation % reporter.print_interval == 0
     to_save = reporter.save_interval > 0 && generation % reporter.save_interval == 0
     if !to_print && !to_save
-        return NullReport()
+        return BasicReport(NullMetric(), Measurement[], trial, generation, false, false)
     end
     measurements = measure(metric, state)
     report = BasicReport(metric, measurements, trial, generation, to_print, to_save)

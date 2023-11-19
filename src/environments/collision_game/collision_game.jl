@@ -34,9 +34,10 @@ end
 
 function create_environment(
     environment_creator::CollisionGameEnvironmentCreator{D},
-    phenotypes::Vector{Phenotype}
+    phenotype_1::Phenotype,
+    phenotype_2::Phenotype
 ) where {D <: Domain}
-    entity_1, entity_2 = phenotypes
+    entity_1, entity_2 = phenotype_1, phenotype_2
     reset!(entity_1)
     reset!(entity_2)
     initial_distance = environment_creator.initial_distance

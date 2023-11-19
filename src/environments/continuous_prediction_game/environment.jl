@@ -31,14 +31,15 @@ end
 
 function create_environment(
     environment_creator::ContinuousPredictionGameEnvironmentCreator{D},
-    phenotypes::Vector{Phenotype},
+    phenotype_1::Phenotype,
+    phenotype_2::Phenotype,
 ) where {D <: Domain}
-    reset!(phenotypes[1])
-    reset!(phenotypes[2])
+    reset!(phenotype_1)
+    reset!(phenotype_2)
     environment = ContinuousPredictionGameEnvironment(
         domain = environment_creator.domain,
-        entity_1 = phenotypes[1],
-        entity_2 = phenotypes[2],
+        entity_1 = phenotype_1,
+        entity_2 = phenotype_2,
         episode_length = environment_creator.episode_length,
         timestep = 0,
         position_1 = Float32(π),
