@@ -1,9 +1,12 @@
 module Basic
 
-export BasicEcosystem, BasicEcosystemCreator, create_ecosystem, evolve!
+export BasicEcosystem, BasicEcosystemCreator, create_ecosystem, evolve!, get_individuals
+export get_species
 
-import ..Ecosystems: create_ecosystem, evolve!
+import ...Individuals: get_individuals
+import ...Species: get_species
 import ...Evaluators: evaluate
+import ..Ecosystems: create_ecosystem, evolve!
 
 using DataStructures: SortedDict
 using Random: AbstractRNG

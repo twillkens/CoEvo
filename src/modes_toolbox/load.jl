@@ -1,6 +1,6 @@
-using CoEvo
-using CoEvo.Names
-using CoEvo.Genotypes.FunctionGraphs
+using ..Names
+using ..Genotypes.FunctionGraphs
+using ..Ecosystems.Basic: BasicEcosystem
 
 function load_genotype(genotype_group::JLD2.Group)
     # Load node id lists directly.

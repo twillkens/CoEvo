@@ -6,7 +6,7 @@ export PredictionGameConfiguration
     game::String = "continuous_prediction_game"
     ecosystem_topology::String = "two_species_competitive"
     trial::Int = 1
-    seed::Int = 69
+    seed::Int = 42
     random_number_generator::Union{AbstractRNG, Nothing} = nothing
     individual_id_counter_state::Int = 1
     gene_id_counter_state::Int = 1

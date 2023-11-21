@@ -51,8 +51,8 @@ export CloneRecombiner
 using ..Recombiners.Clone: CloneRecombiner
 
 # IndividualCreators
-export Individual, IndividualCreator, create_individuals
-using ..Individuals: Individual, IndividualCreator, create_individuals
+export Individual, IndividualCreator, create_individuals, get_individuals
+using ..Individuals: Individual, IndividualCreator, create_individuals, get_individuals
 
 export BasicIndividualCreator, BasicIndividual
 using ..Individuals.Basic: BasicIndividualCreator, BasicIndividual
@@ -154,8 +154,9 @@ using ..Observers.Common: NullObservation, NullObserver
 
 # Environments
 export Environment, create_environment, get_outcome_set, is_active, observe!, step!
+export EnvironmentCreator
 using ..Environments: Environment, create_environment, get_outcome_set, is_active, observe!
-using ..Environments: step!
+using ..Environments: step!, EnvironmentCreator
 
 export StatelessEnvironmentCreator
 using ..Environments.Stateless: StatelessEnvironmentCreator
@@ -237,8 +238,9 @@ export BasicArchiver
 using ..Archivers.Basic: BasicArchiver
 
 # Ecosystems
-export Ecosystem, EcosystemCreator, evolve!, create_ecosystem
+export Ecosystem, EcosystemCreator, evolve!, create_ecosystem, get_species
 using ..Ecosystems: Ecosystem, EcosystemCreator, evolve!, create_ecosystem
+using ..Ecosystems: get_species
 
 export BasicEcosystem, BasicEcosystemCreator
 using ..Ecosystems.Basic: BasicEcosystem, BasicEcosystemCreator

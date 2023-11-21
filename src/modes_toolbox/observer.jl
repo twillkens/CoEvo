@@ -1,6 +1,9 @@
-using StatsBase
 
-import CoEvo.Observers: observe!
+import ..Observers: observe!, Observer, Observation
+
+using StatsBase
+using ..Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotype
+using ..Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironment
 
 Base.@kwdef mutable struct FunctionGraphModesObserver <: Observer 
     to_observe::Int = 1
@@ -21,7 +24,9 @@ function observe!(
     end
 end
 
-function observe!(observer::FunctionGraphModesObserver, environment::ContinuousPredictionGameEnvironment)
+function observe!(
+    observer::FunctionGraphModesObserver, environment::ContinuousPredictionGameEnvironment
+)
     if observer.to_observe == 1
         observe!(observer, environment.entity_1)
     elseif observer.to_observe == 2

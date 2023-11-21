@@ -40,3 +40,27 @@ function create_ecosystem(ecosystem_creator::BasicEcosystemCreator)
 
     return ecosystem
 end
+
+function get_individuals(ecosystem::BasicEcosystem)
+    all_individuals = vcat([get_individuals(species) for species in ecosystem.species]...)
+    return all_individuals
+end
+
+function get_individuals(ecosystem::BasicEcosystem, ids::Vector{Int})
+    all_individuals = get_individuals(ecosystem)
+    individuals = filter(individual -> individual.id in ids, all_individuals)
+    if length(individuals) != length(ids)
+        throw(ErrorException("Could not find all individuals with ids $ids"))
+    end
+    return individuals
+end
+
+
+function get_species(ecosystem::BasicEcosystem, species_id::String)
+    for species in ecosystem.species
+        if species.id == species_id
+            return species
+        end
+    end
+    throw(ErrorException("Could not find species with id $species_id"))
+end

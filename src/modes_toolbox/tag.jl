@@ -1,9 +1,6 @@
 using JLD2
 using ProgressBars
 using CoEvo
-using CoEvo.Names
-
-include("load.jl")
 
 struct FilterTag
     gen::Int
@@ -18,7 +15,7 @@ function print_tags(tags::Vector{FilterTag}, generation::Int = 0)
     for tag in tags
         println("\tFilterTag(gen: $(tag.gen),  id: $(tag.id), prevtag: $(tag.previous_tag), currtag: $(tag.current_tag))")
     end
-    println()  # Add an empty line for better separation between generations
+    println() 
 end
 
 function print_tags(tags::Vector{Vector{FilterTag}}, start_gen::Int, end_gen::Int)
@@ -46,10 +43,7 @@ function init_filter_tags(
         push!(initial_filter_tags, filter_tag)
     end
     filter_tags = [initial_filter_tags]
-    println("Initial tagging dictionary: ", tagging_dict)
-    println("Initial filter tags: ", filter_tags)
-
-    tagging_dict, filter_tags   # Enclosing initial_filter_tags in a list
+    tagging_dict, filter_tags
 end
 
 function get_population_ids(
@@ -98,21 +92,12 @@ function refresh_tags(
         filter_tag = FilterTag(generation, species, individual_id, previous_tag, new_tag)
         push!(filter_tags, filter_tag)
     end
-    println("-----------")
-    println("Previous")
-    print_tags(previous_filter_tags[end], generation - 1)
-    println("Current")
-    print_tags(filter_tags, generation)
-
     next_tags = Set([tag.previous_tag for tag in filter_tags])
     filter!(tag -> tag.current_tag in next_tags, previous_filter_tags[end])
-    println("Filtered")
-    print_tags(previous_filter_tags[end], generation - 1) 
     push!(previous_filter_tags, filter_tags)
 
     return new_tagging_dict
 end
-
 
 function pass_tags(
     file::JLD2.JLDFile,

@@ -49,11 +49,11 @@ function make_substrate_types(configuration::PredictionGameConfiguration)
     communication_dimension = configuration.communication_dimension
     if substrate == "function_graphs"
         mutation_probabilities::Dict{Symbol, Float64} = Dict(
-            :add_function => 1 / 4,
-            :remove_function => 1 / 4,
-            :swap_function => 1 / 4,
-            :redirect_connection => 1 / 4,
-            #:identity => 1 /2
+            :add_function => 1 / 8,
+            :remove_function => 1 / 8,
+            :swap_function => 1 / 8,
+            :redirect_connection => 1 / 8,
+            :identity => 1 /2
         )
 
         genotype_creator = FunctionGraphGenotypeCreator(

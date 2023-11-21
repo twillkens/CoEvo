@@ -1,16 +1,16 @@
 module ModesToolbox
 
-using CoEvo
-using CoEvo.Names
+using ..Names
+using ..Genotypes.FunctionGraphs
 using Serialization
 using JLD2
 using Distributed
 
 include("observer.jl")
 include("prune.jl")
+include("load.jl")
 include("tag.jl")
 include("setup.jl")
-
 
 # Get input IDs from a single node
 function get_input_ids(node::FunctionGraphNode)::Vector{Int}
@@ -50,13 +50,6 @@ function update_to_visit(
     )
     new_to_visit = setdiff(inputs, forbidden)
     return sort!(union(new_to_visit, to_visit), rev=true)
-end
-
-# Prune a single node and return the updated genotype, error, and observation
-function modes_prune(genotype::FunctionGraphGenotype, node_id::Int, weight::Float64)
-    bias_node_id = first(genotype.bias_node_ids)
-    pruned_genotype = remove_node_and_redirect(genotype, node_id, bias_node_id, weight)
-    return pruned_genotype
 end
 
 function modes_evaluate!(
@@ -129,7 +122,9 @@ function ModesIndividualReport(
         node_to_prune_id = popfirst!(to_visit)
         push!(already_visited, node_to_prune_id)
         node_to_prune_median = current_observation.node_medians[node_to_prune_id]
-        pruned_genotype = modes_prune(current_genotype, node_to_prune_id, Float64(node_to_prune_median))
+        pruned_genotype = modes_prune(
+            current_genotype, node_to_prune_id, Float64(node_to_prune_median)
+        )
         observer = FunctionGraphModesObserver(to_observe = 1)
         pruned_fitness = modes_evaluate!(pruned_genotype, interaction_setups, observer) 
         pruned_observation = create_observation(observer)
@@ -153,7 +148,6 @@ function ModesIndividualReport(
     )
     return report
 end
-
 
 function ModesIndividualReport(individual_setup::ModesIndividualSetup)
     report = ModesIndividualReport(
@@ -224,37 +218,15 @@ function ModesTrialReport(trial_setup::ModesTrialSetup)
     return report
 end
 
-function ModesTrialReport(;
-    archive_directory::String = "/media/tcw/Seagate/two_comp_1/",
+function ModesTrialReport(
     trial::Int = 1,
-    all_interactions::Dict{String, Dict{String, String}} = Dict(
-        "Host" => Dict("Parasite" => "PredatorPrey"),
-        "Parasite" => Dict("Host" => "PreyPredator")
-    ),
-    tagging_interval::Int = 50,
-    max_generation::Int = typemax(Int),
+    archive_directory::String = "/media/tcw/Seagate/two_comp/";
     kwargs...
 )
-    trial_setup = ModesTrialSetup(
-        archive_directory, trial, all_interactions, tagging_interval, max_generation, kwargs...
-    )
+    trial_setup = ModesTrialSetup(trial, archive_directory; kwargs...)
     report = ModesTrialReport(trial_setup)
     return report
 end
 
-function create_modes_reports(;
-    archive_directory::String = "/media/tcw/Seagate/two_comp_1/",
-    trials::Vector{Int} = collect(1:20),
-    perform_parallel::Bool = true,
-    kwargs...
-)
-    # complete me
-    if perform_parallel
-        reports = pmap(trial -> ModesTrialReport(archive_directory, trial; kwargs...), trials)
-    else
-        reports = ModesTrialReport.(trials; kwargs...)
-    end
-    return reports
-end
 
 end

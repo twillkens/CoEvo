@@ -2,6 +2,8 @@ module Species
 
 export Basic
 
+import ..Individuals: get_individuals
+
 include("abstract/abstract.jl")
 
 include("interfaces/interfaces.jl")
