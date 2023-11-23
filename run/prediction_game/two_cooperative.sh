@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {1..1}
+for i in {1..20}
 do
    echo "Running trial $i"
    julia --project=. run/prediction_game/run.jl \
