@@ -1,6 +1,6 @@
 module Basic
 
-export NullReport, BasicReport, BasicReporter, create_report, print_reports
+export NullReport, NullReporter, BasicReport, BasicReporter, create_report, print_reports
 
 import ..Reporters: create_report, print_reports
 
@@ -11,6 +11,12 @@ using ...States: State
 using ..Reporters: Reporter, Report
 
 struct NullReport <: Report end
+
+struct NullReporter <: Reporter end
+
+function create_report(::NullReporter, ::State)
+    return NullReport()
+end
 
 Base.@kwdef struct BasicReport{MET <: Metric, MEA <: Measurement} <: Report
     metric::MET

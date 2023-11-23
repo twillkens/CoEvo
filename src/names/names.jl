@@ -227,8 +227,8 @@ using ..States.Basic: BasicCoevolutionaryState, BasicCoevolutionaryStateCreator
 export Report, Reporter, create_report
 using ..Reporters: Report, Reporter, create_report
 
-export BasicReporter, BasicReport
-using ..Reporters.Basic: BasicReporter, BasicReport
+export BasicReporter, BasicReport, NullReport, NullReporter
+using ..Reporters.Basic: BasicReporter, BasicReport, NullReport, NullReporter
 
 # Archivers
 export Archiver, archive!

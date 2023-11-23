@@ -89,6 +89,7 @@ function change_link(
     genotype = FiniteStateMachineGenotype(genotype.start, genotype.ones, genotype.zeros, links)
     return genotype
 end
+
 Base.@kwdef struct FiniteStateMachineMutator <: Mutator
     n_changes::Int = 1
     mutation_probabilities::Dict{Function, Float64} = Dict(

@@ -1,16 +1,16 @@
 module Species
 
 export SpeciesMetric, SnapshotSpeciesMetric, measure
-export AggregateSpeciesMetric
+export AggregateSpeciesMetric, aggregate
 
-import ..Metrics: measure, get_name
+import ..Metrics: measure, get_name, aggregate
 
 using ...Species: AbstractSpecies, get_individuals
 using ...Species.Basic: BasicSpecies
 using ...Evaluators: Evaluation
 using ..Metrics: Metric, Measurement
 using ..Metrics.Common: BasicMeasurement
-using ..Metrics.Aggregators: Aggregator, aggregate
+using ..Metrics.Aggregators: Aggregator
 using ..Metrics.Aggregators: BasicStatisticalAggregator, BasicQuantileAggregator
 using ..Metrics.Aggregators: OneSampleTTestAggregator, HigherMomentAggregator
 using ..Metrics.Genotypes: GenotypeMetric
@@ -60,17 +60,6 @@ function measure(metric::SpeciesMetric, evaluations::Vector{<:Evaluation})
     return measurements
 end
 
-function aggregate_measurements(
-    aggregators::Vector{<:Aggregator}, 
-    base_path::String, 
-    measurements::Vector{<:Measurement}
-)
-    aggregated_measurements = vcat([
-        aggregate(aggregator, base_path, measurements) for aggregator in aggregators
-    ]...)
-    return aggregated_measurements
-end
-
 function measure(
     metric::AggregateSpeciesMetric{<:GenotypeMetric, <:Aggregator}, species::AbstractSpecies
 )
@@ -79,7 +68,7 @@ function measure(
     measurements = [measure(metric.submetric, genotype) for genotype in genotypes]
     submetric_name = get_name(metric.submetric)
     base_path = "species/$(species.id)/$submetric_name"
-    measurements = aggregate_measurements(metric.aggregators, base_path, measurements)
+    measurements = aggregate(metric.aggregators, base_path, measurements)
     return measurements
 end
 
@@ -89,7 +78,7 @@ function measure(
     measurements = measure(metric.submetric, evaluation)
     submetric_name = get_name(metric.submetric)
     base_path = "species/$(evaluation.id)/$submetric_name"
-    measurements = aggregate_measurements(metric.aggregators, base_path, measurements)
+    measurements = aggregate(metric.aggregators, base_path, measurements)
     return measurements
 end
 

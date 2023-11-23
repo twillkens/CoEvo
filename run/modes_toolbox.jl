@@ -12,11 +12,11 @@ function create_modes_reports(;
     # complete me
     if perform_parallel
         reports = pmap(trial -> ModesTrialReport(
-            trial = trial, archive_directory = archive_directory; kwargs...), trials
+            trial, archive_directory; kwargs...), trials
         )
     else
         reports = [
-            ModesTrialReport(trial = trial, archive_directory = archive_directory; kwargs...) 
+            ModesTrialReport(trial, archive_directory; kwargs...) 
             for trial in trials
         ]
     end

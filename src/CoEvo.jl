@@ -46,7 +46,8 @@ export Counters, Genotypes, Phenotypes, Individuals, Species, Criteria, Evaluato
 export Selectors, Recombiners, Mutators, SpeciesCreators, Metrics, Domains, Matches
 export MatchMakers, Observers, Results, Environments, Interactions, Jobs, Performers
 export States, Reporters, Archivers, Ecosystems, Names, Configurations, run!
-export NumbersGameConfiguration, PredictionGameConfiguration, Modes
+export NumbersGameConfiguration, ModesToolbox
+export make_prediction_game_experiment, load_prediction_game_experiment
 
 include("counters/counters.jl")
 using .Counters: Counters
@@ -162,8 +163,8 @@ println("loaded names")
 
 include("configurations/configurations.jl")
 using .Configurations: Configurations, run!
-using .Configurations.NumbersGame: NumbersGameConfiguration
-using .Configurations.PredictionGame: PredictionGameConfiguration
+using .Configurations.NumbersGame: NumbersGame, NumbersGameConfiguration
+using .Configurations.PredictionGame: make_prediction_game_experiment, load_prediction_game_experiment
 println("loaded configurations")
 
 include("modes_toolbox/modes_toolbox.jl")

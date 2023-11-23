@@ -78,4 +78,16 @@ function aggregate(
     return measurements
 end
 
+function aggregate(
+    aggregators::Vector{<:Aggregator}, 
+    base_path::String, 
+    measurements::Vector{<:Measurement}
+)
+    aggregated_measurements = vcat([
+        aggregate(aggregator, base_path, measurements) for aggregator in aggregators
+    ]...)
+    return aggregated_measurements
+end
+
+
 end
