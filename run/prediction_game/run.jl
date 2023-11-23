@@ -1,19 +1,36 @@
 using Distributed
-#using ClusterManagers
 using ArgParse
 
 function parse_cmdline_args()
     s = ArgParseSettings()
 
     @add_arg_table! s begin
+        "--game"
+            arg_type = String
+            default = "continuous_prediction_game"
+            help = "Game type"
+        "--topology"
+            arg_type = String
+            default = "two_control"
+            help = "Ecosystem topology"
+        "--substrate"
+            arg_type = String
+            default = "function_graphs"
+            help = "Substrate type"
+        "--reproducer"
+            arg_type = String
+            default = "roulette"
+            help = "Reproduction method"
+        "--report"
+            arg_type = String
+            default = "verbose_test"
+            help = "Report type"
         "--trial"
             arg_type = Int
             default = 1
-            required = true
             help = "Trial ID"
         "--seed"
             arg_type = Int
-            required = false
             default = abs(rand(Int))
             help = "Seed value for RNG"
         "--n_workers"
@@ -28,18 +45,10 @@ function parse_cmdline_args()
             arg_type = Int
             default = 50
             help = "Population size"
-        "--reproduction"
-            arg_type = String
-            default = "roulette"
-            help = "Reproduction method"
-        "--topology"
-            arg_type = String
-            default = "two_control"
-            help = "Ecosystem topology"
-        "--report_type"
-            arg_type = String
-            default = "verbose_test"
-            help = "Report type"
+        "--n_children"
+            arg_type = Int
+            default = 50
+            help = "Number of children"
         "--communication_dimension"
             arg_type = Int
             default = 0
@@ -62,21 +71,28 @@ end
 
 @everywhere begin
     using CoEvo
-    using CoEvo: PredictionGameConfiguration
+    using CoEvo: make_prediction_game_experiment    
     using StableRNGs: StableRNG
 end
 
-configuration = PredictionGameConfiguration(;
+experiment = make_prediction_game_experiment(;
+    game = args["game"],
+    topology = args["topology"],
+    substrate = args["substrate"],
+    reproducer = args["reproducer"],
     trial = args["trial"],
     n_population = args["n_population"],
-    random_number_generator = args["seed"],
-    report_type = args["report_type"],
-    reproduction_method = args["reproduction"],
+    n_children = args["n_children"],
+    seed = args["seed"],
+    report = args["report"],
     cohorts = ["population", "children"],
     communication_dimension = args["communication_dimension"],
     n_workers = args["n_workers"],
     episode_length = args["episode_length"],
-    ecosystem_topology = args["topology"],
 )
 
-run!(configuration; n_generations = args["n_generations"])
+println("Running experiment...")
+
+run!(experiment; n_generations = args["n_generations"])
+
+println("Done!")
