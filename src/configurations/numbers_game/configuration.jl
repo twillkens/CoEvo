@@ -1,3 +1,5 @@
+using Base: @kwdef
+
 
 @kwdef mutable struct NumbersGameConfiguration <: Configuration
     trial::Int = 1

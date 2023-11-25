@@ -1,5 +1,7 @@
 export BasicCoevolutionaryState, BasicCoevolutionaryStateCreator, create_species
 
+using Base: @kwdef
+
 @kwdef struct BasicCoevolutionaryState <: State
     id::String
     random_number_generator::AbstractRNG

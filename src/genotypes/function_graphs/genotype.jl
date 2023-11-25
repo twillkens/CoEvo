@@ -2,6 +2,8 @@ export FunctionGraphGenotype, FunctionGraphGenotypeCreator
 export FunctionGraphConnection, FunctionGraphNode
 export create_genotypes, create_ids_and_nodes, create_output_ids_and_nodes
 
+using Base: @kwdef
+
 """
     FunctionGraphConnection
 

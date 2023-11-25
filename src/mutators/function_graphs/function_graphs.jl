@@ -9,6 +9,7 @@ export mutate
 import Base: identity
 import ..Mutators: mutate
 
+using Base: @kwdef
 using Random: rand, randn, AbstractRNG
 using StatsBase: sample, Weights
 using ...Counters: Counter, count!

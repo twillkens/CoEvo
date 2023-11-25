@@ -6,6 +6,7 @@ export LinearizedFunctionGraphPhenotypeCreator
 
 import ...Phenotypes: create_phenotype, act!, reset!
 
+using Base: @kwdef
 using ....Genotypes
 using ....Genotypes.FunctionGraphs
 using ....Genotypes.FunctionGraphs: FUNCTION_MAP

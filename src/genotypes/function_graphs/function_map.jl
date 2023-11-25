@@ -4,6 +4,8 @@ export MultiplyGraphFunction, GraphDivide, MaximumGraphFunction, MinimumGraphFun
 export SineGraphFunction, CosineGraphFunction, SigmoidGraphFunction, TanhGraphFunction
 export ReluGraphFunction, AndGraphFunction, OrGraphFunction, NandGraphFunction, XorGraphFunction
 
+using Base: @kwdef
+
 """
     GraphFunction
 
