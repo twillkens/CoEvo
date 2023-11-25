@@ -9,8 +9,8 @@
 #SBATCH --array=1-5
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=11
-#SBATCH --output=two_cooperative_roulette_trial_%A_%a.out
-#SBATCH --error=two_cooperative_roulette_trial_%A_%a.err
+#SBATCH --output=logs/two_cooperative_roulette_trial_%A_%a.out
+#SBATCH --error=logs/two_cooperative_roulette_trial_%A_%a.err
 
 # Load Julia module or set up the environment
 module purge
