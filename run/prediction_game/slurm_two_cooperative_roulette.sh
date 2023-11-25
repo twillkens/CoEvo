@@ -3,10 +3,10 @@
 #!/bin/bash
 
 #SBATCH --job-name=two_cooperative_roulette
-#SBATCH --partition=guest_compute
+#SBATCH --partition=guest-compute
 #SBATCH --account=guest
 #SBATCH --qos=low
-#SBATCH --array=1-20%20
+#SBATCH --array=1-5
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=11
 #SBATCH --output=two_cooperative_roulette_trial_%A_%a.out
@@ -19,6 +19,7 @@ source /home/twillkens/.bashrc
 conda activate "/home/twillkens/.conda/envs/coevo"
 
 # You can adjust the number of workers (--n_workers) as needed
+srun julia --project -e 'push!(LOAD_PATH, "@CoEvo"); using PkgLock; PkgLock.instantiate_precompile()'
 
 srun julia --project=. run/prediction_game/run.jl \
         --trial $SLURM_ARRAY_TASK_ID \

@@ -94,7 +94,7 @@ function flatten_measurements(metric, dict, prefix = "")
             nested_str = flatten_measurements(metric, value, full_key)
             if !isempty(nested_str)
                 if !isempty(measurement_buffer)
-                    str *= current_category * ":\n  " * chop(measurement_buffer, tail = 2) * "\n"
+                    str *= current_category * ": --  " * chop(measurement_buffer, tail = 2) * "\n"
                     measurement_buffer = ""  # Reset the buffer for the next category
                 end
                 current_category = full_key
@@ -105,7 +105,7 @@ function flatten_measurements(metric, dict, prefix = "")
             category = get_category(full_key)
             if category != current_category
                 if !isempty(measurement_buffer)
-                    str *= current_category * ":\n  " * chop(measurement_buffer, tail = 2) * "\n"
+                    str *= current_category * " -- " * chop(measurement_buffer, tail = 2) * "\n"
                 end
                 current_category = category
                 measurement_buffer = ""  # Start accumulating new category
@@ -120,7 +120,7 @@ function flatten_measurements(metric, dict, prefix = "")
 
     # Add remaining measurements in the buffer
     if !isempty(measurement_buffer)
-        str *= current_category * ":\n  " * chop(measurement_buffer, tail = 2) * "\n"
+        str *= current_category * " -- " * chop(measurement_buffer, tail = 2) * "\n"
     end
 
     return str

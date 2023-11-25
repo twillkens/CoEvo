@@ -139,7 +139,7 @@ function archive!(configuration::DeployReportConfiguration, file::File)
 end
 
 function DeployReportConfiguration(; 
-    id::String = "deploy", print_interval::Int = 25, save_interval::Int = 1, kwargs...)
+    id::String = "deploy", print_interval::Int = 50, save_interval::Int = 1, kwargs...)
     configuration = DeployReportConfiguration(id, print_interval, save_interval,)
     return configuration
 end

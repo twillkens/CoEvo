@@ -70,6 +70,8 @@ if args["n_workers"] > 1
 end
 
 @everywhere begin
+    using Pkg
+    Pkg.activate(".")
     using CoEvo
     using CoEvo: make_prediction_game_experiment    
     using StableRNGs: StableRNG

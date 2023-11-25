@@ -8,7 +8,8 @@ function make_archive_path(
     globals::GlobalConfiguration
 )
     trial = get_trial(globals)
-    path = joinpath("trials", game.id, topology.id, substrate.id, reproducer.id, "$trial.h5")
+    trial_dir = ENV["COEVO_TRIAL_DIR"]
+    path = joinpath(trial_dir, game.id, topology.id, substrate.id, reproducer.id, "$trial.h5")
     return path
 end
 
