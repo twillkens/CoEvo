@@ -4,6 +4,7 @@ export BasicFunctionGraphPhenotype, FunctionGraphStatefulNode
 
 import ...Phenotypes: create_phenotype, act!, reset!
 
+using Base: @kwdef
 using ....Genotypes: minimize
 using ....Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, GraphFunction
 using ....Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP, evaluate_function
