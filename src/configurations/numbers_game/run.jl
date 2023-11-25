@@ -8,7 +8,7 @@ function run!(configuration::NumbersGameConfiguration; n_generations::Int = 100)
         throw(ArgumentError("File already exists: $archive_path"))
     end
     mkpath(dir_path)
-    if configuration.report_type in [:deploy]
+    if configuration.report_type in ["deploy"]
         @save archive_path configuration = configuration
     end
     ecosystem = evolve!(ecosystem_creator, n_generations = n_generations)

@@ -2,7 +2,7 @@
     FunctionGraphs
 
 A module that provides functionality for creating, manipulating, and analyzing
-function graphs, in the context of genetic programming within coevolutionary algorithms.
+function graphs,
 
 # Contents:
 - Genotype representation of function graphs (`genotype.jl`).
@@ -13,12 +13,12 @@ function graphs, in the context of genetic programming within coevolutionary alg
 """
 module FunctionGraphs
 
-import ..Genotypes: create_genotypes, get_size, minimize
+import ..Genotypes: create_genotypes, get_size, minimize, load_genotype
 
 using Base: @kwdef
 using Random: AbstractRNG
 using ..Genotypes: Genotype, GenotypeCreator
-using ...Counters: Counter
+using ...Counters: Counter, count!
 
 include("function_map.jl")
 

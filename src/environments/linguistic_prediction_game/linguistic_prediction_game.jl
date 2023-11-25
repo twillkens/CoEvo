@@ -19,7 +19,8 @@ Base.@kwdef mutable struct LinguisticPredictionGameEnvironment{
     D, P <: Phenotype, T
 } <: Environment{D}
     domain::D
-    phenotypes::Vector{P}
+    entity_1::P
+    entity_2::P
     timestep::Int
     loop_start::Int
     state1::T
@@ -36,28 +37,30 @@ end
 # TODO: fix hacky type manipulation
 function create_environment(
     environment_creator::LinguisticPredictionGameEnvironmentCreator{D},
-    phenotypes::Vector{Phenotype}
+    phenotypes::Vector{<:Phenotype}
 ) where {D <: Domain}
     fsm_A, fsm_B = phenotypes
     state1, bit1 = fsm_A.start
     state2, bit2 = fsm_B.start
     state_pair_log = Dict((state1, state2) => 1)
-    datatype = typeof(phenotypes[1]).parameters[1]
-    return LinguisticPredictionGameEnvironment(
+    datatype_1 = typeof(phenotypes[1]).parameters[1]
+    environment = LinguisticPredictionGameEnvironment(
         domain = environment_creator.domain,
-        phenotypes = [phenotype for phenotype in phenotypes],
+        entity_1 = phenotypes[1],
+        entity_2 = phenotypes[2],
         timestep = 1,
         loop_start = -1,
         state1 = state1,
         state2 = state2,
         bit1 = bit1,
         bit2 = bit2,
-        states1 = datatype[],
-        states2 = datatype[],
+        states1 = datatype_1[],
+        states2 = datatype_1[],
         bits1 = Bool[],
         bits2 = Bool[],
         state_pair_log = state_pair_log
     )
+    return environment
 end
 
 function is_active(environment::LinguisticPredictionGameEnvironment)
@@ -83,7 +86,7 @@ end
 function step!(
     environment::LinguisticPredictionGameEnvironment{D, <:Phenotype}
 ) where {D <: PredictionGameDomain}
-    fsm1, fsm2 = environment.phenotypes
+    fsm1, fsm2 = environment.entity_1, environment.entity_2
     state1, state2 = environment.state1, environment.state2
     bit1, bit2 = environment.bit1, environment.bit2
     update_state_vectors!(environment)

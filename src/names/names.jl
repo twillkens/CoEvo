@@ -51,11 +51,11 @@ export CloneRecombiner
 using ..Recombiners.Clone: CloneRecombiner
 
 # IndividualCreators
-export Individual, IndividualCreator, create_individuals
-using ..Individuals: Individual, IndividualCreator, create_individuals
+export Individual, IndividualCreator, create_individuals, get_individuals
+using ..Individuals: Individual, IndividualCreator, create_individuals, get_individuals
 
-export BasicIndividualCreator
-using ..Individuals.Basic: BasicIndividualCreator
+export BasicIndividualCreator, BasicIndividual
+using ..Individuals.Basic: BasicIndividualCreator, BasicIndividual
 
 # Species
 export AbstractSpecies
@@ -65,8 +65,8 @@ export BasicSpecies
 using ..Species.Basic: BasicSpecies
 
 # PhenotypeCreators
-export Phenotype, PhenotypeCreator, create_phenotype, act!
-using ..Phenotypes: Phenotype, PhenotypeCreator, create_phenotype, act!
+export Phenotype, PhenotypeCreator, create_phenotype, act!, reset!
+using ..Phenotypes: Phenotype, PhenotypeCreator, create_phenotype, act!, reset!
 
 export DefaultPhenotypeCreator
 using ..Phenotypes.Defaults: DefaultPhenotypeCreator
@@ -92,8 +92,8 @@ export Criterion, Maximize, Minimize
 using ..Criteria: Criterion, Maximize, Minimize
 
 # Evaluators
-export Evaluator, evaluate
-using ..Evaluators: Evaluator, evaluate
+export Evaluation, Evaluator, evaluate
+using ..Evaluators: Evaluation, Evaluator, evaluate
 
 export ScalarFitnessEvaluation, ScalarFitnessEvaluator
 using ..Evaluators.ScalarFitness: ScalarFitnessEvaluation, ScalarFitnessEvaluator
@@ -132,8 +132,11 @@ using ..SpeciesCreators.Basic: BasicSpeciesCreator
 export MatchMaker, make_matches
 using ..MatchMakers: MatchMaker, make_matches
 
-export AllvsAllMatchMaker
-using ..MatchMakers.AllvsAll: AllvsAllMatchMaker
+export AllVersusAllMatchMaker
+using ..MatchMakers.AllVersusAll: AllVersusAllMatchMaker
+
+export OneVersusAllMatchMaker
+using ..MatchMakers.OneVersusAll: OneVersusAllMatchMaker
 
 # Domains
 export Domain
@@ -145,15 +148,20 @@ using ..Domains.NumbersGame: NumbersGameDomain
 export PredictionGameDomain
 using ..Domains.PredictionGame: PredictionGameDomain
 
+export Observation, Observer, NullObservation, NullObserver
+using ..Observers: Observation, Observer
+using ..Observers.Common: NullObservation, NullObserver
+
 # Environments
 export Environment, create_environment, get_outcome_set, is_active, observe!, step!
+export EnvironmentCreator
 using ..Environments: Environment, create_environment, get_outcome_set, is_active, observe!
-using ..Environments: step!
+using ..Environments: step!, EnvironmentCreator
 
 export StatelessEnvironmentCreator
 using ..Environments.Stateless: StatelessEnvironmentCreator
 
-export ContinuousPredictionGameEnvironmentCreator, ContinuousPredictionGameEnvironment
+export ContinuousPredictionGameEnvironment, ContinuousPredictionGameEnvironmentCreator
 using ..Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironment
 using ..Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironmentCreator
 
@@ -186,17 +194,26 @@ export CachePerformer
 using ..Performers.Cache: CachePerformer
 
 # Metrics
-export Metrics, measure
-using ..Metrics: Metrics, measure
+export Metrics, Metric, Measurement, Aggregator, measure, get_name, aggregate
+using ..Metrics: Metrics, Metric, Measurement, Aggregator, measure, get_name, aggregate
 
-export AllSpeciesIdentity
-using ..Metrics.Common: AllSpeciesIdentity
+export NullMetric, RuntimeMetric, GlobalStateMetric, BasicMeasurement
+using ..Metrics.Common: NullMetric, RuntimeMetric, GlobalStateMetric, BasicMeasurement
 
-export GenotypeSize, GenotypeSum
-using ..Metrics.Genotypes: GenotypeSize, GenotypeSum
+export BasicStatisticalAggregator, BasicQuantileAggregator
+export OneSampleTTestAggregator, HigherMomentAggregator
+using ..Metrics.Aggregators: BasicStatisticalAggregator, BasicQuantileAggregator
+using ..Metrics.Aggregators: OneSampleTTestAggregator, HigherMomentAggregator
 
-export AllSpeciesFitness
-using ..Metrics.Evaluations: AllSpeciesFitness
+export EvaluationMetric, RawFitnessEvaluationMetric, ScaledFitnessEvaluationMetric
+using ..Metrics.Evaluations: EvaluationMetric, RawFitnessEvaluationMetric
+using ..Metrics.Evaluations: ScaledFitnessEvaluationMetric
+
+export GenotypeMetric, SizeGenotypeMetric, SumGenotypeMetric
+using ..Metrics.Genotypes: GenotypeMetric, SizeGenotypeMetric, SumGenotypeMetric
+
+export SpeciesMetric, SnapshotSpeciesMetric, AggregateSpeciesMetric
+using ..Metrics.Species: SpeciesMetric, SnapshotSpeciesMetric, AggregateSpeciesMetric
 
 # StateCreators
 
@@ -207,14 +224,11 @@ export BasicCoevolutionaryState, BasicCoevolutionaryStateCreator
 using ..States.Basic: BasicCoevolutionaryState, BasicCoevolutionaryStateCreator
 
 # Reporters
-export Reporter, create_report
-using ..Reporters: Reporter, create_report
+export Report, Reporter, create_report
+using ..Reporters: Report, Reporter, create_report
 
-export BasicReporter
-using ..Reporters.Basic: BasicReporter
-
-export RuntimeReporter
-using ..Reporters.Runtime: RuntimeReporter
+export BasicReporter, BasicReport, NullReport, NullReporter
+using ..Reporters.Basic: BasicReporter, BasicReport, NullReport, NullReporter
 
 # Archivers
 export Archiver, archive!
@@ -224,8 +238,9 @@ export BasicArchiver
 using ..Archivers.Basic: BasicArchiver
 
 # Ecosystems
-export Ecosystem, EcosystemCreator, evolve!, create_ecosystem
+export Ecosystem, EcosystemCreator, evolve!, create_ecosystem, get_species
 using ..Ecosystems: Ecosystem, EcosystemCreator, evolve!, create_ecosystem
+using ..Ecosystems: get_species
 
 export BasicEcosystem, BasicEcosystemCreator
 using ..Ecosystems.Basic: BasicEcosystem, BasicEcosystemCreator

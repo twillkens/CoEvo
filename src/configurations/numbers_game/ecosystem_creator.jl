@@ -12,12 +12,12 @@ function make_archive_path(configuration::NumbersGameConfiguration)
     outcome_metric = configuration.outcome_metric
     reproduction_method = configuration.reproduction_method
     trial = configuration.trial
-    jld2_path = "trials/numbers_game/$outcome_metric/$reproduction_method/$trial.jld2"
-    return jld2_path
+    archive_path = "trials/numbers_game/$outcome_metric/$reproduction_method/$trial.h5"
+    return archive_path
 end
 
 function make_ecosystem_creator(configuration::NumbersGameConfiguration)
-    runtime_reporter, reporters = make_reporters(configuration)
+    reporters = make_reporters(configuration)
     ecosystem_creator = BasicEcosystemCreator(
         id = make_ecosystem_id(configuration),
         trial = trial = configuration.trial,
@@ -30,7 +30,6 @@ function make_ecosystem_creator(configuration::NumbersGameConfiguration)
         archiver = BasicArchiver(archive_path = make_archive_path(configuration)),
         individual_id_counter = BasicCounter(),
         gene_id_counter = BasicCounter(),
-        runtime_reporter = runtime_reporter,
     )
     return ecosystem_creator
 end

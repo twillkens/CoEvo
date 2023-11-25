@@ -2,10 +2,10 @@ module Archivers
 
 export Basic
 
-using JLD2: JLDFile, Group
-using ..Measurements: Measurement
+using HDF5: File, Group, create_group
 using ..Reporters: Report
 using ..Genotypes: Genotype
+using ..Metrics: Measurement
 
 include("abstract/abstract.jl")
 

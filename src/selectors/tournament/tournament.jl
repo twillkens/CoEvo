@@ -46,6 +46,13 @@ function run_tournament(random_number_generator::AbstractRNG, contenders::Array{
                 return record_2
             else
                 return rand(random_number_generator, (record_1, record_2))
+                if record_1.fitness > record_2.fitness
+                    return record_1
+                elseif record_2.fitness > record_1.fitness
+                    return record_2
+                else
+                    return rand(random_number_generator, (record_1, record_2))
+                end
             end
         end
     end

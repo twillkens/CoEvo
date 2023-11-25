@@ -1,7 +1,9 @@
-export Observation, Observer
+export Observation, Observer, PhenotypeObserver
 
 using ..Metrics: Metric
 
-abstract type Observation{M <: Metric, D <: Any} end
+abstract type Observation end
 
-abstract type Observer{M <: Metric} end
+abstract type Observer end
+
+abstract type PhenotypeObserver <: Observer end

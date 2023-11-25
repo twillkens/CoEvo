@@ -27,7 +27,6 @@ The `CoEvo` module provides functionality and utilities for co-evolutionary algo
 - `Interactions`: Represents direct interactions between individuals or species.
 - `Jobs`: Task scheduling and management tools.
 - `Performers`: Utilities for performing specific tasks or operations.
-- `Measurements`: Tools for taking various measurements or metrics.
 - `States`: Represents the state or status of an entity.
 - `Reporters`: Reporting and data visualization utilities.
 - `Archivers`: Tools for archiving and retrieving data.
@@ -46,8 +45,9 @@ module CoEvo
 export Counters, Genotypes, Phenotypes, Individuals, Species, Criteria, Evaluators, Replacers
 export Selectors, Recombiners, Mutators, SpeciesCreators, Metrics, Domains, Matches
 export MatchMakers, Observers, Results, Environments, Interactions, Jobs, Performers
-export Measurements, States, Reporters, Archivers, Ecosystems, Names, Configurations, run!
-export NumbersGameConfiguration, PredictionGameConfiguration
+export States, Reporters, Archivers, Ecosystems, Names, Configurations, run!
+export NumbersGameConfiguration, ModesToolbox
+export make_prediction_game_experiment, load_prediction_game_experiment
 
 include("counters/counters.jl")
 using .Counters: Counters
@@ -57,13 +57,13 @@ include("genotypes/genotypes.jl")
 using .Genotypes: Genotypes
 println("loaded genotypes")
 
-include("phenotypes/phenotypes.jl")
-using .Phenotypes: Phenotypes
-println("loaded phenotypes")
-
 include("individuals/individuals.jl")
 using .Individuals: Individuals
 println("loaded individuals")
+
+include("phenotypes/phenotypes.jl")
+using .Phenotypes: Phenotypes
+println("loaded phenotypes")
 
 include("species/species.jl")
 using .Species: Species
@@ -137,10 +137,6 @@ include("performers/performers.jl")
 using .Performers: Performers
 println("loaded performers")
 
-include("measurements/measurements.jl")
-using .Measurements: Measurements
-println("loaded measurements")
-
 include("states/states.jl")
 using .States: States
 println("loaded states")
@@ -167,8 +163,11 @@ println("loaded names")
 
 include("configurations/configurations.jl")
 using .Configurations: Configurations, run!
-using .Configurations.NumbersGame: NumbersGameConfiguration
-using .Configurations.PredictionGame: PredictionGameConfiguration
+using .Configurations.NumbersGame: NumbersGame, NumbersGameConfiguration
+using .Configurations.PredictionGame: make_prediction_game_experiment, load_prediction_game_experiment
 println("loaded configurations")
+
+include("modes_toolbox/modes_toolbox.jl")
+using .ModesToolbox: ModesToolbox
 
 end

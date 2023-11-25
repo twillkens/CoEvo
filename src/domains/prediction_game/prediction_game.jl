@@ -30,6 +30,25 @@ function measure(::PredictionGameDomain{Adversarial}, distance_score::Float64)
     return outcome_set
 end
 
+@kwdef struct PredatorPrey <: Metric
+    name::String = "PredatorPrey"
+end
+
+function measure(::PredictionGameDomain{PredatorPrey}, distance_score::Float64)
+    outcome_set = [1 - distance_score, distance_score]
+    return outcome_set
+end
+
+@kwdef struct PreyPredator <: Metric
+    name::String = "PreyPredator"
+end
+
+function measure(::PredictionGameDomain{PreyPredator}, distance_score::Float64)
+    outcome_set = [distance_score, 1 - distance_score]
+    return outcome_set
+end
+
+
 @kwdef struct Affinitive <: Metric
     name::String = "Affinitive"
 end
@@ -48,14 +67,16 @@ function measure(::PredictionGameDomain{Avoidant}, distance_score::Float64)
     return outcome_set
 end
 
-function PredictionGameDomain(metric::Symbol)
-    symbol_to_metric = Dict(
-        :Control => Control,
-        :Adversarial => Adversarial,
-        :Affinitive => Affinitive,
-        :Avoidant => Avoidant,
+function PredictionGameDomain(metric_string::String)
+    string_to_metric = Dict(
+        "Control" => Control,
+        "Adversarial" => Adversarial,
+        "Affinitive" => Affinitive,
+        "Avoidant" => Avoidant,
+        "PredatorPrey" => PredatorPrey,
+        "PreyPredator" => PreyPredator
     )
-    metric = symbol_to_metric[metric]()
+    metric = string_to_metric[metric_string]()
     domain = PredictionGameDomain(metric)
     return domain
 end

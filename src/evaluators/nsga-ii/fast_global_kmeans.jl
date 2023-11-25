@@ -65,6 +65,70 @@ function reset_clusters!(
     foreach(empty!, cluster_indices)
 end
 
+function disco_binary_distance(sample::Vector{Float64}, centroid::Vector{Float64})::Float64
+    @assert length(sample) == length(centroid)
+    distance = 0.0
+    for i in 1:length(sample)
+        distance += (sample[i] - round(centroid[i]))^2
+    end
+    return distance
+end
+
+function disco_average_distance(
+    sample::Vector{Float64}, centroid::Vector{Float64}, global_averages::Vector{Float64}
+)::Float64
+    @assert length(sample) == length(centroid) == length(global_averages)
+    distance = 0.0
+    for i in 1:length(sample)
+        thresholded_centroid = centroid[i] < global_averages[i] ? 0.0 : 1.0
+        distance += (sample[i] - thresholded_centroid)^2
+    end
+    return distance
+end
+
+function row_means(columns::Vector{Vector{Float64}})
+    # First, compute the number of rows and columns
+    nrows = length(columns[1])
+    ncols = length(columns)
+
+    # Initialize a vector to store the sum of each row
+    row_sums = zeros(Float64, nrows)
+
+    # Calculate the sum for each row
+    for col in columns
+        for i in 1:nrows
+            row_sums[i] += col[i]
+        end
+    end
+
+    # Compute the mean of each row
+    row_means = row_sums ./ ncols
+    return row_means
+end
+# Assign samples to the closest centroid
+function assign_samples_to_clusters_disco_average!(
+    samples::Vector{Vector{Float64}}, 
+    centroids::Vector{Vector{Float64}}, 
+    cluster_count::Int, 
+    cluster_indices::Vector{Vector{Int}}, 
+    partition::Vector{Vector{Vector{Float64}}},
+    solution_averages::Vector{Float64}
+)::Nothing
+    for (sample_index, sample) in enumerate(samples)
+        min_distance = disco_average_distance(sample, centroids[1], solution_averages)
+        assigned_cluster = 1
+        for i in 2:cluster_count
+            distance = disco_average_distance(sample, centroids[i], solution_averages)
+            if distance < min_distance
+                min_distance = distance
+                assigned_cluster = i
+            end
+        end
+        push!(cluster_indices[assigned_cluster], sample_index)
+        push!(partition[assigned_cluster], sample)
+    end
+end
+
 # Assign samples to the closest centroid
 function assign_samples_to_clusters!(
     samples::Vector{Vector{Float64}}, 
@@ -119,13 +183,31 @@ function compute_clustering_error(
     return error
 end
 
+# Compute the clustering error
+function compute_clustering_error_disco_average(
+    partition::Vector{Vector{Vector{Float64}}}, 
+    centroids::Vector{Vector{Float64}}, 
+    cluster_count::Int,
+    global_averages::Vector{Float64}
+)::Float64
+    error = 0.0
+    for idx in 1:cluster_count
+        for sample in partition[idx]
+            error += disco_average_distance(sample, centroids[idx], global_averages)
+        end
+    end
+    return error
+end
+
+
 function get_kmeans_clustering_result(
     random_number_generator::AbstractRNG,
     samples::Vector{Vector{Float64}}, 
     cluster_count::Int, 
-    tolerance::Float64, 
-    centroids::Vector{Vector{Float64}},
-    maximum_iterations::Int = 500
+    centroids::Vector{Vector{Float64}};
+    tolerance::Float64 = 0.001, 
+    maximum_iterations::Int = 500,
+    distance_method::Symbol = :euclidean
 )::KMeansClusteringResult
     validate_parameters(samples, cluster_count, tolerance)
     previous_error = 0.0
@@ -133,11 +215,28 @@ function get_kmeans_clustering_result(
     partition = [Vector{Float64}[] for _ in 1:cluster_count]
     cluster_indices = [Int[] for _ in 1:cluster_count]
 
+    global_averages = row_means(samples)
     for _ in 1:maximum_iterations
         reset_clusters!(partition, cluster_indices)
-        assign_samples_to_clusters!(samples, centroids, cluster_count, cluster_indices, partition)
+        if distance_method == :euclidean
+            assign_samples_to_clusters!(samples, centroids, cluster_count, cluster_indices, partition)
+        elseif distance_method == :disco_average
+            assign_samples_to_clusters_disco_average!(
+                samples, centroids, cluster_count, cluster_indices, partition, global_averages
+            )
+        else
+            throw(ArgumentError("Invalid distance method: $distance_method"))
+        end
         update_centroids!(partition, centroids, random_number_generator, samples)
-        current_error = compute_clustering_error(partition, centroids, cluster_count)
+        if distance_method == :euclidean
+            current_error = compute_clustering_error(partition, centroids, cluster_count)
+        elseif distance_method == :disco_average
+            current_error = compute_clustering_error_disco_average(
+                partition, centroids, cluster_count, global_averages
+            )
+        else
+            throw(ArgumentError("Invalid distance method: $distance_method"))
+        end
         if abs(current_error - previous_error) < tolerance
             break
         end
@@ -274,15 +373,17 @@ compute_b_values(
 
 function get_fast_global_clustering_result(
     random_number_generator::AbstractRNG,
-    samples::Vector{Vector{Float64}}, 
+    samples::Vector{Vector{Float64}}; 
     max_clusters::Int = -1,
     tolerance::Float64 = 0.001,
+    distance_method::Symbol = :euclidean
 )
     max_clusters = max_clusters == -1 ? length(samples) : max_clusters
     fg = FastGlobal(max_clusters, length(samples[1]))
     initial_centroids = [rand(random_number_generator, samples)]
     current_result = get_kmeans_clustering_result(
-        random_number_generator, samples, 1, tolerance, initial_centroids
+        random_number_generator, samples, 1, initial_centroids;
+        tolerance = tolerance, distance_method = distance_method
     )
 
     build_tree!(fg, samples)
@@ -299,7 +400,12 @@ function get_fast_global_clustering_result(
             current_result.centroids ; [potential_centroids[new_centroid_idx]]
         ]
         next_result = get_kmeans_clustering_result(
-            random_number_generator, samples, cluster_size, tolerance, new_centroids
+            random_number_generator, 
+            samples, 
+            cluster_size, 
+            new_centroids;
+            tolerance = tolerance, 
+            distance_method = distance_method
         )
         if next_result.bic >= current_result.bic
             return current_result
@@ -314,7 +420,8 @@ end
 function get_derived_tests(
     random_number_generator::AbstractRNG, 
     indiv_tests::SortedDict{Int, Vector{Float64}},
-    max_clusters::Int = -1
+    max_clusters::Int = -1,
+    distance_method::Symbol = :disco_average
 )
     for (id, test_vector) in indiv_tests
         if any(isnan, test_vector)
@@ -325,7 +432,10 @@ function get_derived_tests(
     end
     test_vectors = collect(values(indiv_tests))
     test_columns = [collect(row) for row in eachrow(hcat(test_vectors...))]
-    result = get_fast_global_clustering_result(random_number_generator, test_columns, max_clusters)
+    result = get_fast_global_clustering_result(
+        random_number_generator, test_columns; 
+        max_clusters = max_clusters, distance_method = distance_method
+    )
     derived_test_matrix = hcat(result.centroids...)
     derived_tests = SortedDict{Int, Vector{Float64}}(
         id => collect(derived_test)

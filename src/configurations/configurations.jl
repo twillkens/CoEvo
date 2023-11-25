@@ -4,7 +4,7 @@ export NumbersGame, PredictionGame
 
 import ..Ecosystems: evolve!
 
-using JLD2: @save
+using HDF5: File, Group, h5open
 using StableRNGs: StableRNG
 using ..Ecosystems: EcosystemCreator
 
@@ -19,5 +19,7 @@ using .NumbersGame: NumbersGame
 
 include("prediction_game/prediction_game.jl")
 using .PredictionGame: PredictionGame
+
+include("load.jl")
 
 end

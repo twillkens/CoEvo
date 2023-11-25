@@ -49,7 +49,7 @@ function create_phenotype_dict(
     phenotype_creators::Vector{<:PhenotypeCreator},
 )
     phenotype_dict = Dict(
-        individual.id => create_phenotype(phenotype_creator, individual.genotype)
+        individual.id => create_phenotype(phenotype_creator, individual)
         for (species, phenotype_creator) in zip(all_species, phenotype_creators)
         for individual in [species.population; species.children]
     )

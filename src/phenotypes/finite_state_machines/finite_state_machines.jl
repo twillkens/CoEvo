@@ -8,19 +8,24 @@ using ...Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
 using ..Phenotypes: Phenotype, PhenotypeCreator
 
 struct FiniteStateMachinePhenotype{T} <: Phenotype
+    id::Int
     start::Tuple{T, Bool}
     links::Dict{Tuple{T, Bool}, Tuple{T, Bool}}
 end
 
-function create_phenotype(::PhenotypeCreator, genotype::FiniteStateMachineGenotype)
+function FiniteStateMachinePhenotype(
+    start::Tuple{T, Bool}, links::Dict{Tuple{T, Bool}, Tuple{T, Bool}}
+) where T
+    FiniteStateMachinePhenotype(0, start, links)
+end
+
+function create_phenotype(::PhenotypeCreator, genotype::FiniteStateMachineGenotype, id::Int)
     new_links = Dict(
         ((source, bit) => (target, target in genotype.ones))
         for ((source, bit), target) in genotype.links
     )
-    phenotype = FiniteStateMachinePhenotype(
-        (genotype.start, genotype.start in genotype.ones),
-        new_links
-    )
+    start_tuple = (genotype.start, genotype.start in genotype.ones)
+    phenotype = FiniteStateMachinePhenotype(id, start_tuple, new_links)
     return phenotype
 end
 

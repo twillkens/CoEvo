@@ -1,26 +1,18 @@
-module AllvsAll
+module AllVersusAll
 
 import ..MatchMakers: make_matches
 
 using Random: AbstractRNG
 using ...Species: AbstractSpecies
 using ...Matches.Basic: BasicMatch
-using ..MatchMakers: MatchMaker
+using ..MatchMakers: MatchMaker, get_individual_ids_from_cohorts
 
-Base.@kwdef struct AllvsAllMatchMaker <: MatchMaker 
-    cohorts::Vector{Symbol} = [:population, :children]
-end
-
-function get_individual_ids_from_cohorts(
-    species::AbstractSpecies, matchmaker::AllvsAllMatchMaker
-)
-    individuals = vcat([getfield(species, cohort) for cohort in matchmaker.cohorts]...)
-    ids = [individual.id for individual in individuals]
-    return ids
+Base.@kwdef struct AllVersusAllMatchMaker <: MatchMaker 
+    cohorts::Vector{String} = ["population", "children"]
 end
 
 function make_matches(
-    matchmaker::AllvsAllMatchMaker, 
+    matchmaker::AllVersusAllMatchMaker, 
     interaction_id::String, 
     species_1::AbstractSpecies, 
     species_2::AbstractSpecies
@@ -32,16 +24,8 @@ function make_matches(
     return matches
 end
 
-function find_species_by_id(species_id::String, species_list::Vector{<:AbstractSpecies})
-    index = findfirst(s -> s.id == species_id, species_list)
-    if index === nothing
-        throw(ErrorException("Species with id $species_id not found."))
-    end
-    return species_list[index]
-end
-
 function make_matches(
-    matchmaker::AllvsAllMatchMaker,
+    matchmaker::AllVersusAllMatchMaker,
     ::AbstractRNG,
     interaction_id::String,
     all_species::Vector{<:AbstractSpecies},

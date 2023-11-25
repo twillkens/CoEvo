@@ -2,6 +2,8 @@ module Ecosystems
 
 export Basic
 
+import ..Evaluators: evaluate
+
 include("abstract/abstract.jl")
 
 include("interfaces/interfaces.jl")

@@ -2,6 +2,7 @@ module Basic
 
 export BasicSpeciesCreator
 
+import ...Individuals: get_individuals
 import ..SpeciesCreators: create_species
 
 using Random: AbstractRNG
@@ -89,6 +90,17 @@ function create_species(
     end
     new_species = BasicSpecies(species_creator.id, new_population, new_children)
     return new_species
+end
+
+function get_individuals(species::BasicSpecies, ids::Vector{Int})
+    all_individuals = [species.population ; species.children]
+    individuals = get_individuals(all_individuals, ids)
+    return individuals
+end
+
+function get_individuals(species::BasicSpecies)
+    individuals = [species.population ; species.children]
+    return individuals
 end
 
 end

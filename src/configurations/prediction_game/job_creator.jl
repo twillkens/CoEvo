@@ -1,95 +1,75 @@
-export make_interaction_pairs, make_domains, make_environment_creators, make_interactions
-export make_job_creator
+using ...Names
 
-function make_interaction_pairs(configuration::PredictionGameConfiguration)
-    INTERACTION_PAIR_DICT = Dict(
-        :two_species_control => [["A", "B"]],
-        :two_species_cooperative => [["Host", "Mutualist"]],
-        :two_species_competitive => [["Host", "Parasite"]],
-        :three_species_control => [["A", "B"],["B", "C"], ["C", "A"]],
-        :three_species_mix => [
-            ["Host", "Mutualist"], ["Parasite", "Host"], ["Mutualist", "Parasite"]
-        ],
-        :three_species_cooperative => [["A", "B"], ["C", "A"], ["B", "C"]],
-        :three_species_competitive => [["A", "B"], ["B", "C"], ["C", "A"]],
-    )
-    ecosystem_topology = configuration.ecosystem_topology
-    if ecosystem_topology ∉ keys(INTERACTION_PAIR_DICT)
-        throw(ArgumentError("Unrecognized ecosystem topology: $ecosystem_topology"))
-    end
-    interaction_pairs = INTERACTION_PAIR_DICT[ecosystem_topology]
-    return interaction_pairs
+function make_environment_creator(
+    ::LinguisticPredictionGameConfiguration, setup::InteractionSetup
+)
+    domain = PredictionGameDomain(setup.domain)
+    environment_creator = LinguisticPredictionGameEnvironmentCreator(domain = domain)
+    return environment_creator
 end
 
-function make_domains(configuration::PredictionGameConfiguration)
-    DOMAIN_DICT = Dict(
-        :two_species_control => [:Control],
-        :two_species_cooperative => [:Affinitive],
-        :two_species_competitive => [:Adversarial],
-        :three_species_control => [:Control, :Control, :Control],
-        :three_species_mix => [:Affinitive, :Adversarial, :Avoidant],
-        :three_species_cooperative => [:Affinitive, :Affinitive, :Avoidant],
-        :three_species_competitive => [:Adversarial, :Adversarial, :Adversarial],
-    )
-    ecosystem_topology = configuration.ecosystem_topology
-    if ecosystem_topology ∉ keys(DOMAIN_DICT)
-        throw(ArgumentError("Unrecognized ecosystem topology: $ecosystem_topology"))
-    end
-    domains = [PredictionGameDomain(domain) for domain in DOMAIN_DICT[ecosystem_topology]]
-    return domains
-end
-
-function make_environment_creators(configuration::PredictionGameConfiguration)
-    domains = make_domains(configuration)
+function make_environment_creator(
+    configuration::CollisionGameConfiguration, setup::InteractionSetup
+)
+    domain = PredictionGameDomain(setup.domain)
+    initial_distance = configuration.initial_distance
     episode_length = configuration.episode_length
     communication_dimension = configuration.communication_dimension
-    game = configuration.game
-    if game == :continuous_prediction_game
-        environment_creator_type = ContinuousPredictionGameEnvironmentCreator
-    elseif game == :collision_game
-        environment_creator_type = CollisionGameEnvironmentCreator
-    else
-        throw(ArgumentError("Unrecognized game: $game"))
-    end
-    environment_creators = [
-        environment_creator_type(
-            domain = domain,
-            episode_length = episode_length,
-            communication_dimension = communication_dimension
-        )
-        for domain in domains
-    ]
-    return environment_creators
+    environment_creator = CollisionGameEnvironmentCreator(
+        domain = domain,
+        initial_distance = initial_distance,
+        episode_length = episode_length,
+        communication_dimension = communication_dimension
+    )
+    return environment_creator
 end
 
-function make_interactions(configuration::PredictionGameConfiguration)
-    interaction_pairs = make_interaction_pairs(configuration)
-    environment_creators = make_environment_creators(configuration)
-    outcome_metrics = [
-        environment_creator.domain.outcome_metric.name
-        for environment_creator in environment_creators
-    ]
-    ids = [
-        join([outcome_metric, interaction_pair...], "-") 
-        for (interaction_pair, outcome_metric) in zip(interaction_pairs, outcome_metrics)
-    ]
+
+function make_environment_creator(
+    game::ContinuousPredictionGameConfiguration, setup::InteractionSetup
+)
+    domain = PredictionGameDomain(setup.domain)
+    episode_length = game.episode_length
+    communication_dimension = game.communication_dimension
+    environment_creator = ContinuousPredictionGameEnvironmentCreator(
+        domain = domain,
+        episode_length = episode_length,
+        communication_dimension = communication_dimension
+    )
+    return environment_creator
+end
+
+
+function make_interaction(
+    game::GameConfiguration, 
+    interaction_setup::InteractionSetup, 
+    cohorts::Vector{String}
+)
+    interaction = BasicInteraction(
+        id = get_id(interaction_setup),
+        environment_creator = make_environment_creator(game, interaction_setup),
+        species_ids = interaction_setup.species_ids,
+        matchmaker = AllVersusAllMatchMaker(cohorts = cohorts),
+    )
+    return interaction
+end
+
+function make_interactions(game::GameConfiguration, topology::Topology)
     interactions = [
-        BasicInteraction(
-            id = id,
-            environment_creator = environment_creator,
-            species_ids = interaction_pair,
-            matchmaker = AllvsAllMatchMaker(cohorts = configuration.cohorts),
-        ) 
-        for (id, environment_creator, interaction_pair) in 
-            zip(ids, environment_creators, interaction_pairs)
+        make_interaction(game, interaction_setup, topology.cohorts)
+        for interaction_setup in topology.interactions
     ]
     return interactions
 end
 
-function make_job_creator(configuration::PredictionGameConfiguration)
-    interactions = make_interactions(configuration)
+function make_job_creator(
+    globals::GlobalConfiguration, 
+    game::GameConfiguration, 
+    topology::Topology, 
+)
     job_creator = BasicJobCreator(
-        n_workers = configuration.n_workers, interactions = interactions
+        n_workers = get_n_workers(globals), 
+        interactions = make_interactions(game, topology)
     )
     return job_creator
 end

@@ -28,7 +28,7 @@ function CoEvo.Phenotypes.reset!(entity::MockPhenotype)
 end
 
 @testset "step!" begin
-    domain_mock = PredictionGameDomain(:Control)
+    domain_mock = PredictionGameDomain("Control")
     entity1_mock = MockPhenotype(Inf32)
     entity2_mock = MockPhenotype(-Inf32)
     environment_creator = ContinuousPredictionGameEnvironmentCreator(
@@ -75,7 +75,7 @@ end
 
 @testset "Reversal Movement" begin
     # Movement for entity1 is towards the right, entity2 is towards the left.
-    domain_mock = PredictionGameDomain(:Affinitive)
+    domain_mock = PredictionGameDomain("Affinitive")
     entity1_mock = MockPhenotypeWithTape([tan(π / 4) for _ in 1:4])  # Moves right for 8 steps
     entity2_mock = MockPhenotypeWithTape([-tan(π / 4) for _ in 1:4]) # Moves left for 8 steps
     environment_mock = create_environment(
@@ -113,7 +113,7 @@ end
 
 @testset "Circular Movement" begin
     # Movement for entity1 is towards the right (clockwise) and entity2 is also towards the right (clockwise).
-    domain_mock = PredictionGameDomain(:Affinitive)
+    domain_mock = PredictionGameDomain("Affinitive")
     entity1_mock = MockPhenotypeWithTape([tan(π / 4) for _ in 1:16])  # Moves right for 16 steps
     entity2_mock = MockPhenotypeWithTape([tan(π / 4) for _ in 1:16])  # Moves right for 16 steps
     
@@ -144,7 +144,7 @@ end
 
 @testset "Opposing Movement" begin
     # Movement for entity1 is towards the right (clockwise) while entity2 is towards the left (counterclockwise).
-    domain_mock = PredictionGameDomain(:Affinitive)
+    domain_mock = PredictionGameDomain("Affinitive")
     entity1_mock = MockPhenotypeWithTape([tan(π / 4) for _ in 1:16])  # Moves right (clockwise) for 16 steps
     entity2_mock = MockPhenotypeWithTape([-tan(π / 4) for _ in 1:16])  # Moves left (counterclockwise) for 16 steps
     

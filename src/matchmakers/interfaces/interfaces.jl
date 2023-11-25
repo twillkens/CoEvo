@@ -1,4 +1,4 @@
-export make_matches
+export make_matches, get_individual_ids_from_cohorts
 
 function make_matches(
     matchmaker::MatchMaker, 
@@ -10,4 +10,12 @@ function make_matches(
         "`make_matches` not implemented for matchmaker $matchmaker and species $all_species."
         )
     )
+end
+
+function get_individual_ids_from_cohorts(
+    species::AbstractSpecies, matchmaker::MatchMaker
+)
+    individuals = vcat([getfield(species, Symbol(cohort)) for cohort in matchmaker.cohorts]...)
+    ids = [individual.id for individual in individuals]
+    return ids
 end

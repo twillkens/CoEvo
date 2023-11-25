@@ -1,0 +1,85 @@
+module Species
+
+export SpeciesMetric, SnapshotSpeciesMetric, measure
+export AggregateSpeciesMetric, aggregate
+
+import ..Metrics: measure, get_name, aggregate
+
+using ...Species: AbstractSpecies, get_individuals
+using ...Species.Basic: BasicSpecies
+using ...Evaluators: Evaluation
+using ..Metrics: Metric, Measurement
+using ..Metrics.Common: BasicMeasurement
+using ..Metrics.Aggregators: Aggregator
+using ..Metrics.Aggregators: BasicStatisticalAggregator, BasicQuantileAggregator
+using ..Metrics.Aggregators: OneSampleTTestAggregator, HigherMomentAggregator
+using ..Metrics.Genotypes: GenotypeMetric
+using ..Metrics.Evaluations: EvaluationMetric
+
+abstract type SpeciesMetric <: Metric end
+
+struct SnapshotSpeciesMetric <: SpeciesMetric end
+
+function measure(::SnapshotSpeciesMetric, species::BasicSpecies)
+    measurements = Measurement[]
+    species_path = "species/$(species.id)"
+    population_ids = [individual.id for individual in species.population]
+    population_id_measurement = BasicMeasurement("$species_path/population_ids", population_ids)
+    push!(measurements, population_id_measurement)
+    for child in species.children
+        child_path = "$species_path/children/$(child.id)"
+        parent_ids_measurement = BasicMeasurement("$child_path/parent_ids", child.parent_ids)
+        push!(measurements, parent_ids_measurement)
+        genotype_measurement = BasicMeasurement("$child_path/genotype", child.genotype)
+        push!(measurements, genotype_measurement)
+    end
+    return measurements
+end
+
+Base.@kwdef struct AggregateSpeciesMetric{M <: Metric, A <: Aggregator} <: SpeciesMetric
+    submetric::M
+    name::String = "species"
+    cohorts::Vector{String} = ["population"]
+    aggregators::Vector{A} = [
+        BasicStatisticalAggregator(),
+        BasicQuantileAggregator(),
+        OneSampleTTestAggregator(),
+        HigherMomentAggregator()
+    ]
+    to_print::Union{String, Vector{String}} = ["mean", "maximum", "minimum", "std"]
+    to_save::Union{String, Vector{String}} = "all"
+end
+
+function measure(metric::SpeciesMetric, all_species::Vector{<:AbstractSpecies})
+    measurements = vcat([measure(metric, species) for species in all_species]...)
+    return measurements
+end
+
+function measure(metric::SpeciesMetric, evaluations::Vector{<:Evaluation})
+    measurements = vcat([measure(metric, evaluation) for evaluation in evaluations]...)
+    return measurements
+end
+
+function measure(
+    metric::AggregateSpeciesMetric{<:GenotypeMetric, <:Aggregator}, species::AbstractSpecies
+)
+    individuals = get_individuals(species, metric.cohorts)
+    genotypes = [individual.genotype for individual in individuals]
+    measurements = [measure(metric.submetric, genotype) for genotype in genotypes]
+    submetric_name = get_name(metric.submetric)
+    base_path = "species/$(species.id)/$submetric_name"
+    measurements = aggregate(metric.aggregators, base_path, measurements)
+    return measurements
+end
+
+function measure(
+    metric::AggregateSpeciesMetric{<:EvaluationMetric, <:Aggregator}, evaluation::Evaluation
+)
+    measurements = measure(metric.submetric, evaluation)
+    submetric_name = get_name(metric.submetric)
+    base_path = "species/$(evaluation.id)/$submetric_name"
+    measurements = aggregate(metric.aggregators, base_path, measurements)
+    return measurements
+end
+
+end

@@ -2,25 +2,29 @@ module Basic
 
 export BasicArchiver
 
-import ...Archivers: archive!, save_genotype!, save_measurement!
+import ...Archivers: archive!
 
 using DataStructures: OrderedDict
-using JLD2: JLDFile, Group, jldopen
-using ...Individuals: Individual
-using ...Metrics: Metric
-using ...Metrics.Common: AllSpeciesIdentity
-using ...Metrics.Evaluations: AllSpeciesFitness, AbsoluteError
-using ...Metrics.Genotypes: GenotypeSum, GenotypeSize
-using ...Measurements.Statistical: GroupStatisticalMeasurement, BasicStatisticalMeasurement
-using ...Measurements.Common: AllSpeciesMeasurement
-using ...Reporters: Report
-using ...Reporters.Basic: BasicReport
-using ...Reporters.Runtime: RuntimeReport
+using HDF5: File, Group, h5open
+using ...Genotypes: Genotype
+using ...Individuals.Basic: BasicIndividual
+using ...Species.Basic: BasicSpecies
+using ...Metrics: Metric, Measurement, get_name
+using ...Metrics.Common: RuntimeMetric, BasicMeasurement
+using ...Reporters: Report, print_reports
+using ...Reporters.Basic: NullReport, BasicReport
 using ..Archivers: Archiver, get_or_make_group!
 
 include("archiver.jl")
 
-include("savers/savers.jl")
+include("fsms/fsms.jl")
 
+include("genetic_programs/genetic_programs.jl")
+
+include("gnarl_networks/gnarl_networks.jl")
+
+include("vectors/vectors.jl")
+
+include("function_graphs/function_graphs.jl")
 
 end

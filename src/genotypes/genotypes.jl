@@ -57,6 +57,7 @@ module Genotypes
 export Vectors, GeneticPrograms, GnarlNetworks, FiniteStateMachines, FunctionGraphs
 
 using Random: AbstractRNG
+using HDF5: Group
 using ..Counters: Counter
 
 include("abstract/abstract.jl")

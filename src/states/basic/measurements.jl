@@ -1,79 +1,41 @@
-import ...Metrics: measure
-
-function measure(metric::GenotypeSize, state::State)
-    species_evaluations = Dict(
-        species => evaluation for (species, evaluation) in zip(state.species, state.evaluations)
-    )
-
-    species_measurements = Dict(
-        species.id => BasicStatisticalMeasurement(
-            [
-                metric.minimize ? 
-                    get_size(minimize(individual.genotype)) : get_size(individual.genotype) 
-                for individual in values(species.population)
-            ]
-        ) 
-        for species in keys(species_evaluations)
-    )
-        
-    measurement = GroupStatisticalMeasurement(species_measurements)
-    return measurement
+function measure(metric::GlobalStateMetric, state::BasicCoevolutionaryState)
+    base_path = "global_state"
+    measurements = [
+        BasicMeasurement(
+            "$base_path/rng_state", string(state.random_number_generator.state)
+        ),
+        BasicMeasurement(
+            "$base_path/individual_id_counter_state", 
+            state.individual_id_counter.current_value
+        ),
+        BasicMeasurement(
+            "$base_path/gene_id_counter_state", state.gene_id_counter.current_value
+        )
+    ]
+    return measurements
 end
 
-function measure(::GenotypeSum, state::State)
-    species_evaluations = Dict(
-        species => evaluation for (species, evaluation) in zip(state.species, state.evaluations)
-    )
-
-    species_measurements = Dict(
-        species.id => BasicStatisticalMeasurement(
-            [sum(individual.genotype.genes) for individual in species.population]
-        ) 
-        for species in keys(species_evaluations)
-    )
-        
-    measurement = GroupStatisticalMeasurement(species_measurements)
-    return measurement
+function measure(metric::RuntimeMetric, state::BasicCoevolutionaryState)
+    base_path = "runtime"
+    measurements = [
+        BasicMeasurement(
+            "$base_path/last_reproduction_time", state.last_reproduction_time
+        ),
+        BasicMeasurement("$base_path/evaluation_time", state.evaluation_time)
+    ]
+    return measurements
 end
 
-function measure(::AllSpeciesFitness, state::State)
-    species_evaluations = Dict(
-        species => evaluation for (species, evaluation) in zip(state.species, state.evaluations)
-    )
-
-    species_measurements = Dict(
-        species.id => BasicStatisticalMeasurement(
-            [record.fitness for record in evaluation.records]
-        ) 
-        for (species, evaluation) in species_evaluations
-            if typeof(evaluation) != NullEvaluation
-    )
-        
-    measurement = GroupStatisticalMeasurement(species_measurements)
-    return measurement
+function measure(metric::SpeciesMetric, state::BasicCoevolutionaryState)
+    all_species = state.species
+    measurements = measure(metric, all_species)
+    return measurements
 end
 
-function measure(::AllSpeciesIdentity, state::State)
-    species = Dict(species.id => species for species in state.species)
-    measurement = AllSpeciesMeasurement(species)
-    return measurement
+function measure(
+    metric::AggregateSpeciesMetric{<:EvaluationMetric}, state::BasicCoevolutionaryState
+)
+    evaluations = state.evaluations
+    measurements = measure(metric, evaluations)
+    return measurements
 end
-
-
-# TODO: Refactor this to use the new `measure` interface.
-# function measure(
-#     ::Reporter{AbsoluteError},
-#     state::CoevolutionaryState
-# )
-#     evaluation = filter(
-#         species_evaluation -> species_evaluation[1].id == "Subjects", 
-#         collect(
-#             Dict(
-#                 species => evaluation 
-#                 for (species, evaluation) in zip(state.species, state.evaluations)
-#             )
-#         )
-#     )[1][2]
-#     measurement = BasicStatisticalMeasurement(evaluation.outcome_sums)
-#     return measurement
-# end

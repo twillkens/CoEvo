@@ -2,7 +2,7 @@
 function make_interactions(configuration::NumbersGameConfiguration)
     species_ids = ["A", "B"]
     id = join([species_ids..., configuration.outcome_metric], "-")
-    matchmaker = AllvsAllMatchMaker(cohorts = configuration.cohorts)
+    matchmaker = AllVersusAllMatchMaker(cohorts = configuration.cohorts)
     domain = NumbersGameDomain(configuration.outcome_metric)
     environment_creator = StatelessEnvironmentCreator(domain)
     interaction = BasicInteraction(

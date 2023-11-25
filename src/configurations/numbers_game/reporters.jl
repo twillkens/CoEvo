@@ -1,38 +1,51 @@
 
 function make_reporters(configuration::NumbersGameConfiguration)
-    reporters = Reporter[]
     report_type = configuration.report_type
     print_interval = 0
     save_interval = 0
-    if report_type == :silent_test
-        runtime_reporter = RuntimeReporter(print_interval = 0)
-        return runtime_reporter, reporters
-    elseif report_type == :verbose_test
+    if report_type == "silent_test"
+        print_interval = 0
+        save_interval = 0
+    elseif report_type == "verbose_test"
         print_interval = 1
         save_interval = 0
-    elseif report_type == :deploy
+    elseif report_type == "deploy"
         print_interval = 25
         save_interval = 1
     else
         throw(ArgumentError("Unrecognized report type: $report_type"))
     end
-    runtime_reporter = RuntimeReporter(print_interval = print_interval)
-    reporters = Reporter[
+    reporters = [
         BasicReporter(
-            metric = GenotypeSum(), 
+            metric = GlobalStateMetric(),
             save_interval = save_interval, 
             print_interval = print_interval
         ),
         BasicReporter(
-            metric = AllSpeciesFitness(), 
-            save_interval = save_interval, 
+            metric = RuntimeMetric(),
+            save_interval = save_interval,
             print_interval = print_interval
         ),
         BasicReporter(
-            metric = AllSpeciesIdentity(), 
+            metric = SnapshotSpeciesMetric(),
             save_interval = save_interval, 
             print_interval = 0
         ),
+        BasicReporter(
+            metric = AggregateSpeciesMetric(submetric = SumGenotypeMetric()),
+            save_interval = save_interval, 
+            print_interval = print_interval
+        ),
+        BasicReporter(
+            metric = AggregateSpeciesMetric(submetric = RawFitnessEvaluationMetric()),
+            save_interval = save_interval, 
+            print_interval = print_interval
+        ),
+        BasicReporter(
+            metric = AggregateSpeciesMetric(submetric = ScaledFitnessEvaluationMetric()),
+            save_interval = save_interval, 
+            print_interval = print_interval
+        ),
     ]
-    return runtime_reporter, reporters
+    return reporters
 end

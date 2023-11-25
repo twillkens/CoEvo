@@ -1,6 +1,7 @@
 module Basic
 
-export BasicCoevolutionaryState, BasicCoevolutionaryStateCreator
+import ...SpeciesCreators: create_species
+import ...Metrics: measure
 
 using Base: @kwdef
 using Random: AbstractRNG
@@ -8,15 +9,15 @@ using DataStructures: SortedDict
 using ...Counters: Counter
 using ...Genotypes: get_size, minimize
 using ...Species: AbstractSpecies
+using ...SpeciesCreators: SpeciesCreator
+using ...SpeciesCreators.Basic: BasicSpeciesCreator
 using ...Evaluators: Evaluation
 using ...Evaluators.Null: NullEvaluation
+using ...Evaluators.NSGAII: NSGAIIEvaluation
 using ...Observers: Observation
-using ...Metrics: measure
-using ...Metrics.Evaluations: TestBasedFitness, AllSpeciesFitness
-using ...Metrics.Genotypes: GenotypeSum, GenotypeSize
-using ...Metrics.Common: AllSpeciesIdentity
-using ...Measurements.Common: AllSpeciesMeasurement
-using ...Measurements.Statistical: BasicStatisticalMeasurement, GroupStatisticalMeasurement
+using ...Metrics.Evaluations: EvaluationMetric
+using ...Metrics.Species: SpeciesMetric, AggregateSpeciesMetric
+using ...Metrics.Common: GlobalStateMetric, RuntimeMetric, BasicMeasurement
 using ..States: State, StateCreator
 
 include("state.jl")
