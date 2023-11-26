@@ -122,7 +122,7 @@ function generate_slurm_script(
             --topology $topology \\
             --report deploy \\
             --reproducer $reproducer \\
-            --n_generations $n_generations
+            --n_generations $n_generations \\
             --n_nodes_per_output $n_nodes_per_output
     """
     filepath = "scripts/$filename"
