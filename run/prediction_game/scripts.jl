@@ -125,9 +125,9 @@ function generate_slurm_script(
             --n_generations $n_generations
             --n_nodes_per_output $n_nodes_per_output
     """
-
+    filepath = "scripts/$filename"
     # Write the script to a file
-    open(filename, "w") do file
+    open(filepath, "w") do file
         write(file, script)
     end
 
