@@ -112,6 +112,8 @@ function generate_slurm_script(
     source /home/$user/.bashrc
     conda activate "/home/$user/.conda/envs/coevo"
 
+    srun julia --project -e 'push!(LOAD_PATH, "@CoEvo"); using PkgLock; PkgLock.instantiate_precompile()'
+
     # Run script
     srun julia --project=. run/prediction_game/run.jl \\
             --trial \$SLURM_ARRAY_TASK_ID \\
