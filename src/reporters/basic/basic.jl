@@ -37,8 +37,13 @@ function create_report(reporter::BasicReporter, state::State)
     metric = reporter.metric
     trial = state.trial
     generation = state.generation
-    to_print = reporter.print_interval > 0 && generation % reporter.print_interval == 0
-    to_save = reporter.save_interval > 0 && generation % reporter.save_interval == 0
+    if generation == 1
+        to_print = reporter.print_interval > 0
+        to_save = reporter.save_interval > 0
+    else
+        to_print = reporter.print_interval > 0 && generation % reporter.print_interval == 0
+        to_save = reporter.save_interval > 0 && generation % reporter.save_interval == 0
+    end
     if !to_print && !to_save
         return BasicReport(NullMetric(), Measurement[], trial, generation, false, false)
     end

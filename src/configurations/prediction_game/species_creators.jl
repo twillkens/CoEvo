@@ -12,7 +12,7 @@ function make_species_creators(
             genotype_creator = make_genotype_creator(substrate, game),
             individual_creator = make_individual_creator(substrate),
             phenotype_creator = make_phenotype_creator(substrate),
-            evaluator = make_evaluator(reproducer),
+            evaluator = make_evaluator(reproducer, topology),
             replacer = make_replacer(reproducer),
             selector = make_selector(reproducer),
             recombiner = make_recombiner(substrate),

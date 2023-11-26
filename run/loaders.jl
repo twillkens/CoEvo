@@ -154,8 +154,8 @@ end
 function dispatch_measurements_to_dataframe(
     ecosystem_id::String,
     generations::UnitRange{Int},
-    species_ids::Vector{String} = ["Host", "Parasite", "Mutualist"],
-    metrics::Vector{String} = ["GenotypeSize", "MinimizedGenotypeSize", "AllSpeciesFitness"],
+    species_ids::Vector{String} = ["H", "P"],
+    metrics::Vector{String} = ["genotype_size", "minimized_genotype_size", "scaled_fitness"],
     submetric::String = "mean"
 )
     # Iterate over each species and metric combination

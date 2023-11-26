@@ -16,6 +16,7 @@ using ...Evaluators: Evaluator, Evaluation
 using ...Replacers: Replacer, replace
 using ...Selectors: Selector, select
 using ...Recombiners: Recombiner, recombine
+using ...Recombiners.Clone: CloneRecombiner
 using ...Mutators: Mutator, mutate
 using ..SpeciesCreators: SpeciesCreator
 
@@ -56,13 +57,11 @@ function create_species(
         individual_id_counter, 
         gene_id_counter
     )
-    children = create_individuals(
-        species_creator.individual_creator, 
+    children = recombine(
+        species_creator.recombiner, 
         random_number_generator, 
-        species_creator.genotype_creator, 
-        species_creator.n_children, 
         individual_id_counter, 
-        gene_id_counter
+        population
     )
     species = BasicSpecies(species_creator.id, population, children)
     return species

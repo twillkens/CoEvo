@@ -32,6 +32,24 @@ function make_snapshot_species_reporter(configuration::ReportConfiguration)
     return reporter
 end
 
+function make_all_genotypes_reporter(configuration::ReportConfiguration)
+    reporter = BasicReporter(
+        metric = AllGenotypesSpeciesMetric(),
+        save_interval = configuration.save_interval, 
+        print_interval = 0
+    )
+    return reporter
+end
+
+function make_parent_ids_reporter(configuration::ReportConfiguration)
+    reporter = BasicReporter(
+        metric = ParentIDsSpeciesMetric(),
+        save_interval = 1,
+        print_interval = 0
+    )
+    return reporter
+end
+
 function make_genotype_size_reporter(configuration::ReportConfiguration)
     reporter = BasicReporter(
         metric = AggregateSpeciesMetric(submetric = SizeGenotypeMetric()),
@@ -120,7 +138,9 @@ function make_reporters(configuration::VerboseTestReportConfiguration)
         make_global_state_reporter(configuration),
         make_runtime_reporter(configuration),
         make_genotype_size_reporter(configuration),
+        make_minimized_genotype_size_reporter(configuration),
         make_raw_fitness_reporter(configuration),
+        make_scaled_fitness_reporter(configuration),
     ]
     return reporters
 end
@@ -139,7 +159,8 @@ function archive!(configuration::DeployReportConfiguration, file::File)
 end
 
 function DeployReportConfiguration(; 
-    id::String = "deploy", print_interval::Int = 50, save_interval::Int = 1, kwargs...)
+    id::String = "deploy", print_interval::Int = 50, save_interval::Int = 50, kwargs...
+)
     configuration = DeployReportConfiguration(id, print_interval, save_interval,)
     return configuration
 end
@@ -148,10 +169,10 @@ function make_reporters(configuration::DeployReportConfiguration)
     reporters = [
         make_global_state_reporter(configuration),
         make_runtime_reporter(configuration),
-        make_snapshot_species_reporter(configuration),
+        make_all_genotypes_reporter(configuration),
+        make_parent_ids_reporter(configuration),
         make_genotype_size_reporter(configuration),
         make_minimized_genotype_size_reporter(configuration),
-        make_raw_fitness_reporter(configuration),
         make_scaled_fitness_reporter(configuration),
     ]
     return reporters

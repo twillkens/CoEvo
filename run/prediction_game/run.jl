@@ -57,6 +57,10 @@ function parse_cmdline_args()
             arg_type = Int
             default = 16
             help = "Episode length"
+        "--n_nodes_per_output"
+            arg_type = Int
+            default = 1
+            help = "Number of nodes per output"
     end
 
     return parse_args(s)
@@ -91,6 +95,7 @@ experiment = make_prediction_game_experiment(;
     communication_dimension = args["communication_dimension"],
     n_workers = args["n_workers"],
     episode_length = args["episode_length"],
+    n_nodes_per_output = args["n_nodes_per_output"],
 )
 
 println("Running experiment...")

@@ -89,7 +89,6 @@ function evaluate(
     individual_tests = make_individual_tests(individuals, outcomes)
 
     fitnesses = calculate_fitnesses(individual_tests)
-    #println("fitnesses: ", fitnesses)
     check_for_nan_in_fitnesses(fitnesses)
 
     if evaluator.perform_disco

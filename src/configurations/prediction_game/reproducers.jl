@@ -3,14 +3,20 @@ export make_evaluator, make_replacer, make_selector, archive!
 
 abstract type Reproducer end
 
-function get_maximum_fitness(reproducer::Reproducer)
-    n_others = reproducer.n_species - 1
-    maximum_fitness = (reproducer.n_population + reproducer.n_children) * n_others
+function get_n_individuals(reproducer::Reproducer)
+    throw(ErrorException("get_n_individuals not implemented for reproducer of type $(typeof(reproducer))"))
+end
+
+function get_maximum_fitness(reproducer::Reproducer, topology::Topology)
+    n_others = get_n_species(topology) - 1
+    n_individuals = get_n_individuals(reproducer)
+    maximum_fitness = n_individuals * n_others
     return maximum_fitness
 end
 
 function make_half_truncator(reproducer::Reproducer)
-    n_truncate = (reproducer.n_population + reproducer.n_children) ÷ 2
+    n_individuals = get_n_individuals(reproducer)
+    n_truncate = n_individuals ÷ 2
     truncator = TruncationReplacer(n_truncate = n_truncate)
     return truncator
 end
@@ -21,6 +27,10 @@ struct RouletteReproducer <: Reproducer
     n_population::Int
     n_children::Int
 end
+
+get_n_individuals(
+    reproducer::RouletteReproducer
+) = reproducer.n_population + reproducer.n_children
 
 function RouletteReproducer(;
     id::String,
@@ -41,8 +51,8 @@ function archive!(reproducer::RouletteReproducer, file::File)
     file["$base_path/n_children"] = reproducer.n_children
 end
 
-function make_evaluator(reproducer::RouletteReproducer)
-    maximum_fitness = get_maximum_fitness(reproducer)
+function make_evaluator(reproducer::RouletteReproducer, topology::Topology)
+    maximum_fitness = get_maximum_fitness(reproducer, topology)
     evaluator = ScalarFitnessEvaluator(maximum_fitness = maximum_fitness)
     return evaluator
 end
@@ -62,6 +72,10 @@ struct DiscoReproducer <: Reproducer
     max_clusters::Int
     distance_method::String
 end
+
+get_n_individuals(
+    reproducer::DiscoReproducer
+) = reproducer.n_population + reproducer.n_children
 
 function DiscoReproducer(;
     id::String = "disco",
@@ -96,8 +110,8 @@ function archive!(reproducer::DiscoReproducer, file::File)
     file["$base_path/distance_method"] = reproducer.distance_method
 end
 
-function make_evaluator(reproducer::DiscoReproducer)
-    maximum_fitness = get_maximum_fitness(reproducer)
+function make_evaluator(reproducer::DiscoReproducer, topology::Topology)
+    maximum_fitness = get_maximum_fitness(reproducer, topology)
     evaluator = NSGAIIEvaluator(
         maximize = true, 
         perform_disco = true, 

@@ -3,6 +3,10 @@ export get_id
 
 abstract type Topology end
 
+function get_n_species(topology::Topology)
+    throw(ErrorException("get_n_species not implemented for topology of type $(typeof(topology))"))
+end
+
 Base.@kwdef struct InteractionSetup
     species_ids::Vector{String}
     domain::String
@@ -27,6 +31,10 @@ Base.@kwdef struct BasicTopology <: Topology
     species_ids::Vector{String}
     cohorts::Vector{String}
     interactions::Vector{InteractionSetup}
+end
+
+function get_n_species(topology::BasicTopology)
+    return length(topology.species_ids)
 end
 
 get_species_ids(topology::BasicTopology) = topology.species_ids

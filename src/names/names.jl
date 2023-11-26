@@ -213,7 +213,9 @@ export GenotypeMetric, SizeGenotypeMetric, SumGenotypeMetric
 using ..Metrics.Genotypes: GenotypeMetric, SizeGenotypeMetric, SumGenotypeMetric
 
 export SpeciesMetric, SnapshotSpeciesMetric, AggregateSpeciesMetric
+export AllGenotypesSpeciesMetric, ParentIDsSpeciesMetric
 using ..Metrics.Species: SpeciesMetric, SnapshotSpeciesMetric, AggregateSpeciesMetric
+using ..Metrics.Species: AllGenotypesSpeciesMetric, ParentIDsSpeciesMetric
 
 # StateCreators
 

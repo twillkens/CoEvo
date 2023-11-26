@@ -1,7 +1,7 @@
 module Species
 
 export SpeciesMetric, SnapshotSpeciesMetric, measure
-export AggregateSpeciesMetric, aggregate
+export AggregateSpeciesMetric, aggregate, AllGenotypesSpeciesMetric, ParentIDsSpeciesMetric
 
 import ..Metrics: measure, get_name, aggregate
 
@@ -36,6 +36,40 @@ function measure(::SnapshotSpeciesMetric, species::BasicSpecies)
     return measurements
 end
 
+struct AllGenotypesSpeciesMetric <: SpeciesMetric end
+
+function measure(::AllGenotypesSpeciesMetric, species::BasicSpecies)
+    measurements = Measurement[]
+    population_path = "species/$(species.id)/population"
+    individuals = [species.population; species.children]
+    measurements = [
+        BasicMeasurement("$population_path/$(individual.id)/genotype", individual.genotype)
+        for individual in individuals
+    ]
+    return measurements
+end
+
+struct ParentIDsSpeciesMetric <: SpeciesMetric end
+
+function measure(::ParentIDsSpeciesMetric, species::BasicSpecies)
+    measurements = Measurement[]
+    population_path = "species/$(species.id)/population"
+    for child in species.children
+        child_id = child.id
+        parent_ids_path = "$population_path/$child_id/parent_ids"
+        parent_ids_measurement = BasicMeasurement(parent_ids_path, child.parent_ids)
+        push!(measurements, parent_ids_measurement)
+    end
+    for individual in species.population
+        individual_id = individual.id
+        parent_ids_path = "$population_path/$individual_id/parent_ids"
+        parent_ids = [individual.id]
+        parent_ids_measurement = BasicMeasurement(parent_ids_path, parent_ids)
+        push!(measurements, parent_ids_measurement)
+    end
+    return measurements
+end
+
 Base.@kwdef struct AggregateSpeciesMetric{M <: Metric, A <: Aggregator} <: SpeciesMetric
     submetric::M
     name::String = "species"
@@ -44,7 +78,6 @@ Base.@kwdef struct AggregateSpeciesMetric{M <: Metric, A <: Aggregator} <: Speci
         BasicStatisticalAggregator(),
         BasicQuantileAggregator(),
         OneSampleTTestAggregator(),
-        HigherMomentAggregator()
     ]
     to_print::Union{String, Vector{String}} = ["mean", "maximum", "minimum", "std"]
     to_save::Union{String, Vector{String}} = "all"
