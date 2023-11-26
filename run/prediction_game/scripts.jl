@@ -1,7 +1,7 @@
 using Base: pipeline, run
 
 const INTERACTION_ALIAS_DICT = Dict(
-    "ctrl" => "ctl",
+    "control" => "ctl",
     "cooperative" => "coop",
     "competitive" => "comp",
     "mixed" => "mix",
@@ -22,6 +22,58 @@ function make_job_name(n_species::Int, topology::String, reproducer::String)
     reproducer_alias = REPRODUCER_ALIAS_DICT[reproducer]
     job_name = string(n_species, interaction_alias, reproducer_alias)
     return job_name
+end
+
+function generate_bash_script(
+    n_species::Int,
+    interaction::String,
+    reproducer::String;
+    n_generations::Int = 10000,
+    n_trials::Int = 20,
+    report::String = "deploy"
+)
+    # Use the existing dictionaries to get aliases
+    topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
+    job_name = make_job_name(n_species, interaction, reproducer)
+
+    # Create the filename for the bash script
+    filename = "scripts/$job_name.sh"
+
+    # Generate the bash script content
+    script = """
+    #!/bin/bash
+
+    for i in {1..$n_trials}
+    do
+       echo "Running trial \$i"
+       julia --project=. run/prediction_game/run.jl \\
+            --trial \$i \\
+            --n_workers 1 \\
+            --game continuous_prediction_game \\
+            --topology $topology \\
+            --report $report \\
+            --reproducer $reproducer \\
+            --n_generations $n_generations &
+    done
+    """
+
+    # Write the script to a file
+    open(filename, "w") do file
+        write(file, script)
+    end
+
+    # The filename is returned to know where the script is saved
+    return filename
+end
+
+function generate_and_run_bash_script(
+    n_species::Int,
+    interaction::String,
+    reproducer::String;
+    kwargs...
+)
+    filename = generate_bash_script(n_species, interaction, reproducer; kwargs...)
+    run(`bash $filename`)
 end
 
 function generate_slurm_script(
