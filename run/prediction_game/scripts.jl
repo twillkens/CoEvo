@@ -30,7 +30,8 @@ function generate_bash_script(
     reproducer::String;
     n_generations::Int = 10000,
     n_trials::Int = 20,
-    report::String = "deploy"
+    report::String = "deploy",
+    n_nodes_per_output::Int = 2
 )
     # Use the existing dictionaries to get aliases
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
@@ -53,7 +54,8 @@ function generate_bash_script(
             --topology $topology \\
             --report $report \\
             --reproducer $reproducer \\
-            --n_generations $n_generations &
+            --n_generations $n_generations \\
+            --n_nodes_per_output $n_nodes_per_output &
     done
     """
 
@@ -80,10 +82,11 @@ function generate_slurm_script(
     n_species::Int, 
     interaction::String, 
     reproducer::String; 
+    user::String = "twillkens",
     n_generations::Int = 10000,
     n_workers::Int = 11,
     n_trials::Int = 20,
-    user::String = "twillkens"
+    n_nodes_per_output::Int = 2
 )
     job_name = make_job_name(n_species, interaction, reproducer)
     filename = "$job_name.slurm"
@@ -118,6 +121,7 @@ function generate_slurm_script(
             --report deploy \\
             --reproducer $reproducer \\
             --n_generations $n_generations
+            --n_nodes_per_output $n_nodes_per_output
     """
 
     # Write the script to a file
