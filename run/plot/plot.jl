@@ -175,14 +175,25 @@ function aggregate(
     key::PredictionGameAggregateKey,
     values::Vector{Float64}
 )
-    loconf, hiconf = confint(OneSampleTTest(values))
-    measurement = PredictionGameSuperAggregateMeasurement(
-        key, 
-        mean(values),
-        loconf,
-        hiconf
-    )
-    return measurement
+    if length(values) == 0
+        return nothing
+    elseif length(values) == 1
+        return PredictionGameSuperAggregateMeasurement(
+            key, 
+            values[1], 
+            values[1], 
+            values[1]
+        )
+    else
+        loconf, hiconf = confint(OneSampleTTest(values))
+        measurement = PredictionGameSuperAggregateMeasurement(
+            key, 
+            mean(values),
+            loconf,
+            hiconf
+        )
+        return measurement
+    end
 end
 
 function aggregate(
@@ -192,6 +203,7 @@ function aggregate(
         measurement = aggregate(key, values)
         return measurement
     end
+    measurements = vcat(filter(m -> m !== nothing, measurements)...)
     return measurements
 end
 
