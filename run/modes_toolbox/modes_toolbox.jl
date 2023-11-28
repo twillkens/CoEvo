@@ -5,7 +5,7 @@ using Distributed
 
 function create_modes_reports(;
     trials::Vector{Int} = collect(1:20),
-    archive_directory::String = "/media/tcw/Seagate/two_comp/",
+    archive_directory::String = "trials/continuous_prediction_game/two_competitive/function_graphs/disco",
     perform_parallel::Bool = true,
     kwargs...
 )

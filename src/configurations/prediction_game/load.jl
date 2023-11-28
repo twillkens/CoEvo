@@ -7,7 +7,6 @@ using ...Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, Fun
 using ...Ecosystems.Basic: BasicEcosystem
 using HDF5: File, read, h5open, Group
 
-
 function load(
     file::File, 
     ::BasicIndividualCreator, 
@@ -41,7 +40,6 @@ function load(file::File, species_creator::BasicSpeciesCreator, gen::Int)
 
     return BasicSpecies(species_id, population, children)
 end
-
 
 function load_prediction_game_experiment(file::File)
     globals = load_globals(file)

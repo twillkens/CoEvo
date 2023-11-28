@@ -1,4 +1,5 @@
 ENV["GKSwstype"] = "100"
+using Serialization
 using HDF5: File, read, h5open, Group, names
 using StatsBase: mean
 using HypothesisTests: OneSampleTTest, confint
@@ -46,16 +47,34 @@ function get_all_measurements(
         "genotype_size", "minimized_genotype_size", "scaled_fitness"
     ],
     aggregate_metrics_to_include::Vector{String} = ["mean"],
-    interval::Int = 50
+    interval::Int = 50,
+    max_generations::Int = 500
 )
     experiment_configuration = get_experiment_configuration(file)
     trial = read(file["configuration/globals/trial"])
     generations = keys(file["generations"])
     measurements = PredictionGameAggregateMeasurement[]
     for gen in generations
-        to_process = gen == "1" || parse(Int, gen) % 50 == 0
-        if !to_process
+        to_process = gen == "1" || parse(Int, gen) % interval == 0
+        if !to_process || parse(Int, gen) > max_generations
             continue
+        end
+
+        try
+            complexity = Float64(read(file["modes/$gen"]))
+            measurement = PredictionGameAggregateMeasurement(
+                experiment_configuration, 
+                trial, 
+                gen, 
+                "all",
+                "complexity", 
+                "maximum", 
+                complexity
+            )
+            push!(measurements, measurement)
+        catch e 
+            println(e)
+            println("Modes not found for generation $gen")
         end
         println("Processing generation $gen")
         species_ids = keys(file["generations/$gen/species"])
@@ -279,8 +298,6 @@ function plot_measurements(metric, measurements)
     return p
 end
 
-
-
 function generate_plots(grouped_measurements)
     plots = []
     for (metric, measurements) in grouped_measurements
@@ -326,6 +343,8 @@ function make_plots(
     measurements = get_all_measurements(game, topology, substrate, reproducer)
     measurements = parse_measurements_to_dict(measurements)
     measurements = aggregate(measurements)
+
+    serialize("$game-$topology-$substrate-$reproducer.jls", measurements)
     make_plots(measurements)
 end
 

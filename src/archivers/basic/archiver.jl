@@ -21,16 +21,12 @@ function get_label(full_key::String)::String
 end
 
 function archive!(::BasicArchiver, value::Any, group::Group, label::String)
-    if label ∉ keys(group)
-        group[label] = value
-    end
+    group[label] = value
 end
 
 function archive!(archiver::BasicArchiver, value::Genotype, group::Group, label::String)
-    if label ∉ keys(group)
-        genotype_group = get_or_make_group!(group, label)
-        archive!(archiver, value, genotype_group)
-    end
+    group = get_or_make_group!(group, label)
+    archive!(archiver, value, group)
 end
 
 function archive!(

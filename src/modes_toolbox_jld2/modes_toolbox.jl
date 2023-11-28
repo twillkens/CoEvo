@@ -1,16 +1,14 @@
 module ModesToolbox
 
-export ModesIndividualSetup, ModesSpeciesSetup, ModesGenerationSetup, ModesTrialSetup, ModesTrialReport
-export ModesIndividualReport, ModesSpeciesReport, ModesGenerationReport
-export ModesInteractionSetup
-
 using ..Names
 using ..Genotypes.FunctionGraphs
 using Serialization
+using JLD2
 using Distributed
 
 include("observer.jl")
 include("prune.jl")
+include("load.jl")
 include("tag.jl")
 include("setup.jl")
 
@@ -184,7 +182,7 @@ struct ModesGenerationReport{R <: ModesSpeciesReport}
     maximum_complexity::Int
 end
 
-function ModesGenerationReport(file::File, generation_setup::ModesGenerationSetup)
+function ModesGenerationReport(file::JLD2.JLDFile, generation_setup::ModesGenerationSetup)
     generation_setup = ModesGenerationSetup(file, generation_setup)
     species_reports = [
         ModesSpeciesReport(species_setup) for species_setup in generation_setup.species_setups
@@ -195,8 +193,6 @@ function ModesGenerationReport(file::File, generation_setup::ModesGenerationSetu
     report = ModesGenerationReport(
         generation_setup.generation, species_reports, maximum_complexity
     )
-    generation = report.generation
-    file["modes/$generation"] = maximum_complexity
     return report
 end
 
@@ -208,7 +204,7 @@ struct ModesTrialReport{R <: ModesGenerationReport}
 end
 
 function ModesTrialReport(trial_setup::ModesTrialSetup)
-    file = load_file(trial_setup, "r+")
+    file = load_file(trial_setup)
     generation_reports = [
         ModesGenerationReport(file, generation_setup) 
         for generation_setup in trial_setup.generation_setups
@@ -223,8 +219,8 @@ function ModesTrialReport(trial_setup::ModesTrialSetup)
 end
 
 function ModesTrialReport(
-    trial::Int,
-    archive_directory::String;
+    trial::Int = 1,
+    archive_directory::String = "/media/tcw/Seagate/two_comp/";
     kwargs...
 )
     trial_setup = ModesTrialSetup(trial, archive_directory; kwargs...)

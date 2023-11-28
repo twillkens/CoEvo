@@ -1,9 +1,4 @@
-export FilterTag, GenerationTagBundle, get_generation_tag_bundles, print_tags
-export process_tags_for_species, refresh_tags
-export pass_tags, get_parent_id, get_population_ids, init_filter_tags
-
-
-using HDF5: File, read, h5open, Group
+using JLD2
 using ProgressBars
 using CoEvo
 
@@ -31,49 +26,56 @@ function print_tags(tags::Vector{Vector{FilterTag}}, start_gen::Int, end_gen::In
     end
 end
 
-function get_population_ids(
-    file::File,
-    generation::Int,
-    species_id::String
-)
-    ids = [
-        parse(Int, key) 
-        for key in keys(file["generations/$generation/species/$species_id/population"])
-    ]
-    return ids
-end
-
 function init_filter_tags(
-    file::File,
-    species_id::String,
+    file::JLD2.JLDFile,
+    species::String,
 )
     tagging_dict = Dict{Int, Int}()
     initial_filter_tags = Vector{FilterTag}()  # Vector to hold FilterTag objects
-    ids = get_population_ids(file, 1, species_id)
+    n_parents = length(file["individuals/1/$species/population_ids"])
+    population_ids = [parse(Int, key) for key in keys(file["individuals/1/$species/children"])]
+    children_ids = [id + n_parents for id in population_ids]
+    ids = [population_ids; children_ids]
 
     for id in ids
         tagging_dict[id] = id
-        filter_tag = FilterTag(1, species_id, id, 0, id)
+        filter_tag = FilterTag(1, species, id, 0, id)
         push!(initial_filter_tags, filter_tag)
     end
     filter_tags = [initial_filter_tags]
     tagging_dict, filter_tags
 end
 
+function get_population_ids(
+    file::JLD2.JLDFile,
+    generation::Int,
+    species::String
+)
+    children_group = file["individuals/$generation/$species/children"]
+    children_ids = [parse(Int, key) for key in keys(children_group)]
+    population_ids = file["individuals/$generation/$species/population_ids"]
+    all_population_ids = [population_ids; children_ids]
+    return all_population_ids
+end
 
 function get_parent_id(
-    file::File,
+    file::JLD2.JLDFile,
     generation::Int,
-    species_id::String,
+    species::String,
     individual_id::Int
 )
-    individual_path = "generations/$generation/species/$species_id/population/$individual_id"
-    parent_id = first(read(file["$individual_path/parent_ids"]))
+    population_ids = file["individuals/$generation/$species/population_ids"]
+    if individual_id ∈ population_ids
+        parent_id = individual_id
+    else
+        parent_ids = file["individuals/$generation/$species/children/$individual_id/parent_ids"]
+        parent_id = first(parent_ids)
+    end
     return parent_id
 end
     
 function refresh_tags(
-    file::File,
+    file::JLD2.JLDFile,
     generation::Int,
     species::String,
     previous_filter_tags::Vector{Vector{FilterTag}},
@@ -98,7 +100,7 @@ function refresh_tags(
 end
 
 function pass_tags(
-    file::File,
+    file::JLD2.JLDFile,
     generation::Int,
     species::String,
     tagging_dictionary::Dict{Int, Int}
@@ -119,19 +121,19 @@ function pass_tags(
 end
 
 function process_tags_for_species(
-    file::File,
-    species_id::String,
+    file::JLD2.JLDFile,
+    species::String,
     tagging_interval::Int,
     max_generation::Int = typemax(Int)
 )
-    tagging_dict, previous_filter_tags = init_filter_tags(file, species_id)
-    for generation in ProgressBar(2:length(keys(file["generations"])))
+    tagging_dict, previous_filter_tags = init_filter_tags(file, species)
+    for generation in ProgressBar(2:length(keys(file["individuals"])))
         if generation > max_generation
             break
         end
         tagging_dict = generation % tagging_interval == 0 ?
-            refresh_tags(file, generation, species_id, previous_filter_tags, tagging_dict) :
-            pass_tags(file, generation, species_id, tagging_dict)
+            refresh_tags(file, generation, species, previous_filter_tags, tagging_dict) :
+            pass_tags(file, generation, species, tagging_dict)
     end
     pop!(previous_filter_tags)
     vcat(previous_filter_tags...)
@@ -143,11 +145,11 @@ struct GenerationTagBundle
 end
 
 function get_generation_tag_bundles(
-    file::File,
+    file::JLD2.JLDFile = jldopen("/media/tcw/Seagate/two_comp_1/1.jld2", "r"),
     tagging_interval::Int = 50,
     max_generation::Int = typemax(Int)
 )
-    species_ids = read(file["configuration/topology/species_ids"])
+    species_ids = keys(file["individuals/1"])
 
     all_tags = vcat([
         process_tags_for_species(file, species_id, tagging_interval, max_generation) 
