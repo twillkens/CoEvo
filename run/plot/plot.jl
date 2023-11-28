@@ -309,7 +309,7 @@ function make_plots(measurements::Vector{PredictionGameSuperAggregateMeasurement
     display_or_save_plots(plots)
 end
 
-function make_plots(;
+function make_plots(
     game::String = "continuous_prediction_game", 
     topology::String = "two_competitive",
     substrate::String = "function_graphs",
@@ -319,4 +319,53 @@ function make_plots(;
     measurements = parse_measurements_to_dict(measurements)
     measurements = aggregate(measurements)
     make_plots(measurements)
+end
+
+using FilePathsBase
+
+
+function contains_h5_files(dir_path::String)
+    return any(endswith.(readdir(dir_path), ".h5"))
+end
+
+using FilePathsBase
+
+function make_plots(root::String)
+    configs = find_experiment_configurations(root)
+    for config in configs
+        make_plots(config.game, config.topology, config.substrate, config.reproducer)
+    end
+end
+
+function make_plots()
+    root = ENV["COEVO_TRIAL_DIR"]
+    make_plots(root)
+end
+
+function find_experiment_configurations(root_dir::String)
+    configurations = ExperimentConfiguration[]
+    for dir_path in walkdir(root_dir)
+        if is_valid_experiment_path(dir_path)
+            config = parse_experiment_configuration(dir_path)
+            push!(configurations, config)
+        end
+    end
+    return configurations
+end
+
+function is_valid_experiment_path(dir_path::Tuple{String, Vector{String}, Vector{String}})
+    return length(dir_path[3]) > 0
+    # Implement logic to determine if a path corresponds to a valid experiment
+    # For example, by checking the directory structure or file existence
+end
+
+function parse_experiment_configuration(dir_path::Tuple{String, Vector{String}, Vector{String}})
+    # Extract the configuration details from the directory path
+    # Example: "root/game/topology/substrate/reproducer"
+    path_parts = split(dir_path[1], "/")
+    if length(path_parts) >= 5
+        game, topology, substrate, reproducer = path_parts[end-3:end]
+        return ExperimentConfiguration(game, topology, substrate, reproducer)
+    end
+    return nothing
 end
