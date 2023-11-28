@@ -44,13 +44,19 @@ function get_all_measurements(
     metrics_to_include::Vector{String} = [
         "genotype_size", "minimized_genotype_size", "scaled_fitness"
     ],
-    aggregate_metrics_to_include::Vector{String} = ["mean"]
+    aggregate_metrics_to_include::Vector{String} = ["mean"],
+    interval::Int = 50
 )
     experiment_configuration = get_experiment_configuration(file)
     trial = read(file["configuration/globals/trial"])
     generations = keys(file["generations"])
     measurements = PredictionGameAggregateMeasurement[]
     for gen in generations
+        to_process = gen == "1" || parse(Int, gen) % 50 == 0
+        if !to_process
+            continue
+        end
+        println("Processing generation $gen")
         species_ids = keys(file["generations/$gen/species"])
         for species_id in species_ids
             metrics = keys(file["generations/$gen/species/$species_id"])
@@ -106,6 +112,7 @@ function get_all_measurements(
 
     hdf5_files = list_hdf5_files(experiment_directory)
     measurements = map(hdf5_files) do file_path
+        println("Processing $file_path")
         file = h5open(file_path, "r")
         measurements = get_all_measurements(file)
         close(file)
@@ -333,6 +340,7 @@ using FilePathsBase
 function make_plots(root::String)
     configs = find_experiment_configurations(root)
     for config in configs
+        println("Processing $config")
         make_plots(config.game, config.topology, config.substrate, config.reproducer)
     end
 end
