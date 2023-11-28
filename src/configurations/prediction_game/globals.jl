@@ -1,6 +1,6 @@
 export make_performer, load_globals, get_n_generations, get_n_workers, get_trial
 export make_random_number_generator, make_counter, make_individual_id_counter
-export make_gene_id_counter, make_state_creator
+export make_gene_id_counter, make_state_creator, load_globals
 
 using Random: AbstractRNG
 using StableRNGs: StableRNG
@@ -53,6 +53,25 @@ function load_globals(file::File)
     base_path = "configuration/globals"
     substrate = load_type(GlobalConfiguration, file, base_path)
     return substrate
+end
+
+function load_globals(file::File, generation::Int)
+    base_path = "generations/$generation/global_state"
+    rng_state = read(file["$base_path/rng_state"])
+    gene_id_counter_state = read(file["$base_path/gene_id_counter_state"])
+    individual_id_counter_state = read(file["$base_path/individual_id_counter_state"])
+
+    globals = load_globals(file)
+    globals = GlobalConfiguration(
+        globals.trial,
+        globals.n_generations,
+        globals.n_workers,
+        globals.seed,
+        rng_state,
+        individual_id_counter_state,
+        gene_id_counter_state,
+    )
+    return globals
 end
 
 get_n_generations(configuration::GlobalConfiguration) = configuration.n_generations

@@ -85,7 +85,6 @@ function FunctionGraphSubstrate(;
     n_nodes_per_output::Int = 1, 
     kwargs...
 )
-    println("FunctionGraphSubstrate, n_nodes_per_output = $n_nodes_per_output")
     substrate = FunctionGraphSubstrate(
         id,
         n_population,

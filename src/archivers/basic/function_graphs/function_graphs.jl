@@ -16,14 +16,6 @@ function archive!(::BasicArchiver, genotype::FunctionGraphGenotype, genotype_gro
     genotype_group["node_ids"] = ordered_node_ids
     genotype_group["node_functions"] = [string(node.func) for node in ordered_nodes]
     
-    # Collecting and saving connection-related data in a structured way.
-    #connection_data = []
-    #for node in ordered_nodes
-    #    for conn in node.input_connections
-    #        push!(connection_data, (node.id, conn.input_node_id, conn.weight, conn.is_recurrent))
-    #    end
-    #end
-    
     #genotype_group["connection_data"] = connection_data
         # Separate fields for connection data to avoid type issues.
     connection_node_ids = Int[]
@@ -47,18 +39,18 @@ function archive!(::BasicArchiver, genotype::FunctionGraphGenotype, genotype_gro
 end
 
 function load(
-    archiver::BasicArchiver, ::FunctionGraphGenotypeCreator, genotype_group::Group
+    ::BasicArchiver, ::FunctionGraphGenotypeCreator, genotype_group::Group
 )
     # Load node id lists directly.
-    input_node_ids = genotype_group["input_node_ids"]
-    bias_node_ids = genotype_group["bias_node_ids"]
-    hidden_node_ids = genotype_group["hidden_node_ids"]
-    output_node_ids = genotype_group["output_node_ids"]
-    n_nodes_per_output = genotype_group["n_nodes_per_output"]
+    input_node_ids     = read(genotype_group["input_node_ids"])
+    bias_node_ids      = read(genotype_group["bias_node_ids"])
+    hidden_node_ids    = read(genotype_group["hidden_node_ids"])
+    output_node_ids    = read(genotype_group["output_node_ids"])
+    n_nodes_per_output = read(genotype_group["n_nodes_per_output"])
     
     # Load node-related data.
-    node_ids = genotype_group["node_ids"]
-    node_functions = genotype_group["node_functions"]
+    node_ids       = read(genotype_group["node_ids"])
+    node_functions = read(genotype_group["node_functions"])
     
     # Initialize an empty nodes dictionary.
     nodes = Dict{Int, FunctionGraphNode}()
@@ -66,17 +58,11 @@ function load(
         nodes[id] = FunctionGraphNode(id, Symbol(func), FunctionGraphConnection[])
     end
     
-    # # Load connection data and establish connections.
-    # connection_data = genotype_group["connection_data"]
-    # for (node_id, input_id, weight, is_recurrent) in connection_data
-    #     connection = FunctionGraphConnection(input_id, weight, is_recurrent)
-    #     push!(nodes[node_id].input_connections, connection)
-    # end
     # Load connection data from separate fields.
-    connection_node_ids = genotype_group["connection_node_ids"]
-    connection_input_ids = genotype_group["connection_input_ids"]
-    connection_weights = genotype_group["connection_weights"]
-    connection_is_recurrent = genotype_group["connection_is_recurrent"]
+    connection_node_ids     = read(genotype_group["connection_node_ids"])
+    connection_input_ids    = read(genotype_group["connection_input_ids"])
+    connection_weights      = read(genotype_group["connection_weights"])
+    connection_is_recurrent = read(genotype_group["connection_is_recurrent"])
 
     for i in eachindex(connection_node_ids)
         connection = FunctionGraphConnection(

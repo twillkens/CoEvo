@@ -2,7 +2,7 @@ module Basic
 
 export BasicArchiver
 
-import ...Archivers: archive!
+import ...Archivers: archive!, load
 
 using DataStructures: OrderedDict
 using HDF5: File, Group, h5open

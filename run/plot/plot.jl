@@ -1,3 +1,4 @@
+ENV["GKSwstype"] = "100"
 using HDF5: File, read, h5open, Group, names
 using StatsBase: mean
 using HypothesisTests: OneSampleTTest, confint

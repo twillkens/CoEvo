@@ -4,7 +4,7 @@ struct BasicEcosystem{S <: AbstractSpecies} <: Ecosystem
     species::Vector{S}
 end
 
-Base.@kwdef struct BasicEcosystemCreator{
+Base.@kwdef mutable struct BasicEcosystemCreator{
     S <: SpeciesCreator, 
     J <: JobCreator, 
     P <: Performer,

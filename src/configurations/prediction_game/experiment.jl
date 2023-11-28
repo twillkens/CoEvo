@@ -49,12 +49,22 @@ create_archive(
     experiment.report,
 )
 
-function run!(
-    experiment::BasicExperiment; 
-    n_generations::Int = get_n_generations(experiment) 
+function make_prediction_game_experiment(;
+    game::String = "continuous_prediction_game",
+    topology::String = "two_control",
+    substrate::String = "function_graphs",
+    reproducer::String = "disco",
+    report::String = "silent",
+    kwargs...
 )
-    ecosystem_creator = make_ecosystem_creator(experiment)
-    create_archive(ecosystem_creator.archiver, experiment)
-    ecosystem = evolve!(ecosystem_creator, n_generations = n_generations)
-    return ecosystem
+    globals = GlobalConfiguration(; kwargs...)
+    game = get_game(game; kwargs...)
+    topology = get_topology(topology)
+    substrate = get_substrate(substrate; kwargs...)
+    reproducer = get_reproducer(reproducer; kwargs...)
+    report = get_report(report; kwargs...)
+    experiment = BasicExperiment(
+        globals, game, topology, substrate, reproducer, report
+    )
+    return experiment
 end
