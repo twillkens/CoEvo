@@ -63,6 +63,8 @@ function generate_bash_script(
     open(filename, "w") do file
         write(file, script)
     end
+    
+    chmod(filename, 0o755)
 
     # The filename is returned to know where the script is saved
     return filename
@@ -103,8 +105,8 @@ function generate_slurm_script(
     #SBATCH --array=1-$n_trials%$n_trials
     #SBATCH --ntasks=1
     #SBATCH --cpus-per-task=$n_workers
-    #SBATCH --output=logs/$(job_name)_%A_%a.out
-    #SBATCH --error=logs/$(job_name)_%A_%a.err
+    #SBATCH --output=logs/$(job_name).out
+    #SBATCH --error=logs/$(job_name).err
 
     # Load Julia module or set up the environment
     module purge
@@ -130,6 +132,8 @@ function generate_slurm_script(
     open(filepath, "w") do file
         write(file, script)
     end
+    chmod(filepath, 0o755)
+
 
     # Submit the script using sbatch
 end

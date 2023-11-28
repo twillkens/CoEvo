@@ -20,6 +20,7 @@ trials/*
 results/*
 logs/*
 scripts/*
+plots/*
 
 python/gedlibpy/build
 

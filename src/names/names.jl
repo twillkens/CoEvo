@@ -115,8 +115,8 @@ using ..Replacers.Generational: GenerationalReplacer
 export Selector, select
 using ..Selectors: Selector, select
 
-export TournamentSelector
-using ..Selectors.Tournament: TournamentSelector
+export TournamentSelector, run_tournament
+using ..Selectors.Tournament: TournamentSelector, run_tournament
 
 export FitnessProportionateSelector
 using ..Selectors.FitnessProportionate: FitnessProportionateSelector

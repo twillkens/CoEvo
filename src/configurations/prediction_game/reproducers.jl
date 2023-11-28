@@ -63,6 +63,57 @@ make_selector(
     reproducer::RouletteReproducer
 ) = FitnessProportionateSelector(n_parents = reproducer.n_population)
 
+
+#########################################
+
+struct TournamentReproducer <: Reproducer
+    id::String
+    n_species::Int
+    n_population::Int
+    n_children::Int
+    tournament_size::Int
+end
+
+get_n_individuals(
+    reproducer::TournamentReproducer
+) = reproducer.n_population + reproducer.n_children
+
+function TournamentReproducer(;
+    id::String,
+    n_species::Int = 2, 
+    n_population::Int = 10, 
+    n_children::Int = 10, 
+    tournament_size::Int = 3,
+    kwargs...
+)
+    reproducer = TournamentReproducer(id, n_species, n_population, n_children, tournament_size)
+    return reproducer
+end
+
+function archive!(reproducer::TournamentReproducer, file::File) 
+    base_path = "configuration/reproducer"
+    file["$base_path/id"] = "roulette"
+    file["$base_path/n_species"] = reproducer.n_species
+    file["$base_path/n_population"] = reproducer.n_population
+    file["$base_path/n_children"] = reproducer.n_children
+    file["$base_path/tournament_size"] = reproducer.tournament_size
+end
+
+function make_evaluator(reproducer::TournamentReproducer, topology::Topology)
+    maximum_fitness = get_maximum_fitness(reproducer, topology)
+    evaluator = ScalarFitnessEvaluator(maximum_fitness = maximum_fitness)
+    return evaluator
+end
+
+make_replacer(reproducer::TournamentReproducer) = make_half_truncator(reproducer)
+
+make_selector(reproducer::TournamentReproducer) = TournamentSelector(
+    n_parents = reproducer.n_population, tournament_size = reproducer.tournament_size
+)
+
+################################
+
+
 struct DiscoReproducer <: Reproducer
     id::String
     n_species::Int
