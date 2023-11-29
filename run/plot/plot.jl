@@ -48,7 +48,7 @@ function get_all_measurements(
     ],
     aggregate_metrics_to_include::Vector{String} = ["mean"],
     interval::Int = 50,
-    max_generations::Int = 500
+    max_generations::Int = 4950
 )
     experiment_configuration = get_experiment_configuration(file)
     trial = read(file["configuration/globals/trial"])

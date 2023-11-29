@@ -1,7 +1,7 @@
 using Base: pipeline, run
 
 const INTERACTION_ALIAS_DICT = Dict(
-    "control" => "ctl",
+    "control" => "ctrl",
     "cooperative" => "coop",
     "competitive" => "comp",
     "mixed" => "mix",
@@ -40,9 +40,11 @@ function generate_bash_script(
     # Create the filename for the bash script
     filename = "scripts/$job_name.sh"
 
-    # Generate the bash script content
+    # Generate the bash script content with log redirection
     script = """
     #!/bin/bash
+
+    mkdir -p logs/$job_name
 
     for i in {1..$n_trials}
     do
@@ -55,7 +57,8 @@ function generate_bash_script(
             --report $report \\
             --reproducer $reproducer \\
             --n_generations $n_generations \\
-            --n_nodes_per_output $n_nodes_per_output &
+            --n_nodes_per_output $n_nodes_per_output \\
+            > logs/$job_name/\$i.log 2>&1 &
     done
     """
 
@@ -69,6 +72,7 @@ function generate_bash_script(
     # The filename is returned to know where the script is saved
     return filename
 end
+
 
 function generate_and_run_bash_script(
     n_species::Int,
@@ -133,9 +137,4 @@ function generate_slurm_script(
         write(file, script)
     end
     chmod(filepath, 0o755)
-
-
-    # Submit the script using sbatch
 end
-
-# Example usage
