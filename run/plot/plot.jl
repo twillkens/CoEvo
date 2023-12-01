@@ -146,8 +146,6 @@ end
 struct PredictionGameSuperAggregator end
 
 
-
-
 struct PredictionGameAggregateKey
     experiment_configuration::ExperimentConfiguration
     generation::String
