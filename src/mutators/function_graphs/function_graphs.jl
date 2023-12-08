@@ -390,9 +390,16 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
         # :swap_function => 1 / 4,
         # :redirect_connection => 1 / 4,
         # :identity => 0 / 2
+
+        #:identity => 3 / 12,
+        #:add_function => 1 / 12,
+        #:remove_function => 2 / 12,
+        #:swap_function => 3 / 12,
+        #:redirect_connection => 3 / 12,
+
         :identity => 3 / 12,
-        :add_function => 1 / 12,
-        :remove_function => 2 / 12,
+        :add_function => 0.1,
+        :remove_function => 0.15,
         :swap_function => 3 / 12,
         :redirect_connection => 3 / 12,
     )

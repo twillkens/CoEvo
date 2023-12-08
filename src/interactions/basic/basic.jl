@@ -27,6 +27,17 @@ Base.@kwdef struct BasicInteraction{
     observers::Vector{O} = NullObserver[]
 end
 
+function BasicInteraction(interaction::BasicInteraction, observers::Vector{<:Observer})
+    interaction = BasicInteraction(
+        interaction.id,
+        interaction.environment_creator,
+        interaction.species_ids,
+        interaction.matchmaker,
+        observers,
+    )
+    return interaction
+end
+
 observe!(observers::Vector{<:Observer}, environment::Environment) = [
    observe!(observer, environment) for observer in observers
 ]
@@ -48,7 +59,6 @@ end
 function interact(environment::Environment)
     return interact(environment, NullObserver[])
 end
-
 
 function interact(
     interaction::BasicInteraction{E, M, O},

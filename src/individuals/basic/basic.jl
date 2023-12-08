@@ -16,11 +16,11 @@ struct BasicIndividual{G <: Genotype} <: Individual
 end
 
 function BasicIndividual(genotype::Genotype)
-    return BasicIndividual(0, genotype, Int[])
+    return BasicIndividual(0, genotype, [0])
 end
 
 function BasicIndividual(id::Int, genotype::Genotype)
-    return BasicIndividual(id, genotype, Int[])
+    return BasicIndividual(id, genotype, [id])
 end
 
 struct BasicIndividualCreator <: IndividualCreator end
@@ -38,7 +38,7 @@ function create_individuals(
     )
     individual_ids = count!(individual_id_counter, n_individuals)
     individuals = [
-        BasicIndividual(individual_id, genotype, Int[]) 
+        BasicIndividual(individual_id, genotype, [individual_id]) 
         for (individual_id, genotype) in zip(individual_ids, genotypes)
     ]
     return individuals

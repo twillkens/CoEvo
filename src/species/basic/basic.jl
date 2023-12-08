@@ -1,6 +1,8 @@
 module Basic
 
-export BasicSpecies
+export BasicSpecies, get_individuals
+
+import ...Individuals: get_individuals
 
 using ...Individuals: Individual
 using ..Species: AbstractSpecies
@@ -20,6 +22,17 @@ Base.@kwdef struct BasicSpecies{I <: Individual} <: AbstractSpecies
     id::String
     population::Vector{I}
     children::Vector{I}
+end
+
+function get_individuals(species::BasicSpecies, ids::Vector{Int})
+    all_individuals = [species.population ; species.children]
+    individuals = get_individuals(all_individuals, ids)
+    return individuals
+end
+
+function get_individuals(species::BasicSpecies)
+    individuals = [species.population ; species.children]
+    return individuals
 end
 
 end

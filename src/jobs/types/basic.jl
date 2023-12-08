@@ -6,6 +6,7 @@ import ..Jobs: create_jobs
 
 using Random: AbstractRNG
 using ...Phenotypes: Phenotype, PhenotypeCreator, create_phenotype
+using ...Individuals: get_individuals
 using ...Species: AbstractSpecies 
 using ...SpeciesCreators: SpeciesCreator
 using ...Matches: Match
@@ -51,15 +52,15 @@ function create_phenotype_dict(
     phenotype_dict = Dict(
         individual.id => create_phenotype(phenotype_creator, individual)
         for (species, phenotype_creator) in zip(all_species, phenotype_creators)
-        for individual in [species.population; species.children]
+        for individual in get_individuals(species)
     )
     return phenotype_dict
 end
 
 function filter_phenotypes_by_matches(
-    phenotype_dict::Dict{Int, <:Phenotype}, matches::Vector{<:Match}, 
-)
-    filtered_phenotypes = Dict(
+    phenotype_dict::Dict{Int, P}, matches::Vector{<:Match}, 
+) where P <: Phenotype
+    filtered_phenotypes = Dict{Int, P}(
         individual_id => phenotype_dict[individual_id]
         for match in matches
         for individual_id in match.individual_ids

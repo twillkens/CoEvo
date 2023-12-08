@@ -167,6 +167,15 @@ end
     return isinf(x) ? 1.0f0 : cos(x)
 end
 
+@kwdef struct ArcTangentGraphFunction <: GraphFunction 
+    name::Symbol = :ARCTANGENT
+    arity::Int = 1
+end
+
+@inline function evaluate_function(::ArcTangentGraphFunction, x::Float32)::Float32
+    return atan(x)
+end
+
 @kwdef struct SigmoidGraphFunction <: GraphFunction 
     name::Symbol = :SIGMOID
     arity::Int = 1
@@ -250,4 +259,5 @@ const FUNCTION_MAP = Dict(
     :OR => OrGraphFunction(),
     :NAND => NandGraphFunction(),
     :XOR => XorGraphFunction(),
+    :ARCTANGENT => ArcTangentGraphFunction(),
 )

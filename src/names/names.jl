@@ -61,8 +61,8 @@ using ..Individuals.Basic: BasicIndividualCreator, BasicIndividual
 export AbstractSpecies
 using ..Species: AbstractSpecies
 
-export BasicSpecies
-using ..Species.Basic: BasicSpecies
+export BasicSpecies, get_individuals
+using ..Species.Basic: BasicSpecies, get_individuals
 
 # PhenotypeCreators
 export Phenotype, PhenotypeCreator, create_phenotype, act!, reset!
@@ -151,6 +151,10 @@ using ..Domains.PredictionGame: PredictionGameDomain
 export Observation, Observer, NullObservation, NullObserver
 using ..Observers: Observation, Observer
 using ..Observers.Common: NullObservation, NullObserver
+
+export Result, get_individual_outcomes, get_observations, BasicResult
+using ..Results: Result, get_individual_outcomes, get_observations
+using ..Results.Basic: BasicResult
 
 # Environments
 export Environment, create_environment, get_outcome_set, is_active, observe!, step!

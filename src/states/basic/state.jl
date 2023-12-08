@@ -1,12 +1,18 @@
 export BasicCoevolutionaryState, BasicCoevolutionaryStateCreator, create_species
 
 using Base: @kwdef
+using ...Jobs: JobCreator
+using ...Performers: Performer
+using ...SpeciesCreators.Basic: BasicSpeciesCreator
 
 @kwdef struct BasicCoevolutionaryState <: State
     id::String
     random_number_generator::AbstractRNG
     trial::Int
     generation::Int  # Generation number
+    species_creators::Vector{<:SpeciesCreator}  # Species creators
+    job_creator::JobCreator  # Job creator
+    performer::Performer  # Performer
     last_reproduction_time::Float64  # Time spent on reproduction in the last generation
     evaluation_time::Float64  # Time spent on evaluation in the last generation
     individual_id_counter::Counter  # Counter for generating unique individual IDs

@@ -6,7 +6,7 @@ using ..Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotype
 using ..Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironment
 
 Base.@kwdef mutable struct FunctionGraphModesObserver <: Observer 
-    to_observe::Int = 1
+    to_observe::Int = 0
     node_states::Dict{Int, Vector{Float32}} = Dict{Int, Vector{Float32}}()
 end
 

@@ -8,7 +8,7 @@ using Random: AbstractRNG
 using DataStructures: SortedDict
 using StatsBase: mean
 using ...Species: AbstractSpecies
-using ...Individuals: Individual
+using ...Individuals: Individual, get_individuals
 using ..Evaluators: Evaluation, Evaluator
 
 struct ScalarFitnessRecord
@@ -25,6 +25,15 @@ struct ScalarFitnessEvaluation <: Evaluation
     records::Vector{ScalarFitnessRecord}
 end
 
+function get_record(evaluation::ScalarFitnessEvaluation, id::Int)
+    for record in evaluation.records
+        if record.id == id
+            return record
+        end
+    end
+    throw(ErrorException("Could not find record with id $id"))
+end
+
 Base.@kwdef struct ScalarFitnessEvaluator <: Evaluator 
     maximize::Bool = true
     maximum_fitness::Union{Nothing, Float64} = nothing
@@ -37,7 +46,7 @@ function evaluate(
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
 )
-    individuals = [species.population ; species.children]
+    individuals = get_individuals(species)
     filter!(individual -> individual.id in keys(outcomes), individuals)
     ids = [individual.id for individual in individuals]
     filtered_outcomes = Dict(id => outcomes[id] for id in ids if haskey(outcomes, id))
@@ -87,6 +96,11 @@ end
 
 function get_scaled_fitnesses(evaluation::ScalarFitnessEvaluation)
     return [record.scaled_fitness for record in evaluation.records]
+end
+
+function get_scaled_fitness(evaluation::ScalarFitnessEvaluation, id::Int)
+    record = get_record(evaluation, id)
+    return record.scaled_fitness
 end
 
 end

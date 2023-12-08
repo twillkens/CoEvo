@@ -6,7 +6,7 @@ export EpisodeLengthObservation, EpisodeLengthObserver
 export FunctionGraphNodeObservation, FunctionGraphNodeObserver
 
 using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotype
-using ..Observers: Observation, Observer, PhenotypeObserver
+using ..Observers: Observation, Observer, PhenotypeObserver, create_observation
 
 struct NullObservation <: Observation end
 

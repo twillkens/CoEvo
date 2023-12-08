@@ -87,19 +87,14 @@ function create_species(
     for mutator in species_creator.mutators
         new_children = mutate(mutator, random_number_generator, gene_id_counter, new_children)
     end
+
+    # TODO: This is a hack to make sure that the parent IDs are set for MODES.
+    for individual in new_population
+        individual.parent_ids[1] = individual.id
+    end
     new_species = BasicSpecies(species_creator.id, new_population, new_children)
     return new_species
 end
 
-function get_individuals(species::BasicSpecies, ids::Vector{Int})
-    all_individuals = [species.population ; species.children]
-    individuals = get_individuals(all_individuals, ids)
-    return individuals
-end
-
-function get_individuals(species::BasicSpecies)
-    individuals = [species.population ; species.children]
-    return individuals
-end
 
 end

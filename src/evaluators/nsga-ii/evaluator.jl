@@ -2,6 +2,8 @@ export NSGAIIEvaluator, NSGAIIEvaluation
 export evaluate, make_individual_tests, calculate_fitnesses, check_for_nan_in_fitnesses
 export create_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
 
+using ...Individuals: get_individuals
+
 Base.@kwdef struct NSGAIIEvaluator <: Evaluator 
     scalar_fitness_evaluator::ScalarFitnessEvaluator = ScalarFitnessEvaluator()
     maximize::Bool = true
@@ -83,7 +85,7 @@ function evaluate(
     scalar_fitness_evaluation = evaluate(
         evaluator.scalar_fitness_evaluator, random_number_generator, species, outcomes
     )
-    individuals = [species.population ; species.children]
+    individuals = get_individuals(species)
     filter!(individual -> individual.id in keys(outcomes), individuals)
     
     individual_tests = make_individual_tests(individuals, outcomes)

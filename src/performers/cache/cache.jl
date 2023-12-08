@@ -53,7 +53,7 @@ function perform(performer::CachePerformer, jobs::Vector{J}) where {J <: Job}
         )
         for result in new_results
     ]
-    all_results = [cached_results ; new_results]
+    all_results = Result[cached_results ; new_results]
     return all_results
 end
 
