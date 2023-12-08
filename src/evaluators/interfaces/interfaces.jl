@@ -1,4 +1,4 @@
-export evaluate, get_raw_fitnesses, get_scaled_fitnesses
+export evaluate, get_raw_fitnesses, get_scaled_fitnesses, get_scaled_fitness
 
 # TODO: Add observations to the interface.
 
@@ -39,3 +39,21 @@ function get_scaled_fitnesses(evaluation::Evaluation)
         "`get_scaled_fitnesses` not implemented for $evaluation.")
     )
 end
+
+function get_scaled_fitness(evaluation::Evaluation, id::Int)
+    throw(ErrorException(
+        "`get_scaled_fitness` not implemented for $evaluation.")
+    )
+end
+
+function get_scaled_fitness(evaluations::Vector{<:Evaluation}, id::Int)
+    for evaluation in evaluations
+        for record in evaluation.records
+            if record.id == id
+                return record.scaled_fitness
+            end
+        end
+    end
+    throw(ErrorException("Could not find individual with id $id in get_scaled_fitness."))
+end
+

@@ -46,7 +46,7 @@ export Counters, Genotypes, Phenotypes, Individuals, Species, Criteria, Evaluato
 export Selectors, Recombiners, Mutators, SpeciesCreators, Metrics, Domains, Matches
 export MatchMakers, Observers, Results, Environments, Interactions, Jobs, Performers
 export States, Reporters, Archivers, Ecosystems, Names, Configurations, run!
-export NumbersGameConfiguration, ModesToolbox
+export NumbersGameConfiguration
 export make_prediction_game_experiment, load_prediction_game_experiment
 
 include("counters/counters.jl")
@@ -57,13 +57,13 @@ include("genotypes/genotypes.jl")
 using .Genotypes: Genotypes
 println("loaded genotypes")
 
-include("individuals/individuals.jl")
-using .Individuals: Individuals
-println("loaded individuals")
-
 include("phenotypes/phenotypes.jl")
 using .Phenotypes: Phenotypes
 println("loaded phenotypes")
+
+include("individuals/individuals.jl")
+using .Individuals: Individuals
+println("loaded individuals")
 
 include("species/species.jl")
 using .Species: Species
@@ -153,10 +153,6 @@ include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
 println("loaded ecosystems")
 
-#include("loaders/loaders.jl")
-#using .Loaders: Loaders
-#println("loaded loaders")
-
 include("names/names.jl")
 using .Names: Names
 println("loaded names")
@@ -166,8 +162,5 @@ using .Configurations: Configurations, run!
 using .Configurations.NumbersGame: NumbersGame, NumbersGameConfiguration
 using .Configurations.PredictionGame: make_prediction_game_experiment, load_prediction_game_experiment
 println("loaded configurations")
-
-include("modes_toolbox/modes_toolbox.jl")
-using .ModesToolbox: ModesToolbox
 
 end

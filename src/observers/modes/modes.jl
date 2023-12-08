@@ -1,7 +1,50 @@
+module Modes
+
+export PhenotypeStateObserver, PhenotypeStateObservation
 
 import CoEvo.Observers: observe!, create_observation
 
-Base.@kwdef mutable struct FunctionGraphModesObserver <: Observer 
+using StatsBase: median
+using ..Observers: Observer, Observation
+using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotype
+using ...Phenotypes: PhenotypeState, get_phenotype_state
+
+abstract type ModesObserver <: Observer end
+
+abstract type ModesObservation <: Observation end
+
+Base.@kwdef mutable struct PhenotypeStateObserver{T <: PhenotypeState} <: Observer 
+    to_observe_id::Int = 0
+    other_id::Int = 0
+    states::Vector{T} = T[]
+end
+
+function observe!(
+    observer::PhenotypeStateObserver, phenotype::LinearizedFunctionGraphPhenotype
+)
+    state = get_phenotype_state(phenotype)
+    push!(observer.states, state)
+end
+
+struct PhenotypeStateObservation{T <: PhenotypeState} <: Observation
+    id::Int
+    other_id::Int
+    states::Vector{T}
+end
+
+function create_observation(observer::PhenotypeStateObserver{T}) where T <: PhenotypeState
+    observation = FunctionGraphModesObservation(
+        observer.to_observe_id,
+        observer.other_id,
+        observer.states
+    )
+    observer.to_observe_id = 0
+    observer.other_id = 0
+    empty!(observer.states)
+    return observation
+end
+
+Base.@kwdef mutable struct FunctionGraphModesObserver <: ModesObserver 
     to_observe_id::Int = 0
     other_id::Int = 0
     node_states::Dict{Int, Vector{Float32}} = Dict{Int, Vector{Float32}}()
@@ -10,32 +53,11 @@ end
 function observe!(
     observer::FunctionGraphModesObserver, phenotype::LinearizedFunctionGraphPhenotype
 )
-        # For each node in the phenotype, append its current value to the appropriate vector
-    # if phenotype.id == -12609
-    #     println(phenotype)
-    # end
     for node in phenotype.nodes
-        # Create a vector for this node's id if not already present
         if !haskey(observer.node_states, node.id)
             observer.node_states[node.id] = Float32[]
         end
         push!(observer.node_states[node.id], node.current_value)
-    end
-end
-
-function observe!(
-    observer::FunctionGraphModesObserver, environment::ContinuousPredictionGameEnvironment
-)
-    if environment.entity_1.id < 0
-        observer.to_observe_id = environment.entity_1.id
-        observer.other_id = environment.entity_2.id
-        observe!(observer, environment.entity_1)
-    elseif environment.entity_2.id < 0
-        observer.to_observe_id = environment.entity_2.id
-        observer.other_id = environment.entity_1.id
-        observe!(observer, environment.entity_2)
-    else
-        throw(ErrorException("Neither entity has a negative id for FunctionGraphModesObserver."))
     end
 end
 
@@ -57,6 +79,8 @@ function create_observation(observer::FunctionGraphModesObserver)
     return observation
 end
 
+safe_median(x::R) where R <: Real = isinf(x) ? zero(R) : median(x)
+
 function get_gene_median_dict(observations::Vector{FunctionGraphModesObservation})
     all_gene_output_dict = Dict{Int, Vector{Float32}}()
     for observation in observations
@@ -68,14 +92,10 @@ function get_gene_median_dict(observations::Vector{FunctionGraphModesObservation
         end
     end
     gene_median_dict = Dict(
-        id => median(all_gene_output_dict[id]) for id in keys(all_gene_output_dict)
+        id => safe_median(all_gene_output_dict[id]) for id in keys(all_gene_output_dict)
     )
     return gene_median_dict
 end
 
-import CoEvo.Results: get_observations
 
-function get_observations(observations::Vector{<:Observation}, id::Int)
-    observations = filter(observation -> observation.id == id, observations)
-    return observations
 end

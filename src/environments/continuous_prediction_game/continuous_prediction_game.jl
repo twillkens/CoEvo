@@ -13,4 +13,6 @@ include("step.jl")
 
 include("outcome_sets.jl")
 
+include("observers.jl")
+
 end

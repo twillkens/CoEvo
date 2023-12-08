@@ -1,6 +1,6 @@
 module Reporters
 
-export Basic
+export Basic, Modes
 
 using ..Species: AbstractSpecies
 using ..Evaluators: Evaluation
@@ -15,6 +15,9 @@ include("interfaces/interfaces.jl")
 
 include("basic/basic.jl")
 using .Basic: Basic
+
+include("modes/modes.jl")
+using .Modes: Modes
 
 end
 

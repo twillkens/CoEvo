@@ -3,7 +3,6 @@ module Phenotypes
 export Defaults, Vectors, GeneticPrograms, GnarlNetworks, FiniteStateMachines, FunctionGraphs
 
 using ..Genotypes: Genotype
-using ..Individuals: Individual
 
 include("abstract/abstract.jl")
 

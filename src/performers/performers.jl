@@ -1,6 +1,6 @@
 module Performers
 
-export Basic, Cache
+export Basic, Cache, Modes
 
 include("abstract/abstract.jl")
 
@@ -11,5 +11,8 @@ using .Basic: Basic
 
 include("cache/cache.jl")
 using .Cache: Cache
+
+include("modes/modes.jl")
+using .Modes: Modes
 
 end

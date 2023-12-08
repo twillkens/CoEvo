@@ -1,8 +1,9 @@
 module ScalarFitness
 
 export ScalarFitnessEvaluation, ScalarFitnessEvaluator, ScalarFitnessRecord
+export evaluate, get_record, get_raw_fitnesses, get_scaled_fitnesses, get_scaled_fitness
 
-import ..Evaluators: evaluate, get_raw_fitnesses, get_scaled_fitnesses
+import ..Evaluators: evaluate, get_raw_fitnesses, get_scaled_fitnesses, get_scaled_fitness
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
@@ -101,6 +102,17 @@ end
 function get_scaled_fitness(evaluation::ScalarFitnessEvaluation, id::Int)
     record = get_record(evaluation, id)
     return record.scaled_fitness
+end
+
+function get_scaled_fitness(evaluations::Vector{<:ScalarFitnessEvaluation}, id::Int)
+    for evaluation in evaluations
+        for record in evaluation.records
+            if record.id == id
+                return record.scaled_fitness
+            end
+        end
+    end
+    throw(ErrorException("Could not find id $id in evaluations."))
 end
 
 end

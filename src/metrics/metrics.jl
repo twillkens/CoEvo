@@ -1,6 +1,6 @@
 module Metrics
 
-export Common, Aggregators, Evaluations, Genotypes, Species
+export Common, Aggregators, Evaluations, Genotypes, Species, Modes
 
 include("abstract/abstract.jl")
 
@@ -20,5 +20,8 @@ using .Genotypes: Genotypes
 
 include("species/species.jl")
 using .Species: Species
+
+include("modes/modes.jl")
+using .Modes: Modes
 
 end

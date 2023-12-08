@@ -1,36 +1,36 @@
+module Modes
 
+export perform_modes, perform_modes_simulation!, process_next_generation!
+export update_species_individuals!
 
-# Function to create ModesSpecies objects
-function create_modes_species(all_species::Vector{<:AbstractSpecies}, persistent_ids::Set{Int})
-    return [ModesSpecies(species, persistent_ids) for species in all_species]
-end
-
-# Function to prune individuals
-function prune_individuals!(
-    species::ModesSpecies, pruned_individuals::Vector{<:ModesIndividual}
-)
-    pruned_ids = Set{Int}()
-    for individual in species.modes_individuals
-        if is_fully_pruned(individual)
-            push!(pruned_individuals, individual)
-            push!(pruned_ids, individual.id)
-        end
-    end
-    filter!(individual -> individual.id ∉ pruned_ids, species.modes_individuals)
-    return pruned_ids
-end
+using Random: AbstractRNG
+using ...Species: AbstractSpecies
+using ...Species.Modes: ModesSpecies
+using ...Species.Modes: create_modes_species, prune_individuals!
+using ...SpeciesCreators: SpeciesCreator, get_phenotype_creators, get_scalar_fitness_evaluators
+using ...Jobs: JobCreator, create_jobs
+using ...Jobs.Basic: BasicJobCreator
+using ...Interactions.Basic: BasicInteraction
+using ...Performers: Performer, perform
+using ...Observers.Modes: PhenotypeStateObserver
+using ...Results: get_individual_outcomes, get_observations
+using ...Evaluators: evaluate, get_scaled_fitness
+using ...Individuals.Modes: ModesIndividual, modes_prune!, is_fully_pruned
+using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeState
 
 function perform_modes_simulation!(
+    performer::Performer, 
     all_species::Vector{<:ModesSpecies},
     species_creators::Vector{<:SpeciesCreator}, 
     job_creator::JobCreator, 
-    performer::Performer, 
     random_number_generator::AbstractRNG,
 )
     phenotype_creators = get_phenotype_creators(species_creators)
     evaluators = get_scalar_fitness_evaluators(species_creators)
+    # TODO: Refactor to make generic
     interactions = map(job_creator.interactions) do interaction
-        BasicInteraction(interaction, [FunctionGraphModesObserver()])
+        observer = PhenotypeStateObserver{LinearizedFunctionGraphPhenotypeState}()
+        BasicInteraction(interaction, [observer])
     end
     job_creator = BasicJobCreator(interactions, job_creator.n_workers)
     jobs = create_jobs(
@@ -88,10 +88,10 @@ function update_species_individuals!(
     end
 end
 
-function get_modes_results(
+function perform_modes(
+    performer::Performer,
     species_creators::Vector{<:SpeciesCreator}, 
     job_creator::JobCreator,
-    performer::Performer,
     rng::AbstractRNG,
     all_species::Vector{<:AbstractSpecies},
     persistent_ids::Set{Int}
@@ -120,4 +120,6 @@ function get_modes_results(
     end
 
     return pruned_individuals
+end
+
 end

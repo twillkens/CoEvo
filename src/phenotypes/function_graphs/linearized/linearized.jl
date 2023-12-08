@@ -3,14 +3,19 @@ module Linearized
 export LinearizedFunctionGraphPhenotype, LinearizedFunctionGraphNode
 export LinearizedFunctionGraphConnection
 export LinearizedFunctionGraphPhenotypeCreator
+export LinearizedFunctionGraphPhenotypeState, get_node_value, get_phenotype_state
+export create_phenotype, act!, reset!
+export safe_median, get_node_median_value, sort_layer, construct_layers
 
-import ...Phenotypes: create_phenotype, act!, reset!
+import ...Phenotypes: create_phenotype, act!, reset!, get_phenotype_state
 
 using Base: @kwdef
+using StatsBase: median
 using ....Genotypes
 using ....Genotypes.FunctionGraphs
+using ....Genotypes.FunctionGraphs: GraphFunction
 using ....Genotypes.FunctionGraphs: FUNCTION_MAP
-using ...Phenotypes
+using ...Phenotypes: Phenotype, PhenotypeCreator, PhenotypeState
 
 struct LinearizedFunctionGraphPhenotypeCreator <: PhenotypeCreator end
 
@@ -39,6 +44,37 @@ end
     output_node_indices::Vector{Int}
     n_nodes_per_output::Int
     output_values::Vector{Float32}
+end
+
+struct LinearizedFunctionGraphPhenotypeState <: PhenotypeState
+    node_values::Dict{Int, Float32}
+end
+
+function get_node_value(state::LinearizedFunctionGraphPhenotypeState, node_id::Int)
+    return state.node_values[node_id]
+end
+
+function get_phenotype_state(phenotype::LinearizedFunctionGraphPhenotype)
+    state = Dict(
+        node.id => node.current_value
+        for node in phenotype.nodes
+    )
+    state = LinearizedFunctionGraphPhenotypeState(state)
+    return state
+end
+
+function safe_median(values::Vector{T}) where {T <: Real}
+    median_value = median(values)
+    median_value = isnan(median_value) ? T(0.0) : median_value
+    return median_value
+end
+
+function get_node_median_value(
+    states::Vector{LinearizedFunctionGraphPhenotypeState}, node_id::Int
+)
+    gene_values = [get_node_value(state, node_id) for state in states]
+    gene_median_value = safe_median(gene_values)
+    return gene_median_value
 end
 
 function sort_layer(node_ids::Vector{Int}, genotype::FunctionGraphGenotype)::Vector{Int}
@@ -167,7 +203,8 @@ function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{
 
     @inbounds begin
         hidden_nodes_end_index = phenotype.n_input_nodes + 
-            phenotype.n_bias_nodes + phenotype.n_hidden_nodes
+                                 phenotype.n_bias_nodes + 
+                                 phenotype.n_hidden_nodes
         for index in eachindex(1:hidden_nodes_end_index)
             node = phenotype.nodes[index]
             update_previous_value!(node)
@@ -177,20 +214,12 @@ function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{
         end
         hidden_node_start = phenotype.n_input_nodes + phenotype.n_bias_nodes + 1
         for node in phenotype.nodes[hidden_node_start:end]
-            to_print = false
             for input_index in eachindex(node.input_connections)
                 connection = node.input_connections[input_index]
                 input_node = phenotype.nodes[connection.input_node_index]
                 value = connection.is_recurrent ? 
                     input_node.previous_value : input_node.current_value
                 node.input_values[input_index] = connection.weight * value
-                if to_print
-                    println("node.id: ", node.id)
-                    println("input_index: ", input_index)
-                    println("connection.weight: ", connection.weight)
-                    println("value: ", value)
-                    println("node.input_values[input_index]: ", node.input_values[input_index])
-                end
             end
             node.current_value = evaluate_function(node.func, node.input_values)
         end
@@ -206,29 +235,11 @@ function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{
 
             # Checking for the infinity condition
             output_value = phenotype.output_values[output_value_index]
-            to_print = output_node.id in collect(81:84)
-            to_print = false
-            if to_print
-                println("output_index: ", output_index)
-                println("output_node_index: ", output_node_index)
-                println("output_value_index: ", output_value_index)
-                println("node_value: ", node_value)
-                println("output_value: ", output_value)
-            end
             if (node_value == Inf32 && output_value == -Inf32) || 
                 (node_value == -Inf32 && output_value == Inf32)
-                if to_print
-                    println("infinity condition")
-                end
                 phenotype.output_values[output_value_index] = 0.0f0
             else
-                if to_print
-                    println("adding")
-                end
                 phenotype.output_values[output_value_index] += node_value
-            end
-            if to_print
-                println("output_values: ", phenotype.output_values)
             end
         end
     end
