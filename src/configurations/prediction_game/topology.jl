@@ -164,6 +164,25 @@ const TOPOLOGIES = Dict(
             ),
         ],
     ),
+    "three_control" => BasicTopology(
+        id = "three_control",
+        species_ids = ["X", "Y", "Z"],
+        cohorts = ["population", "children"],
+        interactions = [
+            InteractionSetup(
+                species_ids = ["X", "Y"],
+                domain = "Control",
+            ),
+            InteractionSetup(
+                species_ids = ["Y", "Z"],
+                domain = "Control",
+            ),
+            InteractionSetup(
+                species_ids = ["Z", "X"],
+                domain = "Control",
+            ),
+        ],
+    ),
 )
 
 function get_topology(id::String)
