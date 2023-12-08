@@ -61,6 +61,10 @@ function parse_cmdline_args()
             arg_type = Int
             default = 1
             help = "Number of nodes per output"
+        "--modes_interval"
+            arg_type = Int
+            default = 50
+            help = "Modes interval"
     end
 
     return parse_args(s)
@@ -96,6 +100,7 @@ experiment = make_prediction_game_experiment(;
     n_workers = args["n_workers"],
     episode_length = args["episode_length"],
     n_nodes_per_output = args["n_nodes_per_output"],
+    modes_interval = args["modes_interval"],
 )
 
 println("Running experiment...")

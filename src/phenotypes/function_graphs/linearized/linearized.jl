@@ -69,8 +69,10 @@ function safe_median(values::Vector{T}) where {T <: Real}
     return median_value
 end
 
+# TODO: fix to use linearized state
 function get_node_median_value(
-    states::Vector{LinearizedFunctionGraphPhenotypeState}, node_id::Int
+    #states::Vector{LinearizedFunctionGraphPhenotypeState}, node_id::Int
+    states::Vector{<:PhenotypeState}, node_id::Int
 )
     gene_values = [get_node_value(state, node_id) for state in states]
     gene_median_value = safe_median(gene_values)

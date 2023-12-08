@@ -23,6 +23,7 @@ function observe!(
     observer::PhenotypeStateObserver, phenotype::LinearizedFunctionGraphPhenotype
 )
     state = get_phenotype_state(phenotype)
+    #println("\nstate: $state")
     push!(observer.states, state)
 end
 
@@ -33,14 +34,14 @@ struct PhenotypeStateObservation{T <: PhenotypeState} <: Observation
 end
 
 function create_observation(observer::PhenotypeStateObserver{T}) where T <: PhenotypeState
-    observation = FunctionGraphModesObservation(
+    observation = PhenotypeStateObservation(
         observer.to_observe_id,
         observer.other_id,
         observer.states
     )
     observer.to_observe_id = 0
     observer.other_id = 0
-    empty!(observer.states)
+    observer.states = T[]
     return observation
 end
 

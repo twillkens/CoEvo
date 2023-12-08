@@ -41,6 +41,7 @@ function run_test()
     for i in 1:10_000
         report = create_report(
             reporter, 
+            1,
             i,
             ecosystem_creator.species_creators,
             ecosystem_creator.job_creator,

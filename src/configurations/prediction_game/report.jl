@@ -88,6 +88,15 @@ function make_scaled_fitness_reporter(configuration::ReportConfiguration)
     return reporter
 end
 
+function make_modes_reporter(configuration::ReportConfiguration)
+    reporter = ModesReporter(
+        modes_interval = configuration.modes_interval,
+        to_print = configuration.print_interval > 0,
+        to_save = configuration.save_interval > 0,
+    )
+    return reporter
+end
+
 struct SilentReportConfiguration <: ReportConfiguration
     id::String
 end
@@ -113,6 +122,7 @@ struct VerboseTestReportConfiguration <: ReportConfiguration
     id::String
     print_interval::Int
     save_interval::Int
+    modes_interval::Int
 end
 
 function archive!(configuration::VerboseTestReportConfiguration, file::File)
@@ -120,18 +130,22 @@ function archive!(configuration::VerboseTestReportConfiguration, file::File)
     file["$base_path/id"] = configuration.id
     file["$base_path/print_interval"] = configuration.print_interval
     file["$base_path/save_interval"] = configuration.save_interval
+    file["$base_path/modes_interval"] = configuration.modes_interval
 end
 
 function VerboseTestReportConfiguration(;
-    id::String = "verbose_test", save_interval::Int = 0, print_interval::Int = 1, kwargs...
+    id::String = "verbose_test", 
+    save_interval::Int = 0, 
+    print_interval::Int = 1, 
+    modes_interval::Int = 50,
+    kwargs...
 )
     configuration = VerboseTestReportConfiguration(
-        id,
-        print_interval,
-        save_interval,
+        id, print_interval, save_interval, modes_interval
     )
     return configuration
 end
+using ...Reporters.Modes: ModesReporter
 
 function make_reporters(configuration::VerboseTestReportConfiguration)
     reporters = [
@@ -141,6 +155,7 @@ function make_reporters(configuration::VerboseTestReportConfiguration)
         make_minimized_genotype_size_reporter(configuration),
         make_raw_fitness_reporter(configuration),
         make_scaled_fitness_reporter(configuration),
+        make_modes_reporter(configuration),
     ]
     return reporters
 end
@@ -149,6 +164,7 @@ struct DeployReportConfiguration <: ReportConfiguration
     id::String
     print_interval::Int
     save_interval::Int
+    modes_interval::Int
 end
 
 function archive!(configuration::DeployReportConfiguration, file::File)
@@ -159,9 +175,13 @@ function archive!(configuration::DeployReportConfiguration, file::File)
 end
 
 function DeployReportConfiguration(; 
-    id::String = "deploy", print_interval::Int = 50, save_interval::Int = 50, kwargs...
+    id::String = "deploy", 
+    print_interval::Int = 50, 
+    save_interval::Int = 50, 
+    modes_interval::Int = 50, 
+    kwargs...
 )
-    configuration = DeployReportConfiguration(id, print_interval, save_interval,)
+    configuration = DeployReportConfiguration(id, print_interval, save_interval, modes_interval)
     return configuration
 end
 
@@ -170,10 +190,11 @@ function make_reporters(configuration::DeployReportConfiguration)
         make_global_state_reporter(configuration),
         make_runtime_reporter(configuration),
         make_all_genotypes_reporter(configuration),
-        make_parent_ids_reporter(configuration),
+        #make_parent_ids_reporter(configuration),
         make_genotype_size_reporter(configuration),
         make_minimized_genotype_size_reporter(configuration),
         make_scaled_fitness_reporter(configuration),
+        make_modes_reporter(configuration)
     ]
     return reporters
 end

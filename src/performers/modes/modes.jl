@@ -4,6 +4,7 @@ export perform_modes, perform_modes_simulation!, process_next_generation!
 export update_species_individuals!
 
 using Random: AbstractRNG
+using ...Genotypes: minimize
 using ...Species: AbstractSpecies
 using ...Species.Modes: ModesSpecies
 using ...Species.Modes: create_modes_species, prune_individuals!
@@ -17,13 +18,14 @@ using ...Results: get_individual_outcomes, get_observations
 using ...Evaluators: evaluate, get_scaled_fitness
 using ...Individuals.Modes: ModesIndividual, modes_prune!, is_fully_pruned
 using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeState
+using ...Observers: get_observations
 
 function perform_modes_simulation!(
     performer::Performer, 
-    all_species::Vector{<:ModesSpecies},
+    random_number_generator::AbstractRNG,
     species_creators::Vector{<:SpeciesCreator}, 
     job_creator::JobCreator, 
-    random_number_generator::AbstractRNG,
+    all_species::Vector{<:ModesSpecies},
 )
     phenotype_creators = get_phenotype_creators(species_creators)
     evaluators = get_scalar_fitness_evaluators(species_creators)
@@ -43,15 +45,15 @@ function perform_modes_simulation!(
     for species in all_species
         for modes_individual in species.modes_individuals
             modes_individual.fitness = get_scaled_fitness(evaluations, modes_individual.id)
-            modes_individual.observations = get_observations(observations, modes_individual.id)
+            individual_observations = get_observations(observations, modes_individual.id)
+            states = vcat([observation.states for observation in individual_observations]...)
+            modes_individual.states = states
         end
     end
 end
 
 # Process the next generation of individuals
-function process_next_generation!(
-    all_modes_species::Vector{<:ModesSpecies}
-)
+function process_next_generation!(all_modes_species::Vector{<:ModesSpecies})
     all_next_modes_species = map(all_modes_species) do species
         next_individuals = map(species.modes_individuals) do modes_individual
             modes_prune!(modes_individual)
@@ -97,7 +99,18 @@ function perform_modes(
     persistent_ids::Set{Int}
 )
     all_modes_species = create_modes_species(all_species, persistent_ids)
+    # TODO: Fix hack for control by adding topology etc to ecosystem_creator
     pruned_individuals = ModesIndividual[]
+    if first(job_creator.interactions).id == "Control-A-B"
+        for species in all_modes_species
+            for modes_individual in species.modes_individuals
+                genotype = minimize(modes_individual.genotype)
+                modes_individual = ModesIndividual(modes_individual.id, genotype)
+                push!(pruned_individuals, modes_individual)
+            end
+        end
+        return pruned_individuals
+    end
 
     for species in all_modes_species
         prune_individuals!(species, pruned_individuals)
@@ -111,12 +124,16 @@ function perform_modes(
         return pruned_individuals
     end
 
-    perform_modes_simulation!(all_modes_species, species_creators, job_creator, performer, rng)
+    perform_modes_simulation!(performer, rng, species_creators, job_creator, all_modes_species)
 
     while !is_fully_pruned(all_modes_species)
         all_next_modes_species = process_next_generation!(all_modes_species)
-        perform_modes_simulation!(all_next_modes_species, species_creators, job_creator, performer, rng)
-        update_species_individuals!(all_modes_species, all_next_modes_species, pruned_individuals)
+        perform_modes_simulation!(
+            performer, rng, species_creators, job_creator, all_next_modes_species
+        )
+        update_species_individuals!(
+            all_modes_species, all_next_modes_species, pruned_individuals
+        )
     end
 
     return pruned_individuals

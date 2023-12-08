@@ -421,6 +421,7 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
         :MINIMUM => FUNCTION_MAP[:MINIMUM],
         :SINE => FUNCTION_MAP[:SINE],
         :COSINE => FUNCTION_MAP[:COSINE],
+        :ARCTANGENT => FUNCTION_MAP[:ARCTANGENT],
         :SIGMOID => FUNCTION_MAP[:SIGMOID],
         :TANH => FUNCTION_MAP[:TANH],
         :RELU => FUNCTION_MAP[:RELU]

@@ -109,7 +109,7 @@ function quick_print(generation, modes_complexity, species_complexity, novelty, 
 end
 
 function create_report(
-    reporter::BasicReporter{ModesMetric}, 
+    reporter::ModesReporter, 
     trial::Int,
     generation::Int, 
     species_creators::Vector{<:SpeciesCreator},
@@ -137,7 +137,7 @@ function create_report(
         #species_complexity = get_maximum_complexity(reporter.all_species)
         novelty = calculate_novelty!(reporter, pruned_individuals)
         change = calculate_change!(reporter, pruned_individuals)
-        #quick_print(generation, modes_complexity, species_complexity, novelty, change)
+        quick_print(generation, modes_complexity, 0, novelty, change)
         genotype_measurements = [
             BasicMeasurement("modes/individuals/$(individual.id)/genotype", individual.genotype)
             for individual in pruned_individuals
@@ -153,7 +153,8 @@ function create_report(
         update_tag_dictionary(reporter, all_species)
         reporter.persistent_ids = get_all_ids(all_species)
         reporter.previous_modes_generation = generation
-        report = BasicReport(reporter.metric, measurements, trial, generation, true, true)
+        #report = BasicReport(reporter.metric, measurements, trial, generation, true, true)
+        report = nothing
         return report
     else
         update_persistent_ids(reporter, all_species)
@@ -161,7 +162,7 @@ function create_report(
     return NullReport() 
 end
 
-function create_report(reporter::BasicReporter{ModesMetric}, state::State)
+function create_report(reporter::ModesReporter, state::State)
     report = create_report(
         reporter, 
         state.trial,

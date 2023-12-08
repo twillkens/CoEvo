@@ -15,7 +15,9 @@ Base.@kwdef mutable struct ModesReporter{S <: AbstractSpecies} <: Reporter
     complexity_metric::Metric = MaximumComplexityMetric("modes/complexity")
     novelty_metric::Metric = ModesNoveltyMetric("modes/novelty")
     change_metric::Metric = ModesChangeMetric("modes/change")
-    modes_interval::Int = 10
+    modes_interval::Int = 50
+    to_print::Bool = true
+    to_save::Bool = true
     tag_dictionary::Dict{Int, Int} = Dict{Int, Int}()
     persistent_ids::Set{Int} = Set{Int}()
     all_species::Vector{S} = AbstractSpecies[]

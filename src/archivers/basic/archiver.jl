@@ -66,7 +66,8 @@ function archive!(
     end
 end
 
-function archive!(archiver::BasicArchiver, reports::Vector{<:BasicReport})
+function archive!(archiver::BasicArchiver, reports::Vector{<:Report})
+    reports = filter(report -> typeof(report) != NullReport, reports)
     reports_to_print = [report for report in reports if report.to_print]
     if length(reports_to_print) > 0
         print_reports(reports_to_print)

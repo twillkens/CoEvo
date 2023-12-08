@@ -28,10 +28,11 @@ function generate_bash_script(
     n_species::Int,
     interaction::String,
     reproducer::String;
-    n_generations::Int = 10000,
-    n_trials::Int = 20,
+    n_generations::Int = 1000,
+    n_trials::Int = 5,
     report::String = "deploy",
-    n_nodes_per_output::Int = 2
+    n_nodes_per_output::Int = 1,
+    modes_interval::Int = 50
 )
     # Use the existing dictionaries to get aliases
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
@@ -58,6 +59,7 @@ function generate_bash_script(
             --reproducer $reproducer \\
             --n_generations $n_generations \\
             --n_nodes_per_output $n_nodes_per_output \\
+            --modes_interval $modes_interval \\
             > logs/$job_name/\$i.log 2>&1 &
     done
     """
@@ -89,10 +91,11 @@ function generate_slurm_script(
     interaction::String, 
     reproducer::String; 
     user::String = "twillkens",
-    n_generations::Int = 10000,
-    n_workers::Int = 11,
-    n_trials::Int = 20,
-    n_nodes_per_output::Int = 2
+    n_generations::Int = 30000,
+    n_workers::Int = 1,
+    n_trials::Int = 30,
+    n_nodes_per_output::Int = 1,
+    modes_interval::Int = 50
 )
     job_name = make_job_name(n_species, interaction, reproducer)
     filename = "$job_name.slurm"
@@ -109,8 +112,13 @@ function generate_slurm_script(
     #SBATCH --array=1-$n_trials%$n_trials
     #SBATCH --ntasks=1
     #SBATCH --cpus-per-task=$n_workers
-    #SBATCH --output=logs/$(job_name).out
-    #SBATCH --error=logs/$(job_name).err
+    #SBATCH --output=logs/$(job_name)/%a.out
+    #SBATCH --error=logs/$(job_name)/%a.err
+
+    # Create log directory if it doesn't exist
+    if [ ! -d "logs/$(job_name)" ]; then
+        mkdir -p "logs/$(job_name)"
+    fi
 
     # Load Julia module or set up the environment
     module purge
@@ -129,7 +137,8 @@ function generate_slurm_script(
             --report deploy \\
             --reproducer $reproducer \\
             --n_generations $n_generations \\
-            --n_nodes_per_output $n_nodes_per_output
+            --n_nodes_per_output $n_nodes_per_output \\
+            --modes_interval $modes_interval \\
     """
     filepath = "scripts/$filename"
     # Write the script to a file

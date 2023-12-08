@@ -1,4 +1,4 @@
-export EcosystemCheckpoint, run!
+export EcosystemCheckpoint, run!, make_ecosystem_creator
 
 using ...Archivers.Basic: BasicArchiver
 using ...Ecosystems: Ecosystem, create_ecosystem

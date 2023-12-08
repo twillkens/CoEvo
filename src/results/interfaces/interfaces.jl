@@ -1,5 +1,7 @@
 export get_individual_outcomes, get_observations
 
+import ..Observers: get_observations
+
 function get_individual_outcomes(result::Result)
     throw(ErrorException("`get_individual_outcomes` not implemented for $(typeof(result))"))
 end

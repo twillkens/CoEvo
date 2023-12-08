@@ -1,9 +1,8 @@
 module Common
 
-export create_observation, create_observations, observe!
+export create_observation, create_observations
 export NullObservation, NullObserver
 export EpisodeLengthObservation, EpisodeLengthObserver
-export FunctionGraphNodeObservation, FunctionGraphNodeObserver
 
 using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotype
 using ..Observers: Observation, Observer, PhenotypeObserver, create_observation

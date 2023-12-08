@@ -35,7 +35,7 @@ function is_fully_pruned(individual::ModesIndividual)
 end
 
 function modes_prune!(
-    individual::ModesIndividual{FunctionGraphGenotype, LinearizedFunctionGraphPhenotypeState}
+    individual::ModesIndividual{FunctionGraphGenotype, PhenotypeState}
 )
     gene_to_check = popfirst!(individual.prunable_genes)
     gene_median_value = get_node_median_value(individual.states, gene_to_check)
