@@ -4,16 +4,11 @@
 #SBATCH --partition=guest-compute
 #SBATCH --account=guest
 #SBATCH --qos=low
-#SBATCH --array=1-30%30
+#SBATCH --array=1-20%20
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --output=logs/3compD/%a.out
 #SBATCH --error=logs/3compD/%a.err
-
-# Create log directory if it doesn't exist
-if [ ! -d "logs/3compD" ]; then
-    mkdir -p "logs/3compD"
-fi
 
 # Load Julia module or set up the environment
 module purge
@@ -34,3 +29,6 @@ srun julia --project=. run/prediction_game/run.jl \
         --n_generations 30000 \
         --n_nodes_per_output 1 \
         --modes_interval 50 \
+        --function_set all \
+        --mutation shrink_volatile \
+        --noise_std high \

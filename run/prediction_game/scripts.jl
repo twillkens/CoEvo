@@ -96,7 +96,7 @@ function generate_slurm_script(;
     modes_interval::Int = 50,
     function_set::String = "all",
     mutation::String = "equal_volatile",
-    noise_std::Float64 = 0.05,
+    noise_std::String = "high",
     tag::String = "",
 )
     job_name = make_job_name(n_species, interaction, reproducer)
