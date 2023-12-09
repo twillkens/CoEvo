@@ -37,13 +37,12 @@ function generate_local_script(;
     function_set::String = "all",
     mutation::String = "equal_volatile",
     noise_std::String = "moderate",
+    tag::String = "",
 )
     # Use the existing dictionaries to get aliases
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
     job_name = make_job_name(n_species, interaction, reproducer)
-
-    # Create the filename for the bash script
-    filename = "scripts/local/$job_name.sh"
+    job_name = job_name * "$tag"
 
     # Generate the bash script content with log redirection
     script = """
@@ -71,6 +70,9 @@ function generate_local_script(;
     done
     """
 
+    # Create the filename for the bash script
+    filename = "scripts/local/$job_name.sh"
+
     # Write the script to a file
     open(filename, "w") do file
         write(file, script)
@@ -80,17 +82,6 @@ function generate_local_script(;
 
     # The filename is returned to know where the script is saved
     return filename
-end
-
-
-function generate_and_run_bash_script(
-    n_species::Int,
-    interaction::String,
-    reproducer::String;
-    kwargs...
-)
-    filename = generate_bash_script(n_species, interaction, reproducer; kwargs...)
-    run(`bash $filename`)
 end
 
 function generate_slurm_script(;
@@ -106,9 +97,10 @@ function generate_slurm_script(;
     function_set::String = "all",
     mutation::String = "equal_volatile",
     noise_std::Float64 = 0.05,
+    tag::String = "",
 )
     job_name = make_job_name(n_species, interaction, reproducer)
-    filename = "$job_name.slurm"
+    job_name = job_name * "$tag"
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
 
     # Generate the script
@@ -148,6 +140,7 @@ function generate_slurm_script(;
             --mutation $mutation \\
             --noise_std $noise_std \\
     """
+    filename = "$job_name.slurm"
     filepath = "scripts/slurm/$filename"
     # Write the script to a file
     open(filepath, "w") do file
