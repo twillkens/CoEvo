@@ -24,22 +24,26 @@ function make_job_name(n_species::Int, topology::String, reproducer::String)
     return job_name
 end
 
-function generate_bash_script(
+function generate_local_script(;
     n_species::Int,
     interaction::String,
-    reproducer::String;
+    reproducer::String,
     n_generations::Int = 1000,
     n_trials::Int = 5,
     report::String = "deploy",
     n_nodes_per_output::Int = 1,
-    modes_interval::Int = 50
+    modes_interval::Int = 50,
+    n_workers::Int = 1,
+    function_set::String = "all",
+    mutation::String = "equal_volatile",
+    noise_std::String = "moderate",
 )
     # Use the existing dictionaries to get aliases
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
     job_name = make_job_name(n_species, interaction, reproducer)
 
     # Create the filename for the bash script
-    filename = "scripts/$job_name.sh"
+    filename = "scripts/local/$job_name.sh"
 
     # Generate the bash script content with log redirection
     script = """
@@ -52,7 +56,7 @@ function generate_bash_script(
        echo "Running trial \$i"
        julia --project=. run/prediction_game/run.jl \\
             --trial \$i \\
-            --n_workers 1 \\
+            --n_workers $n_workers \\
             --game continuous_prediction_game \\
             --topology $topology \\
             --report $report \\
@@ -60,6 +64,9 @@ function generate_bash_script(
             --n_generations $n_generations \\
             --n_nodes_per_output $n_nodes_per_output \\
             --modes_interval $modes_interval \\
+            --function_set $function_set \\
+            --mutation $mutation \\
+            --noise_std $noise_std \\
             > logs/$job_name/\$i.log 2>&1 &
     done
     """
@@ -86,16 +93,19 @@ function generate_and_run_bash_script(
     run(`bash $filename`)
 end
 
-function generate_slurm_script(
+function generate_slurm_script(;
     n_species::Int, 
     interaction::String, 
-    reproducer::String; 
+    reproducer::String,
     user::String = "twillkens",
     n_generations::Int = 30000,
     n_workers::Int = 1,
     n_trials::Int = 30,
     n_nodes_per_output::Int = 1,
-    modes_interval::Int = 50
+    modes_interval::Int = 50,
+    function_set::String = "all",
+    mutation::String = "equal_volatile",
+    noise_std::Float64 = 0.05,
 )
     job_name = make_job_name(n_species, interaction, reproducer)
     filename = "$job_name.slurm"
@@ -114,11 +124,6 @@ function generate_slurm_script(
     #SBATCH --cpus-per-task=$n_workers
     #SBATCH --output=logs/$(job_name)/%a.out
     #SBATCH --error=logs/$(job_name)/%a.err
-
-    # Create log directory if it doesn't exist
-    if [ ! -d "logs/$(job_name)" ]; then
-        mkdir -p "logs/$(job_name)"
-    fi
 
     # Load Julia module or set up the environment
     module purge
@@ -139,11 +144,27 @@ function generate_slurm_script(
             --n_generations $n_generations \\
             --n_nodes_per_output $n_nodes_per_output \\
             --modes_interval $modes_interval \\
+            --function_set $function_set \\
+            --mutation $mutation \\
+            --noise_std $noise_std \\
     """
-    filepath = "scripts/$filename"
+    filepath = "scripts/slurm/$filename"
     # Write the script to a file
     open(filepath, "w") do file
         write(file, script)
     end
     chmod(filepath, 0o755)
+end
+
+function generate_script(;
+    type::String = "local",
+    kwargs...
+)
+    if type == "local"
+        generate_local_script(;kwargs...)
+    elseif type == "slurm"
+        generate_slurm_script(;kwargs...)
+    else
+        throw(ArgumentError("Unknown type: $type"))
+    end
 end

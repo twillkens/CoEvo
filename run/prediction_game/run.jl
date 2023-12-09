@@ -65,6 +65,18 @@ function parse_cmdline_args()
             arg_type = Int
             default = 50
             help = "Modes interval"
+        "--function_set"
+            arg_type = String
+            default = "all"
+            help = "Function set"
+        "--mutation"
+            arg_type = String
+            default = "equal_volatile"
+            help = "Mutation type"
+        "--noise_std"
+            arg_type = String
+            default = "moderate"
+            help = "Noise standard deviation"
     end
 
     return parse_args(s)
@@ -101,6 +113,9 @@ experiment = make_prediction_game_experiment(;
     episode_length = args["episode_length"],
     n_nodes_per_output = args["n_nodes_per_output"],
     modes_interval = args["modes_interval"],
+    function_set = args["function_set"],
+    mutation = args["mutation"],
+    noise_std = args["noise_std"],
 )
 
 println("Running experiment...")

@@ -28,15 +28,6 @@ Evaluate a `GraphFunction` given a vector of input values.
 # Note:
 This function acts as a dispatcher, handling different arities of functions.
 """
-@inline function evaluate_function(func::GraphFunction, inputs::Vector{Float32})::Float32
-    if length(inputs) == 1
-        return evaluate_function(func, inputs[1])
-    elseif length(inputs) == 2
-        return evaluate_function(func, inputs[1], inputs[2])
-    else
-        throw(ErrorException("Unsupported arity: $(func.arity)"))
-    end
-end
 
 @kwdef struct InputGraphFunction <: GraphFunction 
     name::Symbol = :INPUT
@@ -239,6 +230,18 @@ end
     return Bool(x) ⊻ Bool(y) ? 1.0f0 : 0.0f0
 end
 
+@kwdef struct IfLessThenElseGraphFunction <: GraphFunction 
+    name::Symbol = :IF_LESS_THEN_ELSE
+    arity::Int = 4
+end
+
+@inline function evaluate_function(
+    ::IfLessThenElseGraphFunction, x::Float32, y::Float32, z::Float32, w::Float32
+)::Float32
+    return x < y ? z : w
+end
+    
+
 const FUNCTION_MAP = Dict(
     :INPUT => InputGraphFunction(),
     :BIAS => BiasGraphFunction(),
@@ -260,4 +263,17 @@ const FUNCTION_MAP = Dict(
     :NAND => NandGraphFunction(),
     :XOR => XorGraphFunction(),
     :ARCTANGENT => ArcTangentGraphFunction(),
+    :IF_LESS_THEN_ELSE => IfLessThenElseGraphFunction()
 )
+
+@inline function evaluate_function(func::GraphFunction, inputs::Vector{Float32})::Float32
+    if length(inputs) == 1
+        return evaluate_function(func, inputs[1])
+    elseif length(inputs) == 2
+        return evaluate_function(func, inputs[1], inputs[2])
+    elseif length(inputs) == 4
+        return evaluate_function(func, inputs[1], inputs[2], inputs[3], inputs[4])
+    else
+        throw(ErrorException("Unsupported arity: $(func.arity)"))
+    end
+end

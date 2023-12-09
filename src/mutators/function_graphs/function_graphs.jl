@@ -3,7 +3,7 @@ module FunctionGraphs
 export FunctionGraphMutator, add_function, remove_function, swap_function
 export redirect_connection, identity, inject_noise!, ConnectionRedirectionSpecification
 export get_all_substitutions, get_substitutions_for_node, get_genotype_after_swapping_functions
-export select_function_with_same_arity, create_input_connections, select_function
+export get_functions_with_arity, create_input_connections, select_function
 export mutate
 
 import Base: identity
@@ -14,7 +14,7 @@ using Random: rand, randn, AbstractRNG
 using StatsBase: sample, Weights
 using ...Counters: Counter, count!
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode
-using ...Genotypes.FunctionGraphs: FunctionGraphConnection, GraphFunction, FUNCTION_MAP
+using ...Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP
 using ..Mutators: Mutator
 
 @kwdef struct ConnectionRedirectionSpecification
@@ -36,16 +36,23 @@ end
 function Base.hash(a::ConnectionRedirectionSpecification, h::UInt)
     return hash(a.node_id, hash(a.input_connection_index, hash(a.new_input_node_id, h)))
 end
-function select_function(random_number_generator, function_map)
-    potential_functions = [
-        name for name in keys(function_map)
-            if name ∉ [:INPUT, :BIAS, :OUTPUT]
-    ]
-    return rand(random_number_generator, potential_functions)
+
+function select_function(rng::AbstractRNG, function_probabilities::Dict{Symbol, Float64})
+    func_symbol = sample(
+        rng,
+        collect(keys(function_probabilities)), 
+        Weights(collect(values(function_probabilities)))
+    )
+    func = FUNCTION_MAP[func_symbol]
+    return func
 end
 
-function create_input_connections(random_number_generator, potential_input_node_ids, arity)
-    return [
+function create_input_connections(
+    random_number_generator::AbstractRNG, 
+    potential_input_node_ids::Vector{Int}, 
+    arity::Int
+)
+    input_connections = [
         FunctionGraphConnection(
             input_node_id = rand(random_number_generator, potential_input_node_ids),
             weight = 0.0,  
@@ -53,28 +60,26 @@ function create_input_connections(random_number_generator, potential_input_node_
         ) 
         for _ in 1:arity
     ]
+    return input_connections
 end
 
 function add_function(
     random_number_generator::AbstractRNG, 
     gene_id_counter::Counter, 
     graph::FunctionGraphGenotype, 
-    function_map::Dict{Symbol, GraphFunction}
+    function_probabilities::Dict{Symbol, Float64}
 )
     graph = deepcopy(graph)
     new_id = count!(gene_id_counter)
-    func_symbol = select_function(random_number_generator, function_map)
+    func = select_function(random_number_generator, function_probabilities)
     potential_input_node_ids = [
         graph.input_node_ids; graph.bias_node_ids; graph.hidden_node_ids
     ]
-    arity = function_map[func_symbol].arity
     input_connections = create_input_connections(
-        random_number_generator, potential_input_node_ids, arity
+        random_number_generator, potential_input_node_ids, func.arity
     )
     new_node = FunctionGraphNode(
-        id = new_id,
-        func = func_symbol,
-        input_connections = input_connections
+        id = new_id, func = func.name, input_connections = input_connections
     )
     graph.nodes[new_id] = new_node
     push!(graph.hidden_node_ids, new_id) 
@@ -207,7 +212,7 @@ function remove_function(
     random_number_generator::AbstractRNG, 
     ::Counter,
     genotype::FunctionGraphGenotype,
-    ::Dict{Symbol, GraphFunction}
+    ::Dict{Symbol, Float64}
 )
     if length(genotype.hidden_node_ids) == 0
         return deepcopy(genotype)
@@ -218,26 +223,16 @@ function remove_function(
     return remove_function(genotype, node_to_delete_id, substitutions)
 end
 
-"""
-    select_function_with_same_arity(random_number_generator, current_function, function_map)
-
-Select and return a new function that has the same arity as `current_function` from `function_map`.
-"""
-function select_function_with_same_arity(
-    random_number_generator::AbstractRNG, 
-    current_function::Symbol, 
-    function_map::Dict{Symbol, GraphFunction}
+function get_functions_with_arity(
+    arity::Int, eligible_functions::Vector{Symbol}
 )
-    curr_arity = function_map[current_function].arity
-    eligible_functions = [
-        f for f in values(function_map) 
-            if f.arity == curr_arity && 
-                f.name != current_function && 
-                f.name ∉ [:INPUT, :BIAS, :OUTPUT]
+    functions_with_same_arity = [
+        FUNCTION_MAP[func_symbol] for func_symbol in eligible_functions 
+            if FUNCTION_MAP[func_symbol].arity == arity
     ]
-    new_function = rand(random_number_generator, eligible_functions)
-    return new_function.name
+    return functions_with_same_arity
 end
+
 
 """
     get_genotype_after_swapping_functions(genotype, node_id, new_function)
@@ -274,17 +269,29 @@ of the same arity.
 """
 function swap_function(
     random_number_generator::AbstractRNG, 
-    ::Counter,
     genotype::FunctionGraphGenotype,
-    function_map::Dict{Symbol, GraphFunction}
+    all_mutator_functions::Vector{Symbol}
 )
     if length(genotype.hidden_node_ids) == 0
         return deepcopy(genotype)
     end
-    node_id = rand(random_number_generator, genotype.hidden_node_ids)
-    current_function = genotype.nodes[node_id].func
-    new_function = select_function_with_same_arity(random_number_generator, current_function, function_map)
-    genotype = get_genotype_after_swapping_functions(genotype, node_id, new_function)
+    target_node_id = rand(random_number_generator, genotype.hidden_node_ids)
+    arity = FUNCTION_MAP[genotype.nodes[target_node_id].func].arity
+    eligible_functions = get_functions_with_arity(arity, all_mutator_functions)
+    new_function = rand(random_number_generator, eligible_functions)
+    genotype = get_genotype_after_swapping_functions(genotype, target_node_id, new_function.name)
+    return genotype
+end
+
+function swap_function(
+    random_number_generator::AbstractRNG,
+    ::Counter,
+    genotype::FunctionGraphGenotype,
+    function_probabilities::Dict{Symbol, Float64}
+)
+    genotype = swap_function(
+        random_number_generator, genotype, collect(keys(function_probabilities))
+    )
     return genotype
 end
 
@@ -312,7 +319,7 @@ function redirect_connection(
     random_number_generator::AbstractRNG, 
     ::Counter,
     genotype::FunctionGraphGenotype,
-    ::Dict{Symbol, GraphFunction}
+    ::Dict{Symbol, Float64}
 )
     # Choose a random node from hidden and output nodes
     redirection_source_candidate_ids = [genotype.hidden_node_ids ; genotype.output_node_ids]
@@ -340,7 +347,7 @@ function identity(
     ::AbstractRNG, 
     ::Counter, 
     genotype::FunctionGraphGenotype, 
-    ::Dict{Symbol, GraphFunction}
+    ::Dict{Symbol, Float64}
 )
     return deepcopy(genotype)
 end
@@ -379,52 +386,41 @@ function inject_noise!(
     inject_noise!(genotype, noise_map)
 end
 
+MUTATION_MAP = Dict(
+    :add_function => add_function,
+    :remove_function => remove_function,
+    :swap_function => swap_function,
+    :redirect_connection => redirect_connection,
+    :identity => identity
+)
+
 Base.@kwdef struct FunctionGraphMutator <: Mutator
     # Number of structural changes to perform per generation
     n_mutations::Int = 1
     validate_genotypes::Bool = false
     # Uniform probability of each type of structural change
     mutation_probabilities::Dict{Symbol, Float64} = Dict(
-        # :add_function => 1 / 4,
-        # :remove_function => 1 / 4,
-        # :swap_function => 1 / 4,
-        # :redirect_connection => 1 / 4,
-        # :identity => 0 / 2
-
-        #:identity => 3 / 12,
-        #:add_function => 1 / 12,
-        #:remove_function => 2 / 12,
-        #:swap_function => 3 / 12,
-        #:redirect_connection => 3 / 12,
-
-        :identity => 3 / 12,
+        :identity => 0.5,
         :add_function => 0.1,
         :remove_function => 0.15,
-        :swap_function => 3 / 12,
-        :redirect_connection => 3 / 12,
-    )
-    mutation_map::Dict{Symbol, Function} = Dict(
-        :add_function => add_function,
-        :remove_function => remove_function,
-        :swap_function => swap_function,
-        :redirect_connection => redirect_connection,
-        :identity => identity
+        :swap_function => 0.125,
+        :redirect_connection => 0.125
     )
     noise_std::Float32 = 0.1
-    function_map::Dict{Symbol, GraphFunction} = Dict(
-        :IDENTITY => FUNCTION_MAP[:IDENTITY],
-        :ADD => FUNCTION_MAP[:ADD],
-        :SUBTRACT => FUNCTION_MAP[:SUBTRACT],
-        :MULTIPLY => FUNCTION_MAP[:MULTIPLY],
-        :DIVIDE => FUNCTION_MAP[:DIVIDE],
-        :MAXIMUM => FUNCTION_MAP[:MAXIMUM],
-        :MINIMUM => FUNCTION_MAP[:MINIMUM],
-        :SINE => FUNCTION_MAP[:SINE],
-        :COSINE => FUNCTION_MAP[:COSINE],
-        :ARCTANGENT => FUNCTION_MAP[:ARCTANGENT],
-        :SIGMOID => FUNCTION_MAP[:SIGMOID],
-        :TANH => FUNCTION_MAP[:TANH],
-        :RELU => FUNCTION_MAP[:RELU]
+    function_probabilities::Dict{Symbol, Float64} = Dict(
+        :IDENTITY => 1 / 13,
+        :ADD => 1 / 13,
+        :SUBTRACT => 1 / 13,
+        :MULTIPLY => 1 / 13,
+        :DIVIDE => 1 / 13,
+        :MAXIMUM => 1 / 13,
+        :MINIMUM => 1 / 13,
+        :SINE => 1 / 13,
+        :COSINE => 1 / 13,
+        :ARCTANGENT => 1 / 13,
+        :SIGMOID => 1 / 13,
+        :TANH => 1 / 13,
+        :RELU => 1 / 13
     )
 end
 
@@ -515,9 +511,9 @@ function mutate(
     n_hidden_nodes = length(genotype.hidden_node_ids)
     n_output_nodes = length(genotype.output_node_ids)
     for mutation in mutations
-        mutation_function = mutator.mutation_map[mutation]
+        mutation_function = MUTATION_MAP[mutation]
         genotype = mutation_function(
-            random_number_generator, gene_id_counter, genotype, mutator.function_map
+            random_number_generator, gene_id_counter, genotype, mutator.function_probabilities
         )
     end
     inject_noise!(random_number_generator, genotype, std_dev = mutator.noise_std)

@@ -16,6 +16,22 @@ using ProgressBars
 
 println("Starting tests for FunctionGraphs...")
 
+FUNCTION_PROBABILITIES = Dict(
+    :IDENTITY => 1 / 13,
+    :ADD => 1 / 13,
+    :SUBTRACT => 1 / 13,
+    :MULTIPLY => 1 / 13,
+    :DIVIDE => 1 / 13,
+    :MAXIMUM => 1 / 13,
+    :MINIMUM => 1 / 13,
+    :SINE => 1 / 13,
+    :COSINE => 1 / 13,
+    :ARCTANGENT => 1 / 13,
+    :SIGMOID => 1 / 13,
+    :TANH => 1 / 13,
+    :RELU => 1 / 13
+)
+
 @testset "Add Node Tests" begin
     random_number_generator = StableRNG(42)
     gene_id_counter = BasicCounter(6)
@@ -46,7 +62,7 @@ println("Starting tests for FunctionGraphs...")
 
     @testset "Node addition" begin
         new_genotype = fg_add_function(
-            random_number_generator, gene_id_counter, genotype, FUNCTION_MAP
+            random_number_generator, gene_id_counter, genotype, FUNCTION_PROBABILITIES
         )
         @test length(new_genotype.nodes) == length(genotype.nodes) + 1
         @test length(new_genotype.hidden_node_ids) == length(genotype.hidden_node_ids) + 1
@@ -54,7 +70,7 @@ println("Starting tests for FunctionGraphs...")
     
     @testset "Function selection" begin
         new_genotype = fg_add_function(
-            random_number_generator, gene_id_counter, genotype, FUNCTION_MAP
+            random_number_generator, gene_id_counter, genotype, FUNCTION_PROBABILITIES
         )
         new_id = maximum(keys(new_genotype.nodes))  # Assuming monotonic ids
         new_func = new_genotype.nodes[new_id].func
@@ -63,7 +79,7 @@ println("Starting tests for FunctionGraphs...")
 
     @testset "Input connections" begin
         new_genotype = fg_add_function(
-            random_number_generator, gene_id_counter, genotype, FUNCTION_MAP
+            random_number_generator, gene_id_counter, genotype, FUNCTION_PROBABILITIES
         )
         new_id = maximum(keys(new_genotype.nodes))
         new_node = new_genotype.nodes[new_id]
@@ -138,7 +154,7 @@ end
     end
 
     @testset "Test Stochastic Removal with Known RNG" begin
-        new_genotype = fg_remove_function(random_number_generator, gene_id_counter, genotype, FUNCTION_MAP)
+        new_genotype = fg_remove_function(random_number_generator, gene_id_counter, genotype, FUNCTION_PROBABILITIES)
     
         # Add specific tests depending on predictable random behavior from the seed
         # Note: You will need to determine the expected behavior based on the RNG seed
@@ -299,10 +315,17 @@ end
     )
     
     @testset "select_function_with_same_arity" begin
-        old_function = :ADD  # Assume ADD exists in FUNCTION_MAP and its arity is known
-        new_function = select_function_with_same_arity(random_number_generator, old_function, FUNCTION_MAP)
-        @test new_function != old_function  # The function should be different from the original
-        @test FUNCTION_MAP[new_function].arity == FUNCTION_MAP[old_function].arity  # Arity should be the same
+        arity_one_functions = [
+            :IDENTITY, :RELU, :TANH, :SIGMOID, :ARCTANGENT, :COSINE, :SINE
+        ]
+        arity_two_functions = [
+            :ADD, :SUBTRACT, :MULTIPLY, :DIVIDE, :MAXIMUM, :MINIMUM
+        ]
+        eligible_functions = [arity_one_functions ; arity_two_functions]
+        arity_one = get_functions_with_arity(1, eligible_functions)
+        @test arity_one_functions == [func.name for func in arity_one]
+        arity_two = get_functions_with_arity(2, eligible_functions)
+        @test arity_two_functions == [func.name for func in arity_two]
     end
     
     @testset "get_genotype_after_swapping_functions" begin
@@ -319,7 +342,7 @@ end
     
     @testset "swap_function" begin
         swapped_genotype = swap_function(
-            random_number_generator, gene_id_counter, genotype_example, FUNCTION_MAP
+            random_number_generator, gene_id_counter, genotype_example, FUNCTION_PROBABILITIES
         )
         
         # Check a function was swapped (assuming swap will always change the function)
@@ -333,7 +356,6 @@ end
         @test swapped_connections == original_connections
     end
 end
-
 
 @testset "Test Connection Redirection" begin
     genotype = FunctionGraphGenotype(
@@ -373,7 +395,7 @@ end
     end
     
     @testset "Stochastic Redirection" begin
-        new_genotype = redirect_connection(random_number_generator, gene_id_counter, genotype, FUNCTION_MAP)
+        new_genotype = redirect_connection(random_number_generator, gene_id_counter, genotype, FUNCTION_PROBABILITIES)
         is_changed = false
         for (nid, node) in new_genotype.nodes
             for (old_conn, new_conn) in zip(genotype.nodes[nid].input_connections, node.input_connections)

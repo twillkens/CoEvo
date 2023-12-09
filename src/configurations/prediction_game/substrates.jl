@@ -76,6 +76,9 @@ struct FunctionGraphSubstrate <: Substrate
     n_population::Int
     n_children::Int
     n_nodes_per_output::Int
+    function_set::String
+    mutation::String
+    noise_std::String
 end
 
 function FunctionGraphSubstrate(;
@@ -83,13 +86,13 @@ function FunctionGraphSubstrate(;
     n_population::Int = 10, 
     n_children::Int = 10, 
     n_nodes_per_output::Int = 1, 
+    function_set::String = "all",
+    mutation::String = "equal_volatile",
+    noise_std::String = "moderate",
     kwargs...
 )
     substrate = FunctionGraphSubstrate(
-        id,
-        n_population,
-        n_children,
-        n_nodes_per_output
+        id, n_population, n_children, n_nodes_per_output, function_set, mutation, noise_std
     )
     return substrate
 end
@@ -122,7 +125,101 @@ make_phenotype_creator(::FunctionGraphSubstrate) = LinearizedFunctionGraphPhenot
 
 make_recombiner(::FunctionGraphSubstrate) = CloneRecombiner()
 
-make_mutators(::FunctionGraphSubstrate) = [FunctionGraphMutator()]
+FUNCTION_SETS = Dict(
+    "all" => [
+        :IDENTITY,
+        :ADD,
+        :SUBTRACT,
+        :MULTIPLY,
+        :DIVIDE,
+        :MAXIMUM,
+        :MINIMUM,
+        :SINE,
+        :COSINE,
+        :ARCTANGENT,
+        :SIGMOID,
+        :TANH,
+        :RELU,
+        #:IF_LESS_THEN_ELSE,
+    ],
+    "circle" => [
+        :IDENTITY, :ADD, :MULTIPLY, :DIVIDE, :MAXIMUM, :SINE, :COSINE, :ARCTANGENT, #:IF_LESS_THEN_ELSE
+    ],
+    "simple" => [:ADD, :ARCTANGENT, ]#:IF_LESS_THEN_ELSE]
+)
+function calculate_probabilities(sum_probability::Float64, percent_more_likely_to_remove::Float64)
+    # Converting the percentage to a ratio
+    ratio = 1 + percent_more_likely_to_remove / 100
+
+    # Calculating probabilities
+    add_function_prob = sum_probability / (1 + ratio)
+    rm_function_prob = add_function_prob * ratio
+
+    return (add_function_prob, rm_function_prob)
+end
+
+MUTATION_PROBABILITIES = Dict(
+    "equal_volatile" => Dict(
+        :identity => 0.0,
+        :add_function => 0.25,
+        :remove_function => 0.25,
+        :swap_function => 0.25,
+        :redirect_connection => 0.25,
+    ),
+    "shrink_volatile" => Dict(
+        :identity => 0.5,
+        :add_function => 0.10,
+        :remove_function => 0.15,
+        :swap_function => 0.125,
+        :redirect_connection => 0.125,
+    ),
+    "shrink_moderate" => Dict(
+        :identity => 0.75,
+        :add_function => 0.05,
+        :remove_function => 0.075,
+        :swap_function => 0.0625,
+        :redirect_connection => 0.0625,
+    ),
+    "shrink_stable" => Dict(
+        :identity => 0.90,
+        :add_function => 0.02,
+        :remove_function => 0.03,
+        :swap_function => 0.025,
+        :redirect_connection => 0.025,
+    ),
+    "shrink_stable_harsh" => Dict(
+        :identity => 108 / 120,
+        :add_function => 2 / 120,
+        :remove_function => 4 / 120,
+        :swap_function => 3 / 120,
+        :redirect_connection => 3 / 120,
+    ),
+)
+
+GAUSSIAN_NOISE_STD = Dict(
+    "high" => 0.1,
+    "moderate" => 0.05,
+    "low" => 0.01,
+)
+
+function make_mutators(substrate::FunctionGraphSubstrate) 
+    function_set = FUNCTION_SETS[substrate.function_set]
+    function_probabilities = Dict(
+        Symbol(func) => 1 / length(function_set) for func in function_set
+    )
+    mutation_probabilities = MUTATION_PROBABILITIES[substrate.mutation]
+    println("MUTATION PROBS: ", mutation_probabilities)
+    noise_std = GAUSSIAN_NOISE_STD[substrate.noise_std]
+    mutator = FunctionGraphMutator(
+        function_probabilities = function_probabilities,
+        mutation_probabilities = mutation_probabilities,
+        noise_std = noise_std,
+        validate_genotypes = false,
+    )
+
+    mutators = [mutator]
+    return mutators
+end
 
 const ID_TO_SUBSTRATE_MAP = Dict(
     "finite_state_machines" => FiniteStateMachineSubstrate,
