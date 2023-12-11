@@ -82,22 +82,13 @@ end
 
 # Process the next generation of individuals
 function process_next_generation!(all_species::Vector{<:ModesSpecies})
-    #println("-------PROCESS-----------")
     all_next_species = map(all_species) do species
         if is_fully_pruned(species)
             return species
         end
         next_individuals = map(species.modes_individuals) do modes_individual
-            if modes_individual.id == -23215
-                println("\nGENOTYPE_BEFORE in PROCESS: ", modes_individual.genotype)
-                println("\nPRUNABLE IDS BEFORE in PROCESS: ", modes_individual.prunable_genes)
-            end
             node_to_check = popfirst!(modes_individual.prunable_genes)
             next_individual = modes_prune(modes_individual, node_to_check)
-            if modes_individual.id == -23215
-                println("\nNEXT INDIVIDUAL in PROCESS: ", next_individual.genotype)
-                println("\nNEXT PRUNABLE IDS in PROCESS: ", next_individual.prunable_genes)
-            end
             return next_individual
         end
         ids = [individual.id for individual in next_individuals]
@@ -117,7 +108,6 @@ function update_species(
     all_species::Vector{<:ModesSpecies}, 
     all_next_species::Vector{<:ModesSpecies}, 
 )
-    println("---------UPDATE----------")
     all_species = map(zip(all_species, all_next_species)) do (species, next_species)
         if is_fully_pruned(species)
             return species
@@ -126,18 +116,6 @@ function update_species(
         next_individuals = next_species.modes_individuals
         if length(individuals) != length(next_individuals)
             throw(ErrorException("Species $(species.id) has $(length(individuals)) individuals but $(length(next_individuals)) next individuals."))
-        end
-        #new_individuals = map(zip(individuals, next_individuals)) do (individual, next_individual)
-        #    return individual.fitness <= next_individual.fitness ? next_individual : individual
-        #end
-
-        for (individual, next_individual) in zip(individuals, next_individuals)
-            if individual.id == -23215
-                println("\nBEFORE GENOTYPE UPDATE: ", individual.genotype)
-                println("BEFORE FITNESS in UPDATE: ", individual.fitness)
-                println("\nNEXT GENOTYPE in UPDATE: ", next_individual.genotype)
-                println("NEXT FITNESS in UPDATE: ", next_individual.fitness)
-            end
         end
         new_individuals = [
             individual.fitness <= next_individual.fitness ? next_individual : individual 
@@ -162,14 +140,11 @@ function perform_modes(
     fully_pruned_individuals::Dict{String, Vector{ModesIndividual}}
 )
     i = 0
-    println("----------------------------")
-    println("GO: $i")
     perform_modes_simulation!(
         performer, rng, species_creators, job_creator, all_species
     )
     while !is_fully_pruned(all_species)
         i += 1
-        println("GO: $i")
         all_next_species = process_next_generation!(all_species)
         perform_modes_simulation!(
             performer, rng, species_creators, job_creator, all_next_species

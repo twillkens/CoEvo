@@ -133,7 +133,6 @@ function measure(
     metric::AggregateSpeciesMetric{<:EvaluationMetric, <:Aggregator}, 
     evaluation::AdaptiveArchiveEvaluation
 )
-    println("measuring: $metric")
     submetric_name = get_name(metric.submetric)
     full_measurements = measure(metric.submetric, evaluation.full_evaluation)
     full_base_path = "species/$(evaluation.id)/full/$submetric_name"

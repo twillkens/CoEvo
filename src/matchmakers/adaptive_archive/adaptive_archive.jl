@@ -27,10 +27,10 @@ function make_matches(
     reverse_ids::Bool = false
 )
     archive_ids = [individual.id for individual in archive]
-    n_sample = min(n_sample, length(archive_ids))
-    sampled_archive_ids = sample(rng, archive_ids, n_sample, replace = false)
+    #n_sample = min(n_sample, length(archive_ids))
+    #sampled_archive_ids = sample(rng, archive_ids, n_sample, replace = false)
     other_ids = [individual.id for individual in others]
-    match_id_tuples = vec(collect(Iterators.product(sampled_archive_ids, other_ids)))
+    match_id_tuples = vec(collect(Iterators.product(archive_ids, other_ids)))
     if reverse_ids
         all_match_ids = [[id_2, id_1] for (id_1, id_2) in match_id_tuples]
     else

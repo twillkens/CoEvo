@@ -115,24 +115,28 @@ function create_species(
         evaluation.full_evaluation
     )
     archive_individual_ids = [individual.id for individual in species.archive]
+    n_sample = min(species_creator.n_sample, length(archive_individual_ids))
     weights = [get_size(individual.genotype) for individual in species.archive]
     weights = [weight + 1 for weight in weights]
-    id_weights = collect(zip(archive_individual_ids, weights))
-    sorted_id_weights = sort(id_weights, by = x -> x[2])
-    ids = [id_weight[1] for id_weight in sorted_id_weights]
-    weights = [id_weight[2] for id_weight in sorted_id_weights]
-    println("--------------$(species.id)------------------")
-    #println("ids: ", ids)
-    #println("weights: ", weights)
-    n_sample = min(species_creator.n_sample, length(archive_individual_ids))
-    active_individual_ids = sample_without_replacement(rng, ids, n_sample) #weights)
-    active_individuals = [
-        (individual.id, get_size(individual.genotype)) 
-        for individual in species.archive 
-            if individual.id in active_individual_ids
-    ]
-    sort!(active_individuals, by = x -> x[2])
-    println("active_individuals: ", active_individuals)
+    active_individual_ids = sample_without_replacement(
+        rng, archive_individual_ids, n_sample, weights
+    )
+    #id_weights = collect(zip(archive_individual_ids, weights))
+    #sorted_id_weights = sort(id_weights, by = x -> x[2])
+    #ids = [id_weight[1] for id_weight in sorted_id_weights]
+    #weights = [id_weight[2] for id_weight in sorted_id_weights]
+    # println("--------------$(species.id)------------------")
+    # #println("ids: ", ids)
+    # #println("weights: ", weights)
+    # n_sample = min(species_creator.n_sample, length(archive_individual_ids))
+    # active_individuals = [
+    #     (individual.id, get_size(individual.genotype) + 1) 
+    #     for individual in species.archive 
+    #         if individual.id in active_individual_ids
+    # ]
+    # sort!(active_individuals, by = x -> x[2], rev = false)
+    # println("sizes: ", [individual[2] for individual in active_individuals])
+    #println("sorted_id_weights: ", sorted_id_weights)
     #active_individual_ids = sample(
     #    rng, archive_individual_ids, n_sample, replace = false
     #)

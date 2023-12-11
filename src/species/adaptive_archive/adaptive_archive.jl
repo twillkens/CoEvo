@@ -28,20 +28,28 @@ function get_individuals(species::AdaptiveArchiveSpecies)
     return individuals
 end
 
+using ...Genotypes: get_size
+
 function add_individuals_to_archive!(
     rng::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
 )
     append!(species.archive, individuals)
+    #sort!(species.archive, by = individual -> get_size(individual.genotype))
     if length(species.archive) > species.max_archive_size
-        all_ids = [individual.id for individual in species.archive]
-        ids_to_remove = sample(
-            rng, 
-            all_ids,
-            length(species.archive) - species.max_archive_size, 
-            replace=false
-        )
-        filter!(individual -> individual.id ∉ ids_to_remove, species.archive)
+        # eject the first elements to maintain size
+        deleteat!(species.archive, 1:length(species.archive) - species.max_archive_size)
     end
+    #if length(species.archive) > species.max_archive_size
+    #    # just trim the first ones
+    #    all_ids = [individual.id for individual in species.archive]
+    #    ids_to_remove = sample(
+    #        rng, 
+    #        all_ids,
+    #        length(species.archive) - species.max_archive_size, 
+    #        replace=false
+    #    )
+    #    filter!(individual -> individual.id ∉ ids_to_remove, species.archive)
+    #end
     return species
 end
 
