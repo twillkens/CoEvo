@@ -52,25 +52,23 @@ function evaluate(
     ids = [individual.id for individual in individuals]
     filtered_outcomes = Dict(id => outcomes[id] for id in ids if haskey(outcomes, id))
 
-    outcome_sums = [sum(values(outcomes[id])) for id in ids]
+    # TODO: This is a hack until outcomes are implemented
+    #outcome_sums = [sum(values(outcomes[id])) for id in ids]
+    outcome_vectors = [values(filtered_outcomes[id]) for id in ids]
+    maximum_fitness = length(first(outcome_vectors))
+    outcome_sums = [sum(outcome_vector) for outcome_vector in outcome_vectors]
     raw_fitnesses = evaluator.maximize ? outcome_sums : -outcome_sums
     min_fitness = minimum(raw_fitnesses)
     shift_value = (min_fitness <= 0) ? abs(min_fitness) + evaluator.epsilon : 0
     raw_fitnesses .+= shift_value
 
     scaled_fitnesses = copy(raw_fitnesses)
+    scaled_fitnesses ./= maximum_fitness
 
-    if !isnothing(evaluator.maximum_fitness)
-        # Check if any values exceed maximum_fitness
-        #if any(fitness -> fitness > evaluator.maximum_fitness + evaluator.epsilon, raw_fitnesses)
-        #    println("raw_fitnesses: ", raw_fitnesses)
-        #    println("maximum_fitness: ", evaluator.maximum_fitness)
-        #    throw(ErrorException("Some fitness values exceed the defined maximum_fitness."))
-        #end
-
-        # Scale by maximum_fitness
-        scaled_fitnesses = raw_fitnesses ./ evaluator.maximum_fitness
-    end
+    #if !isnothing(evaluator.maximum_fitness)
+    #    # Scale by maximum_fitness
+    #    scaled_fitnesses = raw_fitnesses ./ evaluator.maximum_fitness
+    #end
     fitnesses = scaled_fitnesses
 
     records = [

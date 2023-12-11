@@ -1,4 +1,5 @@
 
+using ...SpeciesCreators: get_phenotype_creators
 
 function evolve!(
     ecosystem_creator::BasicEcosystemCreator,
@@ -8,10 +9,12 @@ function evolve!(
     last_reproduction_time = 0.0
     for generation in generations
         evaluation_time_start = time()
-        phenotype_creators = [
-            species_creator.phenotype_creator 
-            for species_creator in ecosystem_creator.species_creators
-        ]
+        
+        #phenotype_creators = [
+        #    species_creator.phenotype_creator 
+        #    for species_creator in ecosystem_creator.species_creators
+        #]
+        phenotype_creators = get_phenotype_creators(ecosystem_creator.species_creators)
         jobs = create_jobs(
             ecosystem_creator.job_creator,
             ecosystem_creator.random_number_generator, 

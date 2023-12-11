@@ -1,6 +1,6 @@
 module Modes
 
-export ModesIndividual, is_fully_pruned, modes_prune!
+export ModesIndividual, is_fully_pruned, modes_prune
 
 using StatsBase: median
 using ...Genotypes: Genotype, get_prunable_genes
@@ -34,13 +34,12 @@ function is_fully_pruned(individual::ModesIndividual)
     return fully_pruned
 end
 
-function modes_prune!(
-    individual::ModesIndividual{FunctionGraphGenotype, PhenotypeState}
+function modes_prune(
+    individual::ModesIndividual{FunctionGraphGenotype, PhenotypeState}, node_to_check::Int
 )
-    gene_to_check = popfirst!(individual.prunable_genes)
-    gene_median_value = get_node_median_value(individual.states, gene_to_check)
+    node_median_value = get_node_median_value(individual.states, node_to_check)
     pruned_genotype = substitute_node_with_bias_connection(
-        individual.genotype, gene_to_check, gene_median_value
+        individual.genotype, node_to_check, node_median_value
     )
     pruned_individual = ModesIndividual(individual.id, pruned_genotype)
     return pruned_individual

@@ -62,7 +62,7 @@ function get_all_measurements(
 
         try
             complexity = Float64(read(file["modes/$gen"]))
-            measurement = PredictionGameAggregateMeasurement(
+            measurement = Predictpruned_individualsionGameAggregateMeasurement(
                 experiment_configuration, 
                 trial, 
                 gen, 

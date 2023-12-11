@@ -1,7 +1,14 @@
 export make_species_creators
 
+using ...SpeciesCreators.Basic: BasicSpeciesCreator
+using ...SpeciesCreators.AdaptiveArchive: AdaptiveArchiveSpeciesCreator
+
+
 function make_species_creators(
-    topology::Topology, substrate::Substrate, reproducer::Reproducer, game::GameConfiguration
+    topology::BasicTopology, 
+    substrate::Substrate, 
+    reproducer::Reproducer, 
+    game::GameConfiguration
 )
     species_ids = get_species_ids(topology)
     species_creators = [
@@ -19,6 +26,30 @@ function make_species_creators(
             mutators = make_mutators(substrate),
         ) 
         for species_id in species_ids
+    ]
+    return species_creators
+end
+
+function make_species_creators(
+    topology::AdaptiveArchiveTopology, 
+    substrate::Substrate, 
+    reproducer::Reproducer, 
+    game::GameConfiguration
+)
+    basic_topology = topology.basic_topology
+    basic_species_creators = make_species_creators(basic_topology, substrate, reproducer, game)
+    species_creators = [
+        AdaptiveArchiveSpeciesCreator(
+            id = basic_species_creator.id,
+            max_archive_size = topology.max_archive_size,
+            n_sample = topology.n_sample,
+            basic_species_creator = basic_species_creator,
+            evaluator = AdaptiveArchiveEvaluator(
+                non_archive_evaluator = ScalarFitnessEvaluator(),
+                full_evaluator = basic_species_creator.evaluator,
+            ),
+        )
+        for basic_species_creator in basic_species_creators
     ]
     return species_creators
 end

@@ -7,14 +7,16 @@ import ..Metrics: measure, get_name, aggregate
 
 using ...Species: AbstractSpecies, get_individuals
 using ...Species.Basic: BasicSpecies
+using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
 using ...Evaluators: Evaluation
-using ..Metrics: Metric, Measurement
-using ..Metrics.Common: BasicMeasurement
-using ..Metrics.Aggregators: Aggregator
-using ..Metrics.Aggregators: BasicStatisticalAggregator, BasicQuantileAggregator
-using ..Metrics.Aggregators: OneSampleTTestAggregator, HigherMomentAggregator
-using ..Metrics.Genotypes: GenotypeMetric
-using ..Metrics.Evaluations: EvaluationMetric
+using ...Evaluators.AdaptiveArchive: AdaptiveArchiveEvaluation
+using ...Metrics: Metric, Measurement
+using ...Metrics.Common: BasicMeasurement
+using ...Metrics.Aggregators: Aggregator
+using ...Metrics.Aggregators: BasicStatisticalAggregator, BasicQuantileAggregator
+using ...Metrics.Aggregators: OneSampleTTestAggregator, HigherMomentAggregator
+using ...Metrics.Genotypes: GenotypeMetric
+using ...Metrics.Evaluations: EvaluationMetric
 
 abstract type SpeciesMetric <: Metric end
 
@@ -48,6 +50,10 @@ function measure(::AllGenotypesSpeciesMetric, species::BasicSpecies)
     ]
     return measurements
 end
+
+measure(metric::AllGenotypesSpeciesMetric, species::AdaptiveArchiveSpecies) = measure(
+    metric, species.basic_species
+)
 
 struct ParentIDsSpeciesMetric <: SpeciesMetric end
 
@@ -106,12 +112,40 @@ function measure(
 end
 
 function measure(
+    metric::AggregateSpeciesMetric{<:GenotypeMetric, <:Aggregator}, species::AdaptiveArchiveSpecies
+)
+    measurements = measure(metric, species.basic_species)
+    return measurements
+end
+
+function measure(
     metric::AggregateSpeciesMetric{<:EvaluationMetric, <:Aggregator}, evaluation::Evaluation
 )
     measurements = measure(metric.submetric, evaluation)
     submetric_name = get_name(metric.submetric)
     base_path = "species/$(evaluation.id)/$submetric_name"
     measurements = aggregate(metric.aggregators, base_path, measurements)
+    return measurements
+end
+
+
+function measure(
+    metric::AggregateSpeciesMetric{<:EvaluationMetric, <:Aggregator}, 
+    evaluation::AdaptiveArchiveEvaluation
+)
+    println("measuring: $metric")
+    submetric_name = get_name(metric.submetric)
+    full_measurements = measure(metric.submetric, evaluation.full_evaluation)
+    full_base_path = "species/$(evaluation.id)/full/$submetric_name"
+    full_measurements = aggregate(metric.aggregators, full_base_path, full_measurements)
+
+    non_archive_measurements = measure(metric.submetric, evaluation.non_archive_evaluation)
+    non_archive_base_path = "species/$(evaluation.id)/non_archive/$submetric_name"
+    non_archive_measurements = aggregate(
+        metric.aggregators, non_archive_base_path, non_archive_measurements
+    )
+    measurements = [full_measurements; non_archive_measurements]
+
     return measurements
 end
 

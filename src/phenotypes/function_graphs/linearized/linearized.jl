@@ -46,7 +46,8 @@ end
     output_values::Vector{Float32}
 end
 
-struct LinearizedFunctionGraphPhenotypeState <: PhenotypeState
+struct LinearizedFunctionGraphPhenotypeState{P <: Phenotype} <: PhenotypeState
+    phenotype::P
     node_values::Dict{Int, Float32}
 end
 
@@ -59,7 +60,7 @@ function get_phenotype_state(phenotype::LinearizedFunctionGraphPhenotype)
         node.id => node.current_value
         for node in phenotype.nodes
     )
-    state = LinearizedFunctionGraphPhenotypeState(state)
+    state = LinearizedFunctionGraphPhenotypeState(phenotype, state)
     return state
 end
 
@@ -171,7 +172,14 @@ end
 function create_phenotype(
     ::LinearizedFunctionGraphPhenotypeCreator, genotype::FunctionGraphGenotype, id::Int
 )::LinearizedFunctionGraphPhenotype
+    if id == -23215
+        println("-------------CREATE PHENOTYPE-------------")
+        println("\nGENOTYPE in CREATE_PHENOTYPE: ", genotype)
+    end
     genotype = minimize(genotype)
+    if id == -23215
+        println("\nGENOTYPE after MINIMIZATION: ", genotype)
+    end
     layers = construct_layers(genotype)
     ordered_node_ids = vcat(layers...)
     node_id_to_position_dict = create_node_id_to_position_dict(ordered_node_ids)
@@ -191,6 +199,9 @@ function create_phenotype(
         n_nodes_per_output = genotype.n_nodes_per_output,
         output_values = output_values
     )
+    if id == -23215
+        println("\nPHENOTYPE after CREATION: ", phenotype)
+    end
     return phenotype
 end
 

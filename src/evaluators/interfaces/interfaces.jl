@@ -10,7 +10,7 @@ function evaluate(
     #observations::Vector{<:Observation}
 )
     throw(ErrorException(
-        "`evaluate` not implemented for $evaluator and $species."))
+        "`evaluate` not implemented for $(typeof(evaluator)) and $(typeof(species))."))
 end
 
 function evaluate(

@@ -1,4 +1,6 @@
-export create_species, get_scalar_fitness_evaluators, get_phenotype_creators
+export create_species, get_scalar_fitness_evaluators
+export get_phenotype_creator, get_phenotype_creators
+export get_evaluator, get_evaluators
 
 using ..Evaluators.ScalarFitness: ScalarFitnessEvaluator
 using ..Evaluators.NSGAII: NSGAIIEvaluator
@@ -43,9 +45,26 @@ function get_scalar_fitness_evaluators(species_creators::Vector{<:SpeciesCreator
     return evaluators
 end
 
+function get_phenotype_creator(species_creator::SpeciesCreator)
+    phenotype_creator = species_creator.phenotype_creator
+    return phenotype_creator
+end
+
 function get_phenotype_creators(species_creators::Vector{<:SpeciesCreator})
     phenotype_creators = [
-        species_creator.phenotype_creator for species_creator in species_creators
+        get_phenotype_creator(species_creator) for species_creator in species_creators
     ]
     return phenotype_creators
+end
+
+function get_evaluator(species_creator::SpeciesCreator)
+    evaluator = species_creator.evaluator
+    return evaluator
+end
+
+function get_evaluators(species_creators::Vector{<:SpeciesCreator})
+    evaluators = [
+        get_evaluator(species_creator) for species_creator in species_creators
+    ]
+    return evaluators
 end

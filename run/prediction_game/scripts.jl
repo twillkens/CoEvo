@@ -37,6 +37,8 @@ function generate_local_script(;
     function_set::String = "all",
     mutation::String = "equal_volatile",
     noise_std::String = "moderate",
+    adaptive_archive_max_size::Float64 = 10_000.0,
+    n_adaptive_archive_samples::Int = 100,
     tag::String = "",
 )
     # Use the existing dictionaries to get aliases
@@ -66,6 +68,8 @@ function generate_local_script(;
             --function_set $function_set \\
             --mutation $mutation \\
             --noise_std $noise_std \\
+            --adaptive_archive_max_size $adaptive_archive_max_size \\
+            --n_adaptive_archive_samples $n_adaptive_archive_samples \\
             > logs/$job_name/\$i.log 2>&1 &
     done
     """
@@ -97,6 +101,8 @@ function generate_slurm_script(;
     function_set::String = "all",
     mutation::String = "equal_volatile",
     noise_std::String = "high",
+    adaptive_archive_max_size::Float64 = 10_000.0,
+    n_adaptive_archive_samples::Int = 100,
     tag::String = "",
 )
     job_name = make_job_name(n_species, interaction, reproducer)
@@ -139,6 +145,8 @@ function generate_slurm_script(;
             --function_set $function_set \\
             --mutation $mutation \\
             --noise_std $noise_std \\
+            --adaptive_archive_max_size $adaptive_archive_max_size \\
+            --n_adaptive_archive_samples $n_adaptive_archive_samples \\
     """
     filename = "$job_name.slurm"
     filepath = "scripts/slurm/$filename"

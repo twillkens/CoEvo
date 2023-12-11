@@ -1,14 +1,25 @@
 using ...Individuals: Individual, get_individuals
 
+using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
+using ...Species.Basic: BasicSpecies
+
+
 function reset_tag_dictionary!(reporter::ModesReporter)
     empty!(reporter.tag_dictionary)
 end
 
-function update_tag_dictionary!(reporter::ModesReporter, all_species::Vector{<:AbstractSpecies})
+function update_tag_dictionary!(reporter::ModesReporter, all_species::Vector{<:BasicSpecies})
     individuals = vcat([get_individuals(species) for species in all_species]...)
     for (tag, individual) in enumerate(individuals)
         reporter.tag_dictionary[individual.id] = tag
     end
+end
+
+function update_tag_dictionary!(
+    reporter::ModesReporter, all_species::Vector{<:AdaptiveArchiveSpecies}
+)
+    all_basic_species = [species.basic_species for species in all_species]
+    update_tag_dictionary!(reporter, all_basic_species)
 end
 
 # Function to update tags for individuals
@@ -38,8 +49,15 @@ function update_persistent_ids!(reporter::ModesReporter, persistent_tags::Set{In
 end
 
 # Main function calling the modularized components
-function update_persistent_ids!(reporter::ModesReporter, all_species::Vector{<:AbstractSpecies})
+function update_persistent_ids!(reporter::ModesReporter, all_species::Vector{<:BasicSpecies})
     individuals = get_individuals(all_species)
     persistent_tags = update_tags!(reporter, individuals)
     update_persistent_ids!(reporter, persistent_tags)
+end
+
+function update_persistent_ids!(
+    reporter::ModesReporter, all_species::Vector{<:AdaptiveArchiveSpecies}
+)
+    all_basic_species = [species.basic_species for species in all_species]
+    update_persistent_ids!(reporter, all_basic_species)
 end

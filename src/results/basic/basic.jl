@@ -21,10 +21,11 @@ function get_individual_outcomes(result::BasicResult)
     end
     id_1, id_2 = result.individual_ids
     outcome_1, outcome_2 = result.outcome_set
-    outcome_dict = Dict(id_1 => outcome_1, id_2 => outcome_2)
+    outcome_pairs = [id_1 => outcome_1, id_2 => outcome_2]
+    outcome_dict = Dict(outcome_pairs)
+    #outcome_dict = Dict(id_1 => outcome_1, id_2 => outcome_2)
     return outcome_dict
 end
-
 
 function get_observations(result::BasicResult)
     observations = [observation for observation in result.observations]

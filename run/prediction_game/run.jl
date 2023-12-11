@@ -77,6 +77,14 @@ function parse_cmdline_args()
             arg_type = String
             default = "moderate"
             help = "Noise standard deviation"
+        "--adaptive_archive_max_size"
+            arg_type = Float64
+            default = Inf
+            help = "Adaptive archive maximum size"
+        "--n_adaptive_archive_samples"
+            arg_type = Int
+            default = 10
+            help = "Number of samples from adaptive archive"
     end
 
     return parse_args(s)
@@ -116,9 +124,11 @@ experiment = make_prediction_game_experiment(;
     function_set = args["function_set"],
     mutation = args["mutation"],
     noise_std = args["noise_std"],
+    adaptive_archive_max_size = args["adaptive_archive_max_size"],
+    n_adaptive_archive_samples = args["n_adaptive_archive_samples"],
 )
 
-println("Running experiment...")
+println("Running experiment with seed $(args["seed"])...")
 
 run!(experiment; n_generations = args["n_generations"])
 

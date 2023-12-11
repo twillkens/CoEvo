@@ -97,7 +97,7 @@ function remove_node_and_redirect(
                 push!(new_input_connections, FunctionGraphConnection(
                     input_node_id = bias_node_id, 
                     weight = new_weight, 
-                    is_recurrent = false
+                    is_recurrent = true
                 ))
             else
                 push!(new_input_connections, connection)

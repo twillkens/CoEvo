@@ -3,11 +3,12 @@ module Basic
 export BasicJob, BasicJobCreator
 
 import ..Jobs: create_jobs
+import ...Species: create_phenotype_dict
 
 using Random: AbstractRNG
 using ...Phenotypes: Phenotype, PhenotypeCreator, create_phenotype
 using ...Individuals: get_individuals
-using ...Species: AbstractSpecies 
+using ...Species: AbstractSpecies, get_species_with_ids 
 using ...SpeciesCreators: SpeciesCreator
 using ...Matches: Match
 using ...MatchMakers: make_matches
@@ -23,6 +24,52 @@ end
 Base.@kwdef struct BasicJobCreator{I <: Interaction} <: JobCreator
     interactions::Vector{I} 
     n_workers::Int = 1
+end
+
+#function create_phenotype_dict(
+#    all_species::Vector{<:AbstractSpecies},
+#    phenotype_creators::Vector{<:PhenotypeCreator},
+#)
+#    phenotype_dict = Dict(
+#        individual.id => create_phenotype(phenotype_creator, individual)
+#        for (species, phenotype_creator) in zip(all_species, phenotype_creators)
+#        for individual in get_individuals(species)
+#    )
+#    return phenotype_dict
+#end
+
+function make_all_matches(
+    job_creator::BasicJobCreator,
+    random_number_generator::AbstractRNG,
+    all_species::Vector{<:AbstractSpecies}
+)
+    all_matches = vcat(
+        [
+            make_matches(
+                interaction.matchmaker, 
+                random_number_generator,
+                interaction.id,
+                get_species_with_ids(all_species, interaction.species_ids),
+            ) 
+            for interaction in job_creator.interactions
+        ]...
+    )
+    return all_matches
+end
+
+function create_phenotype_dict(
+    all_species::Vector{<:AbstractSpecies},
+    phenotype_creators::Vector{<:PhenotypeCreator},
+    matches::Vector{<:Match},
+)
+    all_match_ids = Int[]
+    for match in matches
+        append!(all_match_ids, match.individual_ids)
+    end
+    all_necessary_ids = Set(all_match_ids)
+    phenotype_dict = create_phenotype_dict(all_species, phenotype_creators, all_necessary_ids)
+
+    return phenotype_dict
 end
 
 function make_partitions(items::Vector{T}, n_partitions::Int) where T
@@ -45,18 +92,6 @@ function make_partitions(items::Vector{T}, n_partitions::Int) where T
     return partitions
 end
 
-function create_phenotype_dict(
-    all_species::Vector{<:AbstractSpecies},
-    phenotype_creators::Vector{<:PhenotypeCreator},
-)
-    phenotype_dict = Dict(
-        individual.id => create_phenotype(phenotype_creator, individual)
-        for (species, phenotype_creator) in zip(all_species, phenotype_creators)
-        for individual in get_individuals(species)
-    )
-    return phenotype_dict
-end
-
 function filter_phenotypes_by_matches(
     phenotype_dict::Dict{Int, P}, matches::Vector{<:Match}, 
 ) where P <: Phenotype
@@ -66,40 +101,6 @@ function filter_phenotypes_by_matches(
         for individual_id in match.individual_ids
     )
     return filtered_phenotypes
-end
-
-function find_species_by_id(species_id::String, species_list::Vector{<:AbstractSpecies})
-    index = findfirst(s -> s.id == species_id, species_list)
-    if index === nothing
-        throw(ErrorException("Species with id $species_id not found."))
-    end
-    return species_list[index]
-end
-
-function get_species_with_ids(
-    all_species::Vector{<:AbstractSpecies}, species_ids::Vector{String}, 
-)
-    species = [find_species_by_id(species_id, all_species) for species_id in species_ids]
-    return species
-end
-
-function make_all_matches(
-    job_creator::BasicJobCreator,
-    random_number_generator::AbstractRNG,
-    all_species::Vector{<:AbstractSpecies}
-)
-    all_matches = vcat(
-        [
-            make_matches(
-                interaction.matchmaker, 
-                random_number_generator,
-                interaction.id,
-                get_species_with_ids(all_species, interaction.species_ids),
-            ) 
-            for interaction in job_creator.interactions
-        ]...
-    )
-    return all_matches
 end
 
 function make_all_jobs(
@@ -124,8 +125,9 @@ function create_jobs(
     phenotype_creators::Vector{<:PhenotypeCreator},
 )
     all_matches = make_all_matches(job_creator, random_number_generator, all_species)
+    phenotype_dict = create_phenotype_dict(all_species, phenotype_creators, all_matches)
     match_partitions = make_partitions(all_matches, job_creator.n_workers)
-    phenotype_dict = create_phenotype_dict(all_species, phenotype_creators)
+    #phenotype_dict = create_phenotype_dict(all_species, phenotype_creators)
     jobs = make_all_jobs(job_creator, phenotype_dict, match_partitions)
     return jobs
 end

@@ -59,7 +59,7 @@ function make_prediction_game_experiment(;
 )
     globals = GlobalConfiguration(; kwargs...)
     game = get_game(game; kwargs...)
-    topology = get_topology(topology)
+    topology = get_topology(topology; kwargs...)
     substrate = get_substrate(substrate; kwargs...)
     reproducer = get_reproducer(reproducer; kwargs...)
     report = get_report(report; kwargs...)

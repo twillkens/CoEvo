@@ -8,7 +8,7 @@ using Random
 
 experiment = make_prediction_game_experiment(;
     game = "continuous_prediction_game",
-    topology = "two_control",
+    topology = "two_competitive",
     substrate = "function_graphs",
     reproducer = "disco",
     trial = 1,
@@ -21,7 +21,9 @@ experiment = make_prediction_game_experiment(;
     n_workers = 1,
     episode_length = 16,
     n_nodes_per_output = 1,
-    modes_interval = 50
+    modes_interval = 50,
+    adaptive_archive_max_size = Inf,
+    n_adaptive_archive_samples = 50,
 )
 
 println("Running experiment...")

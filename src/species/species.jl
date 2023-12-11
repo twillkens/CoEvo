@@ -1,6 +1,6 @@
 module Species
 
-export Basic, Modes
+export Basic, Modes, AdaptiveArchive
 
 import ..Individuals: get_individuals
 
@@ -10,6 +10,9 @@ include("interfaces/interfaces.jl")
 
 include("basic/basic.jl")
 using .Basic: Basic
+
+include("adaptive_archive/adaptive_archive.jl")
+using .AdaptiveArchive: AdaptiveArchive
 
 include("modes/modes.jl")
 using .Modes: Modes

@@ -22,6 +22,9 @@ end
 function observe!(
     observer::PhenotypeStateObserver, phenotype::LinearizedFunctionGraphPhenotype
 )
+    if phenotype.id == -23215
+        println("HIDDEN NODES IN OBSERVE: ", phenotype.n_hidden_nodes)
+    end
     state = get_phenotype_state(phenotype)
     #println("\nstate: $state")
     push!(observer.states, state)
@@ -80,23 +83,22 @@ function create_observation(observer::FunctionGraphModesObserver)
     return observation
 end
 
-safe_median(x::R) where R <: Real = isinf(x) ? zero(R) : median(x)
-
-function get_gene_median_dict(observations::Vector{FunctionGraphModesObservation})
-    all_gene_output_dict = Dict{Int, Vector{Float32}}()
-    for observation in observations
-        for (id, node_states) in observation.node_states
-            if !haskey(all_gene_output_dict, id)
-                all_gene_output_dict[id] = Float32[]
-            end
-            push!(all_gene_output_dict[id], node_states...)
-        end
-    end
-    gene_median_dict = Dict(
-        id => safe_median(all_gene_output_dict[id]) for id in keys(all_gene_output_dict)
-    )
-    return gene_median_dict
-end
-
+# safe_median(x::R) where R <: Real = isinf(x) ? zero(R) : median(x)
+# 
+# function get_gene_median_dict(observations::Vector{FunctionGraphModesObservation})
+#     all_gene_output_dict = Dict{Int, Vector{Float32}}()
+#     for observation in observations
+#         for (id, node_states) in observation.node_states
+#             if !haskey(all_gene_output_dict, id)
+#                 all_gene_output_dict[id] = Float32[]
+#             end
+#             push!(all_gene_output_dict[id], node_states...)
+#         end
+#     end
+#     gene_median_dict = Dict(
+#         id => safe_median(all_gene_output_dict[id]) for id in keys(all_gene_output_dict)
+#     )
+#     return gene_median_dict
+# end
 
 end

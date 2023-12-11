@@ -1,6 +1,6 @@
 module SpeciesCreators
 
-export Basic
+export Basic, AdaptiveArchive
 
 using Random: AbstractRNG
 using ..Species: AbstractSpecies
@@ -14,5 +14,8 @@ include("interfaces/interfaces.jl")
 
 include("basic/basic.jl")
 using .Basic: Basic
+
+include("adaptive_archive/adaptive_archive.jl")
+using .AdaptiveArchive: AdaptiveArchive
 
 end

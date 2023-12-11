@@ -15,4 +15,7 @@ using .Cache: Cache
 include("modes/modes.jl")
 using .Modes: Modes
 
+# include("modes/modes_func.jl")
+# using .ModesFunc: ModesFunc
+
 end

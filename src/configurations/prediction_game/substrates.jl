@@ -4,6 +4,7 @@ export make_genotype_creator, make_phenotype_creator, make_mutators
 export load_substrate, get_substrate
 
 using ...Names
+using ...Genotypes.FiniteStateMachines: FiniteStateMachineGenotypeCreator
 
 abstract type Substrate end
 

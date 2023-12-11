@@ -1,6 +1,7 @@
 module Modes
 
-export ModesSpecies, get_individuals
+export ModesSpecies, get_individuals, is_fully_pruned, create_modes_species
+export remove_pruned_individuals!
 
 import ...Individuals: get_individuals
 import ...Individuals.Modes: is_fully_pruned
@@ -10,6 +11,7 @@ using ...Individuals.Basic: BasicIndividual
 using ...Individuals.Modes: ModesIndividual
 using ...Species: AbstractSpecies
 using ...Species.Basic: BasicSpecies
+using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
 
 struct ModesSpecies{I <: BasicIndividual, M <: ModesIndividual} <: AbstractSpecies
     id::String
@@ -48,6 +50,25 @@ function ModesSpecies(
     return modes_species
 end
 
+function ModesSpecies(
+    species::AdaptiveArchiveSpecies{<:BasicSpecies, BasicIndividual{G}},
+    persistent_ids::Set{Int}
+) where {G <: Genotype}
+    normal_individuals = get_individuals(species.basic_species)
+    modes_individuals = ModesIndividual{G}[]
+    for individual in normal_individuals
+        if individual.id in persistent_ids
+            genotype = minimize(individual.genotype)
+            modes_individual = ModesIndividual(-individual.id, genotype)
+            push!(modes_individuals, modes_individual)
+        end
+    end
+    archive_individuals = get_individuals(species.archive, species.active_ids)
+    append!(normal_individuals, archive_individuals)
+    modes_species = ModesSpecies(species.id, normal_individuals, modes_individuals)
+    return modes_species
+end
+
 # Function to create ModesSpecies objects
 function create_modes_species(all_species::Vector{<:AbstractSpecies}, persistent_ids::Set{Int})
     modes_species = [ModesSpecies(species, persistent_ids) for species in all_species]
@@ -55,18 +76,26 @@ function create_modes_species(all_species::Vector{<:AbstractSpecies}, persistent
 end
 
 # Function to prune individuals
-function prune_individuals!(
-    species::ModesSpecies, pruned_individuals::Vector{<:ModesIndividual}
+function remove_pruned_individuals!(
+    species::ModesSpecies, fully_pruned_individuals::Dict{String, Vector{ModesIndividual}}
 )
     pruned_ids = Set{Int}()
     for individual in species.modes_individuals
         if is_fully_pruned(individual)
-            push!(pruned_individuals, individual)
+            push!(fully_pruned_individuals[species.id], individual)
             push!(pruned_ids, individual.id)
         end
     end
     filter!(individual -> individual.id ∉ pruned_ids, species.modes_individuals)
-    return pruned_ids
+end
+
+function remove_pruned_individuals!(
+    all_species::Vector{<:ModesSpecies}, 
+    fully_pruned_individuals::Dict{String, Vector{ModesIndividual}}
+)
+    for species in all_species
+        remove_pruned_individuals!(species, fully_pruned_individuals)
+    end
 end
 
 end

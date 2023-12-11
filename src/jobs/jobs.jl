@@ -10,7 +10,7 @@ include("abstract/abstract.jl")
 
 include("interfaces/interfaces.jl")
 
-include("types/basic.jl")
+include("basic/basic.jl")
 using .Basic: Basic
 
 end

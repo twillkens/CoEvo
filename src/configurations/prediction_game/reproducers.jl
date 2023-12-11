@@ -1,6 +1,8 @@
 export Reproducer, RouletteReproducer, DiscoReproducer, load_reproducer, get_reproducer
 export make_evaluator, make_replacer, make_selector, archive!
 
+using ...Evaluators.AdaptiveArchive: AdaptiveArchiveEvaluator
+
 abstract type Reproducer end
 
 function get_n_individuals(reproducer::Reproducer)
@@ -51,9 +53,16 @@ function archive!(reproducer::RouletteReproducer, file::File)
     file["$base_path/n_children"] = reproducer.n_children
 end
 
-function make_evaluator(reproducer::RouletteReproducer, topology::Topology)
-    maximum_fitness = get_maximum_fitness(reproducer, topology)
-    evaluator = ScalarFitnessEvaluator(maximum_fitness = maximum_fitness)
+function make_evaluator(::RouletteReproducer, ::BasicTopology)
+    evaluator = ScalarFitnessEvaluator()
+    return evaluator
+end
+
+function make_evaluator(reproducer::RouletteReproducer, topology::AdaptiveArchiveTopology)
+    evaluator = AdaptiveArchiveEvaluator(
+        non_archive_evaluator = make_evaluator(reproducer, topology.basic_topology),
+        full_evaluator = make_evaluator(reproducer, topology.basic_topology),
+    )
     return evaluator
 end
 
@@ -161,14 +170,21 @@ function archive!(reproducer::DiscoReproducer, file::File)
     file["$base_path/distance_method"] = reproducer.distance_method
 end
 
-function make_evaluator(reproducer::DiscoReproducer, topology::Topology)
-    maximum_fitness = get_maximum_fitness(reproducer, topology)
+function make_evaluator(reproducer::DiscoReproducer, ::BasicTopology)
     evaluator = NSGAIIEvaluator(
         maximize = true, 
         perform_disco = true, 
         max_clusters = reproducer.max_clusters,
-        scalar_fitness_evaluator = ScalarFitnessEvaluator(maximum_fitness = maximum_fitness),
+        scalar_fitness_evaluator = ScalarFitnessEvaluator(),
         distance_method = :disco_average
+    )
+    return evaluator
+end
+
+function make_evaluator(reproducer::DiscoReproducer, topology::AdaptiveArchiveTopology)
+    evaluator = AdaptiveArchiveEvaluator(
+        non_archive_evaluator = ScalarFitnessEvaluator(),
+        full_evaluator = make_evaluator(reproducer, topology.basic_topology),
     )
     return evaluator
 end

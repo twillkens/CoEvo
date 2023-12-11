@@ -26,7 +26,7 @@ end
 @kwdef struct BasicCoevolutionaryStateCreator <: StateCreator end
 
 function create_species(
-    species_creators::Vector{<:BasicSpeciesCreator}, state::BasicCoevolutionaryState, 
+    species_creators::Vector{<:SpeciesCreator}, state::BasicCoevolutionaryState, 
 )
     new_species = [
         create_species(

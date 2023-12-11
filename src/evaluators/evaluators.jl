@@ -1,6 +1,6 @@
 module Evaluators
 
-export Null, ScalarFitness, NSGAII
+export Null, ScalarFitness, NSGAII, AdaptiveArchive
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
@@ -18,5 +18,8 @@ using .ScalarFitness: ScalarFitness
 
 include("nsga-ii/nsga-ii.jl")
 using .NSGAII: NSGAII
+
+include("adaptive_archive/adaptive_archive.jl")
+using .AdaptiveArchive: AdaptiveArchive
 
 end

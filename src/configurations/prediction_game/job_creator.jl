@@ -1,7 +1,11 @@
 using ...Names
 
+using ...Environments.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
+using ...MatchMakers.AllVersusAll: AllVersusAllMatchMaker
+using ...MatchMakers.AdaptiveArchive: AdaptiveArchiveMatchMaker
+
 function make_environment_creator(
-    ::LinguisticPredictionGameConfiguration, setup::InteractionSetup
+    ::LinguisticPredictionGameConfiguration, setup::BasicInteractionSetup
 )
     domain = PredictionGameDomain(setup.domain)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain = domain)
@@ -9,7 +13,7 @@ function make_environment_creator(
 end
 
 function make_environment_creator(
-    configuration::CollisionGameConfiguration, setup::InteractionSetup
+    configuration::CollisionGameConfiguration, setup::BasicInteractionSetup
 )
     domain = PredictionGameDomain(setup.domain)
     initial_distance = configuration.initial_distance
@@ -26,7 +30,7 @@ end
 
 
 function make_environment_creator(
-    game::ContinuousPredictionGameConfiguration, setup::InteractionSetup
+    game::ContinuousPredictionGameConfiguration, setup::BasicInteractionSetup
 )
     domain = PredictionGameDomain(setup.domain)
     episode_length = game.episode_length
@@ -42,7 +46,7 @@ end
 
 function make_interaction(
     game::GameConfiguration, 
-    interaction_setup::InteractionSetup, 
+    interaction_setup::BasicInteractionSetup, 
     cohorts::Vector{String}
 )
     interaction = BasicInteraction(
@@ -54,10 +58,39 @@ function make_interaction(
     return interaction
 end
 
-function make_interactions(game::GameConfiguration, topology::Topology)
+function make_interaction(
+    game::GameConfiguration, 
+    interaction_setup::BasicInteractionSetup, 
+    cohorts::Vector{String},
+    n_sample::Int,
+)
+    basic_matchmaker = AllVersusAllMatchMaker(cohorts = cohorts)
+    interaction = BasicInteraction(
+        id = get_id(interaction_setup),
+        environment_creator = make_environment_creator(game, interaction_setup),
+        species_ids = interaction_setup.species_ids,
+        matchmaker = AdaptiveArchiveMatchMaker(
+            basic_matchmaker = basic_matchmaker,
+            n_sample = n_sample,
+        ),
+    )
+    return interaction
+end
+
+function make_interactions(game::GameConfiguration, topology::BasicTopology)
     interactions = [
         make_interaction(game, interaction_setup, topology.cohorts)
-        for interaction_setup in topology.interactions
+        for interaction_setup in topology.interaction_setups
+    ]
+    return interactions
+end
+
+function make_interactions(game::GameConfiguration, topology::AdaptiveArchiveTopology)
+    cohorts = topology.basic_topology.cohorts
+    interaction_setups = topology.basic_topology.interaction_setups
+    interactions = [
+        make_interaction(game, interaction_setup, cohorts, topology.n_sample)
+        for interaction_setup in interaction_setups
     ]
     return interactions
 end
