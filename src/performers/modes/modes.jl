@@ -1,7 +1,6 @@
 module Modes
 
 export perform_modes, perform_modes_simulation!, process_next_generation!
-export update_species_individuals!
 
 using Random: AbstractRNG
 using ...Genotypes: minimize
