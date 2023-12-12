@@ -8,9 +8,11 @@ import ...SpeciesCreators: create_species, get_phenotype_creator, get_evaluator
 using Random: AbstractRNG
 using StatsBase: sample
 using DataStructures: OrderedDict
+using ...Genotypes: get_size
 using ...Counters: Counter
 using ...Evaluators: Evaluator, Evaluation
 using ...Evaluators.AdaptiveArchive: AdaptiveArchiveEvaluator, AdaptiveArchiveEvaluation
+using ...Individuals: Individual
 using ...SpeciesCreators: SpeciesCreator
 using ...SpeciesCreators.Basic: BasicSpeciesCreator
 using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
@@ -49,54 +51,28 @@ end
 using Random, Distributions
 using StatsBase: sample, Weights
 
-function sample_without_replacement(
-    rng::AbstractRNG, 
-    vec::Vector{R}, 
-    n_samples::Int,  
-    weights::Vector{<:Real} = collect(1:length(vec))
-) where R <: Real
-    if length(vec) == 0
-        return Int[]
-    end
-    # Ensure that n_samples is not greater than the length of the vector
-    if n_samples > length(vec)
-        error("Number of samples requested is greater than the length of the vector.")
-    end
 
-    # Create a weights vector proportional to the order in the vector
-    #weights = 1:length(vec)
-
-    # Normalize the weights to sum to 1 and convert to a regular array
-    normalized_weights = collect(weights / sum(weights))
-
-    # Create an empty array for the sampled values
-    sampled_values = Vector{typeof(vec[1])}()
-
-    # Copy the original vector to manipulate it
-    temp_vec = copy(vec)
-
-    for _ in 1:n_samples
-        # Sample an index based on the weighted probability
-        index = sample(rng, 1:length(temp_vec), Weights(normalized_weights))
-
-        # Append the selected value to the result
-        push!(sampled_values, temp_vec[index])
-
-        # Remove the selected value and its weight from the temporary vector and weights
-        deleteat!(temp_vec, index)
-        deleteat!(normalized_weights, index)
-
-        # Renormalize the weights if there are remaining elements
-        if sum(normalized_weights) != 0
-            normalized_weights /= sum(normalized_weights)
-        end
-    end
-
-    return sampled_values
+# TODO: add to utils
+function sample_proportionate_to_genotype_size(
+    rng::AbstractRNG, individuals::Vector{<:Individual}, n_sample::Int; 
+    inverse::Bool = false,
+    replace::Bool = false
+)
+    complexity_scores = [get_size(individual.genotype) for individual in individuals]
+    complexity_scores = inverse ? 1 ./ complexity_scores : complexity_scores
+    weights = Weights([complexity_score + 1 for complexity_score in complexity_scores])
+    return sample(rng, individuals, weights, n_sample, replace = replace)
 end
 
-
-using ...Genotypes: get_size
+function get_active_individual_ids(rng::AbstractRNG, species::AdaptiveArchiveSpecies)
+    archive_individual_ids = [individual.id for individual in species.archive]
+    n_sample = min(species.n_sample, length(archive_individual_ids))
+    active_individuals = sample_proportionate_to_genotype_size(
+        rng, species.archive, n_sample
+    )
+    active_individual_ids = [individual.id for individual in active_individuals]
+    return active_individual_ids
+end
 
 function create_species(
     species_creator::AdaptiveArchiveSpeciesCreator,
@@ -114,32 +90,8 @@ function create_species(
         species.basic_species, 
         evaluation.full_evaluation
     )
-    archive_individual_ids = [individual.id for individual in species.archive]
-    n_sample = min(species_creator.n_sample, length(archive_individual_ids))
-    weights = [get_size(individual.genotype) for individual in species.archive]
-    weights = [weight + 1 for weight in weights]
-    active_individual_ids = sample_without_replacement(
-        rng, archive_individual_ids, n_sample, weights
-    )
-    #id_weights = collect(zip(archive_individual_ids, weights))
-    #sorted_id_weights = sort(id_weights, by = x -> x[2])
-    #ids = [id_weight[1] for id_weight in sorted_id_weights]
-    #weights = [id_weight[2] for id_weight in sorted_id_weights]
-    # println("--------------$(species.id)------------------")
-    # #println("ids: ", ids)
-    # #println("weights: ", weights)
-    # n_sample = min(species_creator.n_sample, length(archive_individual_ids))
-    # active_individuals = [
-    #     (individual.id, get_size(individual.genotype) + 1) 
-    #     for individual in species.archive 
-    #         if individual.id in active_individual_ids
-    # ]
-    # sort!(active_individuals, by = x -> x[2], rev = false)
-    # println("sizes: ", [individual[2] for individual in active_individuals])
-    #println("sorted_id_weights: ", sorted_id_weights)
-    #active_individual_ids = sample(
-    #    rng, archive_individual_ids, n_sample, replace = false
-    #)
+    active_individual_ids = species.max_archive_size == 0 ? 
+        Int[] : get_active_individual_ids(rng, species)
     species = AdaptiveArchiveSpecies(
         species.id, 
         species.max_archive_size, 

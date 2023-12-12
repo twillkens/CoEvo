@@ -430,38 +430,11 @@ function make_plots(
     make_plots(measurements)
 end
 
-using FilePathsBase
-
 
 function contains_h5_files(dir_path::String)
     return any(endswith.(readdir(dir_path), ".h5"))
 end
 
-using FilePathsBase
-
-function make_plots(root::String)
-    configs = find_experiment_configurations(root)
-    for config in configs
-        println("Processing $config")
-        make_plots(config.game, config.topology, config.substrate, config.reproducer)
-    end
-end
-
-function make_plots()
-    root = ENV["COEVO_TRIAL_DIR"]
-    make_plots(root)
-end
-
-function find_experiment_configurations(root_dir::String)
-    configurations = ExperimentConfiguration[]
-    for dir_path in walkdir(root_dir)
-        if is_valid_experiment_path(dir_path)
-            config = parse_experiment_configuration(dir_path)
-            push!(configurations, config)
-        end
-    end
-    return configurations
-end
 
 function is_valid_experiment_path(dir_path::Tuple{String, Vector{String}, Vector{String}})
     return length(dir_path[3]) > 0
@@ -479,3 +452,29 @@ function parse_experiment_configuration(dir_path::Tuple{String, Vector{String}, 
     end
     return nothing
 end
+
+function find_experiment_configurations(root_dir::String)
+    configurations = ExperimentConfiguration[]
+    for dir_path in walkdir(root_dir)
+        if is_valid_experiment_path(dir_path)
+            config = parse_experiment_configuration(dir_path)
+            push!(configurations, config)
+        end
+    end
+    return configurations
+end
+
+function make_plots(root::String)
+    configs = find_experiment_configurations(root)
+    for config in configs
+        println("Processing $config")
+        make_plots(config.game, config.topology, config.substrate, config.reproducer)
+    end
+end
+
+function make_plots()
+    root = ENV["COEVO_TRIAL_DIR"]
+    make_plots(root)
+end
+
+

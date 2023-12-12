@@ -6,7 +6,7 @@ import ...Individuals: get_individuals
 
 using ...Genotypes: get_size
 using Random: AbstractRNG
-using StatsBase: sample, mean
+using StatsBase: sample, mean, Weights
 using ...Individuals: Individual
 using ...Individuals.Basic: BasicIndividual
 using ...Individuals.Modes: ModesIndividual
@@ -29,22 +29,56 @@ function get_individuals(species::AdaptiveArchiveSpecies)
     return individuals
 end
 
+# TODO: add to utils
+function sample_proportionate_to_genotype_size(
+    rng::AbstractRNG, individuals::Vector{<:Individual}, n_sample::Int; inverse::Bool = false
+)
+    complexity_scores = [get_size(individual.genotype) for individual in individuals]
+    complexity_scores = inverse ? 1 ./ complexity_scores : complexity_scores
+    weights = Weights([complexity_score + 1 for complexity_score in complexity_scores])
+    return sample(rng, individuals, n_sample, weights)
+end
 
 function add_individuals_to_archive!(
-    ::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
+    rng::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
 )
     append!(species.archive, individuals)
-    sort!(species.archive, by = individual -> get_size(individual.genotype))
+    
     if length(species.archive) > species.max_archive_size
-        # eject the first elements to maintain size
-        deleteat!(species.archive, 1:length(species.archive) - species.max_archive_size)
+        # Calculate the number of individuals to remove
+        n_remove = length(species.archive) - species.max_archive_size
+
+        # Select individuals for deletion based on their complexity (not inverse)
+        individuals_to_remove = sample_proportionate_to_genotype_size(
+            rng, species.archive, n_remove, inverse = false
+        )
+
+        # Remove the selected individuals from the archive
+        species.archive = setdiff(species.archive, individuals_to_remove)
     end
+
     archive_size = mean([get_size(individual.genotype) for individual in species.archive])
     println(
         "archive_length: ", length(species.archive), 
         ", archive_size: ", round(archive_size, digits=2))
     return species
 end
+
+# function add_individuals_to_archive!(
+#     ::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
+# )
+#     append!(species.archive, individuals)
+#     sort!(species.archive, by = individual -> get_size(individual.genotype))
+#     if length(species.archive) > species.max_archive_size
+#         # eject the first elements to maintain size
+#         deleteat!(species.archive, 1:length(species.archive) - species.max_archive_size)
+#     end
+#     archive_size = mean([get_size(individual.genotype) for individual in species.archive])
+#     println(
+#         "archive_length: ", length(species.archive), 
+#         ", archive_size: ", round(archive_size, digits=2))
+#     return species
+# end
     #if length(species.archive) > species.max_archive_size
     #    # just trim the first ones
     #    all_ids = [individual.id for individual in species.archive]
