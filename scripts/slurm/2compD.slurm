@@ -30,7 +30,7 @@ srun julia --project=. run/prediction_game/run.jl \
         --n_nodes_per_output 1 \
         --modes_interval 50 \
         --function_set all \
-        --mutation equal_volatile \
+        --mutation  \
         --noise_std high \
         --adaptive_archive_max_size 0 \
         --n_adaptive_archive_samples 0 \

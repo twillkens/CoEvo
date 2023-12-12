@@ -1,4 +1,5 @@
 ENV["GKSwstype"] = "100"
+using FilePathsBase
 using Serialization
 using HDF5: File, read, h5open, Group, names
 using StatsBase: mean
@@ -52,6 +53,8 @@ function get_all_measurements(
 )
     experiment_configuration = get_experiment_configuration(file)
     trial = read(file["configuration/globals/trial"])
+    println("Processing trial $trial")
+    println("configuration: $experiment_configuration")
     generations = keys(file["generations"])
     measurements = PredictionGameAggregateMeasurement[]
     for gen in generations
@@ -61,17 +64,22 @@ function get_all_measurements(
         end
 
         try
-            complexity = Float64(read(file["modes/$gen"]))
-            measurement = Predictpruned_individualsionGameAggregateMeasurement(
-                experiment_configuration, 
-                trial, 
-                gen, 
-                "all",
-                "complexity", 
-                "maximum", 
-                complexity
-            )
-            push!(measurements, measurement)
+            modes_metrics = [
+                ("complexity", "maximum"), ("change", "mean"), ("novelty", "mean")
+            ]
+            for (metric, submetric) in modes_metrics
+                value = Float64(read(file["generations/$gen/modes/$metric"]))
+                measurement = PredictionGameAggregateMeasurement(
+                    experiment_configuration, 
+                    trial, 
+                    gen, 
+                    "all",
+                    metric, 
+                    submetric, 
+                    value
+                )
+                push!(measurements, measurement)
+            end
         catch e 
             println(e)
             println("Modes not found for generation $gen")
@@ -106,8 +114,35 @@ function get_all_measurements(
     return measurements
 end
 
+"""
+    find_max_generation(directory::String)
 
-using FilePathsBase
+Sweep the archives in the specified directory to find the maximum generation number reached.
+"""
+function find_max_generation(directory::String)
+    max_generation = 0
+    hdf5_files = list_hdf5_files(directory)
+    
+    for file_path in hdf5_files
+        println("Checking $file_path for max generation")
+        file = h5open(file_path, "r")
+        
+        try
+            generations = keys(file["generations"])
+            for gen in generations
+                gen_number = parse(Int, gen)
+                max_generation = max(max_generation, gen_number)
+            end
+        catch e
+            println("Error processing file $file_path: $e")
+        finally
+            close(file)
+        end
+    end
+
+    return max_generation
+end
+
 
 function list_hdf5_files(directory::String)
     hdf5_files = []
@@ -130,11 +165,20 @@ function get_all_measurements(
     root_directory = ENV["COEVO_TRIAL_DIR"]
     experiment_directory = "$root_directory/$game/$topology/$substrate/$reproducer"
 
+    metrics_to_include = [
+        "genotype_size", "minimized_genotype_size", "scaled_fitness"
+    ]
+    aggregate_metrics_to_include = ["mean"]
+    interval = 50
+    max_generations = find_max_generation(experiment_directory)
+
     hdf5_files = list_hdf5_files(experiment_directory)
     measurements = map(hdf5_files) do file_path
         println("Processing $file_path")
         file = h5open(file_path, "r")
-        measurements = get_all_measurements(file)
+        measurements = get_all_measurements(
+            file, metrics_to_include, aggregate_metrics_to_include, interval, max_generations
+        )
         close(file)
         return measurements
     end
