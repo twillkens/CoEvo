@@ -176,6 +176,8 @@ function find_lowest_max_generation(directory::String)
     # Handle case where no generations were found
     if isinf(lowest_max_generation)
         lowest_max_generation = 0
+    else
+        lowest_max_generation = convert(Int, lowest_max_generation)
     end
 
     return lowest_max_generation
