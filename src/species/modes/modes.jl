@@ -77,25 +77,26 @@ end
 
 # Function to prune individuals
 function remove_pruned_individuals!(
-    species::ModesSpecies, fully_pruned_individuals::Dict{String, Vector{ModesIndividual}}
+    #species::ModesSpecies, fully_pruned_individuals::Dict{String, Vector{ModesIndividual}}
+    species::ModesSpecies, fully_pruned_individuals::Vector{ModesIndividual}
 )
     pruned_ids = Set{Int}()
     for individual in species.modes_individuals
         if is_fully_pruned(individual)
-            push!(fully_pruned_individuals[species.id], individual)
+            push!(fully_pruned_individuals, individual)
             push!(pruned_ids, individual.id)
         end
     end
     filter!(individual -> individual.id ∉ pruned_ids, species.modes_individuals)
 end
 
-function remove_pruned_individuals!(
-    all_species::Vector{<:ModesSpecies}, 
-    fully_pruned_individuals::Dict{String, Vector{ModesIndividual}}
-)
-    for species in all_species
-        remove_pruned_individuals!(species, fully_pruned_individuals)
-    end
-end
+#function remove_pruned_individuals!(
+#    all_species::Vector{<:ModesSpecies}, 
+#    fully_pruned_individuals::Dict{String, Vector{ModesIndividual}}
+#)
+#    for species in all_species
+#        remove_pruned_individuals!(species, fully_pruned_individuals)
+#    end
+#end
 
 end

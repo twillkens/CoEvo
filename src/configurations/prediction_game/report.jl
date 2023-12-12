@@ -2,6 +2,8 @@ export ReportConfiguration, SilentReportConfiguration, VerboseTestReportConfigur
 export DeployReportConfiguration, load_report, get_report
 
 using ...Names
+using ...Reporters.Modes: ModesReporter
+using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
 
 abstract type ReportConfiguration end
 
@@ -89,7 +91,12 @@ function make_scaled_fitness_reporter(configuration::ReportConfiguration)
 end
 
 function make_modes_reporter(configuration::ReportConfiguration)
-    reporter = ModesReporter(
+    G = FunctionGraphGenotype
+    I = BasicIndividual{G}
+    S = BasicSpecies{I}
+    A = AdaptiveArchiveSpecies{S, I}
+
+    reporter = ModesReporter{S, G}(
         modes_interval = configuration.modes_interval,
         to_print = configuration.print_interval > 0,
         to_save = configuration.save_interval > 0,

@@ -13,7 +13,8 @@ function calculate_change!(reporter::ModesReporter, genotypes::Vector{<:Genotype
     genotypes = Set(genotypes)
     different_genotypes = setdiff(genotypes, reporter.previous_modes_genotypes)
     change = length(different_genotypes)
-    reporter.previous_modes_genotypes = genotypes
+    empty!(reporter.previous_modes_genotypes)
+    union!(reporter.previous_modes_genotypes, genotypes)
     return change
 end
 

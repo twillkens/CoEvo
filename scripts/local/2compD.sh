@@ -2,7 +2,7 @@
 
 mkdir -p logs/2compD
 
-for i in {1..20}
+for i in {1..1}
 do
    echo "Running trial $i"
    julia --project=. run/prediction_game/run.jl \
@@ -17,7 +17,7 @@ do
         --n_population 50 \
         --n_children 50 \
         --modes_interval 50 \
-        --adaptive_archive_max_size 1000 \
+        --adaptive_archive_max_size 500 \
         --n_adaptive_archive_samples 50 \
         --function_set all \
         --mutation shrink_volatile \

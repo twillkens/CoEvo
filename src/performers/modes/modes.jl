@@ -4,6 +4,7 @@ export perform_modes, perform_modes_simulation!, process_next_generation!
 
 using Random: AbstractRNG
 using ...Genotypes: minimize
+using ...Genotypes.FunctionGraphs: FunctionGraphGenotype
 using ...Species: AbstractSpecies
 using ...Species.Basic: BasicSpecies
 using ...Species.Modes: ModesSpecies
@@ -149,7 +150,10 @@ function perform_modes(
             performer, rng, species_creators, job_creator, all_next_species
         )
         all_species = update_species(all_species, all_next_species)
-        remove_pruned_individuals!(all_species, fully_pruned_individuals)
+        for species in all_species
+            species_pruned_individual_vec = fully_pruned_individuals[species.id]
+            remove_pruned_individuals!(species, species_pruned_individual_vec)
+        end
     end
 
     return fully_pruned_individuals
@@ -160,12 +164,15 @@ function perform_modes(
     species_creators::Vector{<:BasicSpeciesCreator}, 
     job_creator::JobCreator,
     rng::AbstractRNG,
-    all_species::Vector{<:AbstractSpecies},
+    all_species::Vector{<:BasicSpecies},
     persistent_ids::Set{Int}
-)
+) 
     all_modes_species = create_modes_species(all_species, persistent_ids)
-    # TODO: Fix hack for control by adding topology etc to ecosystem_creator
-    fully_pruned_individuals = Dict(species.id => ModesIndividual[] for species in all_species)
+    fully_pruned_individuals = map(all_species) do species
+        pair = species.id => ModesIndividual[]
+        return pair
+    end
+    fully_pruned_individuals = Dict(fully_pruned_individuals)
     if first(job_creator.interactions).id == "Control-A-B"
         for species in all_modes_species
             for modes_individual in species.modes_individuals
@@ -176,8 +183,12 @@ function perform_modes(
         end
         return fully_pruned_individuals
     end
+    for species in all_modes_species
+        species_pruned_individual_vec = fully_pruned_individuals[species.id]
+        remove_pruned_individuals!(species, species_pruned_individual_vec)
+    end
 
-    remove_pruned_individuals!(all_modes_species, fully_pruned_individuals)
+    #remove_pruned_individuals!(all_modes_species, fully_pruned_individuals)
 
     if is_fully_pruned(all_modes_species)
         pruned = vcat(collect(values(fully_pruned_individuals))...)
@@ -187,11 +198,11 @@ function perform_modes(
         return fully_pruned_individuals
     end
 
-    perform_modes(
+    fully_pruned_individuals = perform_modes(
         BasicPerformer(performer.n_workers), rng, species_creators, job_creator, all_modes_species, 
         fully_pruned_individuals
     )
-
+    return fully_pruned_individuals
 end
 
 end

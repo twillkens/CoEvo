@@ -1,6 +1,7 @@
 export create_report
 
 import ...Reporters: create_report
+import ...Metrics: measure
 
 using Random: AbstractRNG
 using StatsBase: sample
@@ -15,6 +16,49 @@ using ...Performers: Performer
 using ...Performers.Modes: perform_modes
 using ...Reporters.Basic: NullReport, BasicReport
 using ...States: State
+using ...Individuals.Modes: ModesIndividual
+
+function set_persistent_ids!(reporter::ModesReporter, all_species::Vector{<:BasicSpecies})
+    empty!(reporter.persistent_ids)
+    for id in get_all_ids(all_species)
+        push!(reporter.persistent_ids, id)
+    end
+end
+
+function initialize_checkpoint!(reporter::ModesReporter, all_species::Vector{<:BasicSpecies})
+    update_species_list!(reporter, all_species)
+    reset_tag_dictionary!(reporter)
+    update_tag_dictionary!(reporter, all_species)
+    set_persistent_ids!(reporter, all_species)
+end
+
+function measure(
+    reporter::ModesReporter, 
+    pruned_individuals_dict::Dict{String, Vector{ModesIndividual}},
+    include_pruned_individuals_dict::Bool = false
+)
+    pruned_individuals = vcat(values(pruned_individuals_dict)...)
+    pruned_genotypes = [individual.genotype for individual in pruned_individuals]
+    modes_complexity = measure(reporter.complexity_metric, pruned_genotypes)
+    novelty = calculate_novelty!(reporter, pruned_genotypes)
+    change = calculate_change!(reporter, pruned_genotypes)
+    genotype_measurements = [
+        BasicMeasurement("modes/individuals/$(individual.id)/genotype", individual.genotype)
+        for individual in pruned_individuals
+    ]
+    measurements = [
+        BasicMeasurement("modes/change", change),
+        BasicMeasurement("modes/novelty", novelty.value),
+        BasicMeasurement("modes/complexity", modes_complexity.value),
+        genotype_measurements...
+    ]
+    if include_pruned_individuals_dict
+        pruned_individuals_dict_measurement = BasicMeasurement(
+            "pruned_individuals_dict", pruned_individuals_dict
+        )
+        push!(measurements, pruned_individuals_dict_measurement)
+    end
+end
 
 function create_report(
     reporter::ModesReporter,
@@ -25,14 +69,10 @@ function create_report(
     performer::Performer,
     random_number_generator::AbstractRNG,
     all_species::Vector{<:BasicSpecies};
-    include_pruned_individuals_dict::Bool = false
+    include_pruned_individuals::Bool = false
 )
     if generation == 1
-        update_species_list!(reporter, all_species)
-        reset_tag_dictionary!(reporter)
-        update_tag_dictionary!(reporter, all_species)
-        reporter.persistent_ids = get_all_ids(all_species)
-        reporter.previous_modes_generation = generation
+        initialize_checkpoint!(reporter, all_species)
     elseif generation % reporter.modes_interval == 0
         pruned_individuals_dict = perform_modes(
             performer,
@@ -42,39 +82,11 @@ function create_report(
             reporter.all_species,
             reporter.persistent_ids
         )
-        pruned_individuals = vcat(values(pruned_individuals_dict)...)
-        pruned_genotypes = [individual.genotype for individual in pruned_individuals]
-        modes_complexity = measure(reporter.complexity_metric, pruned_genotypes)
-        novelty = calculate_novelty!(reporter, pruned_genotypes)
-        change = calculate_change!(reporter, pruned_genotypes)
-        genotype_measurements = [
-            BasicMeasurement("modes/individuals/$(individual.id)/genotype", individual.genotype)
-            for individual in pruned_individuals
-        ]
-        measurements = [
-            BasicMeasurement("modes/change", change),
-            BasicMeasurement("modes/novelty", novelty.value),
-            BasicMeasurement("modes/complexity", modes_complexity.value),
-            genotype_measurements...
-        ]
-        if include_pruned_individuals_dict
-            pruned_individuals_dict_measurement = BasicMeasurement(
-                "pruned_individuals_dict", pruned_individuals_dict
-            )
-            push!(measurements, pruned_individuals_dict_measurement)
-        end
-        update_species_list!(reporter, all_species)
-        reset_tag_dictionary!(reporter)
-        update_tag_dictionary!(reporter, all_species)
-        reporter.persistent_ids = get_all_ids(all_species)
-        reporter.previous_modes_generation = generation
+        measurements = measure(reporter, pruned_individuals_dict, include_pruned_individuals)
+        initialize_checkpoint!(reporter, all_species)
+        metric = reporter.metric
         report = BasicReport(
-            reporter.metric, 
-            measurements, 
-            trial, 
-            generation, 
-            reporter.to_print, 
-            reporter.to_save
+            metric, measurements, trial, generation, reporter.to_print, reporter.to_save
         )
         return report
     else
@@ -106,7 +118,7 @@ function create_report(
         performer,
         random_number_generator,
         basic_species;
-        include_pruned_individuals_dict = true
+        include_pruned_individuals = true
     )
     if isa(report, NullReport)
         return report
