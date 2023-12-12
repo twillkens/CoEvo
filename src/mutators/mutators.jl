@@ -3,6 +3,7 @@ module Mutators
 export Identity, Vectors, GeneticPrograms, GnarlNetworks, FiniteStateMachines, FunctionGraphs
 
 using Random: AbstractRNG
+using StableRNGs: StableRNG
 using ..Counters: Counter
 using ..Genotypes: Genotype
 using ..Individuals: Individual

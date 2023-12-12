@@ -29,19 +29,25 @@ using ..Counters: Counter
 
 mutable struct BasicCounter <: Counter
     current_value::Int
+    lock::ReentrantLock
 end
 
 BasicCounter() = BasicCounter(1)
+BasicCounter(n::Int) = BasicCounter(n, Threads.ReentrantLock())
 
 function count!(counter::BasicCounter)
-    value = counter.current_value
-    counter.current_value += 1
-    return value
+    lock(counter.lock) do
+        value = counter.current_value
+        counter.current_value += 1
+        return value
+    end
 end
 
 function count!(c::BasicCounter, n::Int)
-    values = [count!(c) for _ in 1:n]
-    return values
+    lock(c.lock) do
+        values = [count!(c) for _ in 1:n]
+        return values
+    end
 end
 
 end

@@ -13,15 +13,23 @@ function mutate(
     mutator::Mutator,
     random_number_generator::AbstractRNG,
     gene_id_counter::Counter,
-    individuals::Vector{<:BasicIndividual},
-)
-    individuals = [
-        BasicIndividual(
-            individual.id,
-            mutate(mutator, random_number_generator, gene_id_counter, individual.genotype),
-            individual.parent_ids
-        ) for individual in individuals
-    ]
+    individuals::Vector{I},
+) where {I <: Individual}
+    new_individuals = Vector{I}(undef, length(individuals))
+    
+    # make a new rng for each thread that uses the seed of the main rng
+    # so that there is perfect reproducibility of the results
+    rng_state = random_number_generator.state
+    
+    Threads.@threads for i in eachindex(individuals)
+        thread_rng = StableRNG(1)
+        thread_rng.state = rng_state
+        new_individuals[i] = BasicIndividual(
+            individuals[i].id,
+            mutate(mutator, thread_rng, gene_id_counter, individuals[i].genotype),
+            individuals[i].parent_ids
+        )
+    end
 
-    return individuals
+    return new_individuals
 end
