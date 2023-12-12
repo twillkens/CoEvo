@@ -31,10 +31,10 @@ end
 using ...Genotypes: get_size
 
 function add_individuals_to_archive!(
-    rng::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
+    ::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
 )
     append!(species.archive, individuals)
-    #sort!(species.archive, by = individual -> get_size(individual.genotype))
+    sort!(species.archive, by = individual -> get_size(individual.genotype))
     if length(species.archive) > species.max_archive_size
         # eject the first elements to maintain size
         deleteat!(species.archive, 1:length(species.archive) - species.max_archive_size)
