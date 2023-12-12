@@ -171,7 +171,8 @@ function create_ecosystem(
     reports::Vector{Report}
 )
     individual_outcomes = get_individual_outcomes(results)
-    observations = get_observations(results)
+    #observations = get_observations(results)
+    observations = Observation[]
     evaluations = evaluate_species(
         ecosystem_creator, ecosystem, individual_outcomes, observations
     )
