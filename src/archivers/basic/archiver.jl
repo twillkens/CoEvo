@@ -49,7 +49,7 @@ function archive!(
     end
     if report.to_save
         jld2_file = jldopen(archiver.archive_path, "a+")
-        base_path = "measurements/$gen/$(report.metric.name)"
+        base_path = "measurements/$(report.generation)/$(report.metric.name)"
         
         # Create or access the group for the generation
         gen_group = get_or_make_group!(jld2_file, base_path)
