@@ -39,7 +39,7 @@ function parse_cmdline_args()
             help = "Number of workers"
         "--n_generations"
             arg_type = Int
-            default = 100
+            default = 20000
             help = "Number of generations"
         "--n_population"
             arg_type = Int
@@ -78,12 +78,12 @@ function parse_cmdline_args()
             default = "moderate"
             help = "Noise standard deviation"
         "--adaptive_archive_max_size"
-            arg_type = Float64
-            default = Inf
+            arg_type = Int
+            default = 500
             help = "Adaptive archive maximum size"
         "--n_adaptive_archive_samples"
             arg_type = Int
-            default = 10
+            default = 50
             help = "Number of samples from adaptive archive"
     end
 

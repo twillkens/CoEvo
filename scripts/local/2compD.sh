@@ -18,7 +18,7 @@ do
         --n_children 50 \
         --modes_interval 50 \
         --adaptive_archive_max_size 500 \
-        --n_adaptive_archive_samples 50 \
+        --n_adaptive_archive_samples 50t  \
         --function_set all \
         --mutation shrink_volatile \
         --noise_std high \

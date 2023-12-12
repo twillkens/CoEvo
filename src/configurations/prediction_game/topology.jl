@@ -38,7 +38,7 @@ end
 Base.@kwdef struct AdaptiveArchiveTopology <: Topology
     id::String
     basic_topology::BasicTopology
-    max_archive_size::Float64
+    max_archive_size::Int
     n_sample::Int
 end
 
@@ -225,7 +225,7 @@ const BASIC_TOPOLOGIES = Dict(
 
 function get_topology(
     id::String; 
-    adaptive_archive_max_size::Float64 = 0.0, 
+    adaptive_archive_max_size::Int = 0, 
     n_adaptive_archive_samples::Int = 0, 
     kwargs...
 )

@@ -4,8 +4,9 @@ export AdaptiveArchiveSpecies, get_individuals, add_individuals_to_archive!
 
 import ...Individuals: get_individuals
 
+using ...Genotypes: get_size
 using Random: AbstractRNG
-using StatsBase: sample
+using StatsBase: sample, mean
 using ...Individuals: Individual
 using ...Individuals.Basic: BasicIndividual
 using ...Individuals.Modes: ModesIndividual
@@ -14,7 +15,7 @@ using ...Species.Basic: BasicSpecies
 
 struct AdaptiveArchiveSpecies{S <: BasicSpecies, I <: Individual} <: AbstractSpecies
     id::String
-    max_archive_size::Float64
+    max_archive_size::Int
     n_sample::Int
     basic_species::S
     archive::Vector{I}
@@ -28,7 +29,6 @@ function get_individuals(species::AdaptiveArchiveSpecies)
     return individuals
 end
 
-using ...Genotypes: get_size
 
 function add_individuals_to_archive!(
     ::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
@@ -39,6 +39,12 @@ function add_individuals_to_archive!(
         # eject the first elements to maintain size
         deleteat!(species.archive, 1:length(species.archive) - species.max_archive_size)
     end
+    archive_size = mean([get_size(individual.genotype) for individual in species.archive])
+    println(
+        "archive_length: ", length(species.archive), 
+        ", archive_size: ", round(archive_size, digits=2))
+    return species
+end
     #if length(species.archive) > species.max_archive_size
     #    # just trim the first ones
     #    all_ids = [individual.id for individual in species.archive]
@@ -50,8 +56,6 @@ function add_individuals_to_archive!(
     #    )
     #    filter!(individual -> individual.id ∉ ids_to_remove, species.archive)
     #end
-    return species
-end
 
 function add_individuals_to_archive!(
     rng::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:ModesIndividual}

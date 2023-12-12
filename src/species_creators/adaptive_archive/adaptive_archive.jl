@@ -19,7 +19,7 @@ Base.@kwdef struct AdaptiveArchiveSpeciesCreator{
     B <: BasicSpeciesCreator, E <: AdaptiveArchiveEvaluator
 } <: SpeciesCreator
     id::String
-    max_archive_size::Float64
+    max_archive_size::Int
     n_sample::Int
     basic_species_creator::B
     evaluator::E
