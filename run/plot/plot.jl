@@ -122,6 +122,7 @@ Sweep the archives in the specified directory to find the maximum generation num
 function find_max_generation(directory::String)
     max_generation = 0
     hdf5_files = list_hdf5_files(directory)
+
     
     for file_path in hdf5_files
         println("Checking $file_path for max generation")
@@ -141,6 +142,43 @@ function find_max_generation(directory::String)
     end
 
     return max_generation
+end
+
+"""
+    find_lowest_max_generation(directory::String)
+
+Find the lowest maximum generation number reached among all trials in the specified directory.
+"""
+function find_lowest_max_generation(directory::String)
+    lowest_max_generation = Inf  # Start with infinity, to ensure any real max is lower
+    hdf5_files = list_hdf5_files(directory)
+
+    for file_path in hdf5_files
+        println("Checking $file_path for max generation")
+        file_max_generation = 0  # Track the max generation for this file
+        file = h5open(file_path, "r")
+
+        try
+            generations = keys(file["generations"])
+            for gen in generations
+                gen_number = parse(Int, gen)
+                file_max_generation = max(file_max_generation, gen_number)
+            end
+            # Compare this file's max generation with the lowest found so far
+            lowest_max_generation = min(lowest_max_generation, file_max_generation)
+        catch e
+            println("Error processing file $file_path: $e")
+        finally
+            close(file)
+        end
+    end
+
+    # Handle case where no generations were found
+    if isinf(lowest_max_generation)
+        lowest_max_generation = 0
+    end
+
+    return lowest_max_generation
 end
 
 
@@ -170,7 +208,7 @@ function get_all_measurements(
     ]
     aggregate_metrics_to_include = ["mean"]
     interval = 50
-    max_generations = find_max_generation(experiment_directory)
+    max_generations = find_lowest_max_generation(experiment_directory)
 
     hdf5_files = list_hdf5_files(experiment_directory)
     measurements = map(hdf5_files) do file_path
