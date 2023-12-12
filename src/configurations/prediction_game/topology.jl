@@ -233,15 +233,22 @@ function get_topology(
         error("Topology with id $id not found.")
     end
     basic_topology = BASIC_TOPOLOGIES[id]
-    if adaptive_archive_max_size == 0
-        return basic_topology
-    else
-        topology = AdaptiveArchiveTopology(
-            id = id,
-            basic_topology = basic_topology,
-            max_archive_size = adaptive_archive_max_size,
-            n_sample = n_adaptive_archive_samples,
-        )
-        return topology
-    end
+    topology = AdaptiveArchiveTopology(
+        id = id,
+        basic_topology = basic_topology,
+        max_archive_size = adaptive_archive_max_size,
+        n_sample = n_adaptive_archive_samples,
+    )
+    return topology
+    #if adaptive_archive_max_size == 0
+    #    return basic_topology
+    #else
+    #    topology = AdaptiveArchiveTopology(
+    #        id = id,
+    #        basic_topology = basic_topology,
+    #        max_archive_size = adaptive_archive_max_size,
+    #        n_sample = n_adaptive_archive_samples,
+    #    )
+    #    return topology
+    #end
 end

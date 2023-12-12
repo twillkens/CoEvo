@@ -26,9 +26,11 @@ srun julia --project=. run/prediction_game/run.jl \
         --topology two_competitive \
         --report deploy \
         --reproducer disco \
-        --n_generations 30000 \
+        --n_generations 20000 \
         --n_nodes_per_output 1 \
         --modes_interval 50 \
         --function_set all \
-        --mutation shrink_volatile \
+        --mutation equal_volatile \
         --noise_std high \
+        --adaptive_archive_max_size 0 \
+        --n_adaptive_archive_samples 0 \
