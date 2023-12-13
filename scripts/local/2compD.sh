@@ -9,6 +9,7 @@ do
         --trial $i \
         --n_workers 1 \
         --game continuous_prediction_game \
+        --episode_length 8 \
         --topology two_competitive \
         --report deploy \
         --reproducer disco \

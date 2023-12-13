@@ -71,9 +71,11 @@ function add_function(
 )
     graph = deepcopy(graph)
     new_id = count!(gene_id_counter)
+    # TODO: Make excluding bias nodes an option
     func = select_function(random_number_generator, function_probabilities)
     potential_input_node_ids = [
-        graph.input_node_ids; graph.bias_node_ids; graph.hidden_node_ids
+        #graph.input_node_ids; graph.bias_node_ids; graph.hidden_node_ids
+        graph.input_node_ids; graph.hidden_node_ids
     ]
     input_connections = create_input_connections(
         random_number_generator, potential_input_node_ids, func.arity
@@ -164,7 +166,7 @@ function get_substitutions_for_node(
                 valid_nodes = setdiff(
                     union(
                         genotype.input_node_ids, 
-                        genotype.bias_node_ids, 
+                        #genotype.bias_node_ids, 
                         genotype.hidden_node_ids
                     ), 
                     [node_to_delete_id]
@@ -330,7 +332,8 @@ function redirect_connection(
     )
     # Choose a random new input node from input, bias, and hidden nodes
     redirection_target_candidate_ids = [
-        genotype.input_node_ids ; genotype.bias_node_ids ; genotype.hidden_node_ids
+        #genotype.input_node_ids ; genotype.bias_node_ids ; genotype.hidden_node_ids
+        genotype.input_node_ids ; genotype.hidden_node_ids
     ]
     new_input_node_id = rand(random_number_generator, redirection_target_candidate_ids)
     # Apply deterministic redirection
@@ -399,6 +402,7 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
     n_mutations::Int = 1
     validate_genotypes::Bool = false
     # Uniform probability of each type of structural change
+    exclude_bias_from_mutation::Bool = true
     mutation_probabilities::Dict{Symbol, Float64} = Dict(
         :identity => 0.5,
         :add_function => 0.1,

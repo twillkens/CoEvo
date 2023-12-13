@@ -31,12 +31,14 @@ end
 
 # TODO: add to utils
 function sample_proportionate_to_genotype_size(
-    rng::AbstractRNG, individuals::Vector{<:Individual}, n_sample::Int; inverse::Bool = false
+    rng::AbstractRNG, individuals::Vector{<:Individual}, n_sample::Int; 
+    inverse::Bool = false,
+    replace::Bool = false
 )
     complexity_scores = [get_size(individual.genotype) for individual in individuals]
     complexity_scores = inverse ? 1 ./ complexity_scores : complexity_scores
     weights = Weights([complexity_score + 1 for complexity_score in complexity_scores])
-    return sample(rng, individuals, n_sample, weights)
+    return sample(rng, individuals, weights, n_sample, replace = replace)
 end
 
 function add_individuals_to_archive!(
@@ -50,7 +52,7 @@ function add_individuals_to_archive!(
 
         # Select individuals for deletion based on their complexity (not inverse)
         individuals_to_remove = sample_proportionate_to_genotype_size(
-            rng, species.archive, n_remove, inverse = false
+            rng, species.archive, n_remove; inverse = true
         )
 
         # Remove the selected individuals from the archive

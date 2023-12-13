@@ -59,8 +59,9 @@ function sample_proportionate_to_genotype_size(
     replace::Bool = false
 )
     complexity_scores = [get_size(individual.genotype) for individual in individuals]
+    complexity_scores = 1 .+ complexity_scores
     complexity_scores = inverse ? 1 ./ complexity_scores : complexity_scores
-    weights = Weights([complexity_score + 1 for complexity_score in complexity_scores])
+    weights = Weights(complexity_scores)
     return sample(rng, individuals, weights, n_sample, replace = replace)
 end
 
