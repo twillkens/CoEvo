@@ -57,7 +57,7 @@ function add_individuals_to_archive!(
         )
 
         # Remove the selected individuals from the archive
-        species.archive = setdiff(species.archive, individuals_to_remove)
+        setdiff!(species.archive, individuals_to_remove)
     end
 
     archive_size = mean([get_size(individual.genotype) for individual in species.archive])
