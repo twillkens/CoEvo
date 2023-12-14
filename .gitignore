@@ -19,7 +19,7 @@ todo
 trials/*
 logs/*
 plots/*
-scripts/*
+scripts
 
 python/gedlibpy/build
 
