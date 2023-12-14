@@ -87,6 +87,7 @@ function load_topology(file::File)
         n_sample = read(file["$base_path/n_sample"])
         max_archive_size = read(file["$base_path/max_archive_size"])
         topology = AdaptiveArchiveTopology(
+            id = id,
             basic_topology = topology,
             n_sample = n_sample,
             max_archive_size = max_archive_size,

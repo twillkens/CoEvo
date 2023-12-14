@@ -2,6 +2,7 @@ module Species
 
 export SpeciesMetric, SnapshotSpeciesMetric, measure
 export AggregateSpeciesMetric, aggregate, AllGenotypesSpeciesMetric, ParentIDsSpeciesMetric
+export AdaptiveSpeciesIDsMetric
 
 import ..Metrics: measure, get_name, aggregate
 
@@ -76,6 +77,11 @@ function measure(::ParentIDsSpeciesMetric, species::BasicSpecies)
     return measurements
 end
 
+function measure(metric::ParentIDsSpeciesMetric, species::AdaptiveArchiveSpecies)
+    measurements = measure(metric, species.basic_species)
+    return measurements
+end
+
 Base.@kwdef struct AggregateSpeciesMetric{M <: Metric, A <: Aggregator} <: SpeciesMetric
     submetric::M
     name::String = "species"
@@ -112,9 +118,22 @@ function measure(
 end
 
 function measure(
-    metric::AggregateSpeciesMetric{<:GenotypeMetric, <:Aggregator}, species::AdaptiveArchiveSpecies
+    metric::AggregateSpeciesMetric{<:GenotypeMetric, <:Aggregator}, 
+    species::AdaptiveArchiveSpecies
 )
     measurements = measure(metric, species.basic_species)
+    return measurements
+end
+
+struct AdaptiveSpeciesIDsMetric <: SpeciesMetric end
+
+function measure(::AdaptiveSpeciesIDsMetric, species::AdaptiveArchiveSpecies)
+    archive_ids = [individual.id for individual in species.archive]
+    active_ids = [id for id in species.active_ids]
+    measurements = [
+        BasicMeasurement("species/$(species.id)/archive_ids", archive_ids);
+        BasicMeasurement("species/$(species.id)/active_ids", active_ids);
+    ]
     return measurements
 end
 

@@ -104,6 +104,9 @@ function archive!(substrate::FunctionGraphSubstrate, file::File)
     file["$base_path/n_population"] = substrate.n_population
     file["$base_path/n_children"] = substrate.n_children
     file["$base_path/n_nodes_per_output"] = substrate.n_nodes_per_output
+    file["$base_path/function_set"] = substrate.function_set
+    file["$base_path/mutation"] = substrate.mutation
+    file["$base_path/noise_std"] = substrate.noise_std
 end
 
 function make_genotype_creator(

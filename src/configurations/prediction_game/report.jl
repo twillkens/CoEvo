@@ -4,6 +4,7 @@ export DeployReportConfiguration, load_report, get_report
 using ...Names
 using ...Reporters.Modes: ModesReporter
 using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
+using ...Metrics.Species: AdaptiveSpeciesIDsMetric
 
 abstract type ReportConfiguration end
 
@@ -46,7 +47,7 @@ end
 function make_parent_ids_reporter(configuration::ReportConfiguration)
     reporter = BasicReporter(
         metric = ParentIDsSpeciesMetric(),
-        save_interval = 1,
+        save_interval = configuration.save_interval,
         print_interval = 0
     )
     return reporter
@@ -179,6 +180,7 @@ function archive!(configuration::DeployReportConfiguration, file::File)
     file["$base_path/id"] = configuration.id
     file["$base_path/print_interval"] = configuration.print_interval
     file["$base_path/save_interval"] = configuration.save_interval
+    file["$base_path/modes_interval"] = configuration.modes_interval
 end
 
 function DeployReportConfiguration(; 
@@ -192,16 +194,22 @@ function DeployReportConfiguration(;
     return configuration
 end
 
+
 function make_reporters(configuration::DeployReportConfiguration)
     reporters = [
         make_global_state_reporter(configuration),
         make_runtime_reporter(configuration),
         make_all_genotypes_reporter(configuration),
-        #make_parent_ids_reporter(configuration),
+        make_parent_ids_reporter(configuration),
         make_genotype_size_reporter(configuration),
         make_minimized_genotype_size_reporter(configuration),
         make_scaled_fitness_reporter(configuration),
-        make_modes_reporter(configuration)
+        make_modes_reporter(configuration),
+        BasicReporter(
+            metric = AdaptiveSpeciesIDsMetric(), 
+            save_interval = configuration.save_interval, 
+            print_interval = 0
+        ),
     ]
     return reporters
 end
