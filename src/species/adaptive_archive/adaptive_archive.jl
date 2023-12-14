@@ -43,40 +43,30 @@ function sample_proportionate_to_genotype_size(
 end
 
 function add_individuals_to_archive!(
-    rng::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
+    rng::AbstractRNG, species::AdaptiveArchiveSpecies, candidates::Vector{<:BasicIndividual}
 )
-    println("-------------------------")
-    println(" new individuals: ", length(individuals))
-    println("archive: ", length(species.archive))
     sort!(species.archive, by = individual -> get_size(individual.genotype))
-    sizes = [get_size(individual.genotype) for individual in individuals]
-    println("sizes: ", sizes)
-    minimum_size = length(sizes) > 0 ? minimum(sizes) : 0
-    println("minimum_size: ", minimum_size)
-    for individual in individuals
-        if get_size(individual.genotype) >= minimum_size
-            push!(species.archive, individual)
-            println("pushed: ", individual.id)
-        else
-            println("skipped: ", individual.id)
+    new_sizes = [get_size(individual.genotype) for individual in candidates]
+    archive_sizes = [get_size(individual.genotype) for individual in species.archive]
+    println("-------------------------")
+    println("new sizes: $new_sizes")
+    println("archive sizes: $archive_sizes")
+
+    minimum_archive_size = length(archive_sizes) > 0 ? minimum(archive_sizes) : 0
+    for candidate in candidates
+        if get_size(candidate.genotype) >= minimum_archive_size
+            push!(species.archive, candidate)
         end
     end
-    println("achive: ", length(species.archive))
-    println("max_archive_size: ", species.max_archive_size)
+    sort!(species.archive, by = individual -> get_size(individual.genotype))
     while length(species.archive) > species.max_archive_size
         # eject the first elements to maintain size
-        println("ejecting: ", species.archive[1].id)
         deleteat!(species.archive, 1)
-        println("achive after eject: ", length(species.archive))
     end
-
-    println("achive: ", length(species.archive))
-    println("max_archive_size: ", species.max_archive_size)
-
     archive_size = mean([get_size(individual.genotype) for individual in species.archive])
     println(
         "archive_length: ", length(species.archive), 
-        ", archive_size: ", round(archive_size, digits=2))
+        ", mean_archive_size: ", round(archive_size, digits=2))
     return species
 end
 
