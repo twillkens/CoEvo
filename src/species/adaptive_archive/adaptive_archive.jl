@@ -45,6 +45,7 @@ end
 function add_individuals_to_archive!(
     rng::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
 )
+    sort!(species.archive, by = individual -> get_size(individual.genotype))
     while length(species.archive) > species.max_archive_size
         # eject the first elements to maintain size
         deleteat!(species.archive, 1)
