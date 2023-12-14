@@ -25,7 +25,7 @@ Base.@kwdef struct AdaptiveArchiveSpeciesCreator{
     n_sample::Int
     basic_species_creator::B
     evaluator::E
-    gen::Int = 1
+    generation::Int = 1
 end
 
 function create_species(
@@ -69,9 +69,10 @@ end
 function get_active_individual_ids(rng::AbstractRNG, species::AdaptiveArchiveSpecies)
     archive_individual_ids = [individual.id for individual in species.archive]
     n_sample = min(species.n_sample, length(archive_individual_ids))
-    active_individuals = sample_proportionate_to_genotype_size(
-        rng, species.archive, n_sample
-    )
+    #active_individuals = sample_proportionate_to_genotype_size(
+    #    rng, species.archive, n_sample
+    #)
+    active_individuals = sample(rng, species.archive, n_sample; replace = false)
     active_individual_ids = [individual.id for individual in active_individuals]
     return active_individual_ids
 end
@@ -92,8 +93,16 @@ function create_species(
         species.basic_species, 
         evaluation.full_evaluation
     )
-    active_individual_ids = species.max_archive_size == 0 ? 
-        Int[] : get_active_individual_ids(rng, species)
+    if species_creator.generation == 1
+        active_individual_ids = Int[]
+    elseif species_creator.generation % 50 == 0
+        active_individual_ids = get_active_individual_ids(rng, species)
+    else
+        active_individual_ids = species.active_individual_ids
+    end
+
+    #active_individual_ids = species.max_archive_size == 0 ? 
+    #    Int[] : get_active_individual_ids(rng, species)
     species = AdaptiveArchiveSpecies(
         species.id, 
         species.max_archive_size, 

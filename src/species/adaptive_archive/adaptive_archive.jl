@@ -45,30 +45,53 @@ end
 function add_individuals_to_archive!(
     rng::AbstractRNG, species::AdaptiveArchiveSpecies, candidates::Vector{<:BasicIndividual}
 )
-    sort!(species.archive, by = individual -> get_size(individual.genotype))
-    new_sizes = [get_size(individual.genotype) for individual in candidates]
-    archive_sizes = [get_size(individual.genotype) for individual in species.archive]
-    println("-------------------------")
-    println("new sizes: $new_sizes")
-    println("archive sizes: $archive_sizes")
-
-    minimum_archive_size = length(archive_sizes) > 0 ? minimum(archive_sizes) : 0
-    for candidate in candidates
-        if get_size(candidate.genotype) >= minimum_archive_size
-            push!(species.archive, candidate)
-        end
-    end
-    sort!(species.archive, by = individual -> get_size(individual.genotype))
     while length(species.archive) > species.max_archive_size
         # eject the first elements to maintain size
         deleteat!(species.archive, 1)
     end
+    for candidate in candidates
+        push!(species.archive, candidate)
+    end
+
+    archive_sizes = [get_size(individual.genotype) for individual in species.archive]
+    new_sizes = [get_size(individual.genotype) for individual in candidates]
     archive_size = mean([get_size(individual.genotype) for individual in species.archive])
+    println("-------------------------")
+    println("archive sizes: $archive_sizes")
+    println("new sizes: $new_sizes")
     println(
         "archive_length: ", length(species.archive), 
         ", mean_archive_size: ", round(archive_size, digits=2))
     return species
 end
+
+#function add_individuals_to_archive!(
+#    rng::AbstractRNG, species::AdaptiveArchiveSpecies, candidates::Vector{<:BasicIndividual}
+#)
+#    sort!(species.archive, by = individual -> get_size(individual.genotype))
+#    new_sizes = [get_size(individual.genotype) for individual in candidates]
+#    archive_sizes = [get_size(individual.genotype) for individual in species.archive]
+#    println("-------------------------")
+#    println("new sizes: $new_sizes")
+#    println("archive sizes: $archive_sizes")
+#
+#    minimum_archive_size = length(archive_sizes) > 0 ? minimum(archive_sizes) : 0
+#    for candidate in candidates
+#        if get_size(candidate.genotype) >= minimum_archive_size
+#            push!(species.archive, candidate)
+#        end
+#    end
+#    sort!(species.archive, by = individual -> get_size(individual.genotype))
+#    while length(species.archive) > species.max_archive_size
+#        # eject the first elements to maintain size
+#        deleteat!(species.archive, 1)
+#    end
+#    archive_size = mean([get_size(individual.genotype) for individual in species.archive])
+#    println(
+#        "archive_length: ", length(species.archive), 
+#        ", mean_archive_size: ", round(archive_size, digits=2))
+#    return species
+#end
 
 # function add_individuals_to_archive!(
 #     ::AbstractRNG, species::AdaptiveArchiveSpecies, individuals::Vector{<:BasicIndividual}
