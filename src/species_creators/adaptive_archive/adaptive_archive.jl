@@ -44,7 +44,8 @@ function create_species(
         species_creator.n_sample,
         basic_species, 
         I[], 
-        Int[], 
+        Int[],
+        Dict{Int, Float64}() 
     )
     return species
 end
@@ -114,7 +115,8 @@ function create_species(
         species.n_sample, 
         new_basic_species, 
         species.archive, 
-        active_individual_ids
+        active_individual_ids,
+        species.fitnesses
     )
     return species
 end
