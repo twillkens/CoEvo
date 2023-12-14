@@ -163,6 +163,13 @@ function calculate_probabilities(sum_probability::Float64, percent_more_likely_t
 end
 
 MUTATION_PROBABILITIES = Dict(
+    "equal_stable" => Dict(
+        :identity => 0.9,
+        :add_function => 0.025,
+        :remove_function => 0.025,
+        :swap_function => 0.025,
+        :redirect_connection => 0.025,
+    ),
     "equal_volatile" => Dict(
         :identity => 0.0,
         :add_function => 0.25,
@@ -176,6 +183,13 @@ MUTATION_PROBABILITIES = Dict(
         :remove_function => 2 / 9,
         :swap_function => 1 / 3,
         :redirect_connection => 1 / 3
+    ),
+    "shrink_modest" => Dict(
+        :identity => 0.5,
+        :add_function => 0.10,
+        :remove_function => 0.15,
+        :swap_function => 0.125,
+        :redirect_connection => 0.125,
     ),
     "shrink_volatile" => Dict(
         :identity => 0.5,
