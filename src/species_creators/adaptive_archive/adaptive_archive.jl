@@ -95,10 +95,10 @@ function create_species(
     )
     if species_creator.generation == 1
         active_individual_ids = Int[]
-    elseif species_creator.generation % 50 == 0
-        active_individual_ids = get_active_individual_ids(rng, species)
-    else
-        active_individual_ids = species.active_individual_ids
+    else 
+        old_index = sample(rng, 1:length(species.archive))
+        new_individual = sample(species.archive)
+        species.active_ids[old_index] = new_individual.id
     end
 
     #active_individual_ids = species.max_archive_size == 0 ? 
