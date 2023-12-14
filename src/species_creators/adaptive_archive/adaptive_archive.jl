@@ -25,6 +25,7 @@ Base.@kwdef struct AdaptiveArchiveSpeciesCreator{
     n_sample::Int
     basic_species_creator::B
     evaluator::E
+    gen::Int = 1
 end
 
 function create_species(

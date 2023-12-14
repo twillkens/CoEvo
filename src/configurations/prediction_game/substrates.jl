@@ -170,6 +170,13 @@ MUTATION_PROBABILITIES = Dict(
         :swap_function => 0.25,
         :redirect_connection => 0.25,
     ),
+    "shrink_hypervolatile" => Dict(
+        :identity => 0.0,
+        :add_function => 1 / 9, 
+        :remove_function => 2 / 9,
+        :swap_function => 1 / 3,
+        :redirect_connection => 1 / 3
+    ),
     "shrink_volatile" => Dict(
         :identity => 0.5,
         :add_function => 0.10,
