@@ -55,26 +55,57 @@ function make_matches(
     basic_matches = make_matches(
         basic_matchmaker, rng, interaction_id, basic_species_1, basic_species_2
     )
-    adaptive_matches_1 = make_matches(
+    #adaptive_matches_1 = make_matches(
+    #    rng, 
+    #    matchmaker.n_sample, 
+    #    interaction_id, 
+    #    #get_individuals(species_1.archive, species_1.active_ids),
+    #    [individual for individual in species_1.archive if individual.id in species_1.active_ids],
+    #    get_individuals(basic_species_2);
+    #    reverse_ids = false
+    #)
+    #adaptive_matches_2 = make_matches(
+    #    rng, 
+    #    matchmaker.n_sample, 
+    #    interaction_id, 
+    #    #get_individuals(species_2.archive, species_2.active_ids),
+    #    [individual for individual in species_2.archive if individual.id in species_2.active_ids],
+    #    get_individuals(basic_species_1);
+    #    reverse_ids = true
+    #)
+    elite_matches_1 = make_matches(
         rng, 
         matchmaker.n_sample, 
         interaction_id, 
-        #get_individuals(species_1.archive, species_1.active_ids),
-        [individual for individual in species_1.archive if individual.id in species_1.active_ids],
+        [individual for individual in species_1.elites if individual.id in species_1.active_elite_ids],
         get_individuals(basic_species_2);
         reverse_ids = false
     )
-    adaptive_matches_2 = make_matches(
+    elite_matches_2 = make_matches(
         rng, 
         matchmaker.n_sample, 
         interaction_id, 
-        #get_individuals(species_2.archive, species_2.active_ids),
-        [individual for individual in species_2.archive if individual.id in species_2.active_ids],
+        [individual for individual in species_2.elites if individual.id in species_2.active_elite_ids],
         get_individuals(basic_species_1);
         reverse_ids = true
     )
-    matches = [basic_matches ; adaptive_matches_1 ; adaptive_matches_2]
-    #matchinfo = [match.individual_ids for match in matches]
+    # matches = [basic_matches ; adaptive_matches_1 ; adaptive_matches_2; elite_matches_1; elite_matches_2]
+    matches = [basic_matches ; elite_matches_1 ; elite_matches_2]
+    match_id_set = Set{Int}()
+    for match in matches
+        ids = match.individual_ids
+        for id in ids
+            push!(match_id_set, id)
+        end
+    end
+    # println("------------------------------")
+    # println("number of matches: ", length(matches))
+    # println("numbers of basic matches: ", length(basic_matches))
+    # #println("numbers of adaptive matches: ", length(adaptive_matches_1) + length(adaptive_matches_2))
+    # println("numbers of elite matches_1: ",length(elite_matches_1))
+    # println("numbers of elite matches_2: ",length(elite_matches_2))
+
+    #println("matchinfo: ", match_id_set)
     return matches
 end
 

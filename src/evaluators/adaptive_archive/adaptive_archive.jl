@@ -2,7 +2,7 @@ module AdaptiveArchive
 
 export AdaptiveArchiveEvaluator, AdaptiveArchiveEvaluation
 
-import ...Evaluators: evaluate
+import ...Evaluators: evaluate, get_elite_records
 
 using Random: AbstractRNG
 using ...Evaluators: Evaluator, Evaluation
@@ -66,6 +66,11 @@ function evaluate(
         species.id, non_archive_evaluation, full_evaluation
     )
     return evaluation
+end
+
+function get_elite_records(evaluation::AdaptiveArchiveEvaluation, n_elites::Int)
+    records = get_elite_records(evaluation.non_archive_evaluation, n_elites)
+    return records
 end
 
 end

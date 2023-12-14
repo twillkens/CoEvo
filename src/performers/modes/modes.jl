@@ -25,6 +25,8 @@ using ...Observers: get_observations, Observer
 using ...MatchMakers.AllVersusAll: AllVersusAllMatchMaker
 using ...Phenotypes: create_phenotype
 using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeCreator
+using ...Jobs.Basic: make_all_matches, create_phenotype_dict
+using ...Evaluators.ScalarFitness: get_raw_fitness
 
 function create_modes_interaction(interaction::BasicInteraction, observers::Vector{<:Observer})
     interaction = BasicInteraction(
@@ -37,7 +39,6 @@ function create_modes_interaction(interaction::BasicInteraction, observers::Vect
     return interaction
 end
 
-using ...Jobs.Basic: make_all_matches, create_phenotype_dict
 
 function perform_modes_simulation!(
     performer::BasicPerformer, 
@@ -61,6 +62,8 @@ function perform_modes_simulation!(
     )
     results = perform(performer, jobs)
     outcomes = get_individual_outcomes(results)
+    outcomes = Dict(id => value for (id, value) in outcomes if id < 0)
+    #println("outcomes: $outcomes")
     observations = get_observations(results)
     evaluations = evaluate(evaluators, random_number_generator, all_species, outcomes)
     for species in all_species
@@ -168,6 +171,9 @@ function perform_modes(
     persistent_ids::Set{Int}
 ) 
     all_modes_species = create_modes_species(all_species, persistent_ids)
+    perform_modes_simulation!(
+        BasicPerformer(n_workers = performer.n_workers), rng, species_creators, job_creator, all_modes_species
+    )
     fully_pruned_individuals = map(all_species) do species
         pair = species.id => ModesIndividual[]
         return pair

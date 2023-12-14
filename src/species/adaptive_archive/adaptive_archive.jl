@@ -1,6 +1,6 @@
 module AdaptiveArchive
 
-export AdaptiveArchiveSpecies, get_individuals, add_individuals_to_archive!
+export AdaptiveArchiveSpecies, get_individuals, add_individuals_to_archive!, add_elites!
 
 import ...Individuals: get_individuals
 
@@ -16,17 +16,20 @@ using ...Species.Basic: BasicSpecies
 Base.@kwdef struct AdaptiveArchiveSpecies{S <: BasicSpecies, I <: Individual} <: AbstractSpecies
     id::String
     max_archive_size::Int
-    n_sample::Int
     basic_species::S
     archive::Vector{I}
+    n_sample::Int
     active_ids::Vector{Int}
-    fitnesses::Dict{Int, Float64} = Dict{Int, Float64}()
+    elites::Vector{I}
+    n_sample_elites::Int = 0
+    active_elite_ids::Vector{Int}
+    fitnesses::Dict{Int, Float64}
 end
 
 function get_individuals(species::AdaptiveArchiveSpecies)
     basic_individuals = get_individuals(species.basic_species)
     archive_individuals = species.archive
-    individuals = [basic_individuals ; archive_individuals]
+    individuals = [basic_individuals ; archive_individuals; species.elites]
     return individuals
 end
 
@@ -44,7 +47,7 @@ function sample_proportionate_to_genotype_size(
 end
 
 function add_individuals_to_archive!(
-    rng::AbstractRNG, species::AdaptiveArchiveSpecies, candidates::Vector{<:BasicIndividual}
+    ::AbstractRNG, species::AdaptiveArchiveSpecies, candidates::Vector{<:BasicIndividual}
 )
     while length(species.archive) > species.max_archive_size
         # eject the first elements to maintain size
@@ -54,18 +57,25 @@ function add_individuals_to_archive!(
         push!(species.archive, candidate)
     end
 
-    archive_sizes = [get_size(individual.genotype) for individual in species.archive]
-
     new_sizes = [get_size(individual.genotype) for individual in candidates]
-    fitnesses = [species.fitnesses[individual.id] for individual in candidates]
+    fitnesses = [round(species.fitnesses[individual.id], digits = 3) for individual in candidates]
     incoming = collect(zip(new_sizes, fitnesses))
     archive_size = mean([get_size(individual.genotype) for individual in species.archive])
+    active_ids = species.active_ids
+    previous_elite_size = length(species.elites) == 0 ? 0 : get_size(last(species.elites).genotype)
     println("-------------------------")
     #println("archive sizes: $archive_sizes")
-    println("incoming: $incoming")
+    println("incoming adaptive: $incoming")
+    println("ids: ", length(active_ids))
     println(
         "archive_length: ", length(species.archive), 
         ", mean_archive_size: ", round(archive_size, digits=2))
+    println("previous_elite_size: $previous_elite_size")
+    println("ids: ", length(species.active_elite_ids))
+    println(
+        "archive_length: ", length(species.elites), 
+        #", mean_archive_size: ", round(archive_size, digits=2)
+    )
     return species
 end
 
@@ -84,6 +94,73 @@ function add_individuals_to_archive!(
         for individual in modes_individuals
     ]
     add_individuals_to_archive!(rng, species, basic_individuals)
+end
+
+# TODO: cant use both archives yet due to negative id hack
+function add_elites!(
+    species::AdaptiveArchiveSpecies, new_elites::Vector{<:BasicIndividual}, fitnesses::Vector{Float64}
+)
+    #println("----------------------------------")
+    new_elites = [BasicIndividual(-elite.id, elite.genotype, Int[]) for elite in new_elites]
+
+    current_elite_ids = Set([elite.id for elite in species.elites])
+    #println("LENGTH BEFORE ADDING: ", length(species.elites))
+    for new_elite in new_elites
+        if new_elite.id in current_elite_ids
+            #println("SKIPPING: ", new_elite.id)
+            continue
+        end
+        push!(species.elites, new_elite)
+        #println("ADDING: ", new_elite.id)
+    end
+    #println("LENGTH AFTER ADDING and BEFORE EJECTING: ", length(species.elites))
+
+    #println("MAX ARCHIVE SIZE: ", species.max_archive_size)
+
+    while length(species.elites) > species.max_archive_size
+        # eject the first elements to maintain size
+        #println("EJECTING")
+        popfirst!(species.elites)
+    end
+    #println("LENGTH AFTER EJECTING: ", length(species.elites))
+    if length(Set([elite.id for elite in species.elites])) != length(species.elites)
+        #println("DUPLICATES EXIST")
+        throw(ErrorException("DUPLICATES EXIST"))
+    end
+
+    #for new_elite in new_elites
+    #    if new_elite.id in current_elite_ids
+    #        println("SKIPPING: ", new_elite.id)
+    #        continue
+    #    end
+    #    push!(species.elites, new_elite)
+    #end
+
+    #num_to_remove = max(length(species.elites) - species.n_sample, 0)
+    #println("NUM TO REMOVE: ", num_to_remove)
+    #for _ in 1:num_to_remove
+    #    if length(species.elites) == 0
+    #        break
+    #    else
+    #        deleteat!(species.elites, 1)
+    #        println("DELETING")
+    #    end
+    #end
+    #while length(species.elites) > species.max_archive_size
+    #    # eject the first elements to maintain size
+    #    deleteat!(species.elites, 1)
+    #end
+    #new_sizes = [get_size(individual.genotype) for individual in elites]
+    #fitnesses = [round(fitness, digits = 3) for fitness in fitnesses]
+    #incoming = collect(zip(new_sizes, fitnesses))
+    #archive_size = mean([get_size(individual.genotype) for individual in species.archive])
+    #println("-------------------------")
+    ##println("archive sizes: $archive_sizes")
+    #println("incoming elites: $incoming")
+    #println("ids: ", length(species.active_elite_ids))
+    #println(
+    #    "archive_length: ", length(species.elites), 
+    #    ", mean_archive_size: ", round(archive_size, digits=2))
 end
 
 end

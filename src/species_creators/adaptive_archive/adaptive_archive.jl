@@ -41,9 +41,12 @@ function create_species(
     species = AdaptiveArchiveSpecies(
         species_creator.id, 
         species_creator.max_archive_size, 
-        species_creator.n_sample,
         basic_species, 
         I[], 
+        0, #species_creator.n_sample,
+        Int[],
+        I[], 
+        species_creator.n_sample,
         Int[],
         Dict{Int, Float64}() 
     )
@@ -94,28 +97,65 @@ function create_species(
         species.basic_species, 
         evaluation.full_evaluation
     )
-    if species_creator.generation == 1 || length(species.archive) == 0
-        active_individual_ids = Int[]
+    #if species_creator.generation == 1 || length(species.archive) == 0
+    #    active_adaptive_ids = Int[]
+    #else 
+    #    if length(species.archive) < species.max_archive_size
+    #        active_adaptive_ids = [individual.id for individual in species.archive]
+    #    else
+    #        active_adaptive_ids = copy(species.active_ids)
+    #        # correct and complete
+    #        old_index = sample(rng, 1:length(active_adaptive_ids))
+    #        new_individual = sample(rng, species.archive)
+    #        active_adaptive_ids[old_index] = new_individual.id
+    #    end
+    #end
+    active_adaptive_ids = Int[]
+    if species_creator.generation == 1 || length(species.elites) == 0
+        active_elite_ids = Int[]
     else 
-        if length(species.archive) < species.max_archive_size
-            active_individual_ids = [individual.id for individual in species.archive]
+        # TODO: gross hack
+        if length(species.elites) <= 50
+            #println("UNDER/= 50, length: $(length(species.elites))")
+            active_elite_ids = [individual.id for individual in species.elites]
         else
-            active_individual_ids = copy(species.active_ids)
+            #println("--------------------------------")
+            #println("OVER 50, length: $(length(species.elites))")
+            active_elite_ids = copy(species.active_elite_ids)
+            #println("ACTIVE ELITE IDS BEFORE in CREATOR: $active_elite_ids")
             # correct and complete
-            old_index = sample(rng, 1:length(active_individual_ids))
-            new_individual = sample(rng, species.archive)
-            species.active_ids[old_index] = new_individual.id
+            old_index = sample(rng, 1:length(active_elite_ids))
+            #println("OLD INDEX: $old_index")
+            old_elite_id = Set([active_elite_ids[old_index]])
+            #println("OLD ELITE ID: $old_elite_id")
+            invalid_ids = union(Set([individual.id for individual in species.elites]), old_elite_id)
+            all_elite_ids = Set([individual.id for individual in species.elites])
+            valid_elite_ids = collect(setdiff(all_elite_ids, invalid_ids))
+            #println("VALID ELITE IDS: $valid_elite_ids")
+            if length(valid_elite_ids) != 0
+                new_elite_id = sample(rng, valid_elite_ids)
+                #println("NEW ELITE ID: $new_elite_id")
+                active_elite_ids[old_index] = new_elite_id
+                #println("ACTIVE ELITE IDS AFTER in CREATOR: $active_elite_ids")
+            end
+
         end
+    end
+    if length(Set(active_elite_ids)) != length(active_elite_ids)
+        throw(ErrorException("active_elite_ids contains duplicates"))
     end
     species_creator.generation[] += 1
 
     species = AdaptiveArchiveSpecies(
         species.id, 
         species.max_archive_size, 
-        species.n_sample, 
         new_basic_species, 
         species.archive, 
-        active_individual_ids,
+        species.n_sample, 
+        active_adaptive_ids,
+        species.elites,
+        species.n_sample_elites,
+        active_elite_ids,
         species.fitnesses
     )
     return species

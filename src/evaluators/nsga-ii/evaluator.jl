@@ -1,6 +1,9 @@
 export NSGAIIEvaluator, NSGAIIEvaluation
 export evaluate, make_individual_tests, calculate_fitnesses, check_for_nan_in_fitnesses
 export create_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
+export get_elite_ids, get_elite_records
+
+import ...Evaluators: get_elite_ids, get_elite_records
 
 using ...Individuals: get_individuals
 
@@ -121,4 +124,15 @@ end
 function get_scaled_fitnesses(evaluation::NSGAIIEvaluation)
     fitnesses = get_scaled_fitnesses(evaluation.scalar_fitness_evaluation)
     return fitnesses
+end
+
+
+function get_elite_ids(evaluation::NSGAIIEvaluation, n_elites::Int)
+    ids = [record.id for record in evaluation.scalar_fitness_evaluation.records]
+    return ids[1:n_elites]
+end
+
+function get_elite_records(evaluation::NSGAIIEvaluation, n_elites::Int)
+    records = get_elite_records(evaluation.scalar_fitness_evaluation, n_elites)
+    return records[1:n_elites]
 end

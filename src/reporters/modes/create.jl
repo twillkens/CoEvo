@@ -7,7 +7,7 @@ using Random: AbstractRNG
 using StatsBase: sample
 using ...Species: get_all_ids, AbstractSpecies
 using ...Species.Basic: BasicSpecies
-using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies, add_individuals_to_archive!
+using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies, add_individuals_to_archive!, add_elites!
 using ...SpeciesCreators: SpeciesCreator
 using ...SpeciesCreators.Basic: BasicSpeciesCreator
 using ...SpeciesCreators.AdaptiveArchive: AdaptiveArchiveSpeciesCreator
@@ -17,6 +17,8 @@ using ...Performers.Modes: perform_modes
 using ...Reporters.Basic: NullReport, BasicReport
 using ...States: State
 using ...Individuals.Modes: ModesIndividual
+using ...Evaluators: Evaluation
+using ...Evaluators.AdaptiveArchive: get_elite_records
 
 function set_persistent_ids!(reporter::ModesReporter, all_species::Vector{<:BasicSpecies})
     empty!(reporter.persistent_ids)
@@ -95,6 +97,8 @@ function create_report(
     return NullReport() 
 end
 
+using ...Evaluators: get_elite_ids
+
 function create_report(
     reporter::ModesReporter,
     trial::Int,
@@ -103,33 +107,40 @@ function create_report(
     job_creator::JobCreator,
     performer::Performer,
     random_number_generator::AbstractRNG,
-    all_species::Vector{<:AdaptiveArchiveSpecies}
+    all_species::Vector{<:AdaptiveArchiveSpecies},
+    evaluations::Vector{<:Evaluation}
 )
-    basic_species = [species.basic_species for species in all_species]
+    all_basic_species = [species.basic_species for species in all_species]
     basic_species_creators = [
         species_creator.basic_species_creator for species_creator in species_creators
     ]
     report = create_report(
-        reporter,
-        trial,
-        generation,
-        basic_species_creators,
-        job_creator,
-        performer,
-        random_number_generator,
-        basic_species;
+        reporter, trial, generation, basic_species_creators, job_creator, performer,
+        random_number_generator, all_basic_species;
         include_pruned_individuals = true
     )
     if isa(report, NullReport)
+        for (species, basic_species, evaluation) in zip(all_species, all_basic_species, evaluations)
+            elite_records = get_elite_records(evaluation, 1)
+            elite_ids = [record.id for record in elite_records]
+            elite_individuals = get_individuals(basic_species, elite_ids)
+            elite_fitnesses = [record.scaled_fitness for record in elite_records]
+            add_elites!(species, elite_individuals, elite_fitnesses)
+        end
         return report
     end
     pruned_individuals_dict = first(filter(
         measurement -> measurement.name == "pruned_individuals_dict", report.measurements)
     ).value
     filter!(measurement -> measurement.name != "pruned_individuals_dict", report.measurements)
-    for species in all_species
+    for (species, basic_species, evaluation) in zip(all_species, all_basic_species, evaluations)
         new_individuals = pruned_individuals_dict[species.id]
         add_individuals_to_archive!(random_number_generator, species, new_individuals)
+        elite_records = get_elite_records(evaluation, 1)
+        elite_ids = [record.id for record in elite_records]
+        elite_individuals = get_individuals(basic_species, elite_ids)
+        elite_fitnesses = [record.scaled_fitness for record in elite_records]
+        add_elites!(species, elite_individuals, elite_fitnesses)
     end
     return report
 end
@@ -143,7 +154,8 @@ function create_report(reporter::ModesReporter, state::State)
         state.job_creator,
         state.performer,
         state.random_number_generator,
-        state.species
+        state.species,
+        state.evaluations
     )
     return report
 end

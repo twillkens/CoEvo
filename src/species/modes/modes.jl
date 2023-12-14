@@ -5,6 +5,7 @@ export remove_pruned_individuals!
 
 import ...Individuals: get_individuals
 import ...Individuals.Modes: is_fully_pruned
+import ...Species: create_phenotype_dict
 
 using ...Genotypes: minimize, Genotype
 using ...Individuals.Basic: BasicIndividual
@@ -12,6 +13,7 @@ using ...Individuals.Modes: ModesIndividual
 using ...Species: AbstractSpecies
 using ...Species.Basic: BasicSpecies
 using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
+using ...Phenotypes: create_phenotype, PhenotypeCreator
 
 struct ModesSpecies{I <: BasicIndividual, M <: ModesIndividual} <: AbstractSpecies
     id::String
@@ -28,8 +30,9 @@ function is_fully_pruned(all_species::Vector{<:ModesSpecies})
 end
 
 function get_individuals(species::ModesSpecies)
+    #all_individuals = [species.normal_individuals ; species.modes_individuals]
     all_individuals = [species.normal_individuals ; species.modes_individuals]
-    return all_individuals
+    return species.modes_individuals
 end
 
 function ModesSpecies(
@@ -98,5 +101,20 @@ end
 #        remove_pruned_individuals!(species, fully_pruned_individuals)
 #    end
 #end
+function create_phenotype_dict(
+    all_species::Vector{<:ModesSpecies},
+    phenotype_creators::Vector{<:PhenotypeCreator},
+    ids::Set{Int},
+)
+    phenotype_dict = Dict(
+        individual.id => create_phenotype(phenotype_creator, individual)
+        for (species, phenotype_creator) in zip(all_species, phenotype_creators)
+        for individual in [species.normal_individuals ; species.modes_individuals]
+        if individual.id in ids
+    )
+    return phenotype_dict
+
+end
+
 
 end

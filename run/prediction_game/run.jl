@@ -85,6 +85,14 @@ function parse_cmdline_args()
             arg_type = Int
             default = 50
             help = "Number of samples from adaptive archive"
+        "--elite_archive_max_size"
+            arg_type = Int
+            default = 500
+            help = "Elite archive maximum size"
+        "--n_elite_archive_samples"
+            arg_type = Int
+            default = 50
+            help = "Number of samples from elite archive"
     end
 
     return parse_args(s)
@@ -126,6 +134,8 @@ experiment = make_prediction_game_experiment(;
     noise_std = args["noise_std"],
     adaptive_archive_max_size = args["adaptive_archive_max_size"],
     n_adaptive_archive_samples = args["n_adaptive_archive_samples"],
+    elite_archive_max_size = args["elite_archive_max_size"],
+    n_elite_archive_samples = args["n_elite_archive_samples"]
 )
 
 println("Running experiment with seed $(args["seed"])...")

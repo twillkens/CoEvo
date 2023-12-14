@@ -1,4 +1,5 @@
-export evaluate, get_raw_fitnesses, get_scaled_fitnesses, get_scaled_fitness
+export evaluate, get_raw_fitnesses, get_scaled_fitnesses, get_scaled_fitness, get_elite_ids
+export get_elite_records
 
 # TODO: Add observations to the interface.
 
@@ -57,3 +58,14 @@ function get_scaled_fitness(evaluations::Vector{<:Evaluation}, id::Int)
     throw(ErrorException("Could not find individual with id $id in get_scaled_fitness."))
 end
 
+function get_elite_ids(evaluation::Vector{<:Evaluation}, n::Int)
+    throw(ErrorException(
+        "`get_elite_ids` not implemented for $(typeof(evaluation)).")
+    )
+end
+
+function get_elite_records(evaluation::Evaluation, n::Int)
+    throw(ErrorException(
+        "`get_elite_records` not implemented for $(typeof(evaluation)).")
+    )
+end
