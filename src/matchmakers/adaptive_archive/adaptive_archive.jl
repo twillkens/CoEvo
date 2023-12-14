@@ -74,12 +74,7 @@ function make_matches(
         reverse_ids = true
     )
     matches = [basic_matches ; adaptive_matches_1 ; adaptive_matches_2]
-    matchinfo = [match.individual_ids for match in matches]
-    for (m1, m2) in matchinfo
-        if m1 < 0 || m2 < 0
-            println((m1, m2))
-        end
-    end
+    #matchinfo = [match.individual_ids for match in matches]
     return matches
 end
 
