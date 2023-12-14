@@ -45,6 +45,8 @@ function evaluate(
     species::AdaptiveArchiveSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
 )
+    ids = collect(keys(outcomes))
+    #println("$(species.id) ids: $ids")
     non_archive_outcomes = filter_negative_ids(outcomes)
     full_outcomes = Dict(id => outcomes[id] for id in keys(outcomes) if id > 0)
 

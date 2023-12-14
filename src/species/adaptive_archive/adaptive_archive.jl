@@ -57,7 +57,7 @@ function add_individuals_to_archive!(
     new_sizes = [get_size(individual.genotype) for individual in candidates]
     archive_size = mean([get_size(individual.genotype) for individual in species.archive])
     println("-------------------------")
-    println("archive sizes: $archive_sizes")
+    #println("archive sizes: $archive_sizes")
     println("new sizes: $new_sizes")
     println(
         "archive_length: ", length(species.archive), 

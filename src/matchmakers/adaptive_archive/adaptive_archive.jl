@@ -59,7 +59,8 @@ function make_matches(
         rng, 
         matchmaker.n_sample, 
         interaction_id, 
-        get_individuals(species_1.archive, species_1.active_ids),
+        #get_individuals(species_1.archive, species_1.active_ids),
+        [individual for individual in species_1.archive if individual.id in species_1.active_ids],
         get_individuals(basic_species_2);
         reverse_ids = false
     )
@@ -67,11 +68,13 @@ function make_matches(
         rng, 
         matchmaker.n_sample, 
         interaction_id, 
-        get_individuals(species_2.archive, species_2.active_ids),
+        #get_individuals(species_2.archive, species_2.active_ids),
+        [individual for individual in species_2.archive if individual.id in species_2.active_ids],
         get_individuals(basic_species_1);
         reverse_ids = true
     )
     matches = [basic_matches ; adaptive_matches_1 ; adaptive_matches_2]
+    matchinfo = [match.individual_ids for match in matches]
     return matches
 end
 
