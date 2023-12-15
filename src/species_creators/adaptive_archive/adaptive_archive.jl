@@ -8,8 +8,10 @@ import ...SpeciesCreators: create_species, get_phenotype_creator, get_evaluator
 using Random: AbstractRNG
 using StatsBase: sample
 using DataStructures: OrderedDict
+using Random, Distributions
+using StatsBase: sample, Weights
 using ...Genotypes: get_size
-using ...Counters: Counter
+using ...Counters: Counter, count!
 using ...Evaluators: Evaluator, Evaluation
 using ...Evaluators.AdaptiveArchive: AdaptiveArchiveEvaluator, AdaptiveArchiveEvaluation
 using ...Individuals: Individual
@@ -39,47 +41,23 @@ function create_species(
     )
     I = typeof(basic_species).parameters[1]
     species = AdaptiveArchiveSpecies(
-        species_creator.id, 
-        species_creator.max_archive_size, 
-        basic_species, 
-        I[], 
-        0, #species_creator.n_sample,
-        Int[],
-        I[], 
-        species_creator.n_sample,
-        Int[],
-        Dict{Int, Float64}() 
+        id = species_creator.id, 
+        max_archive_size = species_creator.max_archive_size, 
+        basic_species = basic_species, 
+        archive = I[], 
+        n_sample = 0, #species_creator.n_sample,
+        active_ids = Int[],
+        elites = I[], 
+        n_sample_elites = species_creator.n_sample,
+        active_elite_ids = Int[],
+        fitnesses = Dict{Int, Float64}(),
+        modes_elites = I[]
     )
     return species
 end
 
-using Random, Distributions
-using StatsBase: sample, Weights
-
-
-# TODO: add to utils
-function sample_proportionate_to_genotype_size(
-    rng::AbstractRNG, individuals::Vector{<:Individual}, n_sample::Int; 
-    inverse::Bool = false,
-    replace::Bool = false
-)
-    complexity_scores = [get_size(individual.genotype) for individual in individuals]
-    complexity_scores = 1 .+ complexity_scores
-    complexity_scores = inverse ? 1 ./ complexity_scores : complexity_scores
-    weights = Weights(complexity_scores)
-    return sample(rng, individuals, weights, n_sample, replace = replace)
-end
-
-function get_active_individual_ids(rng::AbstractRNG, species::AdaptiveArchiveSpecies)
-    archive_individual_ids = [individual.id for individual in species.archive]
-    n_sample = min(species.n_sample, length(archive_individual_ids))
-    #active_individuals = sample_proportionate_to_genotype_size(
-    #    rng, species.archive, n_sample
-    #)
-    active_individuals = sample(rng, species.archive, n_sample; replace = false)
-    active_individual_ids = [individual.id for individual in active_individuals]
-    return active_individual_ids
-end
+using ...Individuals.Basic: BasicIndividual 
+using ...Evaluators: get_records
 
 function create_species(
     species_creator::AdaptiveArchiveSpeciesCreator,
@@ -97,46 +75,49 @@ function create_species(
         species.basic_species, 
         evaluation.full_evaluation
     )
-    #if species_creator.generation == 1 || length(species.archive) == 0
-    #    active_adaptive_ids = Int[]
-    #else 
-    #    if length(species.archive) < species.max_archive_size
-    #        active_adaptive_ids = [individual.id for individual in species.archive]
-    #    else
-    #        active_adaptive_ids = copy(species.active_ids)
-    #        # correct and complete
-    #        old_index = sample(rng, 1:length(active_adaptive_ids))
-    #        new_individual = sample(rng, species.archive)
-    #        active_adaptive_ids[old_index] = new_individual.id
-    #    end
-    #end
     active_adaptive_ids = Int[]
+    if length(species.modes_elites) != 0
+        population_length_before = length(species.basic_species.population)
+        n_replace_with_modes_elites = minimum([25, length(species.modes_elites)])
+        population_ids = [individual.id for individual in species.basic_species.population]
+        fitnessess = [
+            record.fitness for record in get_records(evaluation.full_evaluation, population_ids)
+        ]
+        id_fitnessess = collect(zip(population_ids, fitnessess))
+        sort!(id_fitnessess, by = x -> x[2])
+        worst_individual_ids = Set(
+            [id_fitness[1] for id_fitness in id_fitnessess[1:n_replace_with_modes_elites]]
+        )
+        filter!(individual -> individual.id ∉ worst_individual_ids, species.basic_species.population)
+        modes_elites = collect(reverse(species.modes_elites))[1:n_replace_with_modes_elites]
+        individual_ids = count!(individual_id_counter, n_replace_with_modes_elites)
+        modes_elites = [
+            BasicIndividual(individual_id, modes_elite.genotype, [modes_elite.id])
+            for (individual_id, modes_elite) in zip(individual_ids, modes_elites)
+        ]
+        append!(species.basic_species.population, modes_elites)
+        population_length_after = length(species.basic_species.population)
+        if population_length_before != population_length_after
+            throw(ErrorException("population length changed"))
+        end
+    end
+    
     if species_creator.generation == 1 || length(species.elites) == 0
         active_elite_ids = Int[]
     else 
         # TODO: gross hack
         if length(species.elites) <= 50
-            #println("UNDER/= 50, length: $(length(species.elites))")
             active_elite_ids = [individual.id for individual in species.elites]
         else
-            #println("--------------------------------")
-            #println("OVER 50, length: $(length(species.elites))")
             active_elite_ids = copy(species.active_elite_ids)
-            #println("ACTIVE ELITE IDS BEFORE in CREATOR: $active_elite_ids")
-            # correct and complete
             old_index = sample(rng, 1:length(active_elite_ids))
-            #println("OLD INDEX: $old_index")
             old_elite_id = Set([active_elite_ids[old_index]])
-            #println("OLD ELITE ID: $old_elite_id")
             invalid_ids = union(Set([individual.id for individual in species.elites]), old_elite_id)
             all_elite_ids = Set([individual.id for individual in species.elites])
             valid_elite_ids = collect(setdiff(all_elite_ids, invalid_ids))
-            #println("VALID ELITE IDS: $valid_elite_ids")
             if length(valid_elite_ids) != 0
                 new_elite_id = sample(rng, valid_elite_ids)
-                #println("NEW ELITE ID: $new_elite_id")
                 active_elite_ids[old_index] = new_elite_id
-                #println("ACTIVE ELITE IDS AFTER in CREATOR: $active_elite_ids")
             end
 
         end
@@ -156,7 +137,8 @@ function create_species(
         species.elites,
         species.n_sample_elites,
         active_elite_ids,
-        species.fitnesses
+        species.fitnesses,
+        species.modes_elites
     )
     return species
 end
@@ -172,3 +154,13 @@ function get_evaluator(species_creator::AdaptiveArchiveSpeciesCreator)
 end
 
 end
+# function get_active_individual_ids(rng::AbstractRNG, species::AdaptiveArchiveSpecies)
+#     archive_individual_ids = [individual.id for individual in species.archive]
+#     n_sample = min(species.n_sample, length(archive_individual_ids))
+#     #active_individuals = sample_proportionate_to_genotype_size(
+#     #    rng, species.archive, n_sample
+#     #)
+#     active_individuals = sample(rng, species.archive, n_sample; replace = false)
+#     active_individual_ids = [individual.id for individual in active_individuals]
+#     return active_individual_ids
+# end

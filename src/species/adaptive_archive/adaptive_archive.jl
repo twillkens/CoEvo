@@ -1,6 +1,7 @@
 module AdaptiveArchive
 
 export AdaptiveArchiveSpecies, get_individuals, add_individuals_to_archive!, add_elites!
+export add_modes_elite_to_archive!
 
 import ...Individuals: get_individuals
 
@@ -21,9 +22,10 @@ Base.@kwdef struct AdaptiveArchiveSpecies{S <: BasicSpecies, I <: Individual} <:
     n_sample::Int
     active_ids::Vector{Int}
     elites::Vector{I}
-    n_sample_elites::Int = 0
+    n_sample_elites::Int
     active_elite_ids::Vector{Int}
     fitnesses::Dict{Int, Float64}
+    modes_elites::Vector{I}
 end
 
 function get_individuals(species::AdaptiveArchiveSpecies)
@@ -33,28 +35,15 @@ function get_individuals(species::AdaptiveArchiveSpecies)
     return individuals
 end
 
-# TODO: add to utils
-function sample_proportionate_to_genotype_size(
-    rng::AbstractRNG, individuals::Vector{<:Individual}, n_sample::Int; 
-    inverse::Bool = false,
-    replace::Bool = false
-)
-    complexity_scores = [get_size(individual.genotype) for individual in individuals]
-    complexity_scores = 1 .+ complexity_scores
-    complexity_scores = inverse ? 1 ./ complexity_scores : complexity_scores
-    weights = Weights(complexity_scores)
-    return sample(rng, individuals, weights, n_sample, replace = replace)
-end
-
 function add_individuals_to_archive!(
     ::AbstractRNG, species::AdaptiveArchiveSpecies, candidates::Vector{<:BasicIndividual}
 )
+    for candidate in candidates
+        push!(species.archive, candidate)
+    end
     while length(species.archive) > species.max_archive_size
         # eject the first elements to maintain size
         deleteat!(species.archive, 1)
-    end
-    for candidate in candidates
-        push!(species.archive, candidate)
     end
 
     new_sizes = [get_size(individual.genotype) for individual in candidates]
@@ -76,10 +65,9 @@ function add_individuals_to_archive!(
         "archive_length: ", length(species.elites), 
         #", mean_archive_size: ", round(archive_size, digits=2)
     )
-    return species
 end
 
-function add_individuals_to_archive!(
+function add_modes_elite_to_archive!(
     rng::AbstractRNG, species::AdaptiveArchiveSpecies, modes_individuals::Vector{<:ModesIndividual}
 )
     fitnesses = Dict(
@@ -87,7 +75,10 @@ function add_individuals_to_archive!(
         for individual in modes_individuals
     )
     merge!(species.fitnesses, fitnesses)
-
+    sort!(modes_individuals, by = individual -> individual.fitness, rev = true)
+    modes_individual = first(modes_individuals)
+    modes_individual = BasicIndividual(modes_individual.id, modes_individual.genotype, Int[]) 
+    push!(species.modes_elites, modes_individual)
 
     basic_individuals = [
         BasicIndividual(individual.id, individual.genotype, Int[]) 
@@ -128,39 +119,18 @@ function add_elites!(
         throw(ErrorException("DUPLICATES EXIST"))
     end
 
-    #for new_elite in new_elites
-    #    if new_elite.id in current_elite_ids
-    #        println("SKIPPING: ", new_elite.id)
-    #        continue
-    #    end
-    #    push!(species.elites, new_elite)
-    #end
-
-    #num_to_remove = max(length(species.elites) - species.n_sample, 0)
-    #println("NUM TO REMOVE: ", num_to_remove)
-    #for _ in 1:num_to_remove
-    #    if length(species.elites) == 0
-    #        break
-    #    else
-    #        deleteat!(species.elites, 1)
-    #        println("DELETING")
-    #    end
-    #end
-    #while length(species.elites) > species.max_archive_size
-    #    # eject the first elements to maintain size
-    #    deleteat!(species.elites, 1)
-    #end
-    #new_sizes = [get_size(individual.genotype) for individual in elites]
-    #fitnesses = [round(fitness, digits = 3) for fitness in fitnesses]
-    #incoming = collect(zip(new_sizes, fitnesses))
-    #archive_size = mean([get_size(individual.genotype) for individual in species.archive])
-    #println("-------------------------")
-    ##println("archive sizes: $archive_sizes")
-    #println("incoming elites: $incoming")
-    #println("ids: ", length(species.active_elite_ids))
-    #println(
-    #    "archive_length: ", length(species.elites), 
-    #    ", mean_archive_size: ", round(archive_size, digits=2))
 end
 
 end
+# # TODO: add to utils
+# function sample_proportionate_to_genotype_size(
+#     rng::AbstractRNG, individuals::Vector{<:Individual}, n_sample::Int; 
+#     inverse::Bool = false,
+#     replace::Bool = false
+# )
+#     complexity_scores = [get_size(individual.genotype) for individual in individuals]
+#     complexity_scores = 1 .+ complexity_scores
+#     complexity_scores = inverse ? 1 ./ complexity_scores : complexity_scores
+#     weights = Weights(complexity_scores)
+#     return sample(rng, individuals, weights, n_sample, replace = replace)
+# end

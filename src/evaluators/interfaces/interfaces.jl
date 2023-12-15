@@ -1,5 +1,5 @@
 export evaluate, get_raw_fitnesses, get_scaled_fitnesses, get_scaled_fitness, get_elite_ids
-export get_elite_records
+export get_elite_records, get_records
 
 # TODO: Add observations to the interface.
 
@@ -68,4 +68,18 @@ function get_elite_records(evaluation::Evaluation, n::Int)
     throw(ErrorException(
         "`get_elite_records` not implemented for $(typeof(evaluation)).")
     )
+end
+
+
+function get_records(evaluation::Evaluation, ids::Vector{Int})
+    records = []
+    for id in ids
+        for record in evaluation.records
+            if record.id == id
+                push!(records, record)
+            end
+        end
+    end
+    records = [record for record in records]
+    return records
 end

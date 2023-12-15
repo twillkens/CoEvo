@@ -98,6 +98,7 @@ function create_report(
 end
 
 using ...Evaluators: get_elite_ids
+using ...Species.AdaptiveArchive: add_modes_elite_to_archive! 
 
 function create_report(
     reporter::ModesReporter,
@@ -135,7 +136,7 @@ function create_report(
     filter!(measurement -> measurement.name != "pruned_individuals_dict", report.measurements)
     for (species, basic_species, evaluation) in zip(all_species, all_basic_species, evaluations)
         new_individuals = pruned_individuals_dict[species.id]
-        add_individuals_to_archive!(random_number_generator, species, new_individuals)
+        add_modes_elite_to_archive!(random_number_generator, species, new_individuals)
         elite_records = get_elite_records(evaluation, 1)
         elite_ids = [record.id for record in elite_records]
         elite_individuals = get_individuals(basic_species, elite_ids)
