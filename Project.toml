@@ -1,6 +1,6 @@
 name = "CoEvo"
 uuid = "842a0346-8272-4eaf-bb06-52321997162a"
-version = "0.0.2"
+version = "0.0.3"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"

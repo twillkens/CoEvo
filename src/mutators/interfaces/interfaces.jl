@@ -19,14 +19,16 @@ function mutate(
     
     # make a new rng for each thread that uses the seed of the main rng
     # so that there is perfect reproducibility of the results
-    rng_state = random_number_generator.state
+
+    # Create a vector of seeds for each individual
+    seeds = rand(random_number_generator, 1:2^32, length(individuals))
+
     
     Threads.@threads for i in eachindex(individuals)
-        thread_rng = StableRNG(1)
-        thread_rng.state = rng_state
+        ind_rng = StableRNG(seeds[i])
         new_individuals[i] = BasicIndividual(
             individuals[i].id,
-            mutate(mutator, thread_rng, gene_id_counter, individuals[i].genotype),
+            mutate(mutator, ind_rng, gene_id_counter, individuals[i].genotype),
             individuals[i].parent_ids
         )
     end
