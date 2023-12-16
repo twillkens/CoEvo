@@ -12,7 +12,7 @@ function create_state(
 )
     state = BasicCoevolutionaryState(
         id = ecosystem_creator.id,
-        random_number_generator = ecosystem_creator.random_number_generator,
+        rng = ecosystem_creator.rng,
         trial = ecosystem_creator.trial,
         generation = generation,
         species_creators = ecosystem_creator.species_creators,

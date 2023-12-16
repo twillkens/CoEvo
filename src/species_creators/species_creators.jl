@@ -1,6 +1,6 @@
 module SpeciesCreators
 
-export Basic, AdaptiveArchive
+export Basic #, AdaptiveArchive# , Modes
 
 using Random: AbstractRNG
 using ..Species: AbstractSpecies
@@ -15,7 +15,10 @@ include("interfaces/interfaces.jl")
 include("basic/basic.jl")
 using .Basic: Basic
 
-include("adaptive_archive/adaptive_archive.jl")
-using .AdaptiveArchive: AdaptiveArchive
+#include("adaptive_archive/adaptive_archive.jl")
+#using .AdaptiveArchive: AdaptiveArchive
+
+#include("modes/modes.jl")
+#using .Modes: Modes
 
 end

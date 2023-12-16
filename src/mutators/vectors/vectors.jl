@@ -15,11 +15,11 @@ end
 
 function mutate(
     mutator::BasicVectorMutator, 
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     ::Counter,
     genotype::BasicVectorGenotype{T}
 ) where T
-    noise_vector = randn(random_number_generator, T, length(genotype))
+    noise_vector = randn(rng, T, length(genotype))
     scaled_noise_vector = noise_vector .* mutator.noise_standard_deviation
     mutated_genes = genotype.genes .+ scaled_noise_vector
     mutated_genotype = BasicVectorGenotype(mutated_genes)

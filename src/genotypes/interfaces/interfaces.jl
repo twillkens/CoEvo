@@ -1,15 +1,24 @@
 export create_genotypes, minimize, get_size, load_genotype, get_prunable_genes
 export get_maximum_complexity
 
+using ..Abstract.States: State
+
 function create_genotypes(
     genotype_creator::GenotypeCreator, 
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     gene_id_counter::Counter,
     n_population::Int
 )::Vector{Genotype}
     throw(ErrorException(
         "Default genotype creation for $genotype_creator, not implemented."
     ))
+end
+
+function create_genotypes(genotype_creator::GenotypeCreator, n_population::Int, state::State)
+    rng = get_rng(state)
+    gene_id_counter = get_gene_id_counter(state)
+    genotypes = create_genotypes(genotype_creator, rng, gene_id_counter, n_population)
+    return genotypes
 end
 
 function minimize(genotype::Genotype)::Genotype

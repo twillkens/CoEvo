@@ -6,7 +6,7 @@ using ..Phenotypes: PhenotypeCreator, Phenotype
 
 function create_individuals(
     individual_creator::IndividualCreator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     genotype_creator::GenotypeCreator,
     n_individuals::Int,
     individual_id_counter::Counter,

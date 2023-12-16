@@ -41,7 +41,7 @@ end
 # A fix will be to implement outcome types
 function evaluate(
     evaluator::AdaptiveArchiveEvaluator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     species::AdaptiveArchiveSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
 )
@@ -52,13 +52,13 @@ function evaluate(
 
     non_archive_evaluation = evaluate(
         evaluator.non_archive_evaluator, 
-        random_number_generator, 
+        rng, 
         species.basic_species, 
         non_archive_outcomes
     )
     full_evaluation = evaluate(
         evaluator.full_evaluator, 
-        random_number_generator, 
+        rng, 
         species.basic_species, 
         full_outcomes
     )

@@ -7,7 +7,7 @@ using ...SpeciesCreators.Basic: BasicSpeciesCreator
 
 @kwdef struct BasicCoevolutionaryState <: State
     id::String
-    random_number_generator::AbstractRNG
+    rng::AbstractRNG
     trial::Int
     generation::Int  # Generation number
     species_creators::Vector{<:SpeciesCreator}  # Species creators
@@ -31,7 +31,7 @@ function create_species(
     new_species = [
         create_species(
             species_creators[index],
-            state.random_number_generator, 
+            state.rng, 
             state.individual_id_counter,
             state.gene_id_counter,
             state.species[index],

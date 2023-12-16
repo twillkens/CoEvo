@@ -2,9 +2,7 @@ export ReportConfiguration, SilentReportConfiguration, VerboseTestReportConfigur
 export DeployReportConfiguration, load_report, get_report
 
 using ...Names
-using ...Reporters.Modes: ModesReporter
-using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
-using ...Metrics.Species: AdaptiveSpeciesIDsMetric
+using ...Metrics.Modes: ComplexityMetric, NoveltyMetric, ChangeMetric
 
 abstract type ReportConfiguration end
 
@@ -91,19 +89,6 @@ function make_scaled_fitness_reporter(configuration::ReportConfiguration)
     return reporter
 end
 
-function make_modes_reporter(configuration::ReportConfiguration)
-    G = FunctionGraphGenotype
-    I = BasicIndividual{G}
-    S = BasicSpecies{I}
-    A = AdaptiveArchiveSpecies{S, I}
-
-    reporter = ModesReporter{S, G}(
-        modes_interval = configuration.modes_interval,
-        to_print = configuration.print_interval > 0,
-        to_save = configuration.save_interval > 0,
-    )
-    return reporter
-end
 
 struct SilentReportConfiguration <: ReportConfiguration
     id::String
@@ -153,7 +138,6 @@ function VerboseTestReportConfiguration(;
     )
     return configuration
 end
-using ...Reporters.Modes: ModesReporter
 
 function make_reporters(configuration::VerboseTestReportConfiguration)
     reporters = [
@@ -163,7 +147,6 @@ function make_reporters(configuration::VerboseTestReportConfiguration)
         make_minimized_genotype_size_reporter(configuration),
         make_raw_fitness_reporter(configuration),
         make_scaled_fitness_reporter(configuration),
-        make_modes_reporter(configuration),
     ]
     return reporters
 end
@@ -204,11 +187,20 @@ function make_reporters(configuration::DeployReportConfiguration)
         make_genotype_size_reporter(configuration),
         make_minimized_genotype_size_reporter(configuration),
         make_scaled_fitness_reporter(configuration),
-        make_modes_reporter(configuration),
         BasicReporter(
-            metric = AdaptiveSpeciesIDsMetric(), 
+            metric = ComplexityMetric(), 
             save_interval = configuration.save_interval, 
-            print_interval = 0
+            print_interval = configuration.print_interval
+        ),
+        BasicReporter(
+            metric = NoveltyMetric(), 
+            save_interval = configuration.save_interval, 
+            print_interval = configuration.print_interval
+        ),
+        BasicReporter(
+            metric = ChangeMetric(), 
+            save_interval = configuration.save_interval, 
+            print_interval = configuration.print_interval
         ),
     ]
     return reporters

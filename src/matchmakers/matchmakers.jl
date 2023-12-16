@@ -19,7 +19,7 @@ using .OneVersusAll: OneVersusAll
 include("random_sample/random_sample.jl")
 using .RandomSample: RandomSample
 
-include("adaptive_archive/adaptive_archive.jl")
-using .AdaptiveArchive: AdaptiveArchive
-
+#include("adaptive_archive/adaptive_archive.jl")
+#using .AdaptiveArchive: AdaptiveArchive
+#
 end

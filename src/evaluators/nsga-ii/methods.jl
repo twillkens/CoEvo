@@ -131,7 +131,7 @@ function nsga_sort!(
 end
 
 function nsga_tournament(
-    random_number_generator::AbstractRNG, parents::Array{<:NSGAIIRecord}, tourn_size::Int64
+    rng::AbstractRNG, parents::Array{<:NSGAIIRecord}, tourn_size::Int64
 ) 
     function get_winner(d1::NSGAIIRecord, d2::NSGAIIRecord)
         if d1.rank < d2.rank
@@ -144,11 +144,11 @@ function nsga_tournament(
             elseif d2.crowding > d1.crowding
                 return d2
             else
-                return rand(random_number_generator, (d1, d2))
+                return rand(rng, (d1, d2))
             end
         end
     end
-    contenders = rand(random_number_generator, parents, tourn_size)
+    contenders = rand(rng, parents, tourn_size)
     winner = reduce(get_winner, contenders)
     return winner
 end

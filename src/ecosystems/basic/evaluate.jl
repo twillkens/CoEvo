@@ -12,7 +12,7 @@ function evaluate(
     evaluators = get_evaluators(ecosystem_creator.species_creators)
     evaluations = evaluate(
         evaluators, 
-        ecosystem_creator.random_number_generator, 
+        ecosystem_creator.rng, 
         ecosystem.species, 
         individual_outcomes, 
         #observations

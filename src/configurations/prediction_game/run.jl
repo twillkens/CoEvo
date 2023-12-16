@@ -56,7 +56,7 @@ function run!(
         checkpoint = EcosystemCheckpoint(ecosystem_creator)
         rng_state = parse(UInt128, checkpoint.globals.rng_state_string)
         rng = StableRNG(state = rng_state)
-        ecosystem_creator.random_number_generator = rng
+        ecosystem_creator.rng = rng
         ecosystem_creator.individual_id_counter.current_value = checkpoint.globals.individual_id_counter_state
         ecosystem_creator.gene_id_counter.current_value = checkpoint.globals.gene_id_counter_state
         ecosystem = checkpoint.ecosystem

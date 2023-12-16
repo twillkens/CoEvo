@@ -6,7 +6,7 @@ using Base: @kwdef
     seed::Int = 777
     reproduction_method::String = "disco"
     outcome_metric::String = "Control"
-    random_number_generator::Union{AbstractRNG, Nothing} = nothing
+    rng::Union{AbstractRNG, Nothing} = nothing
     noise_standard_deviation::Float64 = 0.1
     individual_id_counter_state::Int = 1
     gene_id_counter_state::Int = 1

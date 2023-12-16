@@ -75,32 +75,8 @@ function create_species(
         species.basic_species, 
         evaluation.full_evaluation
     )
+    #println(new_basic_species)
     active_adaptive_ids = Int[]
-    if length(species.modes_elites) != 0
-        population_length_before = length(species.basic_species.population)
-        n_replace_with_modes_elites = minimum([25, length(species.modes_elites)])
-        population_ids = [individual.id for individual in species.basic_species.population]
-        fitnessess = [
-            record.fitness for record in get_records(evaluation.full_evaluation, population_ids)
-        ]
-        id_fitnessess = collect(zip(population_ids, fitnessess))
-        sort!(id_fitnessess, by = x -> x[2])
-        worst_individual_ids = Set(
-            [id_fitness[1] for id_fitness in id_fitnessess[1:n_replace_with_modes_elites]]
-        )
-        filter!(individual -> individual.id ∉ worst_individual_ids, species.basic_species.population)
-        modes_elites = collect(reverse(species.modes_elites))[1:n_replace_with_modes_elites]
-        individual_ids = count!(individual_id_counter, n_replace_with_modes_elites)
-        modes_elites = [
-            BasicIndividual(individual_id, modes_elite.genotype, [modes_elite.id])
-            for (individual_id, modes_elite) in zip(individual_ids, modes_elites)
-        ]
-        append!(species.basic_species.population, modes_elites)
-        population_length_after = length(species.basic_species.population)
-        if population_length_before != population_length_after
-            throw(ErrorException("population length changed"))
-        end
-    end
     
     if species_creator.generation == 1 || length(species.elites) == 0
         active_elite_ids = Int[]

@@ -46,7 +46,7 @@ end
 
 function evaluate(
     evaluator::ScalarFitnessEvaluator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
 )
@@ -89,7 +89,7 @@ function evaluate(
         for (i, id) in enumerate(ids)
     ]
 
-    sort!(records, by = x -> (x.scaled_fitness, rand(random_number_generator)), rev = true)
+    sort!(records, by = x -> (x.scaled_fitness, rand(rng)), rev = true)
 
     evaluation = ScalarFitnessEvaluation(species.id, records)
     return evaluation

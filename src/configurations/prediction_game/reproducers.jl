@@ -1,8 +1,6 @@
 export Reproducer, RouletteReproducer, DiscoReproducer, load_reproducer, get_reproducer
 export make_evaluator, make_replacer, make_selector, archive!
 
-using ...Evaluators.AdaptiveArchive: AdaptiveArchiveEvaluator
-
 abstract type Reproducer end
 
 function get_n_individuals(reproducer::Reproducer)

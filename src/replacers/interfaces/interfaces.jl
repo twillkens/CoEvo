@@ -2,7 +2,7 @@ export replace
 
 function replace(
     replacer::Replacer,
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     species::AbstractSpecies,
     evaluation::Evaluation
 )::Dict{Int, Individual}

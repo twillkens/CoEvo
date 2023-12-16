@@ -6,7 +6,7 @@ in a co-evolutionary system.
 """
 module Individuals
 
-export Basic, Modes
+export Basic, Modes, Prune
 
 using Random: AbstractRNG
 using ..Counters: Counter
@@ -21,5 +21,8 @@ using .Basic: Basic
 
 include("modes/modes.jl")
 using .Modes: Modes
+
+include("prune/prune.jl")
+using .Prune: Prune
 
 end

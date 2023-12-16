@@ -24,7 +24,7 @@ function make_ecosystem_creator(
     ecosystem_creator = BasicEcosystemCreator(
         id = make_ecosystem_id(game, topology, substrate, reproducer, globals),
         trial = get_trial(globals),
-        random_number_generator = make_random_number_generator(globals),
+        rng = make_random_number_generator(globals),
         species_creators = make_species_creators(topology, substrate, reproducer, game),
         job_creator = make_job_creator(globals, game, topology), 
         performer = make_performer(globals),

@@ -2,7 +2,7 @@ export make_matches, get_individual_ids_from_cohorts
 
 function make_matches(
     matchmaker::MatchMaker, 
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     interaction_id::String,
     species_1::AbstractSpecies,
     species_2::AbstractSpecies

@@ -1,6 +1,11 @@
 export get_individuals, get_species, get_all_ids, find_species_by_id, get_species_with_ids
+export create_phenotype_dict, get_individuals_to_evaluate
 
 using ..Phenotypes: PhenotypeCreator, create_phenotype
+
+function get_individuals_to_evaluate(species::AbstractSpecies)
+    throw(ErrorException("get_individuals_to_evaluate not implemented for species of type $(typeof(species))"))
+end
 
 # Function to extract all individuals from a list of species
 function get_individuals(all_species::Vector{<:AbstractSpecies})

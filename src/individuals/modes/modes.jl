@@ -1,48 +1,65 @@
 module Modes
 
-export ModesIndividual, is_fully_pruned, modes_prune
+export ModesIndividual, ModesIndividualCreator, create_individuals
+export is_child, age_individuals
 
+import ...Individuals: create_individuals
+
+using Random: AbstractRNG
 using StatsBase: median
-using ...Genotypes: Genotype, get_prunable_genes
-using ...Individuals: Individual
+using ...Abstract.States: State
+using ...Counters: Counter
+using ...Genotypes: Genotype, get_prunable_genes, GenotypeCreator, create_genotypes
+using ...Individuals: Individual, IndividualCreator
 using ...Phenotypes: PhenotypeState
 using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeState
 using ...Phenotypes.FunctionGraphs.Linearized: get_node_median_value
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotype
 using ...Genotypes.FunctionGraphs: substitute_node_with_bias_connection
 
-mutable struct ModesIndividual{G <: Genotype, P <: PhenotypeState} <: Individual
+struct ModesIndividual{G <: Genotype}
     id::Int
+    parent_id::Int
+    tag::Int
+    age::Int
     genotype::G
-    prunable_genes::Vector{Int}
-    states::Vector{P}
-    fitness::Float64
 end
 
-function ModesIndividual(
-    id::Int, genotype::Genotype, ::Type{P} = PhenotypeState
-) where {P <: PhenotypeState}
-    prunable_genes = get_prunable_genes(genotype)
-    states = P[]
-    fitness = -Inf
-    individual = ModesIndividual(id, genotype, prunable_genes, states, fitness)
-    return individual
-end
+struct ModesIndividualCreator <: IndividualCreator end
 
-function is_fully_pruned(individual::ModesIndividual)
-    fully_pruned = length(individual.prunable_genes) == 0
-    return fully_pruned
-end
-
-function modes_prune(
-    individual::ModesIndividual{FunctionGraphGenotype, PhenotypeState}, node_to_check::Int
+function create_individuals(
+    ::ModesIndividualCreator, 
+    genotype_creator::GenotypeCreator, 
+    n_population::Int, 
+    state::State
 )
-    node_median_value = get_node_median_value(individual.states, node_to_check)
-    pruned_genotype = substitute_node_with_bias_connection(
-        individual.genotype, node_to_check, node_median_value
-    )
-    pruned_individual = ModesIndividual(individual.id, pruned_genotype)
-    return pruned_individual
+    individual_id_counter = get_individual_id_counter(state)
+    ids = count!(individual_id_counter, n_population)
+    genotypes = create_genotypes(genotype_creator, n_population, state)
+    individuals = [
+        ModesIndividual(id, id, tag, 0, genotype) 
+        for (tag, (id, genotype)) in enumerate(zip(ids, genotypes))
+    ]
+    return individuals
+end
+
+function is_child(individual::ModesIndividual)
+    is_child = individual.tag == 0
+    return is_child
+end
+
+function age_individuals(individuals::Vector{<:ModesIndividual}) 
+    individuals = [
+        ModesIndividual(
+            individual.id, 
+            individual.parent_id,
+            individual.tag, 
+            individual.age + 1,
+            individual.genotype,
+        ) 
+        for individual in individuals
+    ]
+    return individuals
 end
 
 end

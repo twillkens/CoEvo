@@ -40,14 +40,14 @@ end
 
 function make_all_matches(
     job_creator::BasicJobCreator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     all_species::Vector{<:AbstractSpecies}
 )
     all_matches = vcat(
         [
             make_matches(
                 interaction.matchmaker, 
-                random_number_generator,
+                rng,
                 interaction.id,
                 get_species_with_ids(all_species, interaction.species_ids),
             ) 
@@ -120,11 +120,11 @@ end
 
 function create_jobs(
     job_creator::BasicJobCreator, 
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     all_species::Vector{<:AbstractSpecies},
     phenotype_creators::Vector{<:PhenotypeCreator},
 )
-    all_matches = make_all_matches(job_creator, random_number_generator, all_species)
+    all_matches = make_all_matches(job_creator, rng, all_species)
     phenotype_dict = create_phenotype_dict(all_species, phenotype_creators, all_matches)
     match_partitions = make_partitions(all_matches, job_creator.n_workers)
     #phenotype_dict = create_phenotype_dict(all_species, phenotype_creators)

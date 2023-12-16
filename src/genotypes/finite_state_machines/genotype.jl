@@ -62,7 +62,7 @@ end
 """
     create_genotypes(
         genotype_creator::FiniteStateMachineGenotypeCreator,
-        random_number_generator::AbstractRNG, 
+        rng::AbstractRNG, 
         gene_id_counter::Counter,
         n_population::Int
     )
@@ -71,17 +71,17 @@ Generate a list of FSM genotypes, each having a single state.
 
 # Arguments
 - `genotype_creator::FiniteStateMachineGenotypeCreator`: Instance to facilitate genotype creation.
-- `random_number_generator::AbstractRNG`: RNG to assist random state label generation.
+- `rng::AbstractRNG`: RNG to assist random state label generation.
 - `gene_id_counter::Counter`: Counter to keep track of gene IDs.
 - `n_population::Int`: Number of genotypes in the population.
 """
 function create_genotype(
     genotype_creator::FiniteStateMachineGenotypeCreator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     gene_id_counter::Counter,
 )
     id = count!(gene_id_counter)
-    start_state_label = rand(random_number_generator, Bool)
+    start_state_label = rand(rng, Bool)
     genotype = create_genotype(genotype_creator, id, start_state_label)
     return genotype
 end
@@ -89,11 +89,11 @@ end
 # Creates a new FSMIndiv with a single state
 function create_genotypes(
     genotype_creator::FiniteStateMachineGenotypeCreator,
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     gene_id_counter::Counter,
     n_population::Int
 )
-    genotypes = [create_genotype(genotype_creator, random_number_generator, gene_id_counter) for _ in 1:n_population]
+    genotypes = [create_genotype(genotype_creator, rng, gene_id_counter) for _ in 1:n_population]
     return genotypes
 end
 

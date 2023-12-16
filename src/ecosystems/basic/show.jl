@@ -7,7 +7,7 @@ end
 function show(io::IO, c::BasicEcosystemCreator)
     print(io, "BasicEcosystemCreator(id: ", c.id, 
           ", trial: ", c.trial,
-          ", random_number_generator: ", typeof(c.random_number_generator), 
+          ", rng: ", typeof(c.rng), 
           ", species: ", keys(c.species_creators), 
           ", interactions: ", c.job_creator.interactions,")")
 end

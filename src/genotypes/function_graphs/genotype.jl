@@ -81,14 +81,14 @@ function create_ids_and_nodes(
 end
 
 """
-    create_output_ids_and_nodes(genotype_creator, random_number_generator, gene_id_counter, input_node_ids)
+    create_output_ids_and_nodes(genotype_creator, rng, gene_id_counter, input_node_ids)
 
 Given a genotype creator and some input node IDs, generates output node IDs 
 and their associated `FunctionGraphNode` instances.
 """
 function create_output_ids_and_nodes(
     genotype_creator::FunctionGraphGenotypeCreator, 
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     gene_id_counter::Counter,
     input_node_ids::Vector{Int},
 )
@@ -96,7 +96,7 @@ function create_output_ids_and_nodes(
     output_node_ids = count!(gene_id_counter, n_output_nodes)
     output_nodes = Dict(
         map(output_node_ids) do id
-            input_connection_id = rand(random_number_generator, input_node_ids)[1]
+            input_connection_id = rand(rng, input_node_ids)[1]
             input_connection = FunctionGraphConnection(
                 input_node_id = input_connection_id, 
                 weight = 0.0, 
@@ -115,7 +115,7 @@ end
 
 function create_genotypes(
     genotype_creator::FunctionGraphGenotypeCreator, 
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     gene_id_counter::Counter,
     n_population::Int
 )
@@ -129,7 +129,7 @@ function create_genotypes(
         )
         available_input_ids = [input_node_ids; bias_node_ids]
         output_node_ids, output_nodes = create_output_ids_and_nodes(
-            genotype_creator, random_number_generator, gene_id_counter, available_input_ids
+            genotype_creator, rng, gene_id_counter, available_input_ids
         )
         nodes = merge(input_nodes, bias_nodes, output_nodes)
         genotype = FunctionGraphGenotype(

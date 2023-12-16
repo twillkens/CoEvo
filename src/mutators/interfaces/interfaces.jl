@@ -2,7 +2,7 @@ export mutate
 
 function mutate(
     mutator::Mutator, 
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     gene_id_counter::Counter,
     genotype::Genotype
 )::Genotype
@@ -11,14 +11,14 @@ end
 
 function mutate(
     mutator::Mutator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     gene_id_counter::Counter,
     individuals::Vector{<:BasicIndividual},
 )
     individuals = [
         BasicIndividual(
             individual.id,
-            mutate(mutator, random_number_generator, gene_id_counter, individual.genotype),
+            mutate(mutator, rng, gene_id_counter, individual.genotype),
             individual.parent_ids
         ) for individual in individuals
     ]

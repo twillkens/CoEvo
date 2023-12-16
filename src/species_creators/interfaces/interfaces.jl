@@ -4,10 +4,11 @@ export get_evaluator, get_evaluators
 
 using ..Evaluators.ScalarFitness: ScalarFitnessEvaluator
 using ..Evaluators.NSGAII: NSGAIIEvaluator
+using ..Abstract.States: State
 
 function create_species(
     species_creator::SpeciesCreator,
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     individual_id_counter::Counter,
     gene_id_counter::Counter
 )::AbstractSpecies
@@ -19,7 +20,7 @@ end
 
 function create_species(
     species_creator::SpeciesCreator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     individual_id_counter::Counter,
     gene_id_counter::Counter,
     species::AbstractSpecies,
@@ -29,6 +30,19 @@ function create_species(
         "`create_species` not implemented for species $species_creator "
         )
     )
+end
+function create_species(
+    species_creators::Vector{<:SpeciesCreator},
+    all_species::Vector{<:AbstractSpecies},
+    evaluations::Vector{<:Evaluation},
+    state::State
+)
+    species = [
+        create_species(species_creator, species, evaluation, state)
+        for (species_creator, species, evaluation) in 
+            zip(species_creators, all_species, evaluations)
+    ]
+    return species
 end
 
 function get_scalar_fitness_evaluators(species_creators::Vector{<:SpeciesCreator})

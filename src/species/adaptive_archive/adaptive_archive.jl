@@ -10,7 +10,7 @@ using Random: AbstractRNG
 using StatsBase: sample, mean, Weights
 using ...Individuals: Individual
 using ...Individuals.Basic: BasicIndividual
-using ...Individuals.Modes: ModesIndividual
+using ...Individuals.Modes: PruneIndividual
 using ...Species: AbstractSpecies
 using ...Species.Basic: BasicSpecies
 
@@ -46,9 +46,10 @@ function add_individuals_to_archive!(
         deleteat!(species.archive, 1)
     end
 
+    ids = [individual.id for individual in species.archive]
     new_sizes = [get_size(individual.genotype) for individual in candidates]
     fitnesses = [round(species.fitnesses[individual.id], digits = 3) for individual in candidates]
-    incoming = collect(zip(new_sizes, fitnesses))
+    incoming = collect(zip(ids, new_sizes, fitnesses))
     archive_size = mean([get_size(individual.genotype) for individual in species.archive])
     active_ids = species.active_ids
     previous_elite_size = length(species.elites) == 0 ? 0 : get_size(last(species.elites).genotype)
@@ -68,7 +69,7 @@ function add_individuals_to_archive!(
 end
 
 function add_modes_elite_to_archive!(
-    rng::AbstractRNG, species::AdaptiveArchiveSpecies, modes_individuals::Vector{<:ModesIndividual}
+    rng::AbstractRNG, species::AdaptiveArchiveSpecies, modes_individuals::Vector{<:PruneIndividual}
 )
     fitnesses = Dict(
         individual.id => individual.fitness 
@@ -78,6 +79,7 @@ function add_modes_elite_to_archive!(
     sort!(modes_individuals, by = individual -> individual.fitness, rev = true)
     modes_individual = first(modes_individuals)
     modes_individual = BasicIndividual(modes_individual.id, modes_individual.genotype, Int[]) 
+    println("MODES ELITE: ", modes_individual.id)
     push!(species.modes_elites, modes_individual)
 
     basic_individuals = [

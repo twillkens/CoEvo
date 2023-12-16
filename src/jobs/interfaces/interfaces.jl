@@ -2,7 +2,7 @@ export create_jobs
 
 function create_jobs(
     job_creator::JobCreator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     all_species::Vector{<:AbstractSpecies},
     phenotype_creators::Vector{<:PhenotypeCreator},
 )

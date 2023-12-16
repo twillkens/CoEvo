@@ -2,15 +2,15 @@ module Species
 
 export SpeciesMetric, SnapshotSpeciesMetric, measure
 export AggregateSpeciesMetric, aggregate, AllGenotypesSpeciesMetric, ParentIDsSpeciesMetric
-export AdaptiveSpeciesIDsMetric
+#export AdaptiveSpeciesIDsMetric
 
 import ..Metrics: measure, get_name, aggregate
 
 using ...Species: AbstractSpecies, get_individuals
 using ...Species.Basic: BasicSpecies
-using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
+#using ...Species.AdaptiveArchive: AdaptiveArchiveSpecies
 using ...Evaluators: Evaluation
-using ...Evaluators.AdaptiveArchive: AdaptiveArchiveEvaluation
+#using ...Evaluators.AdaptiveArchive: AdaptiveArchiveEvaluation
 using ...Metrics: Metric, Measurement
 using ...Metrics.Common: BasicMeasurement
 using ...Metrics.Aggregators: Aggregator
@@ -20,6 +20,16 @@ using ...Metrics.Genotypes: GenotypeMetric
 using ...Metrics.Evaluations: EvaluationMetric
 
 abstract type SpeciesMetric <: Metric end
+
+function measure(metric::SpeciesMetric, all_species::Vector{<:AbstractSpecies})
+    measurements = vcat([measure(metric, species) for species in all_species]...)
+    return measurements
+end
+
+function measure(metric::SpeciesMetric, evaluations::Vector{<:Evaluation})
+    measurements = vcat([measure(metric, evaluation) for evaluation in evaluations]...)
+    return measurements
+end
 
 struct SnapshotSpeciesMetric <: SpeciesMetric end
 
@@ -52,9 +62,44 @@ function measure(::AllGenotypesSpeciesMetric, species::BasicSpecies)
     return measurements
 end
 
-measure(metric::AllGenotypesSpeciesMetric, species::AdaptiveArchiveSpecies) = measure(
-    metric, species.basic_species
-)
+using ...Species.Modes: ModesSpecies
+
+function measure(::AllGenotypesSpeciesMetric, species::ModesSpecies)
+    population_genotype_measurements = [
+        BasicMeasurement("species/$(species.id)/population/$(individual.id)/genotype", individual.genotype)
+        for individual in species.population
+    ]
+    population_parent_id_measurements = [
+        BasicMeasurement(
+            "species/$(species.id)/population/$(individual.id)/parent_id", individual.parent_id
+        )
+        for individual in species.population
+    ]
+    pruned_genotype_measurements = [
+        BasicMeasurement("species/$(species.id)/pruned/$(individual.id)/genotype", individual.genotype)
+        for individual in species.pruned
+    ]
+    population_age_measurements = [
+        BasicMeasurement(
+            "species/$(species.id)/population/$(individual.id)/age", individual.age
+        )
+        for individual in species.population
+    ]
+
+    measurements = [
+        population_genotype_measurements;
+        population_parent_id_measurements;
+        pruned_genotype_measurements;
+        population_age_measurements;
+    ]
+    return measurements
+
+end
+
+
+#measure(metric::AllGenotypesSpeciesMetric, species::AdaptiveArchiveSpecies) = measure(
+#    metric, species.basic_species
+#)
 
 struct ParentIDsSpeciesMetric <: SpeciesMetric end
 
@@ -77,10 +122,10 @@ function measure(::ParentIDsSpeciesMetric, species::BasicSpecies)
     return measurements
 end
 
-function measure(metric::ParentIDsSpeciesMetric, species::AdaptiveArchiveSpecies)
-    measurements = measure(metric, species.basic_species)
-    return measurements
-end
+# function measure(metric::ParentIDsSpeciesMetric, species::AdaptiveArchiveSpecies)
+#     measurements = measure(metric, species.basic_species)
+#     return measurements
+# end
 
 Base.@kwdef struct AggregateSpeciesMetric{M <: Metric, A <: Aggregator} <: SpeciesMetric
     submetric::M
@@ -93,16 +138,6 @@ Base.@kwdef struct AggregateSpeciesMetric{M <: Metric, A <: Aggregator} <: Speci
     ]
     to_print::Union{String, Vector{String}} = ["mean", "maximum", "minimum", "std"]
     to_save::Union{String, Vector{String}} = "all"
-end
-
-function measure(metric::SpeciesMetric, all_species::Vector{<:AbstractSpecies})
-    measurements = vcat([measure(metric, species) for species in all_species]...)
-    return measurements
-end
-
-function measure(metric::SpeciesMetric, evaluations::Vector{<:Evaluation})
-    measurements = vcat([measure(metric, evaluation) for evaluation in evaluations]...)
-    return measurements
 end
 
 function measure(
@@ -118,26 +153,6 @@ function measure(
 end
 
 function measure(
-    metric::AggregateSpeciesMetric{<:GenotypeMetric, <:Aggregator}, 
-    species::AdaptiveArchiveSpecies
-)
-    measurements = measure(metric, species.basic_species)
-    return measurements
-end
-
-struct AdaptiveSpeciesIDsMetric <: SpeciesMetric end
-
-function measure(::AdaptiveSpeciesIDsMetric, species::AdaptiveArchiveSpecies)
-    archive_ids = [individual.id for individual in species.archive]
-    active_ids = [id for id in species.active_ids]
-    measurements = [
-        BasicMeasurement("species/$(species.id)/archive_ids", archive_ids);
-        BasicMeasurement("species/$(species.id)/active_ids", active_ids);
-    ]
-    return measurements
-end
-
-function measure(
     metric::AggregateSpeciesMetric{<:EvaluationMetric, <:Aggregator}, evaluation::Evaluation
 )
     measurements = measure(metric.submetric, evaluation)
@@ -147,24 +162,5 @@ function measure(
     return measurements
 end
 
-
-function measure(
-    metric::AggregateSpeciesMetric{<:EvaluationMetric, <:Aggregator}, 
-    evaluation::AdaptiveArchiveEvaluation
-)
-    submetric_name = get_name(metric.submetric)
-    full_measurements = measure(metric.submetric, evaluation.full_evaluation)
-    full_base_path = "species/$(evaluation.id)/full/$submetric_name"
-    full_measurements = aggregate(metric.aggregators, full_base_path, full_measurements)
-
-    non_archive_measurements = measure(metric.submetric, evaluation.non_archive_evaluation)
-    non_archive_base_path = "species/$(evaluation.id)/non_archive/$submetric_name"
-    non_archive_measurements = aggregate(
-        metric.aggregators, non_archive_base_path, non_archive_measurements
-    )
-    measurements = [full_measurements; non_archive_measurements]
-
-    return measurements
-end
 
 end

@@ -48,13 +48,13 @@ function select_function(rng::AbstractRNG, function_probabilities::Dict{Symbol, 
 end
 
 function create_input_connections(
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     potential_input_node_ids::Vector{Int}, 
     arity::Int
 )
     input_connections = [
         FunctionGraphConnection(
-            input_node_id = rand(random_number_generator, potential_input_node_ids),
+            input_node_id = rand(rng, potential_input_node_ids),
             weight = 0.0,  
             is_recurrent = true 
         ) 
@@ -64,7 +64,7 @@ function create_input_connections(
 end
 
 function add_function(
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     gene_id_counter::Counter, 
     graph::FunctionGraphGenotype, 
     function_probabilities::Dict{Symbol, Float64}
@@ -72,13 +72,13 @@ function add_function(
     graph = deepcopy(graph)
     new_id = count!(gene_id_counter)
     # TODO: Make excluding bias nodes an option
-    func = select_function(random_number_generator, function_probabilities)
+    func = select_function(rng, function_probabilities)
     potential_input_node_ids = [
         #graph.input_node_ids; graph.bias_node_ids; graph.hidden_node_ids
         graph.input_node_ids; graph.hidden_node_ids
     ]
     input_connections = create_input_connections(
-        random_number_generator, potential_input_node_ids, func.arity
+        rng, potential_input_node_ids, func.arity
     )
     new_node = FunctionGraphNode(
         id = new_id, func = func.name, input_connections = input_connections
@@ -153,7 +153,7 @@ function get_substitutions_for_node(
     node_id::Int, 
     node_to_delete_id::Int, 
     genotype::FunctionGraphGenotype, 
-    random_number_generator::AbstractRNG
+    rng::AbstractRNG
 )
     substitutions = ConnectionRedirectionSpecification[]
     for (idx, connection) in enumerate(node.input_connections)
@@ -174,10 +174,10 @@ function get_substitutions_for_node(
                 if isempty(valid_nodes)
                     throw(ErrorException("No valid nodes to redirect to for output node"))
                 end
-                new_input_node_id = rand(random_number_generator, valid_nodes)
+                new_input_node_id = rand(rng, valid_nodes)
             else
                 new_input_node_id = rand(
-                    random_number_generator, [x.input_node_id for x in immediate_redirects]
+                    rng, [x.input_node_id for x in immediate_redirects]
                 )
             end
             
@@ -196,13 +196,13 @@ end
 function get_all_substitutions(
     genotype::FunctionGraphGenotype, 
     node_to_delete_id::Int, 
-    random_number_generator::AbstractRNG
+    rng::AbstractRNG
 )
     substitutions = ConnectionRedirectionSpecification[]
     for (id, node) in genotype.nodes
         if id != node_to_delete_id
             append!(substitutions, get_substitutions_for_node(
-                node, id, node_to_delete_id, genotype, random_number_generator
+                node, id, node_to_delete_id, genotype, rng
             ))
         end
     end
@@ -211,7 +211,7 @@ function get_all_substitutions(
 end
 
 function remove_function(
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     ::Counter,
     genotype::FunctionGraphGenotype,
     ::Dict{Symbol, Float64}
@@ -219,8 +219,8 @@ function remove_function(
     if length(genotype.hidden_node_ids) == 0
         return deepcopy(genotype)
     end
-    node_to_delete_id = rand(random_number_generator, genotype.hidden_node_ids)
-    substitutions = get_all_substitutions(genotype, node_to_delete_id, random_number_generator)
+    node_to_delete_id = rand(rng, genotype.hidden_node_ids)
+    substitutions = get_all_substitutions(genotype, node_to_delete_id, rng)
     
     return remove_function(genotype, node_to_delete_id, substitutions)
 end
@@ -264,35 +264,35 @@ function get_genotype_after_swapping_functions(
 end
 
 """
-    swap_function(random_number_generator, genotype, function_map=FUNCTION_MAP)
+    swap_function(rng, genotype, function_map=FUNCTION_MAP)
 
 Return a new `FunctionGraphGenotype` with the function of a randomly selected node swapped to a new function
 of the same arity.
 """
 function swap_function(
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     genotype::FunctionGraphGenotype,
     all_mutator_functions::Vector{Symbol}
 )
     if length(genotype.hidden_node_ids) == 0
         return deepcopy(genotype)
     end
-    target_node_id = rand(random_number_generator, genotype.hidden_node_ids)
+    target_node_id = rand(rng, genotype.hidden_node_ids)
     arity = FUNCTION_MAP[genotype.nodes[target_node_id].func].arity
     eligible_functions = get_functions_with_arity(arity, all_mutator_functions)
-    new_function = rand(random_number_generator, eligible_functions)
+    new_function = rand(rng, eligible_functions)
     genotype = get_genotype_after_swapping_functions(genotype, target_node_id, new_function.name)
     return genotype
 end
 
 function swap_function(
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     ::Counter,
     genotype::FunctionGraphGenotype,
     function_probabilities::Dict{Symbol, Float64}
 )
     genotype = swap_function(
-        random_number_generator, genotype, collect(keys(function_probabilities))
+        rng, genotype, collect(keys(function_probabilities))
     )
     return genotype
 end
@@ -318,24 +318,24 @@ function redirect_connection(
 end
 
 function redirect_connection(
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     ::Counter,
     genotype::FunctionGraphGenotype,
     ::Dict{Symbol, Float64}
 )
     # Choose a random node from hidden and output nodes
     redirection_source_candidate_ids = [genotype.hidden_node_ids ; genotype.output_node_ids]
-    node_id = rand(random_number_generator, redirection_source_candidate_ids)
+    node_id = rand(rng, redirection_source_candidate_ids)
     # Choose a random connection index to redirect
     input_connection_index = rand(
-        random_number_generator, 1:length(genotype.nodes[node_id].input_connections)
+        rng, 1:length(genotype.nodes[node_id].input_connections)
     )
     # Choose a random new input node from input, bias, and hidden nodes
     redirection_target_candidate_ids = [
         #genotype.input_node_ids ; genotype.bias_node_ids ; genotype.hidden_node_ids
         genotype.input_node_ids ; genotype.hidden_node_ids
     ]
-    new_input_node_id = rand(random_number_generator, redirection_target_candidate_ids)
+    new_input_node_id = rand(rng, redirection_target_candidate_ids)
     # Apply deterministic redirection
     redirection_spec = ConnectionRedirectionSpecification(
         node_id = node_id, 
@@ -369,7 +369,7 @@ function inject_noise!(genotype::FunctionGraphGenotype, noise_map::Dict{Int, Vec
 end
 
 function inject_noise!(
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     genotype::FunctionGraphGenotype; 
     std_dev::Float32 = 0.1f0
 )
@@ -379,7 +379,7 @@ function inject_noise!(
     for (node_id, node) in genotype.nodes
         if !isempty(node.input_connections)  # Only for nodes with connections
             noise_values = randn(
-                random_number_generator, length(node.input_connections)
+                rng, length(node.input_connections)
             ) .* std_dev  # Assuming normal distribution for noise
             noise_map[node_id] = noise_values
         end
@@ -500,12 +500,12 @@ end
 
 function mutate(
     mutator::FunctionGraphMutator,
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     gene_id_counter::Counter, 
     genotype::FunctionGraphGenotype
 ) 
     mutations = sample(
-        random_number_generator, 
+        rng, 
         collect(keys(mutator.mutation_probabilities)), 
         Weights(collect(values(mutator.mutation_probabilities))), 
         mutator.n_mutations
@@ -517,10 +517,10 @@ function mutate(
     for mutation in mutations
         mutation_function = MUTATION_MAP[mutation]
         genotype = mutation_function(
-            random_number_generator, gene_id_counter, genotype, mutator.function_probabilities
+            rng, gene_id_counter, genotype, mutator.function_probabilities
         )
     end
-    inject_noise!(random_number_generator, genotype, std_dev = mutator.noise_std)
+    inject_noise!(rng, genotype, std_dev = mutator.noise_std)
     if mutator.validate_genotypes
         validate_genotype(genotype, n_input_nodes, n_bias_nodes, n_hidden_nodes, n_output_nodes)
     end

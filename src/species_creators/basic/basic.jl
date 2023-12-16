@@ -45,13 +45,13 @@ end
 
 function create_species(
     species_creator::BasicSpeciesCreator,
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     individual_id_counter::Counter,
     gene_id_counter::Counter
 )
     population = create_individuals(
         species_creator.individual_creator, 
-        random_number_generator, 
+        rng, 
         species_creator.genotype_creator, 
         species_creator.n_population, 
         individual_id_counter, 
@@ -59,7 +59,7 @@ function create_species(
     )
     children = recombine(
         species_creator.recombiner, 
-        random_number_generator, 
+        rng, 
         individual_id_counter, 
         population
     )
@@ -69,23 +69,23 @@ end
 
 function create_species(
     species_creator::BasicSpeciesCreator,
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     individual_id_counter::Counter,  
     gene_id_counter::Counter,  
     species::BasicSpecies,
     evaluation::Evaluation
 ) 
     new_population = replace(
-        species_creator.replacer, random_number_generator, species, evaluation
+        species_creator.replacer, rng, species, evaluation
     )
     parents = select(
-        species_creator.selector, random_number_generator, new_population, evaluation
+        species_creator.selector, rng, new_population, evaluation
     )
     new_children = recombine(
-        species_creator.recombiner, random_number_generator, individual_id_counter, parents
+        species_creator.recombiner, rng, individual_id_counter, parents
     )
     for mutator in species_creator.mutators
-        new_children = mutate(mutator, random_number_generator, gene_id_counter, new_children)
+        new_children = mutate(mutator, rng, gene_id_counter, new_children)
     end
 
     # TODO: This is a hack to make sure that the parent IDs are set for MODES.

@@ -2,7 +2,6 @@ using ...Names
 
 using ...Environments.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
 using ...MatchMakers.AllVersusAll: AllVersusAllMatchMaker
-using ...MatchMakers.AdaptiveArchive: AdaptiveArchiveMatchMaker
 
 function make_environment_creator(
     ::LinguisticPredictionGameConfiguration, setup::BasicInteractionSetup
@@ -58,25 +57,6 @@ function make_interaction(
     return interaction
 end
 
-function make_interaction(
-    game::GameConfiguration, 
-    interaction_setup::BasicInteractionSetup, 
-    cohorts::Vector{String},
-    n_sample::Int,
-)
-    basic_matchmaker = AllVersusAllMatchMaker(cohorts = cohorts)
-    interaction = BasicInteraction(
-        id = get_id(interaction_setup),
-        environment_creator = make_environment_creator(game, interaction_setup),
-        species_ids = interaction_setup.species_ids,
-        matchmaker = AdaptiveArchiveMatchMaker(
-            basic_matchmaker = basic_matchmaker,
-            n_sample = n_sample,
-        ),
-    )
-    return interaction
-end
-
 function make_interactions(game::GameConfiguration, topology::BasicTopology)
     interactions = [
         make_interaction(game, interaction_setup, topology.cohorts)
@@ -89,7 +69,7 @@ function make_interactions(game::GameConfiguration, topology::AdaptiveArchiveTop
     cohorts = topology.basic_topology.cohorts
     interaction_setups = topology.basic_topology.interaction_setups
     interactions = [
-        make_interaction(game, interaction_setup, cohorts, topology.n_sample)
+        make_interaction(game, interaction_setup, cohorts)
         for interaction_setup in interaction_setups
     ]
     return interactions

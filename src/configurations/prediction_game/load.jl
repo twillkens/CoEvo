@@ -83,7 +83,7 @@ function load_modes_individuals(
 end
 
 function load(
-    file::File, experiment::BasicExperiment, species_creator::AdaptiveArchiveSpeciesCreator, 
+    file::File, experiment::BasicExperiment, species_creator::ModesSpeciesCreator, 
     gen::Int
 )
     basic_species = load(file, experiment, species_creator.basic_species_creator, gen)

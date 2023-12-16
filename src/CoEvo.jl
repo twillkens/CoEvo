@@ -49,6 +49,9 @@ export States, Reporters, Archivers, Ecosystems, Names, Configurations, run!
 export NumbersGameConfiguration
 export make_prediction_game_experiment, load_prediction_game_experiment
 
+include("abstract/abstract.jl")
+using .Abstract: Abstract
+
 include("counters/counters.jl")
 using .Counters: Counters
 println("loaded counters")
@@ -156,6 +159,9 @@ println("loaded ecosystems")
 include("names/names.jl")
 using .Names: Names
 println("loaded names")
+
+include("modes/modes.jl")
+using .Modes: Modes
 
 include("configurations/configurations.jl")
 using .Configurations: Configurations, run!

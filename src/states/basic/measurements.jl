@@ -2,7 +2,7 @@ function measure(metric::GlobalStateMetric, state::BasicCoevolutionaryState)
     base_path = "global_state"
     measurements = [
         BasicMeasurement(
-            "$base_path/rng_state", string(state.random_number_generator.state)
+            "$base_path/rng_state", string(state.rng.state)
         ),
         BasicMeasurement(
             "$base_path/individual_id_counter_state", 

@@ -81,12 +81,12 @@ end
 
 function evaluate(
     evaluator::NSGAIIEvaluator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
 )
     scalar_fitness_evaluation = evaluate(
-        evaluator.scalar_fitness_evaluator, random_number_generator, species, outcomes
+        evaluator.scalar_fitness_evaluator, rng, species, outcomes
     )
     individuals = get_individuals(species)
     filter!(individual -> individual.id in keys(outcomes), individuals)
@@ -98,7 +98,7 @@ function evaluate(
 
     if evaluator.perform_disco
         individual_tests = get_derived_tests(
-            random_number_generator, individual_tests, evaluator.max_clusters
+            rng, individual_tests, evaluator.max_clusters
         )
     end
 

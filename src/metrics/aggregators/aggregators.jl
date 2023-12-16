@@ -5,8 +5,10 @@ export HigherMomentAggregator, OneSampleTTestAggregator
 
 import ..Metrics: aggregate
 
+using Bootstrap: bootstrap, BasicSampling, confint as bootstrap_confint
+using StatsBase: mean
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
-using HypothesisTests: OneSampleTTest, confint
+using HypothesisTests: OneSampleTTest, confint as hypothesis_tests_confint
 using ..Metrics: Metric, Measurement, Aggregator
 using ..Metrics.Common: BasicMeasurement
 
@@ -70,7 +72,7 @@ function aggregate(
     measurements::Vector{<:BasicMeasurement}
 )
     values = [measurement.value for measurement in measurements]
-    loconf, hiconf = confint(OneSampleTTest(values))
+    loconf, hiconf = hypothesis_tests_confint(OneSampleTTest(values))
     measurements = [
         BasicMeasurement("$base_path/lower_confidence", loconf),
         BasicMeasurement("$base_path/upper_confidence", hiconf),
@@ -87,6 +89,27 @@ function aggregate(
         aggregate(aggregator, base_path, measurements) for aggregator in aggregators
     ]...)
     return aggregated_measurements
+end
+
+Base.@kwdef struct BootstrapAggregator <: Aggregator 
+    n_samples::Int = 1000
+    confidence_interval::Float64 = 0.95
+end
+
+function aggregate(
+    aggregator::BootstrapAggregator, 
+    base_path::String,
+    measurements::Vector{<:BasicMeasurement}
+)
+    values = [measurement.value for measurement in measurements]
+    bootstrap_result = bootstrap(mean, values, BasicSampling(aggregator.n_samples))
+    _, lower_confidence, upper_confidence = bootstrap_confint(
+        bootstrap_result, aggregator.confidence_interval
+    )
+    measurements = [
+        BasicMeasurement("$base_path/lower_confidence", lower_confidence),
+        BasicMeasurement("$base_path/upper_confidence", upper_confidence),
+    ]
 end
 
 

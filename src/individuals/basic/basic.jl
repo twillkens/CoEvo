@@ -27,14 +27,14 @@ struct BasicIndividualCreator <: IndividualCreator end
 
 function create_individuals(
     ::BasicIndividualCreator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     genotype_creator::GenotypeCreator,
     n_individuals::Int,
     individual_id_counter::Counter,
     gene_id_counter::Counter,
 )
     genotypes = create_genotypes(
-        genotype_creator, random_number_generator, gene_id_counter, n_individuals
+        genotype_creator, rng, gene_id_counter, n_individuals
     )
     individual_ids = count!(individual_id_counter, n_individuals)
     individuals = [

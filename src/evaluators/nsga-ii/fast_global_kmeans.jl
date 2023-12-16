@@ -156,12 +156,12 @@ end
 function update_centroids!(
     partition::Vector{Vector{Vector{Float64}}}, 
     centroids::Vector{Vector{Float64}}, 
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     samples::Vector{Vector{Float64}}
 )::Nothing
     for (idx, cluster_samples) in enumerate(partition)
         if isempty(cluster_samples)
-            centroids[idx] = rand(random_number_generator, samples)
+            centroids[idx] = rand(rng, samples)
         else
             centroids[idx] = mean(cluster_samples)
         end
@@ -201,7 +201,7 @@ end
 
 
 function get_kmeans_clustering_result(
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     samples::Vector{Vector{Float64}}, 
     cluster_count::Int, 
     centroids::Vector{Vector{Float64}};
@@ -227,7 +227,7 @@ function get_kmeans_clustering_result(
         else
             throw(ArgumentError("Invalid distance method: $distance_method"))
         end
-        update_centroids!(partition, centroids, random_number_generator, samples)
+        update_centroids!(partition, centroids, rng, samples)
         if distance_method == :euclidean
             current_error = compute_clustering_error(partition, centroids, cluster_count)
         elseif distance_method == :disco_average
@@ -372,7 +372,7 @@ compute_b_values(
 ]
 
 function get_fast_global_clustering_result(
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     samples::Vector{Vector{Float64}}; 
     max_clusters::Int = -1,
     tolerance::Float64 = 0.001,
@@ -380,9 +380,9 @@ function get_fast_global_clustering_result(
 )
     max_clusters = max_clusters == -1 ? length(samples) : max_clusters
     fg = FastGlobal(max_clusters, length(samples[1]))
-    initial_centroids = [rand(random_number_generator, samples)]
+    initial_centroids = [rand(rng, samples)]
     current_result = get_kmeans_clustering_result(
-        random_number_generator, samples, 1, initial_centroids;
+        rng, samples, 1, initial_centroids;
         tolerance = tolerance, distance_method = distance_method
     )
 
@@ -400,7 +400,7 @@ function get_fast_global_clustering_result(
             current_result.centroids ; [potential_centroids[new_centroid_idx]]
         ]
         next_result = get_kmeans_clustering_result(
-            random_number_generator, 
+            rng, 
             samples, 
             cluster_size, 
             new_centroids;
@@ -418,7 +418,7 @@ function get_fast_global_clustering_result(
 end
 
 function get_derived_tests(
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     indiv_tests::SortedDict{Int, Vector{Float64}},
     max_clusters::Int = -1,
     distance_method::Symbol = :disco_average
@@ -433,7 +433,7 @@ function get_derived_tests(
     test_vectors = collect(values(indiv_tests))
     test_columns = [collect(row) for row in eachrow(hcat(test_vectors...))]
     result = get_fast_global_clustering_result(
-        random_number_generator, test_columns; 
+        rng, test_columns; 
         max_clusters = max_clusters, distance_method = distance_method
     )
     derived_test_matrix = hcat(result.centroids...)

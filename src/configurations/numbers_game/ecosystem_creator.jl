@@ -21,7 +21,7 @@ function make_ecosystem_creator(configuration::NumbersGameConfiguration)
     ecosystem_creator = BasicEcosystemCreator(
         id = make_ecosystem_id(configuration),
         trial = trial = configuration.trial,
-        random_number_generator = make_random_number_generator(configuration),
+        rng = make_random_number_generator(configuration),
         species_creators = make_species_creators(configuration),
         job_creator = make_job_creator(configuration),
         performer = CachePerformer(n_workers = configuration.n_workers),

@@ -5,7 +5,7 @@ export get_elite_records, get_records
 
 function evaluate(
     evaluator::Evaluator,
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}},
     #observations::Vector{<:Observation}
@@ -16,17 +16,34 @@ end
 
 function evaluate(
     evaluators::Vector{<:Evaluator},
-    random_number_generator::AbstractRNG,
+    rng::AbstractRNG,
     species::Vector{<:AbstractSpecies},
     individual_outcomes::Dict{Int, Dict{Int, Float64}},
     #observations::Vector{<:Observation},
 )
     evaluations = [
-        evaluate(evaluator, random_number_generator, species, individual_outcomes)
+        evaluate(evaluator, rng, species, individual_outcomes)
         for (evaluator, species) in zip(evaluators, species)
     ]
     
     return evaluations
+end
+
+function get_best_records(evaluation::Evaluation, n::Int)
+    throw(ErrorException(
+        "`get_best_ids` not implemented for $evaluation.")
+    )
+end
+
+function get_worst_records(evaluation::Evaluation, n::Int)
+    throw(ErrorException(
+        "`get_worst_ids` not implemented for $evaluation.")
+    )
+end
+
+function get_worst_records(evaluation::Evaluation, ids::Vector{Int}, n::Int)
+    
+
 end
 
 function get_raw_fitnesses(evaluation::Evaluation)

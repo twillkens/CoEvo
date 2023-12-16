@@ -102,7 +102,7 @@ end
 
 function mutate(
     mutator::FiniteStateMachineMutator,
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     gene_id_counter::Counter, 
     genotype::FiniteStateMachineGenotype
 ) 
@@ -110,10 +110,10 @@ function mutate(
     mutation_functions = collect(keys(mutator.mutation_probabilities))
     mutation_probabilities = Weights(collect(values(mutator.mutation_probabilities)))
     mutation_functions = sample(
-        random_number_generator, mutation_functions, mutation_probabilities, mutator.n_changes
+        rng, mutation_functions, mutation_probabilities, mutator.n_changes
     )
     for mutation_function in mutation_functions
-        genotype = mutation_function(random_number_generator, gene_id_counter, genotype)
+        genotype = mutation_function(rng, gene_id_counter, genotype)
     end
     if length(
         union(genotype.ones, genotype.zeros)) != length(genotype.ones) + length(genotype.zeros
@@ -134,36 +134,36 @@ function new_state!(gene_id_counter::Counter, ::FiniteStateMachineGenotype{Int})
 end
 
 function add_state(
-    random_number_generator::AbstractRNG, 
+    rng::AbstractRNG, 
     gene_id_counter::Counter, 
     genotype::FiniteStateMachineGenotype)
-    label = rand(random_number_generator, Bool
+    label = rand(rng, Bool
 )
     new_state = new_state!(gene_id_counter, genotype)
     available_destinations = union(genotype.ones, genotype.zeros, Set([new_state]))
-    true_destination = rand(random_number_generator, available_destinations)
-    false_destination = rand(random_number_generator, available_destinations)
+    true_destination = rand(rng, available_destinations)
+    false_destination = rand(rng, available_destinations)
     genotype = add_state(genotype, new_state, label, true_destination, false_destination)
     return genotype
 end
 
 function remove_state(
-    random_number_generator::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype
+    rng::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype
 )
     fsm_size = length(genotype)
     if fsm_size < 2 return deepcopy(genotype) end
-    to_delete = rand(random_number_generator, union(genotype.ones, genotype.zeros))
+    to_delete = rand(rng, union(genotype.ones, genotype.zeros))
     all_nodes = union(genotype.ones, genotype.zeros)
     to_delete_set = Set([to_delete])
     all_nodes_after_delete = setdiff(all_nodes, to_delete_set)
     if to_delete == genotype.start
-        new_start = rand(random_number_generator, all_nodes_after_delete)
+        new_start = rand(rng, all_nodes_after_delete)
         genotype = remove_state(genotype, to_delete, new_start)
         return genotype
     end
     new_start = to_delete == genotype.start ? 
         rand(
-            random_number_generator, 
+            rng, 
             setdiff(union(genotype.ones, genotype.zeros), Set([to_delete]))
         ) : 
         nothing
@@ -172,19 +172,19 @@ function remove_state(
 end
 
 function change_link(
-    random_number_generator::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype
+    rng::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype
 )
-    state = rand(random_number_generator, union(genotype.ones, genotype.zeros))
-    new_destination = rand(random_number_generator, union(genotype.ones, genotype.zeros))
-    bit = rand(random_number_generator, Bool)
+    state = rand(rng, union(genotype.ones, genotype.zeros))
+    new_destination = rand(rng, union(genotype.ones, genotype.zeros))
+    bit = rand(rng, Bool)
     genotype = change_link(genotype, state, new_destination, bit)
     return genotype
 end
 
 function change_label(
-    random_number_generator::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype
+    rng::AbstractRNG, ::Counter, genotype::FiniteStateMachineGenotype
 )
-    state = rand(random_number_generator, union(genotype.ones, genotype.zeros))
+    state = rand(rng, union(genotype.ones, genotype.zeros))
     genotype = change_label(genotype, state)
     return genotype
 end
