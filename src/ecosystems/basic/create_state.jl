@@ -22,7 +22,7 @@ function create_state(
         evaluation_time = evaluation_time,
         individual_id_counter = ecosystem_creator.individual_id_counter,
         gene_id_counter = ecosystem_creator.gene_id_counter,
-        species = ecosystem.species,
+        all_species = ecosystem.species,
         individual_outcomes = individual_outcomes,
         evaluations = evaluations,
         observations = observations,

@@ -36,9 +36,9 @@ function is_fully_pruned(individual::PruneIndividual)
 end
 
 function modes_prune(individual::PruneIndividual{FunctionGraphGenotype, PhenotypeState})
-    individual = copy(individual)
     node_to_check = popfirst!(individual.genes_to_check)
     node_median_value = get_node_median_value(individual.states, node_to_check)
+    node_median_value = isinf(node_median_value) ? 0 : node_median_value
     pruned_genotype = substitute_node_with_bias_connection(
         individual.genotype, node_to_check, node_median_value
     )

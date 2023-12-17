@@ -40,6 +40,7 @@ Base.@kwdef struct AdaptiveArchiveTopology <: Topology
     basic_topology::BasicTopology
     max_archive_size::Int
     n_sample::Int
+    modes_interval::Int
 end
 
 function get_n_species(topology::BasicTopology)
@@ -228,6 +229,7 @@ function get_topology(
     id::String; 
     adaptive_archive_max_size::Int = 0, 
     n_adaptive_archive_samples::Int = 0, 
+    modes_interval::Int = 0,
     kwargs...
 )
     if !haskey(BASIC_TOPOLOGIES, id)
@@ -239,6 +241,7 @@ function get_topology(
         basic_topology = basic_topology,
         max_archive_size = adaptive_archive_max_size,
         n_sample = n_adaptive_archive_samples,
+        modes_interval = modes_interval
     )
     return topology
     #if adaptive_archive_max_size == 0

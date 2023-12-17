@@ -86,6 +86,7 @@ function run!(;
         report = report,
         kwargs...
     )
+    println("experiment = $experiment")
     ecosystem = run!(experiment)
     return ecosystem
 end

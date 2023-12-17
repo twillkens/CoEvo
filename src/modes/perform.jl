@@ -1,3 +1,5 @@
+import ...Species: get_individuals_to_evaluate
+
 function create_modes_interaction(interaction::BasicInteraction, observers::Vector{<:Observer})
     interaction = BasicInteraction(
         interaction.id,
@@ -39,10 +41,13 @@ function get_modes_jobs(prune_species::PruneSpecies, state::State)
     to_evaluate = get_individuals_to_evaluate(prune_species)
     simple_species = SimpleSpecies(prune_species.id, to_evaluate)
     other_simple_species = [
-        SimpleSpecies(species.id, species.checkpoint_population) 
+        SimpleSpecies(species.id, species.previous_population) 
         for species in filter(species -> species.id != prune_species.id, get_all_species(state))
     ]
     all_simple_species = [simple_species ; other_simple_species]
+    #phenotype_creators = get_phenotype_creators(state)
+    #println("all_simple_species: $all_simple_species")
+    #println("phenotype_creators: $phenotype_creators")
     jobs = create_jobs(
         job_creator, get_rng(state), all_simple_species, get_phenotype_creators(state)
     )
@@ -50,6 +55,7 @@ function get_modes_jobs(prune_species::PruneSpecies, state::State)
 end
 
 using ...Results: get_individual_outcomes, get_observations
+using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
 
 function perform_evaluations(species::PruneSpecies, state::State)
     jobs, simple_species = get_modes_jobs(species, state)
@@ -117,6 +123,9 @@ function update_candidates(species::PruneSpecies{I}) where {I <: PruneIndividual
         push!(candidates, candidate)
     end
     validate_candidates(species, candidates)
+    #println("---update_candidates")
+    #println("length currents: $(length(currents))")
+    #println("length candidates: $(length(candidates))")
     next_species = PruneSpecies(species.id, currents, candidates, species.pruned)
     return next_species
 end
@@ -126,28 +135,48 @@ function update_currents(species::PruneSpecies{I}) where {I <: Individual}
         return species
     end
     currents = I[]
-    pruned = copy(species.pruned)
+    pruned = I[]
     for (current, candidate) in zip(species.currents, species.candidates)
         candidate_is_no_worse = candidate.fitness >= current.fitness
         to_keep = candidate_is_no_worse ? candidate : current
         to_push = is_fully_pruned(to_keep) ? pruned : currents
         push!(to_push, to_keep)
     end
-    new_species = PruneSpecies(species.id, currents, I[], species.pruned)
+    #println("---update_currents")
+    #println("length currents: $(length(currents))")
+    #println("length pruned: $(length(pruned))")
+    new_species = PruneSpecies(species.id, currents, I[], pruned)
     return new_species
 end
 
 function perform_modes(species::ModesSpecies, state::State)
     prune_species = PruneSpecies(species)
-    if first(get_interactions(state)).id == "Control-A-B"
-        return prune_species
+    #println("prune_species: $prune_species")
+    #println("--------$(species.id)------------")
+    #println("length pruned before = $(length(prune_species.pruned))")
+
+    if first(get_interactions(state)).id == "Control-A-B" || is_fully_pruned(prune_species)
+        return prune_species.pruned
     end
     perform_simulation!(prune_species, state)
     while !is_fully_pruned(prune_species)
+        n_currents = length(prune_species.currents)
+        n_candidates = length(prune_species.candidates)
+        n_pruned = length(prune_species.pruned)
+        #println("currents = $n_currents, candidates = $n_candidates, pruned = $n_pruned")
         prune_species = update_candidates(prune_species)
         perform_simulation!(prune_species, state)
         prune_species = update_currents(prune_species)
     end
+    n_currents = length(prune_species.currents)
+    n_candidates = length(prune_species.candidates)
+    n_pruned = length(prune_species.pruned)
+    #println("currents = $n_currents, candidates = $n_candidates, pruned = $n_pruned")
     pruned_individuals = prune_species.pruned
+    #println("length pruned after = $(length(pruned_individuals))")
+    if length(pruned_individuals) == 0
+        println("species =  $prune_species")
+        throw(ErrorException("No individuals were pruned."))
+    end
     return pruned_individuals
 end

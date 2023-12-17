@@ -125,8 +125,13 @@ function create_jobs(
     phenotype_creators::Vector{<:PhenotypeCreator},
 )
     all_matches = make_all_matches(job_creator, rng, all_species)
+    #println("all species: $all_species")
+    
+    #println("all_matches: $all_matches")
     phenotype_dict = create_phenotype_dict(all_species, phenotype_creators, all_matches)
+    #println("phenotype_dict: $phenotype_dict")
     match_partitions = make_partitions(all_matches, job_creator.n_workers)
+    #println("match_partitions: $match_partitions")
     #phenotype_dict = create_phenotype_dict(all_species, phenotype_creators)
     jobs = make_all_jobs(job_creator, phenotype_dict, match_partitions)
     return jobs

@@ -20,6 +20,16 @@ function aggregate(
     measurements::Vector{<:BasicMeasurement}
 )
     values = [measurement.value for measurement in measurements]
+    if length(values) == 0
+        measurements = [
+            BasicMeasurement("$base_path/n_values", 0),
+            BasicMeasurement("$base_path/sum", 0),
+            BasicMeasurement("$base_path/mean", 0),
+            BasicMeasurement("$base_path/var", 0),
+            BasicMeasurement("$base_path/std", 0),
+        ]
+        return measurements
+    end
     measurements = [
         BasicMeasurement("$base_path/n_values", length(values)),
         BasicMeasurement("$base_path/sum", sum(values)),
@@ -38,6 +48,16 @@ function aggregate(
     measurements::Vector{<:BasicMeasurement}
 )
     values = [measurement.value for measurement in measurements]
+    if length(values) == 0
+        measurements = [
+            BasicMeasurement("$base_path/minimum", 0),
+            BasicMeasurement("$base_path/lower_quartile", 0),
+            BasicMeasurement("$base_path/median", 0),
+            BasicMeasurement("$base_path/upper_quartile", 0),
+            BasicMeasurement("$base_path/maximum", 0),
+        ]
+        return measurements
+    end
     quantiles = nquantile(values, 4)
     measurements = [
         BasicMeasurement("$base_path/minimum", quantiles[1]),
@@ -101,6 +121,13 @@ function aggregate(
     base_path::String,
     measurements::Vector{<:BasicMeasurement}
 )
+    if length(measurements) == 0
+        measurements = [
+            BasicMeasurement("$base_path/lower_confidence", 0),
+            BasicMeasurement("$base_path/upper_confidence", 0),
+        ]
+        return measurements
+    end
     values = [measurement.value for measurement in measurements]
     bootstrap_result = bootstrap(mean, values, BasicSampling(aggregator.n_samples))
     _, lower_confidence, upper_confidence = bootstrap_confint(

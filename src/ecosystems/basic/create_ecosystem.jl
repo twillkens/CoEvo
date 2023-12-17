@@ -8,10 +8,12 @@ function create_ecosystem(
     results::Vector{<:Result}, 
 )
     individual_outcomes = get_individual_outcomes(results)
+    #println("individual_outcomes: $individual_outcomes")
     observations = get_observations(results)
     evaluations = evaluate(
         ecosystem_creator, ecosystem, individual_outcomes, observations
     )
+    #println("evaluations: $evaluations")
     state = create_state(
         ecosystem_creator.state_creator, 
         ecosystem_creator, 

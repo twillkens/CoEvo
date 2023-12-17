@@ -183,7 +183,7 @@ function make_reporters(configuration::DeployReportConfiguration)
         make_global_state_reporter(configuration),
         make_runtime_reporter(configuration),
         make_all_genotypes_reporter(configuration),
-        make_parent_ids_reporter(configuration),
+        #make_parent_ids_reporter(configuration),
         make_genotype_size_reporter(configuration),
         make_minimized_genotype_size_reporter(configuration),
         make_scaled_fitness_reporter(configuration),

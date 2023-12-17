@@ -5,7 +5,7 @@ export remove_pruned_individuals, create_phenotype_dict, get_individuals_to_eval
 
 import ...Individuals: get_individuals
 import ...Individuals.Prune: is_fully_pruned
-import ...Species: create_phenotype_dict
+import ...Species: create_phenotype_dict, get_individuals_to_evaluate
 
 using ...Individuals.Prune: PruneIndividual
 using ...Genotypes: minimize, Genotype
@@ -50,19 +50,30 @@ end
 
 function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
     persistent_tags = get_persistent_tags(species)
-    currents = I[]
-    candidates = I[]
-    pruned = I[]
+    println("persistent_tags = $persistent_tags")
+    #println("species.previous_population: $(species.previous_population)")
+    currents = []
+    candidates = []
+    pruned = []
     persistent_individuals = [
         individual for individual in species.previous_population 
         if individual.tag in persistent_tags
     ]
+    println("persistent_ids = : $([individual.id for individual in persistent_individuals])")
+    if length(persistent_individuals) == 0
+        throw(ErrorException("No persistent individuals found."))
+    end
+
     for individual in persistent_individuals
         genotype = minimize(individual.genotype)
-        prune_individual = PruneIndividual(-individual.id, genotype)
+        prune_individual = PruneIndividual(-individual.id, genotype, genotype)
         to_push = is_fully_pruned(prune_individual) ? pruned : currents
         push!(to_push, prune_individual)
     end
+    T = length(currents) == 0 ? typeof(first(pruned)) : typeof(first(currents))
+    currents = T[current for current in currents]
+    candidates = T[candidate for candidate in candidates]
+    pruned = T[prune for prune in pruned]
     species = PruneSpecies(species.id, currents, candidates, pruned)
     return species
 end

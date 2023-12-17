@@ -14,7 +14,7 @@ Base.@kwdef mutable struct BasicEcosystemCreator{
 } <: EcosystemCreator
     id::String
     trial::Int
-    random_number_generator::AbstractRNG
+    rng::AbstractRNG
     species_creators::Vector{S}
     job_creator::J
     performer::P
@@ -30,7 +30,7 @@ function create_ecosystem(ecosystem_creator::BasicEcosystemCreator)
     all_species = [
         create_species(
             species_creator,
-            ecosystem_creator.random_number_generator, 
+            ecosystem_creator.rng, 
             ecosystem_creator.individual_id_counter, 
             ecosystem_creator.gene_id_counter
         ) 

@@ -66,7 +66,7 @@ end
 
 function safe_median(values::Vector{T}) where {T <: Real}
     median_value = median(values)
-    median_value = isnan(median_value) ? T(0.0) : median_value
+    median_value = isinf(median_value) ? T(0.0) : median_value
     return median_value
 end
 
@@ -155,6 +155,14 @@ function make_linearized_nodes(
             )
             for connection in node.input_connections
         ]
+        if any(isnan, [connection.weight for connection in connections])
+            println("genotype = $genotype")
+            throw(ErrorException("NaN connection weights: $connections for $node"))
+        end
+        if any(isinf, [connection.weight for connection in connections])
+            println("genotype = $genotype")
+            throw(ErrorException("Inf connection weights: $connections for $node"))
+        end
         input_values = zeros(Float32, length(connections))
         linearized_node = LinearizedFunctionGraphNode(
             id = id,
@@ -172,14 +180,7 @@ end
 function create_phenotype(
     ::LinearizedFunctionGraphPhenotypeCreator, genotype::FunctionGraphGenotype, id::Int
 )::LinearizedFunctionGraphPhenotype
-    if id == -23215
-        println("-------------CREATE PHENOTYPE-------------")
-        println("\nGENOTYPE in CREATE_PHENOTYPE: ", genotype)
-    end
     genotype = minimize(genotype)
-    if id == -23215
-        println("\nGENOTYPE after MINIMIZATION: ", genotype)
-    end
     layers = construct_layers(genotype)
     ordered_node_ids = vcat(layers...)
     node_id_to_position_dict = create_node_id_to_position_dict(ordered_node_ids)
@@ -199,9 +200,6 @@ function create_phenotype(
         n_nodes_per_output = genotype.n_nodes_per_output,
         output_values = output_values
     )
-    if id == -23215
-        println("\nPHENOTYPE after CREATION: ", phenotype)
-    end
     return phenotype
 end
 

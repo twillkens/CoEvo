@@ -140,6 +140,9 @@ include("performers/performers.jl")
 using .Performers: Performers
 println("loaded performers")
 
+include("modes/modes.jl")
+using .Modes: Modes
+
 include("states/states.jl")
 using .States: States
 println("loaded states")
@@ -160,8 +163,6 @@ include("names/names.jl")
 using .Names: Names
 println("loaded names")
 
-include("modes/modes.jl")
-using .Modes: Modes
 
 include("configurations/configurations.jl")
 using .Configurations: Configurations, run!

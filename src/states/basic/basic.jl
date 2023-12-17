@@ -18,7 +18,7 @@ using ...Observers: Observation
 using ...Metrics.Evaluations: EvaluationMetric
 using ...Metrics.Species: SpeciesMetric, AggregateSpeciesMetric
 using ...Metrics.Common: GlobalStateMetric, RuntimeMetric, BasicMeasurement
-using ..States: State, StateCreator
+using ...Abstract.States: State, StateCreator
 
 include("state.jl")
 

@@ -15,9 +15,13 @@ function get_maximum_fitness(reproducer::Reproducer, topology::Topology)
 end
 
 function make_half_truncator(reproducer::Reproducer)
+    println("reproducer = ", reproducer)
     n_individuals = get_n_individuals(reproducer)
+    println("n_individuals: ", n_individuals)
     n_truncate = n_individuals ÷ 2
+    println("n_truncate: ", n_truncate)
     truncator = TruncationReplacer(n_truncate = n_truncate)
+    println("truncator: ", truncator)
     return truncator
 end
 
@@ -51,16 +55,8 @@ function archive!(reproducer::RouletteReproducer, file::File)
     file["$base_path/n_children"] = reproducer.n_children
 end
 
-function make_evaluator(::RouletteReproducer, ::BasicTopology)
+function make_evaluator(::RouletteReproducer, ::Topology)
     evaluator = ScalarFitnessEvaluator()
-    return evaluator
-end
-
-function make_evaluator(reproducer::RouletteReproducer, topology::AdaptiveArchiveTopology)
-    evaluator = AdaptiveArchiveEvaluator(
-        non_archive_evaluator = make_evaluator(reproducer, topology.basic_topology),
-        full_evaluator = make_evaluator(reproducer, topology.basic_topology),
-    )
     return evaluator
 end
 
@@ -168,7 +164,7 @@ function archive!(reproducer::DiscoReproducer, file::File)
     file["$base_path/distance_method"] = reproducer.distance_method
 end
 
-function make_evaluator(reproducer::DiscoReproducer, ::BasicTopology)
+function make_evaluator(reproducer::DiscoReproducer, ::Topology)
     evaluator = NSGAIIEvaluator(
         maximize = true, 
         perform_disco = true, 
@@ -179,13 +175,6 @@ function make_evaluator(reproducer::DiscoReproducer, ::BasicTopology)
     return evaluator
 end
 
-function make_evaluator(reproducer::DiscoReproducer, topology::AdaptiveArchiveTopology)
-    evaluator = AdaptiveArchiveEvaluator(
-        non_archive_evaluator = ScalarFitnessEvaluator(),
-        full_evaluator = make_evaluator(reproducer, topology.basic_topology),
-    )
-    return evaluator
-end
 
 make_replacer(reproducer::DiscoReproducer) = make_half_truncator(reproducer)
 

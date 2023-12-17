@@ -5,12 +5,15 @@ export ComplexityMetric, NoveltyMetric, ChangeMetric
 import ...Metrics: measure
 
 using Base: @kwdef
+using ...Metrics.Aggregators: BasicStatisticalAggregator, aggregate, BasicQuantileAggregator
 using ...Genotypes: Genotype, get_size
 using ...Metrics: Metric, Measurement
 using ...Metrics.Common: BasicMeasurement
 
 @kwdef struct ComplexityMetric <: Metric
     name::String = "complexity"
+    to_print::Union{String, Vector{String}} = ["maximum", "mean", "minimum", "n_values"]
+    to_save::Union{String, Vector{String}} = "all"
 end
 
 using ...Abstract.States: State, get_species, get_all_species
@@ -20,7 +23,7 @@ function get_current_pruned_genotypes(state::State)
     genotypes = [
         individual.genotype 
         for species in all_species 
-        for individual in species.pruned_individuals
+        for individual in species.pruned
     ]
     return genotypes
 end
@@ -45,21 +48,36 @@ function get_all_previous_pruned_genotypes(state::State)
     return genotypes
 end
 
-using ...Metrics.Aggregators: BasicStatisticalAggregator, aggregate
 
 function measure(::ComplexityMetric, state::State)
     genotypes = get_current_pruned_genotypes(state)
     complexities = [get_size(genotype) for genotype in genotypes]
+    if length(complexities) == 0
+        measurments = [
+            BasicMeasurement("modes/complexity/maximum", 0),
+            BasicMeasurement("modes/complexity/mean", 0),
+            BasicMeasurement("modes/complexity/minimum", 0),
+            BasicMeasurement("modes/complexity/n_values", 0),
+        ]
+    end
     measurements = aggregate(
         BasicStatisticalAggregator(), 
         "modes/complexity", 
         [BasicMeasurement("complexity", complexity) for complexity in complexities]
     )
+    quantile_measurements = aggregate(
+        BasicQuantileAggregator(), 
+        "modes/complexity", 
+        [BasicMeasurement("complexity", complexity) for complexity in complexities]
+    )
+    measurements = vcat(measurements, quantile_measurements)
     return measurements
 end
 
 @kwdef struct NoveltyMetric <: Metric
     name::String = "novelty"
+    to_print::Union{String, Vector{String}} = "all"
+    to_save::Union{String, Vector{String}} = "all"
 end
 
 function measure(::NoveltyMetric, state::State)
@@ -67,12 +85,14 @@ function measure(::NoveltyMetric, state::State)
     all_previous_pruned = get_all_previous_pruned_genotypes(state)
     new_genotypes = setdiff(current_pruned, all_previous_pruned)
     novelty = length(new_genotypes)
-    measurement = BasicMeasurement("modes/novelty", novelty)
+    measurement = [BasicMeasurement("modes/novelty", novelty)]
     return measurement
 end
 
 @kwdef struct ChangeMetric <: Metric
     name::String = "change"
+    to_print::Union{String, Vector{String}} = "all"
+    to_save::Union{String, Vector{String}} = "all"
 end
 
 function measure(::ChangeMetric, state::State)
@@ -80,7 +100,7 @@ function measure(::ChangeMetric, state::State)
     previous_pruned = get_previous_pruned_genotypes(state)
     different_genotypes = setdiff(current_pruned, previous_pruned)
     change = length(different_genotypes)
-    measurement = BasicMeasurement("modes/change", change)
+    measurement = [BasicMeasurement("modes/change", change)]
     return measurement
 end
 

@@ -51,7 +51,7 @@ function make_species_creators(
             mutators = make_mutators(substrate),
             max_archive_size = topology.max_archive_size,
             n_sample = topology.n_sample,
-            
+            modes_interval = topology.modes_interval,
         ) 
         for species_id in species_ids
     ]

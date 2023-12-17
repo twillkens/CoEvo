@@ -25,3 +25,24 @@ function mutate(
 
     return individuals
 end
+
+using ..Individuals.Modes: ModesIndividual
+
+function mutate(
+    mutator::Mutator,
+    rng::AbstractRNG,
+    gene_id_counter::Counter,
+    individuals::Vector{<:ModesIndividual},
+)
+    individuals = [
+        ModesIndividual(
+            individual.id,
+            individual.parent_id,
+            individual.tag,
+            individual.age,
+            mutate(mutator, rng, gene_id_counter, individual.genotype),
+        ) for individual in individuals
+    ]
+
+    return individuals
+end

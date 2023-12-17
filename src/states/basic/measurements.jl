@@ -27,7 +27,7 @@ function measure(metric::RuntimeMetric, state::BasicCoevolutionaryState)
 end
 
 function measure(metric::SpeciesMetric, state::BasicCoevolutionaryState)
-    all_species = state.species
+    all_species = state.all_species
     measurements = measure(metric, all_species)
     return measurements
 end

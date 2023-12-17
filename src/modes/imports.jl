@@ -1,6 +1,7 @@
 
 import ..Individuals: get_individuals
 import ..SpeciesCreators: create_species
+import ..Species.Modes: add_to_archive!
 using ..CoEvo
 
 using Random: AbstractRNG
@@ -21,9 +22,9 @@ using ..Genotypes.FunctionGraphs: FunctionGraphGenotype
 using ..Individuals.Modes: ModesIndividual, ModesIndividualCreator
 using ..Species: AbstractSpecies
 using ..Species.Basic: BasicSpecies
-using ..Species.Modes: ModesSpecies, AdaptiveArchive
+using ..Species.Modes: ModesSpecies, AdaptiveArchive, get_persistent_tags
 using ..Species.Prune: PruneSpecies
-using ..SpeciesCreators: get_phenotype_creators, get_scalar_fitness_evaluators
+using ..SpeciesCreators: get_scalar_fitness_evaluators
 using ..SpeciesCreators.Basic: BasicSpeciesCreator
 using ..Jobs: JobCreator, create_jobs
 using ..Jobs.Basic: BasicJobCreator
@@ -43,7 +44,7 @@ using ..Abstract.States: get_rng, get_n_workers, get_interactions, get_all_speci
 using ..Performers: perform
 using ..Observers: Observation
 using ..Abstract.States: State, get_rng, get_species, get_species_creators, get_job_creator, get_perfomer
-using ..Abstract.States: find_by_id
+using ..Abstract.States: find_by_id, get_phenotype_creators, get_individual_id_counter, get_gene_id_counter
 using ...Evaluators: Evaluation, get_records
 
 using ...Species.Modes: get_recent

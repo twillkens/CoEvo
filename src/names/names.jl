@@ -224,7 +224,7 @@ using ..Metrics.Species: AllGenotypesSpeciesMetric, ParentIDsSpeciesMetric
 # StateCreators
 
 export State, StateCreator
-using ..States: State, StateCreator
+using ..Abstract.States: State, StateCreator
 
 export BasicCoevolutionaryState, BasicCoevolutionaryStateCreator
 using ..States.Basic: BasicCoevolutionaryState, BasicCoevolutionaryStateCreator

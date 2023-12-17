@@ -7,6 +7,7 @@ export get_evaluation_time, get_trial, get_species_creators, get_species
 export get_individual_outcomes, get_observations, get_species, get_evaluation
 export get_phenotype_creators, get_n_workers, get_interactions
 export get_evaluator, get_species, get_evaluation, find_by_id, get_perfomer
+export get_generation
 
 abstract type State end
 abstract type StateCreator end
@@ -34,7 +35,7 @@ get_interactions(state::State) = state.interactions
 get_perfomer(state::State) = state.performer
 
 
-function find_by_id(collection::Vector{T}, id::String) where T 
+function find_by_id(collection::Vector{T}, id::I) where {T, I}
     filtered = filter(item -> item.id == id, collection)
     if length(filtered) == 0
         throw(ErrorException("Could not find item with id $id"))

@@ -362,6 +362,11 @@ function inject_noise!(genotype::FunctionGraphGenotype, noise_map::Dict{Int, Vec
             for (i, conn) in enumerate(node.input_connections)
                 if i <= length(noise_values)
                     conn.weight += noise_values[i]
+                    if isinf(conn.weight) || isnan(conn.weight)
+                        println("genotype = $genotype")
+                        println("noise_map = $noise_map")
+                        throw(ErrorException("Invalid weight"))
+                    end
                 end
             end
         end

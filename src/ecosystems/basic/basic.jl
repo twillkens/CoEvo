@@ -28,7 +28,7 @@ using ...Reporters: Reporter, Report, create_reports
 using ...Archivers: Archiver, archive!
 using ...Performers: perform
 using ...States.Basic: BasicCoevolutionaryStateCreator, BasicCoevolutionaryState
-using ...States: State, StateCreator
+using ...Abstract.States: State, StateCreator
 using ..Ecosystems: Ecosystem, EcosystemCreator
 
 include("ecosystem.jl")
