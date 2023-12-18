@@ -167,7 +167,7 @@ function perform_modes(species::ModesSpecies, state::State)
         ids = [individual.id for individual in pruned_individuals]
         sizes = [get_size(individual.genotype) for individual in pruned_individuals]
         fitnesses = [individual.fitness for individual in pruned_individuals]
-        summaries = [(id, size, round(fitness, 3)) for (id, size, fitness) in zip(ids, sizes, fitnesses)]
+        summaries = [(id, size, round(fitness; digits = 3)) for (id, size, fitness) in zip(ids, sizes, fitnesses)]
         println("$(species.id) -- pruned individuals: ", summaries)
         return prune_species.pruned
     end
@@ -203,7 +203,11 @@ function perform_modes(species::ModesSpecies, state::State)
     ids = [individual.id for individual in pruned_individuals]
     sizes = [get_size(individual.genotype) for individual in pruned_individuals]
     fitnesses = [individual.fitness for individual in pruned_individuals]
-    summaries = [(id, size, fitness) for (id, size, fitness) in zip(ids, sizes, fitnesses)]
+    summaries = [
+        (id, size, round(fitness; digits = 3)) 
+        for (id, size, fitness) in zip(ids, sizes, fitnesses)
+    ]
+    sort!(summaries, by = x -> x[3]; rev = true)
     println("$(species.id) -- pruned individuals: ", summaries)
     return pruned_individuals
 end

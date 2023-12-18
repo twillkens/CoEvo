@@ -57,11 +57,11 @@ function make_modes_species(
     species::ModesSpecies, new_population::Vector{<:ModesIndividual}, state::State
 )
     new_pruned = perform_modes(species, state)
+    sort!(new_pruned, by = individual -> individual.fitness; rev = true)
     new_modes_pruned = [
         ModesIndividual(individual.id, -individual.id, 0, 0, individual.genotype)
         for individual in new_pruned
     ]
-    sort!(new_modes_pruned, by = individual -> individual.fitness; rev = true)
     adaptive_elite = new_modes_pruned[1]
     add_to_archive!(species.adaptive_archive, [adaptive_elite])
     species = ModesSpecies(
@@ -71,7 +71,7 @@ function make_modes_species(
         pruned = new_modes_pruned,
         previous_pruned = copy(species.pruned), 
         all_previous_pruned = union(species.all_previous_pruned, species.pruned),
-        adaptive_archive = species.adaptiue_archive,
+        adaptive_archive = species.adaptive_archive,
         elites_archive = species.elites_archive,
         previous_adaptive = copy(species.adaptive_archive.individuals),
         previous_elites = copy(species.elites_archive.individuals),
