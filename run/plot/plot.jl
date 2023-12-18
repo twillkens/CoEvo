@@ -65,18 +65,17 @@ function get_all_measurements(
 
         try
             modes_metrics = [
-                ("complexity", "maximum"), ("change", "mean"), ("novelty", "mean")
+                ("complexity", "mean"), ("change", "mean"), ("novelty", "mean")
             ]
+            println(keys(file["generations/$gen/modes"]))
             for (metric, submetric) in modes_metrics
-                value = Float64(read(file["generations/$gen/modes/$metric"]))
+                if metric == "complexity"
+                    value = Float64(read(file["generations/$gen/modes/$metric/maximum"]))
+                else
+                    value = Float64(read(file["generations/$gen/modes/$metric"]))
+                end
                 measurement = PredictionGameAggregateMeasurement(
-                    experiment_configuration, 
-                    trial, 
-                    gen, 
-                    "all",
-                    metric, 
-                    submetric, 
-                    value
+                    experiment_configuration, trial, gen, "all", metric, submetric, value
                 )
                 push!(measurements, measurement)
             end
