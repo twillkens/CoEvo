@@ -16,7 +16,9 @@ function evolve!(
             ecosystem.species,
             phenotype_creators,
         )
+        #println("evolve! ", ecosystem_creator.rng.state)
         results = perform(ecosystem_creator.performer, jobs)
+        #println("after perform ", ecosystem_creator.rng.state)
         evaluation_time = time() - evaluation_time_start
         last_reproduction_time_start = time()
         ecosystem = create_ecosystem(
@@ -27,6 +29,7 @@ function evolve!(
             ecosystem, 
             results
         )
+        #println("after create_ecosystem ", ecosystem_creator.rng.state)
         last_reproduction_time = time() - last_reproduction_time_start
     end
 
@@ -46,7 +49,9 @@ function evolve!(
 end
 
 function evolve!(ecosystem_creator::BasicEcosystemCreator; n_generations::Int = 100)
+    #println("before create: ", ecosystem_creator.rng.state)
     ecosystem = create_ecosystem(ecosystem_creator)
+    #println("after create: ", ecosystem_creator.rng.state)
     ecosystem = evolve!(ecosystem_creator, ecosystem, n_generations)
     return ecosystem
 end

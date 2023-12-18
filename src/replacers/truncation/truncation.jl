@@ -26,16 +26,12 @@ function replace(
 )
     #println("length population: ", length(species.population))
     candidates = get_individuals_to_evaluate(species)
+    #println("candidate_ids = $(collect(candidate.id for candidate in candidates))")
     #println("length candidates: ", length(candidates))
     if length(candidates) != length(evaluation.records)
         throw(ErrorException("length candidates != length records"))
     end
-    #println("n_truncate = ", replacer.n_truncate)
-    #println("candidates = ", candidates)
-    #println("ids: ", ids)
-    records = sort(evaluation.records, by = record -> record.fitness, rev = true)
-    #println("candidate ids: ", [candidate.id for candidate in candidates])
-    ids = [record.id for record in records]
+    ids = [record.id for record in evaluation.records]
     #println("record_ids:", ids)
     end_index = length(ids) - replacer.n_truncate
     truncated_ids = Set(ids[1:end_index])

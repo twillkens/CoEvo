@@ -29,20 +29,18 @@ function recombine(
     ::CloneRecombiner,
     ::AbstractRNG, 
     individual_id_counter::Counter, 
-    parents::Vector{<:ModesIndividual};
-    reset_tags::Bool = false
+    parents::Vector{<:ModesIndividual}
 ) 
-    tags = reset_tags ? [i for i in 1:length(parents)] : [parent.tag for parent in parents]
     children = [
         ModesIndividual(
-            count!(individual_id_counter), 
-            parent.id,
-            tag,
-            0,
-            parent.genotype, 
+            count!(individual_id_counter), parent.id, parent.tag, 0, parent.genotype,
         ) 
-        for (parent, tag) in zip(parents, tags)
+        for parent in parents
     ]
+    parent_ids = [parent.id for parent in parents]
+    children_ids = [child.id for child in children]
+    summaries = [(child_id, parent_id) for child_id in children_ids, parent_id in parent_ids]
+    #println("recombiner_results = $summaries")
     return children
 end
 

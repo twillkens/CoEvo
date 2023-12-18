@@ -90,7 +90,7 @@ function evaluate(
         evaluator.scalar_fitness_evaluator, rng, species, outcomes
     )
     individuals = get_individuals_to_evaluate(species)
-    #filter!(individual -> individual.id in keys(outcomes), individuals)
+    filter!(individual -> individual.id in keys(outcomes), individuals)
     
     individual_tests = make_individual_tests(individuals, outcomes)
 
@@ -112,6 +112,7 @@ function evaluate(
     sorted_records = nsga_sort!(
         records, criterion, evaluator.function_minimums, evaluator.function_maximums
     )
+    #println("sorted_records_ids = ", [record.id for record in sorted_records])
     evaluation = NSGAIIEvaluation(species.id, sorted_records, scalar_fitness_evaluation)
 
     return evaluation

@@ -1,6 +1,6 @@
 module MatchMakers
 
-export AllVersusAll, OneVersusAll, RandomSample, AdaptiveArchive
+export AllVersusAll, OneVersusAll, RandomSample#, AdaptiveArchive
 
 using Random: AbstractRNG
 using ..Matches: Match

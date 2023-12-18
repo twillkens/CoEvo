@@ -6,6 +6,7 @@ using ...Names
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode, FunctionGraphConnection
 using ...Ecosystems.Basic: BasicEcosystem
 using HDF5: File, read, h5open, Group
+using ...Species.Modes: ModesSpecies
 
 function load(
     file::File, 
@@ -92,7 +93,7 @@ function load(
         file, species_creator.basic_species_creator, archive_ids
     )
     active_ids = read(file["generations/$gen/species/$(species_creator.id)/active_ids"])
-    species = AdaptiveArchiveSpecies(
+    species = ModesSpecies(
         basic_species.id, 
         experiment.topology.max_archive_size, 
         experiment.topology.n_sample, 

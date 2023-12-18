@@ -187,22 +187,27 @@ function make_reporters(configuration::DeployReportConfiguration)
         make_genotype_size_reporter(configuration),
         make_minimized_genotype_size_reporter(configuration),
         make_scaled_fitness_reporter(configuration),
-        BasicReporter(
-            metric = ComplexityMetric(), 
-            save_interval = configuration.save_interval, 
-            print_interval = configuration.print_interval
-        ),
-        BasicReporter(
-            metric = NoveltyMetric(), 
-            save_interval = configuration.save_interval, 
-            print_interval = configuration.print_interval
-        ),
-        BasicReporter(
-            metric = ChangeMetric(), 
-            save_interval = configuration.save_interval, 
-            print_interval = configuration.print_interval
-        ),
     ]
+    if configuration.modes_interval > 0
+        modes_reporters = [
+            BasicReporter(
+                metric = ComplexityMetric(), 
+                save_interval = configuration.save_interval, 
+                print_interval = configuration.print_interval
+            ),
+            BasicReporter(
+                metric = NoveltyMetric(), 
+                save_interval = configuration.save_interval, 
+                print_interval = configuration.print_interval
+            ),
+            BasicReporter(
+                metric = ChangeMetric(), 
+                save_interval = configuration.save_interval, 
+                print_interval = configuration.print_interval
+            )
+        ]
+        reporters = [reporters; modes_reporters]
+    end
     return reporters
 end
 

@@ -45,10 +45,11 @@ function get_modes_jobs(prune_species::PruneSpecies, state::State)
     to_evaluate = get_individuals_to_evaluate(prune_species)
     simple_species = SimpleSpecies(prune_species.id, to_evaluate)
     other_simple_species = [
-        SimpleSpecies(
-            species.id, 
-            [species.previous_population ; species.previous_adaptive ; species.previous_elites]
-        ) 
+        SimpleSpecies(species.id, [
+            species.previous_population ; 
+            species.adaptive_archive.individuals ; 
+            species.elites_archive.individuals
+        ])
         for species in filter(species -> species.id != prune_species.id, get_all_species(state))
     ]
     println("length_other_individuals = $(length(first(other_simple_species).population))")
@@ -162,20 +163,26 @@ function perform_modes(species::ModesSpecies, state::State)
     #println("length pruned before = $(length(prune_species.pruned))")
 
     if first(get_interactions(state)).id == "Control-A-B" || is_fully_pruned(prune_species)
+        pruned_individuals = prune_species.pruned
+        ids = [individual.id for individual in pruned_individuals]
+        sizes = [get_size(individual.genotype) for individual in pruned_individuals]
+        fitnesses = [individual.fitness for individual in pruned_individuals]
+        summaries = [(id, size, round(fitness, 3)) for (id, size, fitness) in zip(ids, sizes, fitnesses)]
+        println("$(species.id) -- pruned individuals: ", summaries)
         return prune_species.pruned
     end
     perform_simulation!(prune_species, state)
     while !is_fully_pruned(prune_species)
         prune_species = update_candidates(prune_species)
-        n_currents = length(prune_species.currents)
-        n_candidates = length(prune_species.candidates)
-        n_pruned = length(prune_species.pruned)
+        #n_currents = length(prune_species.currents)
+        #n_candidates = length(prune_species.candidates)
+        #n_pruned = length(prune_species.pruned)
         #println("after update_candidates, currents = $n_currents, candidates = $n_candidates, pruned = $n_pruned")
         perform_simulation!(prune_species, state)
         prune_species = update_currents(prune_species)
-        n_currents = length(prune_species.currents)
-        n_candidates = length(prune_species.candidates)
-        n_pruned = length(prune_species.pruned)
+        #n_currents = length(prune_species.currents)
+        #n_candidates = length(prune_species.candidates)
+        #n_pruned = length(prune_species.pruned)
         #println("after update_currents, currents = $n_currents, candidates = $n_candidates, pruned = $n_pruned")
     end
     # n_currents = length(prune_species.currents)
@@ -193,5 +200,10 @@ function perform_modes(species::ModesSpecies, state::State)
         println("pruned_individuals_after: $pruned_individuals")
         throw(ErrorException("length pruned_individuals != length_start"))
     end
+    ids = [individual.id for individual in pruned_individuals]
+    sizes = [get_size(individual.genotype) for individual in pruned_individuals]
+    fitnesses = [individual.fitness for individual in pruned_individuals]
+    summaries = [(id, size, fitness) for (id, size, fitness) in zip(ids, sizes, fitnesses)]
+    println("$(species.id) -- pruned individuals: ", summaries)
     return pruned_individuals
 end

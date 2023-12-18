@@ -65,7 +65,7 @@ function make_interactions(game::GameConfiguration, topology::BasicTopology)
     return interactions
 end
 
-function make_interactions(game::GameConfiguration, topology::AdaptiveArchiveTopology)
+function make_interactions(game::GameConfiguration, topology::ModesTopology)
     cohorts = topology.basic_topology.cohorts
     interaction_setups = topology.basic_topology.interaction_setups
     interactions = [
@@ -81,8 +81,7 @@ function make_job_creator(
     topology::Topology, 
 )
     job_creator = BasicJobCreator(
-        n_workers = get_n_workers(globals), 
-        interactions = make_interactions(game, topology)
+        n_workers = get_n_workers(globals), interactions = make_interactions(game, topology)
     )
     return job_creator
 end

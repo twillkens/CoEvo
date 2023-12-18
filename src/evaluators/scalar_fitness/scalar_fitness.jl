@@ -52,6 +52,7 @@ function evaluate(
     outcomes::Dict{Int, Dict{Int, Float64}}
 )
     individuals = get_individuals_to_evaluate(species)
+    #println("n individuals: ", length(individuals))
     if length(individuals) == 0
         return ScalarFitnessEvaluation(species.id, ScalarFitnessRecord[])
     end
@@ -93,6 +94,7 @@ function evaluate(
     sort!(records, by = x -> (x.scaled_fitness, rand(rng)), rev = true)
 
     evaluation = ScalarFitnessEvaluation(species.id, records)
+    #println("rng state after evaluation: ", rng.state)
     return evaluation
 end
 

@@ -50,7 +50,7 @@ end
 
 function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
     persistent_tags = get_persistent_tags(species)
-    println("persistent_tags = $persistent_tags")
+    #println("persistent_tags = $persistent_tags")
     #println("species.previous_population: $(species.previous_population)")
     currents = []
     candidates = []
@@ -59,7 +59,7 @@ function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
         individual for individual in species.previous_population 
         if individual.tag in persistent_tags
     ]
-    println("persistent_ids = : $([individual.id for individual in persistent_individuals])")
+    #println("persistent_ids = : $([individual.id for individual in persistent_individuals])")
     if length(persistent_individuals) == 0
         throw(ErrorException("No persistent individuals found."))
     end

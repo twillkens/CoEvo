@@ -51,6 +51,7 @@ function run!(
     n_generations::Int = get_n_generations(experiment) 
 )
     ecosystem_creator = make_ecosystem_creator(experiment)
+    println("rng1 = ", ecosystem_creator.rng.state)
     archive_exists = does_archive_exist(ecosystem_creator)
     if archive_exists
         checkpoint = EcosystemCheckpoint(ecosystem_creator)
@@ -66,6 +67,7 @@ function run!(
         ecosystem = create_ecosystem(ecosystem_creator)
         generations = UnitRange(1, n_generations)
     end
+    println("rng2 = ", ecosystem_creator.rng.state)
     ecosystem = evolve!(ecosystem_creator, ecosystem, generations)
     return ecosystem
 end

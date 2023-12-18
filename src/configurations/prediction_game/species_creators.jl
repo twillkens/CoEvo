@@ -31,7 +31,7 @@ function make_species_creators(
 end
 
 function make_species_creators(
-    topology::AdaptiveArchiveTopology, 
+    topology::ModesTopology, 
     substrate::Substrate, 
     reproducer::Reproducer, 
     game::GameConfiguration
@@ -49,9 +49,9 @@ function make_species_creators(
             selector = make_selector(reproducer),
             recombiner = make_recombiner(substrate),
             mutators = make_mutators(substrate),
-            max_archive_size = topology.max_archive_size,
-            n_sample = topology.n_sample,
             modes_interval = topology.modes_interval,
+            adaptive_archive_length = topology.adaptive_archive_length,
+            elites_archive_length = topology.elites_archive_length,
         ) 
         for species_id in species_ids
     ]

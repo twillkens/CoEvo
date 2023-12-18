@@ -36,9 +36,9 @@ function create_individuals(
     gene_id_counter::Counter,
 )
     ids = count!(individual_id_counter, n_population)
-    genotypes = create_genotypes(genotype_creator,rng, gene_id_counter, n_population)
+    genotypes = create_genotypes(genotype_creator, rng, gene_id_counter, n_population)
     individuals = [
-        ModesIndividual(id, id, tag, 0, genotype) 
+        ModesIndividual(id, id, id, 0, genotype) 
         for (tag, (id, genotype)) in enumerate(zip(ids, genotypes))
     ]
     return individuals

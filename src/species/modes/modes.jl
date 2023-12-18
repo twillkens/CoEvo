@@ -1,7 +1,7 @@
 module Modes
 
 export ModesSpecies, get_individuals, get_persistent_tags, get_children, get_elders
-export get_recent, AdaptiveArchive, add_to_archive!, ModesSpecies, get_individuals_to_evaluate
+export ModesSpecies, get_individuals_to_evaluate, add_to_archive!, get_recent
 
 import ...Individuals: get_individuals
 import ...Species: get_individuals_to_evaluate, get_individuals_to_perform
@@ -15,17 +15,16 @@ using ...Individuals.Basic: BasicIndividual
 using ...Individuals.Modes: ModesIndividual
 using ...Species: AbstractSpecies
 
-
-struct AdaptiveArchive{I <: Individual}
+struct ModesArchive{I <: Individual}
     maximum_length::Int
     individuals::Vector{I}
 end
 
-function length(archive::AdaptiveArchive)
+function length(archive::ModesArchive)
     return length(archive.individuals)
 end
 
-function add_to_archive!(archive::AdaptiveArchive, candidates::Vector{<:Individual})
+function add_to_archive!(archive::ModesArchive, candidates::Vector{<:Individual})
     for candidate in candidates
         push!(archive.individuals, candidate)
     end
@@ -35,45 +34,42 @@ function add_to_archive!(archive::AdaptiveArchive, candidates::Vector{<:Individu
     end
 end
 
-function get_recent(archive::AdaptiveArchive, n::Int)
+function get_recent(archive::ModesArchive, n::Int)
     return archive.individuals[end-n+1:end]
 end
+
 
 Base.@kwdef struct ModesSpecies{I <: ModesIndividual} <: AbstractSpecies
     id::String
     population::Vector{I}
     previous_population::Vector{I}
-    previous_adaptive::Vector{I}
-    previous_elites::Vector{I}
     pruned::Vector{I}
     previous_pruned::Vector{I}
     all_previous_pruned::Set{I}
-    archive::AdaptiveArchive{I}
-    elites_archive::AdaptiveArchive{I}
+    adaptive_archive::ModesArchive{I}
+    elites_archive::ModesArchive{I}
+    previous_adaptive::Vector{I}
+    previous_elites::Vector{I}
 end
 
 function ModesSpecies(
-    id::String, population::Vector{I}, max_archive_size::Int
+    id::String, population::Vector{I}, adaptive_archive_length::Int, elites_archive_length::Int
 ) where {I <: ModesIndividual}
     previous_population = copy(population)
-    previous_adaptive = I[]
-    previous_elites = I[]
     pruned = I[]
     previous_pruned = I[]
     all_previous_pruned = Set{I}()
-    archive = AdaptiveArchive{I}(max_archive_size, I[])
-    elites_archive = AdaptiveArchive{I}(max_archive_size, I[])
     species = ModesSpecies(
-        id, 
-        population, 
-        previous_population, 
-        previous_adaptive,
-        previous_elites,
-        pruned, 
-        previous_pruned, 
-        all_previous_pruned,
-        archive,
-        elites_archive
+        id = id, 
+        population = population, 
+        previous_population = previous_population, 
+        pruned = pruned, 
+        previous_pruned = previous_pruned, 
+        all_previous_pruned = all_previous_pruned,
+        adaptive_archive = ModesArchive{I}(adaptive_archive_length, I[]),
+        elites_archive = ModesArchive{I}(elites_archive_length, I[]),
+        previous_adaptive = I[],
+        previous_elites = I[]
     )
     return species
 end
@@ -86,10 +82,8 @@ function get_individuals_to_evaluate(species::ModesSpecies)
     return species.population
 end
 
-function get_individuals_to_perform(
-    species::ModesSpecies, 
-)
-    return [species.population ; species.archive.individuals ; species.elites_archive.individuals]
+function get_individuals_to_perform(species::ModesSpecies,)
+    return species.population
 end
 
 function get_children(species::ModesSpecies)

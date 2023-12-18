@@ -35,12 +35,12 @@ Base.@kwdef struct BasicTopology <: Topology
     interaction_setups::Vector{BasicInteractionSetup}
 end
 
-Base.@kwdef struct AdaptiveArchiveTopology <: Topology
+Base.@kwdef struct ModesTopology <: Topology
     id::String
     basic_topology::BasicTopology
-    max_archive_size::Int
-    n_sample::Int
     modes_interval::Int
+    adaptive_archive_length::Int
+    elites_archive_length::Int
 end
 
 function get_n_species(topology::BasicTopology)
@@ -49,7 +49,7 @@ end
 
 get_species_ids(topology::BasicTopology) = topology.species_ids
 
-get_species_ids(topology::AdaptiveArchiveTopology) = get_species_ids(topology.basic_topology)
+get_species_ids(topology::ModesTopology) = get_species_ids(topology.basic_topology)
 
 function archive!(topology::BasicTopology, file::File)
     base_path = "configuration/topology"
@@ -59,11 +59,10 @@ function archive!(topology::BasicTopology, file::File)
     [archive!(interaction_setup, file) for interaction_setup in topology.interaction_setups]
 end
 
-function archive!(topology::AdaptiveArchiveTopology, file::File)
+function archive!(topology::ModesTopology, file::File)
     archive!(topology.basic_topology, file)
     base_path = "configuration/topology"
-    file["$base_path/n_sample"] = topology.n_sample
-    file["$base_path/max_archive_size"] = topology.max_archive_size
+    file["$base_path/modes_interval"] = topology.modes_interval
 end
 
 function load_topology(file::File)
@@ -84,14 +83,12 @@ function load_topology(file::File)
         cohorts = cohorts,
         interaction_setups = interaction_setups,
     )
-    if haskey(file, "$base_path/max_archive_size")
-        n_sample = read(file["$base_path/n_sample"])
-        max_archive_size = read(file["$base_path/max_archive_size"])
-        topology = AdaptiveArchiveTopology(
+    if haskey(file, "$base_path/modes_interval")
+        modes_interval = read(file["$base_path/modes_interval"])
+        topology = ModesTopology(
             id = id,
             basic_topology = topology,
-            n_sample = n_sample,
-            max_archive_size = max_archive_size,
+            modes_interval = modes_interval,
         )
     end
     return topology
@@ -227,8 +224,8 @@ const BASIC_TOPOLOGIES = Dict(
 
 function get_topology(
     id::String; 
-    adaptive_archive_max_size::Int = 0, 
-    n_adaptive_archive_samples::Int = 0, 
+    adaptive_archive_length::Int = 0, 
+    elites_archive_length::Int = 0, 
     modes_interval::Int = 0,
     kwargs...
 )
@@ -236,25 +233,17 @@ function get_topology(
         error("Topology with id $id not found.")
     end
     basic_topology = BASIC_TOPOLOGIES[id]
-    #topology = AdaptiveArchiveTopology(
-    #    id = id,
-    #    basic_topology = basic_topology,
-    #    max_archive_size = adaptive_archive_max_size,
-    #    n_sample = n_adaptive_archive_samples,
-    #    modes_interval = modes_interval
-    #)
-    #return topology
     if modes_interval == 0
         println("Using basic topology")
         return basic_topology
     else
-        println("Using adaptive archive topology")
-        topology = AdaptiveArchiveTopology(
+        println("Using modes topology")
+        topology = ModesTopology(
             id = id,
             basic_topology = basic_topology,
-            max_archive_size = adaptive_archive_max_size,
-            n_sample = n_adaptive_archive_samples,
-            modes_interval = modes_interval
+            modes_interval = modes_interval,
+            adaptive_archive_length = adaptive_archive_length,
+            elites_archive_length = elites_archive_length,
         )
         return topology
     end

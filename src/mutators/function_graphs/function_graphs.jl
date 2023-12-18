@@ -74,8 +74,8 @@ function add_function(
     # TODO: Make excluding bias nodes an option
     func = select_function(rng, function_probabilities)
     potential_input_node_ids = [
-        #graph.input_node_ids; graph.bias_node_ids; graph.hidden_node_ids
-        graph.input_node_ids; graph.hidden_node_ids
+        graph.input_node_ids; graph.bias_node_ids; graph.hidden_node_ids
+        #graph.input_node_ids; graph.hidden_node_ids
     ]
     input_connections = create_input_connections(
         rng, potential_input_node_ids, func.arity
@@ -166,7 +166,7 @@ function get_substitutions_for_node(
                 valid_nodes = setdiff(
                     union(
                         genotype.input_node_ids, 
-                        #genotype.bias_node_ids, 
+                        genotype.bias_node_ids, 
                         genotype.hidden_node_ids
                     ), 
                     [node_to_delete_id]
@@ -332,8 +332,8 @@ function redirect_connection(
     )
     # Choose a random new input node from input, bias, and hidden nodes
     redirection_target_candidate_ids = [
-        #genotype.input_node_ids ; genotype.bias_node_ids ; genotype.hidden_node_ids
-        genotype.input_node_ids ; genotype.hidden_node_ids
+        genotype.input_node_ids ; genotype.bias_node_ids ; genotype.hidden_node_ids
+        #genotype.input_node_ids ; genotype.hidden_node_ids
     ]
     new_input_node_id = rand(rng, redirection_target_candidate_ids)
     # Apply deterministic redirection
@@ -407,7 +407,7 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
     n_mutations::Int = 1
     validate_genotypes::Bool = false
     # Uniform probability of each type of structural change
-    exclude_bias_from_mutation::Bool = true
+    exclude_bias_from_mutation::Bool = false
     mutation_probabilities::Dict{Symbol, Float64} = Dict(
         :identity => 0.5,
         :add_function => 0.1,
@@ -515,6 +515,8 @@ function mutate(
         Weights(collect(values(mutator.mutation_probabilities))), 
         mutator.n_mutations
     )
+    #println("mutator = $mutator")
+    #println("mutations = $mutations")
     n_input_nodes = length(genotype.input_node_ids)
     n_bias_nodes = length(genotype.bias_node_ids)
     n_hidden_nodes = length(genotype.hidden_node_ids)
