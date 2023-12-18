@@ -139,6 +139,7 @@ experiment = make_prediction_game_experiment(;
 )
 
 println("Running experiment with seed $(args["seed"])...")
+println("experiment: $experiment")
 
 run!(experiment; n_generations = args["n_generations"])
 

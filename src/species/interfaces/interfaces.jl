@@ -1,10 +1,14 @@
 export get_individuals, get_species, get_all_ids, find_species_by_id, get_species_with_ids
-export create_phenotype_dict, get_individuals_to_evaluate
+export create_phenotype_dict, get_individuals_to_evaluate, get_individuals_to_perform
 
 using ..Phenotypes: PhenotypeCreator, create_phenotype
 
 function get_individuals_to_evaluate(species::AbstractSpecies)
     throw(ErrorException("get_individuals_to_evaluate not implemented for species of type $(typeof(species))"))
+end
+
+function get_individuals_to_perform(species::AbstractSpecies)
+    throw(ErrorException("get_individuals_to_perform not implemented for species of type $(typeof(species))"))
 end
 
 # Function to extract all individuals from a list of species
@@ -57,7 +61,7 @@ function create_phenotype_dict(
     phenotype_dict = Dict(
         individual.id => create_phenotype(phenotype_creator, individual)
         for (species, phenotype_creator) in zip(all_species, phenotype_creators)
-        for individual in get_individuals(species)
+        for individual in get_individuals_to_perform(species)
         if individual.id in ids
     )
     return phenotype_dict

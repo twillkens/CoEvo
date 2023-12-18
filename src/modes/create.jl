@@ -1,6 +1,7 @@
 using ...Individuals.Modes: age_individuals
 using ...Counters: Counter, count!
 using ...Abstract.States: get_generation
+using ...Genotypes: get_size
 
 Base.@kwdef struct ModesSpeciesCreator{
     G <: GenotypeCreator,
@@ -47,22 +48,6 @@ function create_species(
 end
 
 
-function spawn(
-    parents::Vector{<:ModesIndividual}, 
-    recombiner::Recombiner, 
-    mutators::Vector{<:Mutator}, 
-    state::State
-)
-    rng = get_rng(state)
-    individual_id_counter = get_individual_id_counter(state)
-    gene_id_counter = get_gene_id_counter(state)
-    children = recombine(recombiner, rng, individual_id_counter, parents)
-    for mutator in mutators
-        children = mutate(mutator, rng, gene_id_counter, children)
-    end
-    return children
-end
-
 
 function replace_worst_with_archive_elites(
     elders::Vector{<:Individual}, archive_clones::Vector{<:Individual}, evaluation::Evaluation
@@ -73,8 +58,15 @@ function replace_worst_with_archive_elites(
     elder_records = get_records(evaluation, [individual.id for individual in elders])
     #println("length_elder_records = ", length(elder_records))
     worst_records = sort(elder_records, by = record -> record.fitness)[1:n_substitute]
+    worst_fitnesses = [record.fitness for record in worst_records]
     #println("length_worst_records = ", length(worst_records))
     worst_ids = [record.id for record in worst_records]
+    worst_individuals = [find_by_id(elders, id) for id in worst_ids]
+    worst_sizes = [get_size(individual.genotype) for individual in worst_individuals]
+    worst_summaries = [(fitness, size) for (fitness, size) in zip(worst_fitnesses, worst_sizes)]
+    println("worst_summaries: ", worst_summaries)
+    clone_sizes = [get_size(individual.genotype) for individual in archive_clones]
+    println("clone_sizes: ", clone_sizes)
     #println("length_worst_ids = ", length(worst_ids))
     filtered_elders = filter(individual -> individual.id ∉ worst_ids, elders)
     #println("length_filtered_elders = ", length(filtered_elders))
@@ -96,14 +88,18 @@ using ...Abstract.States: get_rng, get_individual_id_counter, get_gene_id_counte
 function make_archive_clones(species::ModesSpecies, state::State)
     rng = get_rng(state)
     individual_id_counter = get_individual_id_counter(state)
-    individuals = [species.archive.individuals[end] for _ in eachindex(species.archive)]
+    #individuals = [species.archive.individuals[end] for _ in eachindex(species.archive)]
     archive_elite_clones = recombine(
-        CloneRecombiner(), rng, individual_id_counter, individuals
+        CloneRecombiner(), rng, individual_id_counter, species.archive.individuals
     )
     return archive_elite_clones
 end
 
 function find_new_elite(new_pruned::Vector{<:Individual})
+    println("new_pruned = ",
+        [(individual.id, get_size(individual.genotype), round(individual.fitness, digits=3)) 
+        for individual in new_pruned]
+    )
     best_id = last(sort(new_pruned, by = individual -> individual.fitness)).id
     new_modes_full = [
         ModesIndividual(individual.id, -individual.id, 0, 0, individual.full_genotype)
@@ -114,6 +110,7 @@ function find_new_elite(new_pruned::Vector{<:Individual})
         for individual in new_pruned
     ]
     new_elite = find_by_id(new_modes_full, best_id)
+    println("new_elite: ", new_elite.id)
     return new_modes_pruned, new_elite
 end
 
@@ -123,15 +120,19 @@ function make_modes_species(
     new_pruned = perform_modes(species, state)
     #println("new_pruned: ", [individual.id for individual in new_pruned])
     new_pruned, new_elite = find_new_elite(new_pruned)
-    add_to_archive!(species.archive, [new_elite])
+    #add_to_archive!(species.archive, [new_elite])
+    add_to_archive!(species.archive, new_pruned)
     species = ModesSpecies(
         id = species.id, 
         population = new_population, 
         previous_population = new_population, 
+        previous_adaptive = copy(species.archive.individuals),
+        previous_elites = copy(species.elites_archive.individuals),
         pruned = new_pruned,
         previous_pruned = copy(species.pruned), 
         all_previous_pruned = union(species.all_previous_pruned, species.pruned),
-        archive = species.archive
+        archive = species.archive,
+        elites_archive = species.elites_archive
     )
     return species
 end
@@ -143,13 +144,33 @@ function make_normal_species(
         id = species.id, 
         population = new_population, 
         previous_population = copy(species.previous_population), 
+        previous_adaptive = copy(species.previous_adaptive),
+        previous_elites = copy(species.previous_elites),
         pruned = copy(species.pruned),
         previous_pruned = copy(species.previous_pruned),
         all_previous_pruned = copy(species.all_previous_pruned),
-        archive = species.archive
+        archive = species.archive,
+        elites_archive = species.elites_archive
     )
     return species
 end
+function spawn(
+    parents::Vector{<:ModesIndividual}, 
+    recombiner::Recombiner, 
+    mutators::Vector{<:Mutator}, 
+    state::State
+)
+    rng = get_rng(state)
+    individual_id_counter = get_individual_id_counter(state)
+    gene_id_counter = get_gene_id_counter(state)
+    children = recombine(recombiner, rng, individual_id_counter, parents)
+    for mutator in mutators
+        children = mutate(mutator, rng, gene_id_counter, children)
+    end
+    return children
+end
+
+using ...Selectors.Tournament: run_tournament
 
 function create_species(
     species_creator::ModesSpeciesCreator, 
@@ -159,6 +180,22 @@ function create_species(
     is_modes_checkpoint::Bool = false
 )
     population_length_before = length(species.population)
+    population_ids = [individual.id for individual in species.population]
+    population_records = [record for record in get_records(evaluation, population_ids)]
+    elite_individual_id = last(sort(population_records, by = record -> record.fitness)).id
+    elite_individual_fitness = last(sort(population_records, by = record -> record.fitness)).fitness
+    elite_individual = find_by_id(species.population, elite_individual_id)
+    rank_one_records = [record for record in filter(record -> record.rank == 1, population_records)]
+    winner = run_tournament(get_rng(state), rank_one_records)
+    winner = find_by_id(species.population, winner.id)
+    elites = [winner]
+    #elites = [find_by_id(species.population, id) for id in rank_one_ids]
+    #println("elites: ", [individual.id for individual in elites])
+    #elites = [rand(get_rng(state), elites)]
+
+    #println("elite_individual: ", elite_individual.id, " ", elite_individual_fitness)
+    add_to_archive!(species.elites_archive, elites)
+    #add_to_archive!(species.elites_archive, [elite_individual])
     
     #println("population length before: ", population_length_before)
     rng = get_rng(state)
@@ -173,15 +210,18 @@ function create_species(
     )
     if is_modes_checkpoint
         #archive_clones = make_archive_clones(species, state)
-        if length(species.archive.individuals) > 0
-            last_archive_individual = species.archive.individuals[end]
-            x = [last_archive_individual for _ in eachindex(species.archive.individuals)]
-            mutants = spawn(x, species_creator.recombiner, species_creator.mutators, state)
-            elders, archive_clones = replace_worst_with_archive_elites(elders, mutants, evaluation) 
-            new_population = [elders ; archive_clones ; children]
-        else
-            new_population = [elders ; children]
-        end
+        #if length(species.archive.individuals) > 0
+        #    last_archive_individual = species.archive.individuals[end]
+        #    x = [last_archive_individual for _ in eachindex(species.archive.individuals)]
+        #    archive_clones = spawn(x, species_creator.recombiner, species_creator.mutators, state)
+        #    #archive_clones = make_archive_clones(species, state)
+        #    elders, archive_clones = replace_worst_with_archive_elites(elders, archive_clones, evaluation) 
+        #    #elders, archive_clones = replace_worst_with_archive_elites(elders, mutants, evaluation) 
+        #    new_population = [elders ; archive_clones ; children]
+        #else
+        #    new_population = [elders ; children]
+        #end
+        new_population = [elders ; children]
         new_population = [
             ModesIndividual(
                 individual.id, 
@@ -231,6 +271,8 @@ function create_species(
     #println("all_previous_pruned_ids: ", all_previous_pruned_ids)
     #archive_ids = [individual.id for individual in species.archive.individuals]
     #println("archive_ids: ", archive_ids)
+    #elite_archive_ids = [individual.id for individual in species.elites_archive.individuals]
+    #println("elite_archive_ids: ", elite_archive_ids)
     evaluation = get_evaluation(state, species.id)
     using_modes = species_creator.modes_interval > 0
     is_modes_checkpoint = using_modes && generation % species_creator.modes_interval == 0

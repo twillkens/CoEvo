@@ -136,8 +136,8 @@ function DiscoReproducer(;
     n_species::Int = 2, 
     n_population::Int = 10, 
     n_children::Int = 10, 
-    tournament_size::Int = 3,
-    max_clusters::Int = 5,
+    tournament_size::Int = 5,
+    max_clusters::Int = 10,
     distance_method::String = "disco_average",
     kwargs...
 )

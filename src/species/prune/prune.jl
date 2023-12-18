@@ -65,8 +65,9 @@ function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
     end
 
     for individual in persistent_individuals
-        genotype = minimize(individual.genotype)
-        prune_individual = PruneIndividual(-individual.id, genotype, genotype)
+        #genotype = minimize(individual.genotype)
+        genotype = individual.genotype
+        prune_individual = PruneIndividual(-individual.id, genotype, minimize(genotype))
         to_push = is_fully_pruned(prune_individual) ? pruned : currents
         push!(to_push, prune_individual)
     end
@@ -74,6 +75,10 @@ function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
     currents = T[current for current in currents]
     candidates = T[candidate for candidate in candidates]
     pruned = T[prune for prune in pruned]
+    if (length(currents) + length(candidates) + length(pruned)) != length(persistent_individuals)
+        throw(ErrorException("length currents + length candidates + length pruned != " * 
+            "length persistent_individuals"))
+    end
     species = PruneSpecies(species.id, currents, candidates, pruned)
     return species
 end

@@ -4,7 +4,7 @@ export ModesSpecies, get_individuals, get_persistent_tags, get_children, get_eld
 export get_recent, AdaptiveArchive, add_to_archive!, ModesSpecies, get_individuals_to_evaluate
 
 import ...Individuals: get_individuals
-import ...Species: get_individuals_to_evaluate
+import ...Species: get_individuals_to_evaluate, get_individuals_to_perform
 import Base: length
 
 using ...Genotypes: get_size
@@ -43,28 +43,37 @@ Base.@kwdef struct ModesSpecies{I <: ModesIndividual} <: AbstractSpecies
     id::String
     population::Vector{I}
     previous_population::Vector{I}
+    previous_adaptive::Vector{I}
+    previous_elites::Vector{I}
     pruned::Vector{I}
     previous_pruned::Vector{I}
     all_previous_pruned::Set{I}
     archive::AdaptiveArchive{I}
+    elites_archive::AdaptiveArchive{I}
 end
 
 function ModesSpecies(
     id::String, population::Vector{I}, max_archive_size::Int
 ) where {I <: ModesIndividual}
     previous_population = copy(population)
+    previous_adaptive = I[]
+    previous_elites = I[]
     pruned = I[]
     previous_pruned = I[]
     all_previous_pruned = Set{I}()
     archive = AdaptiveArchive{I}(max_archive_size, I[])
+    elites_archive = AdaptiveArchive{I}(max_archive_size, I[])
     species = ModesSpecies(
         id, 
         population, 
         previous_population, 
+        previous_adaptive,
+        previous_elites,
         pruned, 
         previous_pruned, 
         all_previous_pruned,
-        archive
+        archive,
+        elites_archive
     )
     return species
 end
@@ -75,6 +84,12 @@ end
 
 function get_individuals_to_evaluate(species::ModesSpecies)
     return species.population
+end
+
+function get_individuals_to_perform(
+    species::ModesSpecies, 
+)
+    return [species.population ; species.archive.individuals ; species.elites_archive.individuals]
 end
 
 function get_children(species::ModesSpecies)

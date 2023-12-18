@@ -4,6 +4,7 @@ export create_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
 export get_elite_ids, get_elite_records
 
 import ...Evaluators: get_elite_ids, get_elite_records
+using ...Species: get_individuals_to_evaluate
 
 using ...Individuals: get_individuals
 
@@ -88,8 +89,8 @@ function evaluate(
     scalar_fitness_evaluation = evaluate(
         evaluator.scalar_fitness_evaluator, rng, species, outcomes
     )
-    individuals = get_individuals(species)
-    filter!(individual -> individual.id in keys(outcomes), individuals)
+    individuals = get_individuals_to_evaluate(species)
+    #filter!(individual -> individual.id in keys(outcomes), individuals)
     
     individual_tests = make_individual_tests(individuals, outcomes)
 

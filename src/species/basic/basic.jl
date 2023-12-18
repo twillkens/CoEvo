@@ -3,6 +3,7 @@ module Basic
 export BasicSpecies, get_individuals
 
 import ...Individuals: get_individuals
+import ...Species: get_individuals_to_evaluate, get_individuals_to_perform
 
 using ...Individuals: Individual
 using ..Species: AbstractSpecies
@@ -32,6 +33,16 @@ end
 
 function get_individuals(species::BasicSpecies)
     individuals = [species.population ; species.children]
+    return individuals
+end
+
+function get_individuals_to_evaluate(species::BasicSpecies)
+    individuals = get_individuals(species)
+    return individuals
+end
+
+function get_individuals_to_perform(species::BasicSpecies)
+    individuals = get_individuals(species)
     return individuals
 end
 

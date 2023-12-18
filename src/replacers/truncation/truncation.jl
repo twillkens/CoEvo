@@ -27,8 +27,8 @@ function replace(
     #println("length population: ", length(species.population))
     candidates = get_individuals_to_evaluate(species)
     #println("length candidates: ", length(candidates))
-    if length(candidates) != length(species.population)
-        throw(ErrorException("length candidates != length population"))
+    if length(candidates) != length(evaluation.records)
+        throw(ErrorException("length candidates != length records"))
     end
     #println("n_truncate = ", replacer.n_truncate)
     #println("candidates = ", candidates)
@@ -41,6 +41,9 @@ function replace(
     truncated_ids = Set(ids[1:end_index])
     #println("truncated_ids: ", truncated_ids)
     new_population = filter(individual -> individual.id in truncated_ids, candidates)
+    if length(new_population) != length(candidates) - replacer.n_truncate
+        throw(ErrorException("length new_population != n_candidates - n_truncate"))
+    end
     #println("new_population = ", new_population)
     return new_population
 end

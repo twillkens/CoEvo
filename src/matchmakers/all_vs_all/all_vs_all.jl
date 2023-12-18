@@ -3,7 +3,7 @@ module AllVersusAll
 import ..MatchMakers: make_matches
 
 using Random: AbstractRNG
-using ...Species: AbstractSpecies, get_individuals_to_evaluate
+using ...Species: AbstractSpecies, get_individuals_to_perform
 using ...Species.Basic: BasicSpecies
 using ...Species.Modes: ModesSpecies
 using ...Matches.Basic: BasicMatch
@@ -33,8 +33,10 @@ function make_matches(
     species_1::AbstractSpecies,
     species_2::AbstractSpecies
 )
-    ids_1 = [individual.id for individual in get_individuals_to_evaluate(species_1)]
-    ids_2 = [individual.id for individual in get_individuals_to_evaluate(species_2)]
+    ids_1 = [individual.id for individual in get_individuals_to_perform(species_1)]
+    ids_2 = [individual.id for individual in get_individuals_to_perform(species_2)]
+    ids_1 = collect(Set(ids_1))
+    ids_2 = collect(Set(ids_2))
     match_ids = vec(collect(Iterators.product(ids_1, ids_2)))
     matches = [BasicMatch(interaction_id, [id_1, id_2]) for (id_1, id_2) in match_ids]
     return matches
@@ -69,6 +71,7 @@ function make_matches(
     species_2::AbstractSpecies
 )
     matches = make_matches(matchmaker, interaction_id, species_1, species_2)
+    #println("number of matches: $(length(matches))")
     return matches
 end
 

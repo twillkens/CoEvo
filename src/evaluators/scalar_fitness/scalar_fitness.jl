@@ -14,6 +14,7 @@ using StatsBase: mean
 using ...Species: AbstractSpecies
 using ...Individuals: Individual, get_individuals
 using  ..Evaluators: Evaluation, Evaluator
+using ...Species: get_individuals_to_evaluate
 
 struct ScalarFitnessRecord
     id::Int
@@ -50,7 +51,7 @@ function evaluate(
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}}
 )
-    individuals = get_individuals(species)
+    individuals = get_individuals_to_evaluate(species)
     if length(individuals) == 0
         return ScalarFitnessEvaluation(species.id, ScalarFitnessRecord[])
     end
