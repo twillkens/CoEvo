@@ -61,7 +61,9 @@ function make_modes_species(
         ModesIndividual(individual.id, -individual.id, 0, 0, individual.genotype)
         for individual in new_pruned
     ]
-    add_to_archive!(species.adaptive_archive, new_modes_pruned)
+    sort!(new_modes_pruned, by = individual -> individual.fitness; rev = true)
+    adaptive_elite = new_modes_pruned[1]
+    add_to_archive!(species.adaptive_archive, [adaptive_elite])
     species = ModesSpecies(
         id = species.id, 
         population = new_population, 
