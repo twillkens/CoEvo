@@ -47,7 +47,6 @@ function get_individuals_to_evaluate(species::PruneSpecies)
     return individuals
 end
 
-
 function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
     persistent_tags = get_persistent_tags(species)
     #println("persistent_tags = $persistent_tags")
@@ -63,11 +62,12 @@ function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
     if length(persistent_individuals) == 0
         throw(ErrorException("No persistent individuals found."))
     end
-
     for individual in persistent_individuals
         #genotype = minimize(individual.genotype)
         genotype = individual.genotype
-        prune_individual = PruneIndividual(-individual.id, genotype, minimize(genotype))
+        prune_individual = PruneIndividual(
+            -individual.id, genotype, minimize(genotype),
+        )
         to_push = is_fully_pruned(prune_individual) ? pruned : currents
         push!(to_push, prune_individual)
     end
@@ -80,7 +80,8 @@ function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
             "length persistent_individuals"))
     end
     species = PruneSpecies(species.id, currents, candidates, pruned)
-    return species
+    dummy_species = PruneSpecies(species.id, T[], [ currents ; candidates ; pruned], T[])
+    return species, dummy_species
 end
 
 end

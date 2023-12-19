@@ -72,6 +72,7 @@ function make_matches(
 )
     matches = make_matches(matchmaker, interaction_id, species_1, species_2)
     #println("number of matches: $(length(matches))")
+    #println("length of species_1: $(length(get_individuals_to_perform(species_1)))")
     return matches
 end
 

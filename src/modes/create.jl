@@ -53,16 +53,48 @@ function create_species(
     return species
 end
 
+function print_prune_summaries(species::ModesSpecies, new_pruned::Vector{<:Individual})
+    ids = [individual.id for individual in new_pruned]
+    sizes = [get_size(individual.genotype) for individual in new_pruned]
+    fitnesses = [individual.fitness for individual in new_pruned]
+    summaries = [
+        (id, size, round(fitness; digits = 3)) 
+        for (id, size, fitness) in zip(ids, sizes, fitnesses)
+    ]
+    sort!(summaries, by = x -> x[3]; rev = true)
+    println("$(species.id)_prune = ", summaries)
+end
+
+function print_full_summaries(species::ModesSpecies, new_modes_pruned::Vector{<:Individual})
+    ids = [individual.id for individual in new_modes_pruned]
+    sizes = [get_size(minimize(individual.full_genotype)) for individual in new_modes_pruned]
+    fitnesses = [round(individual.full_fitness, digits = 3) for individual in new_modes_pruned]
+    summaries = [
+        (id, size, fitness) 
+        for (id, size, fitness) in zip(ids, sizes, fitnesses)
+    ]
+    println("$(species.id)_full = $summaries")
+end
+
 function make_modes_species(
-    species::ModesSpecies, new_population::Vector{<:ModesIndividual}, state::State
+    species::ModesSpecies, 
+    new_population::Vector{<:ModesIndividual}, 
+    evaluation::Evaluation, 
+    state::State
 )
     new_pruned = perform_modes(species, state)
     sort!(new_pruned, by = individual -> individual.fitness; rev = true)
+    print_full_summaries(species, new_pruned)
+    print_prune_summaries(species, new_pruned)
     new_modes_pruned = [
         ModesIndividual(individual.id, -individual.id, 0, 0, individual.genotype)
         for individual in new_pruned
     ]
-    adaptive_elite = new_modes_pruned[1]
+    new_modes_full = [
+        ModesIndividual(individual.id, -individual.id, 0, 0, individual.full_genotype)
+        for individual in new_pruned
+    ]
+    adaptive_elite = new_modes_full[1]
     add_to_archive!(species.adaptive_archive, [adaptive_elite])
     species = ModesSpecies(
         id = species.id, 
@@ -80,7 +112,10 @@ function make_modes_species(
 end
 
 function make_normal_species(
-    species::ModesSpecies, new_population::Vector{<:ModesIndividual}
+    species::ModesSpecies, 
+    evaluation::Evaluation,
+    new_population::Vector{<:ModesIndividual}, 
+    state::State
 )
     species = ModesSpecies(
         id = species.id, 
@@ -130,9 +165,9 @@ function create_species(
     new_population = [elders ; children]
     if is_modes_checkpoint
         new_population = reset_tags(new_population)
-        species = make_modes_species(species, new_population, state)
+        species = make_modes_species(species, new_population, evaluation, state)
     else
-        species = make_normal_species(species, new_population)
+        species = make_normal_species(species, evaluation, new_population, state)
     end
     #println("population length after: ", length(population))
     if population_length_before != length(species.population)

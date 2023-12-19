@@ -22,9 +22,7 @@ struct PredictionGameAggregateMeasurement
     generation::String
     species_id::String
     metric::String
-    aggregate_metric::Strinlength_other_individuals = 100
-    length_other_individuals = 100
-    g
+    aggregate_metric::String
     value::Float64
 end
 
