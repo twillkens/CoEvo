@@ -35,8 +35,8 @@ function evaluate(
     individuals = [species.population ; species.children]
     filter!(individual -> individual.id in keys(outcomes), individuals)
     ids = [individual.id for individual in individuals]
-    outcome_sums = [sum(values(outcomes[id])) for id in ids]
-    fitnesses = evaluator.maximize ? outcome_sums : -outcome_sums
+    outcome_means = [mean(values(outcomes[id])) for id in ids]
+    fitnesses = evaluator.maximize ? outcome_means : -outcome_means
     min_fitness = minimum(fitnesses)
     shift_value = (min_fitness <= 0) ? abs(min_fitness) + evaluator.epsilon : 0
     fitnesses .+= shift_value
