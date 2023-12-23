@@ -3,7 +3,7 @@ export create_ecosystem, evolve!, get_individuals, get_species
 import ..Individuals: get_individuals
 
 using ..Results: Result
-using ..Reporters: Report
+#using ..Reporters: Report
 
 function create_ecosystem(ecosystem_creator::EcosystemCreator)::Ecosystem
     throw(ErrorException(
@@ -12,18 +12,18 @@ function create_ecosystem(ecosystem_creator::EcosystemCreator)::Ecosystem
     )
 end
 
-function create_ecosystem(
-    generation::Int, 
-    ecosystem_creator::EcosystemCreator,
-    previous_ecosystem::Ecosystem,
-    results::Vector{Result},    
-    reports::Vector{Report}
-)::Ecosystem
-    throw(ErrorException(
-        "`create_ecosystem` not implemented for $ecosystem_creator"
-        )
-    )
-end
+#function create_ecosystem(
+#    generation::Int, 
+#    ecosystem_creator::EcosystemCreator,
+#    previous_ecosystem::Ecosystem,
+#    results::Vector{Result},    
+#    reports::Vector{Report}
+#)::Ecosystem
+#    throw(ErrorException(
+#        "`create_ecosystem` not implemented for $ecosystem_creator"
+#        )
+#    )
+#end
 
 function evolve!(eco::Ecosystem, ecosystem_creator::EcosystemCreator, n_generations::Int)::Nothing
     throw(ErrorException(

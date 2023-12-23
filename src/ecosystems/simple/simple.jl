@@ -1,46 +1,90 @@
 module Simple
 
-export BasicEcosystem, SimpleEcosystemCreator, create_ecosystem, evolve!, get_individuals
+export SimpleEcosystem, SimpleEcosystemCreator
 export get_species
 
+import ...Abstract.States: get_species_creators, get_evaluators, get_phenotype_creators
+import ...Abstract.States: get_all_species
 import ...Individuals: get_individuals
 import ...Species: get_species
 import ...Evaluators: evaluate
 import ..Ecosystems: create_ecosystem, evolve!
 
-using DataStructures: SortedDict
-using Random: AbstractRNG
-using StableRNGs: StableRNG
-using JLD2: @save
-using ...Counters: Counter
-using ...Counters.Basic: BasicCounter
 using ...Species: AbstractSpecies
-using ...Evaluators: Evaluation, Evaluator
 using ...SpeciesCreators: SpeciesCreator, create_species
-using ...SpeciesCreators.Basic: BasicSpeciesCreator
-using ...Jobs: JobCreator, create_jobs
-using ...Performers: Performer
-using ...Interactions: Interaction
-using ...Results: Result, get_individual_outcomes, get_observations
-using ...Observers: Observation
-#using ...Observers.Null: NullObservation
-using ...Reporters: Reporter, Report, create_reports
-using ...Archivers: Archiver, archive!
-using ...Performers: perform
-using ...States.Basic: BasicCoevolutionaryStateCreator, BasicCoevolutionaryState
-using ...States: State, StateCreator
+using ..Ecosystems.Null: NullEcosystem
+
 using ..Ecosystems: Ecosystem, EcosystemCreator
 
-include("ecosystem.jl")
+using ...Abstract.States: State, get_ecosystem
 
-include("show.jl")
+struct SimpleEcosystem{S <: AbstractSpecies} <: Ecosystem
+    id::String
+    species::Vector{S}
+end
 
-include("evaluate.jl")
+get_all_species(ecosystem::SimpleEcosystem) = ecosystem.species
 
-include("create_state.jl")
+Base.@kwdef mutable struct SimpleEcosystemCreator{S <: SpeciesCreator} <: EcosystemCreator
+    id::String
+    species_creators::Vector{S}
+end
 
-include("create_ecosystem.jl")
+get_species_creators(
+    ecosystem_creator::SimpleEcosystemCreator
+) = ecosystem_creator.species_creators
 
-include("evolve.jl")
+get_evaluators(ecosystem_creator::SimpleEcosystemCreator) = [
+    species_creator.evaluator
+    for species_creator in get_species_creators(ecosystem_creator)
+]
+
+get_phenotype_creators(ecosystem_creator::SimpleEcosystemCreator) = [
+    species_creator.phenotype_creator
+    for species_creator in get_species_creators(ecosystem_creator)
+]
+
+function create_ecosystem(
+    ecosystem_creator::SimpleEcosystemCreator, 
+    ::NullEcosystem,
+    state::State
+)
+    all_species = [
+        create_species(species_creator, state)
+        for species_creator in ecosystem_creator.species_creators
+    ]
+    new_ecosystem = SimpleEcosystem(ecosystem_creator.id, all_species)
+    return new_ecosystem
+end
+
+function create_ecosystem(
+    ecosystem_creator::SimpleEcosystemCreator, 
+    ecosystem::SimpleEcosystem,
+    state::State
+)
+    all_species = [
+        create_species(species_creator, species, state)
+        for (species_creator, species) in zip(
+            ecosystem_creator.species_creators, 
+            ecosystem.species
+        )
+    ]
+    new_ecosystem = SimpleEcosystem(ecosystem_creator.id, all_species)
+    return new_ecosystem
+end
+
+function create_ecosystem(
+    ecosystem_creator::SimpleEcosystemCreator, state::State
+)
+    new_ecosystem = create_ecosystem(ecosystem_creator, get_ecosystem(state), state)
+    return new_ecosystem
+end
+
+using  ...Abstract.States: find_by_id
+
+function get_species(ecosystem::SimpleEcosystem, species_id::String)
+    species = find_by_id(ecosystem.species, species_id)
+    return species
+end
 
 end

@@ -233,7 +233,6 @@ function make_mutators(substrate::FunctionGraphSubstrate)
         Symbol(func) => 1 / length(function_set) for func in function_set
     )
     mutation_probabilities = MUTATION_PROBABILITIES[substrate.mutation]
-    println("MUTATION PROBS: ", mutation_probabilities)
     noise_std = GAUSSIAN_NOISE_STD[substrate.noise_std]
     mutator = FunctionGraphMutator(
         function_probabilities = function_probabilities,

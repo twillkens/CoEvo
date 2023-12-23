@@ -39,7 +39,7 @@ function make_environment_creator(
         episode_length = episode_length,
         communication_dimension = communication_dimension
     )
-    return environment_creator
+    return environment_creatoCr
 end
 
 

@@ -2,12 +2,6 @@ export archive!
 
 using ..Genotypes: GenotypeCreator
 
-function archive!(archiver::Archiver, report::Report)
-    throw(ErrorException("archive! not implemented for 
-        $(typeof(archiver)) and 
-        $(typeof(report))
-    "))
-end
 
 function archive!(archiver::Archiver, genotype::Genotype, group::Group)
     throw(ErrorException("archive! not implemented for 

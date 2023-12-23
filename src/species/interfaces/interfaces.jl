@@ -1,7 +1,9 @@
 export get_individuals, get_species, get_all_ids, find_species_by_id, get_species_with_ids
 export create_phenotype_dict, get_individuals_to_evaluate, get_individuals_to_perform
+export get_population
 
 using ..Phenotypes: PhenotypeCreator, create_phenotype
+using ..Genotypes: minimize
 
 function get_individuals_to_evaluate(species::AbstractSpecies)
     throw(ErrorException("get_individuals_to_evaluate not implemented for species of type $(typeof(species))"))
@@ -9,6 +11,16 @@ end
 
 function get_individuals_to_perform(species::AbstractSpecies)
     throw(ErrorException("get_individuals_to_perform not implemented for species of type $(typeof(species))"))
+end
+
+function get_population_genotypes(species::AbstractSpecies)
+    throw(ErrorException("get_population_genotypes not implemented for species of type $(typeof(species))"))
+end
+
+function get_minimized_population_genotypes(species::AbstractSpecies)
+    genotypes = get_population_genotypes(species)
+    genotypes = [minimize(genotype) for genotype in genotypes]
+    return genotypes
 end
 
 # Function to extract all individuals from a list of species
@@ -20,6 +32,9 @@ function get_individuals(species::AbstractSpecies, cohorts::Vector{String})
     individuals = vcat([getfield(species, Symbol(cohort)) for cohort in cohorts]...)
     return individuals
 end
+
+get_population(species::AbstractSpecies) = species.population
+
 
 function get_species(all_species::Vector{<:AbstractSpecies}, species_id::String)
     species_vector = filter(species -> species.id == species_id, all_species)

@@ -14,10 +14,10 @@ include("interfaces/interfaces.jl")
 include("basic/basic.jl")
 using .Basic: Basic
 
-#include("global/global.jl")
-#using .Global: Global
+include("global/global.jl")
+using .Global: Global
 #
-#include("evolutionary/evolutionary.jl")
-#using .Evolutionary: Evolutionary
+include("evolutionary/evolutionary.jl")
+using .Evolutionary: Evolutionary
 
 end

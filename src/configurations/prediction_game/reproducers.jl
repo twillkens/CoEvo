@@ -15,13 +15,9 @@ function get_maximum_fitness(reproducer::Reproducer, topology::Topology)
 end
 
 function make_half_truncator(reproducer::Reproducer)
-    println("reproducer = ", reproducer)
     n_individuals = get_n_individuals(reproducer)
-    println("n_individuals: ", n_individuals)
     n_truncate = n_individuals ÷ 2
-    println("n_truncate: ", n_truncate)
     truncator = TruncationReplacer(n_truncate = n_truncate)
-    println("truncator: ", truncator)
     return truncator
 end
 

@@ -1,9 +1,10 @@
 module Prune
 
-export PruneIndividual, is_fully_pruned, modes_prune
+export PruneIndividual, is_fully_pruned, modes_prune, print_prune_summaries
+export print_full_summaries
 
 using StatsBase: median
-using ...Genotypes: Genotype, get_prunable_genes
+using ...Genotypes: Genotype, get_prunable_genes, minimize
 using ...Individuals: Individual
 using ...Phenotypes: PhenotypeState
 using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeState
@@ -63,6 +64,29 @@ function modes_prune(individual::PruneIndividual{FunctionGraphGenotype, Phenotyp
         throw(ErrorException("Pruned genotype is the same size as the full genotype."))
     end
     return individual, pruned_individual
+end
+
+function print_prune_summaries(species_id::String, new_pruned::Vector{<:PruneIndividual})
+    ids = [individual.id for individual in new_pruned]
+    sizes = [get_size(individual.genotype) for individual in new_pruned]
+    fitnesses = [individual.fitness for individual in new_pruned]
+    summaries = [
+        (id, size, round(fitness; digits = 3)) 
+        for (id, size, fitness) in zip(ids, sizes, fitnesses)
+    ]
+    sort!(summaries, by = x -> x[3]; rev = true)
+    println("$(species_id)_prune = ", summaries)
+end
+
+function print_full_summaries(species_id::String, new_modes_pruned::Vector{<:PruneIndividual})
+    ids = [individual.id for individual in new_modes_pruned]
+    sizes = [get_size(minimize(individual.full_genotype)) for individual in new_modes_pruned]
+    fitnesses = [round(individual.full_fitness, digits = 3) for individual in new_modes_pruned]
+    summaries = [
+        (id, size, fitness) 
+        for (id, size, fitness) in zip(ids, sizes, fitnesses)
+    ]
+    println("$(species_id)_full = $summaries")
 end
 
 end

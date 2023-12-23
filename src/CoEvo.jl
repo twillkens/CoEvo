@@ -45,7 +45,7 @@ module CoEvo
 export Counters, Genotypes, Phenotypes, Individuals, Species, Criteria, Evaluators, Replacers
 export Selectors, Recombiners, Mutators, SpeciesCreators, Metrics, Domains, Matches
 export MatchMakers, Observers, Results, Environments, Interactions, Jobs, Performers
-export States, Reporters, Archivers, Ecosystems, Names, Configurations, run!
+export States, Archivers, Ecosystems, Names, Configurations, run!
 export NumbersGameConfiguration
 export make_prediction_game_experiment, load_prediction_game_experiment
 
@@ -143,31 +143,33 @@ println("loaded performers")
 include("modes/modes.jl")
 using .Modes: Modes
 
-include("states/states.jl")
-using .States: States
-println("loaded states")
-
-include("reporters/reporters.jl")
-using .Reporters: Reporters
-println("loaded reporters")
-
-include("archivers/archivers.jl")
-using .Archivers: Archivers
-println("loaded archivers")
+#include("reporters/reporters.jl")
+#using .Reporters: Reporters
+#println("loaded reporters")
 
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
 println("loaded ecosystems")
 
-include("names/names.jl")
-using .Names: Names
-println("loaded names")
+include("archivers/archivers.jl")
+using .Archivers: Archivers
+println("loaded archivers")
 
+#include("names/names.jl")
+#using .Names: Names
+#println("loaded names")
 
-include("configurations/configurations.jl")
-using .Configurations: Configurations, run!
-using .Configurations.NumbersGame: NumbersGame, NumbersGameConfiguration
-using .Configurations.PredictionGame: make_prediction_game_experiment, load_prediction_game_experiment
+include("new_configurations/configurations.jl")
+using .NewConfigurations: NewConfigurations
+
+include("states/states.jl")
+using .States: States
+println("loaded states")
+
+#include("configurations/configurations.jl")
+#using .Configurations: Configurations, run!
+#using .Configurations.NumbersGame: NumbersGame, NumbersGameConfiguration
+#using .Configurations.PredictionGame: make_prediction_game_experiment, load_prediction_game_experiment
 println("loaded configurations")
 
 end

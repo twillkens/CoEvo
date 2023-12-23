@@ -77,10 +77,6 @@ function parse_cmdline_args()
             arg_type = String
             default = "moderate"
             help = "Noise standard deviation"
-        "--adaptive_archive_length"
-            arg_type = Int
-            default = 0
-            help = "Adaptive archive length"
         "--elites_archive_length"
             arg_type = Int
             default = 0
@@ -115,7 +111,6 @@ experiment = make_prediction_game_experiment(;
     n_children = args["n_children"],
     seed = args["seed"],
     report = args["report"],
-    cohorts = ["population"],
     communication_dimension = args["communication_dimension"],
     n_workers = args["n_workers"],
     episode_length = args["episode_length"],
@@ -124,7 +119,6 @@ experiment = make_prediction_game_experiment(;
     function_set = args["function_set"],
     mutation = args["mutation"],
     noise_std = args["noise_std"],
-    adaptive_archive_length = args["adaptive_archive_length"],
     elites_archive_length = args["elites_archive_length"],
 )
 

@@ -1,0 +1,3 @@
+export SubstrateConfiguration
+
+abstract type SubstrateConfiguration end

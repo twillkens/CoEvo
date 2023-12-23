@@ -4,7 +4,6 @@ data/*
 todo/*
 .vscode/
 *.jls
-archives/
 Manifest.toml
 Manifest.*
 img/

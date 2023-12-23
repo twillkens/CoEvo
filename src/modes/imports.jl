@@ -42,6 +42,6 @@ using ..Jobs.Basic: make_all_matches, create_phenotype_dict
 using ..Abstract.States: get_rng, get_n_workers, get_interactions, get_all_species, get_evaluator
 using ..Performers: perform
 using ..Observers: Observation
-using ..Abstract.States: State, get_rng, get_species, get_species_creators, get_job_creator, get_perfomer
+using ..Abstract.States: State, get_rng, get_species, get_species_creators, get_job_creator
 using ..Abstract.States: find_by_id, get_phenotype_creators, get_individual_id_counter, get_gene_id_counter
 using ...Evaluators: Evaluation, get_records

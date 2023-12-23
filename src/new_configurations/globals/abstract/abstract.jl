@@ -1,0 +1,3 @@
+export GlobalConfiguration
+
+abstract type GlobalConfiguration end
