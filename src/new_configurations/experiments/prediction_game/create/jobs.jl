@@ -41,7 +41,3 @@ end
 make_job_creator(config::PredictionGameExperimentConfiguration) = make_job_creator(
     config.globals, config.game, config.topology
 )
-
-make_performer(config::PredictionGameExperimentConfiguration) = make_performer(
-    config.globals
-)

@@ -1,4 +1,5 @@
 import ...Species: get_individuals_to_evaluate, get_individuals_to_perform
+using ...Species.Modes: get_previous_population, get_previous_elites
 
 using ...Results: get_individual_outcomes, get_observations
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
@@ -39,6 +40,7 @@ get_individuals_to_evaluate(species::SimpleSpecies) = species.population
 get_individuals_to_perform(species::SimpleSpecies) = species.population
 
 
+
 function get_modes_jobs(prune_species::PruneSpecies, state::State)
     interactions = get_modes_interactions(prune_species, state)
     job_creator = BasicJobCreator(interactions, get_n_workers(state))
@@ -47,9 +49,8 @@ function get_modes_jobs(prune_species::PruneSpecies, state::State)
     simple_species = SimpleSpecies(prune_species.id, to_evaluate)
     other_simple_species = [
         SimpleSpecies(species.id, [
-            species.previous_population ; 
-            species.previous_adaptive ; 
-            species.previous_elites
+            get_previous_population(species) ; 
+            get_previous_elites(species)
         ])
         for species in filter(species -> species.id != prune_species.id, get_all_species(state))
     ]
@@ -68,9 +69,12 @@ function perform_evaluations(species::PruneSpecies, state::State)
     jobs, simple_species = get_modes_jobs(species, state)
     performer = BasicPerformer(get_n_workers(state))
     results = perform(performer, jobs)
+    #println("rng_after_perform = $(get_rng(state).state)")
     outcomes = Dict(id => value for (id, value) in get_individual_outcomes(results) if id < 0)
+    #println("outcomes = $outcomes")
     evaluator = ScalarFitnessEvaluator()
     evaluation = evaluate(evaluator, get_rng(state), simple_species, outcomes)
+    #println("rng_after_evaluate = $(get_rng(state).state)")
     observations = get_observations(results)
     return evaluation, observations
 end
@@ -165,12 +169,14 @@ end
 
 function perform_modes(species::ModesSpecies, state::State)
     prune_species, dummy_species = PruneSpecies(species)
+    #println("rng_after_prune = $(get_rng(state).state)")
     length_start = length(prune_species.currents) + length(prune_species.pruned)
     #println("prune_species: $prune_species")
     #println("--------$(species.id)------------")
     #println("length pruned before = $(length(prune_species.pruned))")
 
     perform_simulation!(dummy_species, state; assign_full_fitness = true)
+    #println("rng_after_simulation = $(get_rng(state).state)")
     if first(get_interactions(state)).id == "Control-A-B" || is_fully_pruned(prune_species)
         pruned_individuals = prune_species.pruned
         return prune_species.pruned

@@ -31,7 +31,8 @@ function PredictionGameExperimentConfiguration(
     reproduction::ReproductionConfiguration,
     archive::ArchiveConfiguration,
 )
-    ids = [game.id, topology.id, substrate.id, reproduction.id, globals.trial]
+    elites_type = topology.n_elites > 0 ? "elites" : "no_elites"
+    ids = [game.id, topology.id, substrate.id, reproduction.id, elites_type, globals.trial]
     id = joinpath(string.(ids))
     configuration = PredictionGameExperimentConfiguration(
         id,

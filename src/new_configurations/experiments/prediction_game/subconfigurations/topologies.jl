@@ -117,16 +117,16 @@ const PREDICTION_GAME_TOPOLOGIES = Dict(
 )
 
 function get_topology(
-    id::String; n_elites::Int = 0, modes_interval::Int = 0, kwargs...
+    id::String; n_elites::Int = 50, modes_interval::Int = 50, kwargs...
 )
     if !haskey(PREDICTION_GAME_TOPOLOGIES, id)
         error("Topology with id $id not found.")
     end
     basic_topology = PREDICTION_GAME_TOPOLOGIES[id]
-    if modes_interval == 0
-        println("Using basic topology")
-        return basic_topology
-    else
+    #if modes_interval == 0
+    #    println("Using basic topology")
+    #    return basic_topology
+    #else
         println("Using modes topology")
         topology = ModesTopologyConfiguration(
             id = id,
@@ -136,7 +136,7 @@ function get_topology(
             n_elites = n_elites,
         )
         return topology
-    end
+    #end
 end
 
 function load_topology(file::File)

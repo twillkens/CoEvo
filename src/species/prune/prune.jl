@@ -16,7 +16,7 @@ using ...Species: AbstractSpecies
 using ...Species.Basic: BasicSpecies
 using ...Phenotypes: create_phenotype, PhenotypeCreator
 
-using ...Species.Modes: ModesSpecies, get_persistent_tags
+using ...Species.Modes: ModesSpecies, get_persistent_tags, get_previous_population
 
 struct PruneSpecies{I <: PruneIndividual} <: AbstractSpecies
     id::String
@@ -47,15 +47,19 @@ function get_individuals_to_evaluate(species::PruneSpecies)
     return individuals
 end
 
+using ...Species: get_population
+
 function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
     persistent_tags = get_persistent_tags(species)
+    println([individual.id => individual.tag for individual in get_population(species)])
+    #println("persistent_tags_$(species.id): $persistent_tags")
     #println("persistent_tags = $persistent_tags")
     #println("species.previous_population: $(species.previous_population)")
     currents = []
     candidates = []
     pruned = []
     persistent_individuals = [
-        individual for individual in species.previous_population 
+        individual for individual in get_previous_population(species)#.previous_population 
         if individual.tag in persistent_tags
     ]
     #println("persistent_ids = : $([individual.id for individual in persistent_individuals])")

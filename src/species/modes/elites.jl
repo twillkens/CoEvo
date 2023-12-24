@@ -15,12 +15,15 @@ function add_elites_to_archive(
         deleteat!(elites, 1)
     end
     new_current_state = ModesCheckpointState(
-        population = get_population(species), pruned = get_pruned(species), elites = elites
+        population = get_population(species), 
+        pruned = get_pruned(species), 
+        pruned_fitnesses = get_pruned_fitnesses(species),
+        elites = elites
     )
     new_species = ModesSpecies(
         id = species.id,
         current_state = new_current_state,
-        previous_state = species.current_state,
+        previous_state = species.previous_state,
         all_previous_pruned = species.all_previous_pruned,
     )
     return new_species

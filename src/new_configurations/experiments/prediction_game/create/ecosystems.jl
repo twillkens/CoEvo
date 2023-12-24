@@ -48,13 +48,13 @@ function make_species_creators(
             n_children = get_n_children(substrate),
             genotype_creator = make_genotype_creator(substrate, game),
             phenotype_creator = make_phenotype_creator(substrate),
-            evaluator = make_evaluator(reproducer, topology),
+            evaluator = make_evaluator(reproducer),
             replacer = make_replacer(reproducer),
             selector = make_selector(reproducer),
             recombiner = make_recombiner(substrate),
             mutators = make_mutators(substrate),
             modes_interval = topology.modes_interval,
-            elites_archive_length = topology.elites_archive_length,
+            n_elites = topology.n_elites,
         ) 
         for species_id in topology.species_ids
     ]

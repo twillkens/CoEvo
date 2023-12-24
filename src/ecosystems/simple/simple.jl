@@ -44,15 +44,19 @@ get_phenotype_creators(ecosystem_creator::SimpleEcosystemCreator) = [
     for species_creator in get_species_creators(ecosystem_creator)
 ]
 
+using ...Species: get_population
+
 function create_ecosystem(
     ecosystem_creator::SimpleEcosystemCreator, 
     ::NullEcosystem,
     state::State
 )
+    #println("create_ecosystem null")
     all_species = [
         create_species(species_creator, state)
         for species_creator in ecosystem_creator.species_creators
     ]
+    #println("popids: ", [individual.id for individual in get_population(all_species[1])])
     new_ecosystem = SimpleEcosystem(ecosystem_creator.id, all_species)
     return new_ecosystem
 end
@@ -62,6 +66,8 @@ function create_ecosystem(
     ecosystem::SimpleEcosystem,
     state::State
 )
+
+    #println("create_ecosystem not null")
     all_species = [
         create_species(species_creator, species, state)
         for (species_creator, species) in zip(
@@ -69,6 +75,7 @@ function create_ecosystem(
             ecosystem.species
         )
     ]
+    #println("popids: ", [individual.id for individual in get_population(all_species[1])])
     new_ecosystem = SimpleEcosystem(ecosystem_creator.id, all_species)
     return new_ecosystem
 end

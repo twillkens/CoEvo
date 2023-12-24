@@ -2,8 +2,6 @@ module Global
 
 export GlobalState
 
-import ...Abstract.States: get_individual_id_counter_state, get_gene_id_counter_state
-
 using Random: AbstractRNG
 using ...Counters.Basic: BasicCounter
 using ...Counters: Counter
@@ -20,12 +18,9 @@ Base.@kwdef struct GlobalState <: State
     evaluation_time::Float64
 end
 
-get_individual_id_counter_state(state::GlobalState) = state.individual_id_counter.state
-get_gene_id_counter_state(state::GlobalState) = state.gene_id_counter.state
-
 function GlobalState(config::GlobalConfiguration)
     state = GlobalState(
-        generation = 0, 
+        generation = 1, 
         rng = make_random_number_generator(config), 
         individual_id_counter = BasicCounter(),
         gene_id_counter = BasicCounter(),

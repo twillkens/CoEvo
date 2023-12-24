@@ -14,7 +14,7 @@ const ID_TO_ARCHIVER_TYPE_MAP = Dict(
 
 function make_archivers(config::PredictionGameExperimentConfiguration)
     archive_interval = config.archive.archive_interval
-    archive_path = config.id * ".h5"
+    archive_path = ENV["COEVO_TRIAL_DIR"] * "/" * config.id * ".h5"
     archivers = [
         GlobalStateArchiver(archive_interval, archive_path),
         FitnessArchiver(archive_interval, archive_path),

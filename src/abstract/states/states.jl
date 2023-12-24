@@ -9,8 +9,8 @@ export get_individual_outcomes, get_observations, get_species, get_evaluation
 export get_phenotype_creators, get_n_workers, get_interactions
 export get_evaluator, get_species, get_evaluation, find_by_id
 export get_generation, get_simulation_time, get_ecosystem
-export get_individual_id_counter_state, get_gene_id_counter_state, get_results
-export get_n_generations
+export get_results
+export get_n_generations, get_seed
 
 abstract type State end
 abstract type StateCreator end
@@ -22,10 +22,8 @@ get_evaluation_time(state::State) = state.evaluation_time
 get_evaluations(state::State) = state.evaluations
 get_evaluators(state::State) = state.evaluators
 get_gene_id_counter(state::State) = state.gene_id_counter
-get_gene_id_counter_state(state::State) = state.gene_id_counter.state
 get_generation(state::State) = state.generation
 get_individual_id_counter(state::State) = state.individual_id_counter
-get_individual_id_counter_state(state::State) = state.individual_id_counter.state
 get_individual_outcomes(state::State) = state.individual_outcomes
 get_interactions(state::State) = state.interactions
 get_job_creator(state::State) = state.job_creator
@@ -38,6 +36,7 @@ get_reproduction_time(state::State) = state.reproduction_time
 get_reporters(state::State) = state.reporters
 get_results(state::State) = state.results
 get_rng(state::State) = state.rng
+get_seed(state::State) = state.seed
 get_simulation_time(state::State) = state.simulation_time
 get_species_creators(state::State) = state.species_creators
 get_trial(state::State) = state.trial

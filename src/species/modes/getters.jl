@@ -4,15 +4,24 @@ export get_pruned_fitnesses, get_previous_pruned_fitnesses, get_elites, get_prev
 export get_individuals_to_evaluate, get_individuals_to_perform, get_previous_individuals_to_perform
 export get_children, get_elders, get_persistent_tags, get_population_genotypes
 export get_minimized_population_genotypes, get_pruned_genotypes, get_previous_pruned_genotypes
-export get_all_previous_pruned_genotypes
+export get_all_previous_pruned_genotypes, get_elites
 
 import ...Species: get_population_genotypes, get_minimized_population_genotypes
 import ...Species: get_individuals_to_perform, get_individuals_to_evaluate
-import ...Species: get_population
+import ...Species: get_population, get_elites
 using ...Genotypes: minimize
 
 # Current population
 get_population(species::ModesSpecies) = species.current_state.population
+get_elites(species::ModesSpecies) = species.current_state.elites
+get_pruned(species::ModesSpecies) = species.current_state.pruned
+get_pruned_fitnesses(species::ModesSpecies) = species.current_state.pruned_fitnesses
+get_pruned_genotypes(species::ModesSpecies) = [
+    individual.genotype for individual in get_pruned(species)
+]
+get_pruned_genotypes(all_species::Vector{<:ModesSpecies}) = vcat(
+    [get_pruned_genotypes(species) for species in all_species]...
+)
 get_population_genotypes(species::ModesSpecies) = [
     individual.genotype for individual in get_population(species)
 ]
@@ -38,15 +47,8 @@ get_persistent_tags(species::ModesSpecies) = Set(
 # Previous checkpoint population
 get_previous_population(species::ModesSpecies) = species.previous_state.population
 get_previous_elites(species::ModesSpecies) = species.previous_state.elites
-get_pruned(species::ModesSpecies) = species.current_state.pruned
-get_pruned_genotypes(species::ModesSpecies) = [
-    individual.genotype for individual in get_pruned(species)
-]
-get_pruned_genotypes(all_species::Vector{<:ModesSpecies}) = vcat(
-    [get_pruned_genotypes(species) for species in all_species]...
-)
-get_pruned_fitnesses(species::ModesSpecies) = species.current_state.pruned_fitnesses
 get_previous_pruned(species::ModesSpecies) = species.previous_state.pruned
+get_previous_pruned_fitnesses(species::ModesSpecies) = species.previous_state.pruned_fitnesses
 get_previous_pruned_genotypes(species::ModesSpecies) = [
     individual.genotype for individual in species.previous_state.pruned
 ]
@@ -59,8 +61,7 @@ get_all_previous_pruned_genotypes(species::ModesSpecies) = [
 get_all_previous_pruned_genotypes(all_species::Vector{<:ModesSpecies}) = vcat(
     [get_all_previous_pruned_genotypes(species) for species in all_species]...
 )
-get_previous_pruned_fitnesses(species::ModesSpecies) = species.previous_state.pruned_fitnesses
-get_elites(species::ModesSpecies) = species.current_state.elites
+
 get_individuals_to_evaluate(species::ModesSpecies) = get_population(species)
 
 get_individuals_to_perform(species::ModesSpecies,) = [

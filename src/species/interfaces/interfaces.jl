@@ -1,6 +1,6 @@
 export get_individuals, get_species, get_all_ids, find_species_by_id, get_species_with_ids
 export create_phenotype_dict, get_individuals_to_evaluate, get_individuals_to_perform
-export get_population
+export get_population, get_elites
 
 using ..Phenotypes: PhenotypeCreator, create_phenotype
 using ..Genotypes: minimize
@@ -34,6 +34,8 @@ function get_individuals(species::AbstractSpecies, cohorts::Vector{String})
 end
 
 get_population(species::AbstractSpecies) = species.population
+
+get_elites(species::AbstractSpecies) = species.elites
 
 
 function get_species(all_species::Vector{<:AbstractSpecies}, species_id::String)
