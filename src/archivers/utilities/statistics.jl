@@ -3,7 +3,7 @@ export get_proportion, measure_shannon_entropy, get_aggregate_measurements
 export DEFAULT_QUANTILES, DEFAULT_BASIC_STATISTICS, DEFAULT_BOOTSTRAPPED_CONFIDENCE_INTERVALS
 export N_BOOTSTRAP_SAMPLES, DEFAULT_CONFIDENCE
 
-using Bootstrap: bootstrap, BasicSampling, confint as bootstrap_confint
+using Bootstrap: bootstrap, BasicSampling, BasicConfInt, confint as bootstrap_confint
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
 
 const DEFAULT_QUANTILES = Dict(
@@ -35,7 +35,9 @@ function get_bootstrapped_confidence_intervals(values::Vector{Float64})
         return DEFAULT_BOOTSTRAPPED_CONFIDENCE_INTERVALS
     end
     bootstrap_result = bootstrap(mean, values, BasicSampling(1000))
-    _, lower_confidence, upper_confidence = bootstrap_confint(bootstrap_result, DEFAULT_CONFIDENCE)
+    _, lower_confidence, upper_confidence = first(bootstrap_confint(
+        bootstrap_result, BasicConfInt(DEFAULT_CONFIDENCE)
+    ))
     confidence_intervals = Dict(
         "lower_confidence" => lower_confidence,
         "upper_confidence" => upper_confidence,
@@ -100,3 +102,5 @@ function get_aggregate_measurements(values::Vector{Float64})
     measurements = merge(basic_statistics, quantiles, bootstrapped_confidence_intervals)
     return measurements
 end
+
+get_aggregate_measurements(values::Vector{<:Real}) = get_aggregate_measurements(float.(values))

@@ -1,3 +1,5 @@
 export SubstrateConfiguration
 
-abstract type SubstrateConfiguration end
+using ...NewConfigurations: Configuration
+
+abstract type SubstrateConfiguration <: Configuration end

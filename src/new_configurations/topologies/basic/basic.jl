@@ -2,6 +2,8 @@ module Basic
 
 export BasicTopologyConfiguration, BasicInteractionConfiguration, get_id
 
+import ...NewConfigurations: get_id
+
 using HDF5: File
 using ...TopologyConfigurations: TopologyConfiguration, InteractionConfiguration
 

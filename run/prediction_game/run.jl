@@ -11,15 +11,15 @@ function parse_cmdline_args()
             help = "Game type"
         "--topology"
             arg_type = String
-            default = "two_control"
+            default = "two_competitive"
             help = "Ecosystem topology"
         "--substrate"
             arg_type = String
             default = "function_graphs"
             help = "Substrate type"
-        "--reproducer"
+        "--reproduction"
             arg_type = String
-            default = "roulette"
+            default = "disco"
             help = "Reproduction method"
         "--report"
             arg_type = String
@@ -61,23 +61,23 @@ function parse_cmdline_args()
             arg_type = Int
             default = 1
             help = "Number of nodes per output"
-        "--modes_interval"
+        "--archive_interval"
             arg_type = Int
             default = 50
-            help = "Modes interval"
+            help = "Archive interval"
         "--function_set"
             arg_type = String
             default = "all"
             help = "Function set"
         "--mutation"
             arg_type = String
-            default = "equal_volatile"
+            default = "shrink_volatile"
             help = "Mutation type"
         "--noise_std"
             arg_type = String
-            default = "moderate"
+            default = "high"
             help = "Noise standard deviation"
-        "--elites_archive_length"
+        "--n_elites"
             arg_type = Int
             default = 0
             help = "Elites archive length"
@@ -97,16 +97,18 @@ end
     using Pkg
     Pkg.activate(".")
     using CoEvo
-    using CoEvo: make_prediction_game_experiment    
+    using CoEvo.NewConfigurations.ExperimentConfigurations.PredictionGame: PredictionGameExperimentConfiguration    
+    using CoEvo.States.Evolutionary: evolve!
     using StableRNGs: StableRNG
 end
 
-experiment = make_prediction_game_experiment(;
+config = PredictionGameExperimentConfiguration(;
     game = args["game"],
     topology = args["topology"],
     substrate = args["substrate"],
-    reproducer = args["reproducer"],
+    reproduction = args["reproduction"],
     trial = args["trial"],
+    n_generations = args["n_generations"],
     n_population = args["n_population"],
     n_children = args["n_children"],
     seed = args["seed"],
@@ -115,16 +117,16 @@ experiment = make_prediction_game_experiment(;
     n_workers = args["n_workers"],
     episode_length = args["episode_length"],
     n_nodes_per_output = args["n_nodes_per_output"],
-    modes_interval = args["modes_interval"],
+    archive_interval = args["archive_interval"],
     function_set = args["function_set"],
     mutation = args["mutation"],
     noise_std = args["noise_std"],
-    elites_archive_length = args["elites_archive_length"],
+    n_elites = args["n_elites"],
 )
 
 println("Running experiment with seed $(args["seed"])...")
-println("experiment: $experiment")
+println("experiment: $config")
 
-run!(experiment; n_generations = args["n_generations"])
+evolve!(config)
 
 println("Done!")

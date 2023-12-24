@@ -1,3 +1,5 @@
+export get_substrate, load_substrate, ID_TO_SUBSTRATE_MAP
+
 using ...SubstrateConfigurations.FiniteStateMachines: FiniteStateMachineSubstrateConfiguration
 using ...SubstrateConfigurations.GnarlNetworks: GnarlNetworkSubstrateConfiguration
 using ...SubstrateConfigurations.FunctionGraphs: FunctionGraphSubstrateConfiguration

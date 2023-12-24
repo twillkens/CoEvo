@@ -1,4 +1,4 @@
-export archive!
+export archive!, load
 
 using ..Genotypes: GenotypeCreator
 
@@ -22,6 +22,12 @@ function load(
 )
     throw(ErrorException("load not implemented for 
         $(typeof(archiver)) and 
+        $(typeof(genotype_creator))"))
+end
+
+function load(file::File, base_path::String, genotype_creator::GenotypeCreator)
+    throw(ErrorException("load not implemented for 
+        $(typeof(file)) and 
         $(typeof(genotype_creator))"))
 end
 

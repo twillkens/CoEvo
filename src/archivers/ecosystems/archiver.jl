@@ -1,6 +1,6 @@
 export EcosystemArchiver
 
-import ...Archivers: archive!
+import ...Archivers: archive!, load
 
 using HDF5: h5open, File
 using ...Archivers: Archiver
@@ -32,16 +32,29 @@ end
 
 function archive!(file::File, base_path::String, individuals::Vector{<:Individual})
     for individual in individuals
-        base_path = "$base_path/$(individual.id)"
-        archive!(file, base_path, individual)
+        individual_path = "$base_path/$(individual.id)"
+        archive!(file, individual_path, individual)
     end
 end
 
 function archive!(file::File, base_path::String, species::ModesSpecies)
-    archive!(file, "$base_path/population", get_population(species))
-    archive!(file, "$base_path/pruned", get_pruned(species))
-    file["$base_path/pruned_fitnesses"] = get_pruned_fitnesses(species)
-    archive!(file, "$base_path/elites", get_elites(species))
+    population = get_population(species)
+    pruned = get_pruned(species)
+    pruned_fitness_ids = [individual.id for individual in pruned]
+    pruned_fitnesses = get_pruned_fitnesses(species)
+    elites = get_elites(species)
+    println("Archiving $(length(population)) individuals")
+    println("Archiving $(length(pruned)) pruned individuals")
+    println("Archiving $(length(elites)) elites")
+    archive!(file, "$base_path/population", population)
+    archive!(file, "$base_path/pruned", pruned)
+    file["$base_path/pruned_fitness_ids"] = pruned_fitness_ids
+    file["$base_path/pruned_fitnesses"] = pruned_fitnesses
+    archive!(file, "$base_path/elites", elites)
+    #archive!(file, "$base_path/population", get_population(species))
+    #archive!(file, "$base_path/pruned", get_pruned(species))
+    #file["$base_path/pruned_fitnesses"] = get_pruned_fitnesses(species)
+    #archive!(file, "$base_path/elites", get_elites(species))
 end
 
 function archive!(file::File, base_path::String, species::BasicSpecies)
@@ -57,10 +70,16 @@ function archive!(file::File, base_path::String, ecosystem::Ecosystem)
 end
 
 function archive!(archiver::EcosystemArchiver, state::State)
+    do_not_archive = archiver.archive_interval == 0
+    is_archive_interval = get_generation(state) == 1 ||
+        get_generation(state) % archiver.archive_interval == 0
+    if do_not_archive || !is_archive_interval
+        return
+    end
     ecosystem = get_ecosystem(state)
     generation = get_generation(state)
     base_path = "generations/$generation/ecosystem"
-    file = h5open(archiver.h5_path, "a")
+    file = h5open(archiver.h5_path, "r+")
     archive!(file, base_path, ecosystem)
     close(file)
 end

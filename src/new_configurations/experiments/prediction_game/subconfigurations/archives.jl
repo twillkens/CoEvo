@@ -1,4 +1,4 @@
-export get_archive
+export get_archive, load_archive, ID_TO_ARCHIVES_MAP
 
 using ...ArchiveConfigurations.Modes: ModesArchiveConfiguration
 

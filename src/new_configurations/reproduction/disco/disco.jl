@@ -1,5 +1,7 @@
 module Disco
 
+export DiscoReproductionConfiguration, make_evaluator, make_replacer, make_selector, get_n_individuals
+
 import ...ReproductionConfigurations: make_evaluator, make_replacer, make_selector
 import ...ReproductionConfigurations: get_n_individuals
 

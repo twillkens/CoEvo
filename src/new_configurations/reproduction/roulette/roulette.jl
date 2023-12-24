@@ -1,5 +1,7 @@
 module Roulette
 
+export RouletteReproductionConfiguration, get_n_individuals, make_evaluator, make_replacer, make_selector
+
 import ...ReproductionConfigurations: get_n_individuals, make_evaluator, make_replacer, make_selector
 
 using ....Selectors.FitnessProportionate: FitnessProportionateSelector

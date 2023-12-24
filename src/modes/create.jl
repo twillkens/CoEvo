@@ -204,11 +204,11 @@ function create_species(
     species::ModesSpecies,
     state::State
 ) 
-    println("------species.id = ", species.id, "---------")
-    println("ids_current = ", [
-        (individual.id, individual.parent_id, individual.tag) 
-        for individual in get_population(species)]
-    )
+    #println("------species.id = ", species.id, "---------")
+    #println("ids_current = ", [
+    #    (individual.id, individual.parent_id, individual.tag) 
+    #    for individual in get_population(species)]
+    #)
     #println("ids_previous = ", [individual.id for individual in get_previous_population(species)])
     #println("tags_current = ", [individual.tag for individual in get_population(species)])
     #println("tags_previous = ", [individual.tag for individual in get_previous_population(species)])
@@ -219,7 +219,7 @@ function create_species(
     new_species = create_species(
         species_creator, species, evaluation, state; is_modes_checkpoint = is_modes_checkpoint
     )
-    println("ids_new = ", [individual.id for individual in get_population(new_species)])
+    #println("ids_new = ", [individual.id for individual in get_population(new_species)])
     #println("$(species.id)_$generation = ", [individual.id for individual in get_population(new_species)])
     return new_species
 end

@@ -8,7 +8,7 @@ import ...Abstract.States: get_all_species
 import ...Individuals: get_individuals
 import ...Species: get_species
 import ...Evaluators: evaluate
-import ..Ecosystems: create_ecosystem, evolve!
+import ..Ecosystems: create_ecosystem
 
 using ...Species: AbstractSpecies
 using ...SpeciesCreators: SpeciesCreator, create_species

@@ -4,7 +4,7 @@ using ....Jobs.Basic: BasicJobCreator
 using ....MatchMakers.AllVersusAll: AllVersusAllMatchMaker
 using ...NewConfigurations.GameConfigurations: make_environment_creator
 using ....Interactions.Basic: BasicInteraction
-using ...NewConfigurations.TopologyConfigurations.Basic: get_id
+using ...NewConfigurations: get_id
 
 function make_interaction(
     game::GameConfiguration, 

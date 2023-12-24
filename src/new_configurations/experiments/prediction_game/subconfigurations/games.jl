@@ -1,3 +1,5 @@
+export load_game, get_game, ID_TO_GAME_MAP
+
 using HDF5: File
 using ...GameConfigurations.ContinuousPredictionGame: ContinuousPredictionGameConfiguration
 using ...GameConfigurations.CollisionGame: CollisionGameConfiguration

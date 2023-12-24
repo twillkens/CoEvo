@@ -1,3 +1,5 @@
 export GlobalConfiguration
 
-abstract type GlobalConfiguration end
+using ...NewConfigurations: Configuration
+
+abstract type GlobalConfiguration <: Configuration end

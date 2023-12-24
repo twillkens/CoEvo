@@ -11,6 +11,8 @@ export get_evaluator, get_species, get_evaluation, find_by_id
 export get_generation, get_simulation_time, get_ecosystem
 export get_results
 export get_n_generations, get_seed
+export get_rng_state_after_creation
+export get_reproduction_time, get_simulation_time, get_evaluation_time
 
 abstract type State end
 abstract type StateCreator end
@@ -36,6 +38,7 @@ get_reproduction_time(state::State) = state.reproduction_time
 get_reporters(state::State) = state.reporters
 get_results(state::State) = state.results
 get_rng(state::State) = state.rng
+get_rng_state_after_creation(state::State) = state.rng_state_after_creation
 get_seed(state::State) = state.seed
 get_simulation_time(state::State) = state.simulation_time
 get_species_creators(state::State) = state.species_creators

@@ -20,7 +20,7 @@ function measure_genotype_size(species::AbstractSpecies; do_minimize::Bool = fal
         for individual in get_population(species)
     )
     aggregate_measurements = get_aggregate_measurements(collect(values(sizes)))
-    sizes = Dict("aggregate" => aggregate_measurements, "by_id" => sizes)
+    sizes = Dict("all" => aggregate_measurements, "by_id" => sizes)
     sizes = Dict(species.id => sizes)
     return sizes
 end
@@ -30,10 +30,10 @@ function measure_genotype_size(
 )
     all_genotypes = get_population_genotypes(all_species)
     all_sizes = do_minimize ? Dict(
-        "aggregate" => get_aggregate_measurements(
+        "all" => get_aggregate_measurements(
             [get_size(minimize(genotype)) for genotype in all_genotypes])
     ) : Dict(
-        "aggregate" => get_aggregate_measurements(
+        "all" => get_aggregate_measurements(
             [get_size(genotype) for genotype in all_genotypes])
     )
     species_genotype_sizes = merge(
@@ -44,9 +44,9 @@ function measure_genotype_size(
     return sizes
 end
 
-function measure_genotype_size(state::State)
+function measure_genotype_size(state::State; do_minimize::Bool = false)
     all_species = get_all_species(state)
-    genotype_size = measure_genotype_size(all_species)
+    genotype_size = measure_genotype_size(all_species; do_minimize = do_minimize)
     return genotype_size
 end
 
@@ -57,7 +57,10 @@ end
 
 function archive!(archiver::GenotypeSizeArchiver, state::State)
     generation = get_generation(state)
-    if archiver.archive_interval == 0 || generation % archiver.archive_interval != 0
+    do_not_archive = archiver.archive_interval == 0
+    is_archive_interval = get_generation(state) == 1 ||
+        get_generation(state) % archiver.archive_interval == 0
+    if do_not_archive || !is_archive_interval
         return
     end
     file = h5open(archiver.h5_path, "r+")

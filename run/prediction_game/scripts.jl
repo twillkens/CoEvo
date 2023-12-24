@@ -17,10 +17,11 @@ const N_SPECIES_ALIAS_DICT = Dict(
     3 => "three",
 )
 
-function make_job_name(n_species::Int, topology::String, reproducer::String)
+function make_job_name(n_species::Int, n_elites::Int, topology::String, reproducer::String)
     interaction_alias = INTERACTION_ALIAS_DICT[topology]
     reproducer_alias = REPRODUCER_ALIAS_DICT[reproducer]
-    job_name = string(n_species, interaction_alias, reproducer_alias)
+    elites_tag = n_elites == 0 ? "" : "E"
+    job_name = string(n_species, interaction_alias, reproducer_alias) * elites_tag
     return job_name
 end
 
@@ -32,18 +33,17 @@ function generate_local_script(;
     n_trials::Int = 1,
     report::String = "deploy",
     n_nodes_per_output::Int = 1,
-    modes_interval::Int = 50,
+    archive_interval::Int = 50,
     n_workers::Int = 1,
     function_set::String = "all",
     mutation::String = "shrink_volatile",
     noise_std::String = "high",
-    adaptive_archive_max_size::Int = 500,
-    n_adaptive_archive_samples::Int = 50,
+    n_elites::Int = 0,
     tag::String = "",
 )
     # Use the existing dictionaries to get aliases
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
-    job_name = make_job_name(n_species, interaction, reproducer)
+    job_name = make_job_name(n_species, n_elites, interaction, reproducer)
     job_name = job_name * "$tag"
 
     # Generate the bash script content with log redirection
@@ -64,12 +64,11 @@ function generate_local_script(;
             --reproducer $reproducer \\
             --n_generations $n_generations \\
             --n_nodes_per_output $n_nodes_per_output \\
-            --modes_interval $modes_interval \\
+            --archive_interval $archive_interval \\
             --function_set $function_set \\
             --mutation $mutation \\
             --noise_std $noise_std \\
-            --adaptive_archive_max_size $adaptive_archive_max_size \\
-            --n_adaptive_archive_samples $n_adaptive_archive_samples \\
+            --n_elites $n_elites \\
             > logs/$job_name/\$i.log 2>&1 &
     done
     """
@@ -97,15 +96,14 @@ function generate_slurm_script(;
     n_workers::Int = 1,
     n_trials::Int = 20,
     n_nodes_per_output::Int = 1,
-    modes_interval::Int = 50,
+    archive_interval::Int = 50,
     function_set::String = "all",
     mutation::String = "shrink_volatile",
     noise_std::String = "high",
-    adaptive_archive_max_size::Int = 500,
-    n_adaptive_archive_samples::Int = 50,
+    n_elites::Int = 0,
     tag::String = "",
 )
-    job_name = make_job_name(n_species, interaction, reproducer)
+    job_name = make_job_name(n_species, n_elites, interaction, reproducer)
     job_name = job_name * "$tag"
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
 
@@ -141,12 +139,11 @@ function generate_slurm_script(;
             --reproducer $reproducer \\
             --n_generations $n_generations \\
             --n_nodes_per_output $n_nodes_per_output \\
-            --modes_interval $modes_interval \\
+            --archive_interval $archive_interval \\
             --function_set $function_set \\
             --mutation $mutation \\
             --noise_std $noise_std \\
-            --adaptive_archive_max_size $adaptive_archive_max_size \\
-            --n_adaptive_archive_samples $n_adaptive_archive_samples \\
+            --n_elites $n_elites \\
     """
     filename = "$job_name.slurm"
     filepath = "scripts/slurm/$filename"

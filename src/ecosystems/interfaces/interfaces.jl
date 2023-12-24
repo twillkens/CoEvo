@@ -1,4 +1,4 @@
-export create_ecosystem, evolve!, get_individuals, get_species
+export create_ecosystem, get_individuals, get_species
 
 import ..Individuals: get_individuals
 
@@ -25,12 +25,12 @@ end
 #    )
 #end
 
-function evolve!(eco::Ecosystem, ecosystem_creator::EcosystemCreator, n_generations::Int)::Nothing
-    throw(ErrorException(
-        "`evolve!` not implemented for $eco"
-        )
-    )
-end
+#function evolve!(eco::Ecosystem, ecosystem_creator::EcosystemCreator, n_generations::Int)::Nothing
+#    throw(ErrorException(
+#        "`evolve!` not implemented for $eco"
+#        )
+#    )
+#end
 
 function get_individuals(ecosystem::Ecosystem, ids::Vector{Int})
     throw(ErrorException(

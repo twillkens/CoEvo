@@ -17,6 +17,7 @@ function ModesCheckpointState(population::Vector{I}) where {I <: ModesIndividual
     return state
 end
 
+#TODO: make it a set of genotypes for comparison savings
 Base.@kwdef struct ModesSpecies{I <: ModesIndividual} <: AbstractSpecies
     id::String
     current_state::ModesCheckpointState{I}

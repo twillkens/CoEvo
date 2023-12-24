@@ -3,6 +3,7 @@ export load_reproduction, get_reproduction, ID_TO_REPRODUCTION_MAP
 using ...ReproductionConfigurations.Roulette: RouletteReproductionConfiguration
 using ...ReproductionConfigurations.Tournament: TournamentReproductionConfiguration
 using ...ReproductionConfigurations.Disco: DiscoReproductionConfiguration
+using ...NewConfigurations: load_type
 
 
 const ID_TO_REPRODUCTION_MAP = Dict(
@@ -12,7 +13,7 @@ const ID_TO_REPRODUCTION_MAP = Dict(
 )
 
 function load_reproduction(file::File)
-    base_path = "configuration/reproduction"
+    base_path = "configuration/reproducer"
     id = read(file["$base_path/id"])
     type = get(ID_TO_REPRODUCTION_MAP, id, nothing)
 

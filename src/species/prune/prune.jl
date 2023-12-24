@@ -51,7 +51,7 @@ using ...Species: get_population
 
 function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
     persistent_tags = get_persistent_tags(species)
-    println([individual.id => individual.tag for individual in get_population(species)])
+    #println("id_tags = ", [individual.id => individual.tag for individual in get_population(species)])
     #println("persistent_tags_$(species.id): $persistent_tags")
     #println("persistent_tags = $persistent_tags")
     #println("species.previous_population: $(species.previous_population)")

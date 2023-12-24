@@ -1,3 +1,5 @@
+export get_topology, load_topology, PREDICTION_GAME_TOPOLOGIES
+
 using ...TopologyConfigurations.Basic: BasicTopologyConfiguration, BasicInteractionConfiguration
 using ...TopologyConfigurations.Modes: ModesTopologyConfiguration
 

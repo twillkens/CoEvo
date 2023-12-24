@@ -1,6 +1,10 @@
-export load_type, archive!
+export load_type, archive!, get_id
+
+import ..Archivers: archive!
 
 using HDF5: File, Group
+
+get_id(config::Configuration) = config.id
 
 function load_type(type::Type, file::File, base_path::String)
     # Use reflection to get the fields of the substrate type
@@ -47,17 +51,22 @@ function load_from_archive(file::File, config_type::Type{T}, base_path::String) 
     return instance
 end
 
+function archive!(file::File, configs::Vector{<:Configuration}, base_path::String)
+    for config in configs
+        archive!(file, config, joinpath(base_path, get_id(config)))
+    end
+end
+
 
 # Base method for archiving any Configuration
 function archive!(file::File, config::Configuration, base_path::String)
     for field in fieldnames(typeof(config))
+        field_path = joinpath(base_path, string(field))
         value = getfield(config, field)
-
-        if value isa Configuration
-            field_path = joinpath(base_path, config.id)
+        println("Archiving field $field_path with value $(typeof(value))")
+        if typeof(value) <: Configuration || isa(value, Vector) && eltype(value) <: Configuration
             archive!(file, value, field_path)
         else
-            field_path = joinpath(base_path, string(field))
             file[field_path] = value
         end
     end

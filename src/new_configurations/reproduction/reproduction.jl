@@ -15,4 +15,7 @@ using .Tournament: Tournament
 include("disco/disco.jl")
 using .Disco: Disco
 
+#include("map/map.jl")
+
+
 end

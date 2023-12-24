@@ -33,7 +33,10 @@ end
 
 function archive!(archiver::FitnessArchiver, state::State)
     generation = get_generation(state)
-    if archiver.archive_interval == 0 || generation % archiver.archive_interval != 0
+    do_not_archive = archiver.archive_interval == 0
+    is_archive_interval = get_generation(state) == 1 ||
+        get_generation(state) % archiver.archive_interval == 0
+    if do_not_archive || !is_archive_interval
         return
     end
     file = h5open(archiver.h5_path, "r+")
