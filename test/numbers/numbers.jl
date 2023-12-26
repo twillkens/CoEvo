@@ -124,11 +124,11 @@ confirms the outcomes when different phenotypes interact within the specified do
     @test typeof(evaluation) <: ScalarFitnessEvaluation
 end
 
-@testset "NumberGameConfiguration" begin
-    configuration = NumbersGameConfiguration(n_population = 4)
-    ecosystem = run!(configuration, n_generations = 10)
-    @test typeof(ecosystem) <: BasicEcosystem
-end
+#@testset "NumberGameConfiguration" begin
+#    configuration = NumbersGameConfiguration(n_population = 4)
+#    ecosystem = run!(configuration, n_generations = 10)
+#    @test typeof(ecosystem) <: BasicEcosystem
+#end
 
 println("Finished tests for NumbersGame.")
 

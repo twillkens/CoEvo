@@ -43,6 +43,15 @@ function archive!(archiver::FitnessArchiver, state::State)
     base_path = "generations/$generation/fitness"
     fitnesses = measure_fitness(state)
     add_measurements_to_hdf5(file, base_path, fitnesses)
+    #println("fitnesses: ", fitnesses)
+    for (id, measurements) in fitnesses
+        mean_value    = round(measurements["all"]["mean"]; digits = 3)
+        maximum_value = round(measurements["all"]["maximum"]; digits = 3)
+        minimum_value = round(measurements["all"]["minimum"]; digits = 3)
+        std_value     = round(measurements["all"]["std"]; digits = 3)
+        println("fitness_$id: mean: $mean_value, min: $minimum_value, max: $maximum_value, std: $std_value)")
+    end
+    #Print the mean, min, max, and std of the fitnesses for each evaluation
     close(file)
 end
 

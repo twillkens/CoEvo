@@ -155,16 +155,16 @@ include("archivers/archivers.jl")
 using .Archivers: Archivers
 println("loaded archivers")
 
-#include("names/names.jl")
-#using .Names: Names
-#println("loaded names")
-
 include("new_configurations/configurations.jl")
 using .NewConfigurations: NewConfigurations
 
 include("states/states.jl")
 using .States: States
 println("loaded states")
+
+include("names/names.jl")
+using .Names: Names
+println("loaded names")
 
 #include("configurations/configurations.jl")
 #using .Configurations: Configurations, run!

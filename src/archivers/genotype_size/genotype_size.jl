@@ -20,6 +20,13 @@ function measure_genotype_size(species::AbstractSpecies; do_minimize::Bool = fal
         for individual in get_population(species)
     )
     aggregate_measurements = get_aggregate_measurements(collect(values(sizes)))
+    size_key = do_minimize ? "minimized" : "full"
+    mean_value   = round(aggregate_measurements["mean"]; digits = 3)
+    max_value   = round(aggregate_measurements["maximum"]; digits = 3)
+    min_value   = round(aggregate_measurements["minimum"]; digits = 3)
+    std_value   = round(aggregate_measurements["std"]; digits = 3)
+    tag = "$(size_key)_genotype_size_$(species.id)"
+    println("$(tag): mean: $mean_value, min: $min_value, max: $max_value, std: $std_value)")
     sizes = Dict("all" => aggregate_measurements, "by_id" => sizes)
     sizes = Dict(species.id => sizes)
     return sizes
@@ -37,7 +44,7 @@ function measure_genotype_size(
             [get_size(genotype) for genotype in all_genotypes])
     )
     species_genotype_sizes = merge(
-        [measure_genotype_size(species) for species in all_species]...
+        [measure_genotype_size(species; do_minimize = do_minimize) for species in all_species]...
     )
     size_key = do_minimize ? "minimized" : "full"
     sizes = Dict(size_key => merge(all_sizes, species_genotype_sizes))

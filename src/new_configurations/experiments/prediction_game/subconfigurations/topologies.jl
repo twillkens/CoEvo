@@ -119,7 +119,7 @@ const PREDICTION_GAME_TOPOLOGIES = Dict(
 )
 
 function get_topology(
-    id::String; n_elites::Int = 50, modes_interval::Int = 50, kwargs...
+    id::String; n_elites::Int = 50, archive_interval::Int = 50, kwargs...
 )
     if !haskey(PREDICTION_GAME_TOPOLOGIES, id)
         error("Topology with id $id not found.")
@@ -134,7 +134,7 @@ function get_topology(
             id = id,
             species_ids = basic_topology.species_ids,
             interactions = basic_topology.interactions,
-            modes_interval = modes_interval,
+            modes_interval = archive_interval,
             n_elites = n_elites,
         )
         return topology

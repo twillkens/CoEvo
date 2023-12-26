@@ -66,7 +66,7 @@ function get_quantiles(values::Vector{Float64})
     end
     quantiles = nquantile(values, 4)
     quantiles = Dict(
-        "minumum" => quantiles[1],
+        "minimum" => quantiles[1],
         "lower_quartile" => quantiles[2],
         "median" => quantiles[3],
         "upper_quartile" => quantiles[4],

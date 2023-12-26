@@ -43,9 +43,10 @@ function archive!(file::File, base_path::String, species::ModesSpecies)
     pruned_fitness_ids = [individual.id for individual in pruned]
     pruned_fitnesses = get_pruned_fitnesses(species)
     elites = get_elites(species)
-    println("Archiving $(length(population)) individuals")
-    println("Archiving $(length(pruned)) pruned individuals")
-    println("Archiving $(length(elites)) elites")
+    n_population = length(population)
+    n_pruned = length(pruned)
+    n_elites = length(elites)
+    println("archiving $(species.id): $n_population population, $n_pruned pruned, and $n_elites elites")
     archive!(file, "$base_path/population", population)
     archive!(file, "$base_path/pruned", pruned)
     file["$base_path/pruned_fitness_ids"] = pruned_fitness_ids

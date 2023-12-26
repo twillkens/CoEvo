@@ -63,7 +63,7 @@ function archive!(file::File, config::Configuration, base_path::String)
     for field in fieldnames(typeof(config))
         field_path = joinpath(base_path, string(field))
         value = getfield(config, field)
-        println("Archiving field $field_path with value $(typeof(value))")
+        #println("Archiving field $field_path with value $(typeof(value))")
         if typeof(value) <: Configuration || isa(value, Vector) && eltype(value) <: Configuration
             archive!(file, value, field_path)
         else

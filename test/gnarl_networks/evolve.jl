@@ -6,32 +6,35 @@ using CoEvo
 using CoEvo.Names
 
 @testset "CollisionGame: Roulette" begin
-    experiment = make_prediction_game_experiment(
+    experiment = PredictionGameExperimentConfiguration(
         game = "collision_game",
         topology = "three_mixed",
         substrate = "gnarl_networks",
         reproducer = "roulette",
         n_population = 10,
-        communication_dimension = 1
+        communication_dimension = 1,
+        n_generations = 5
     )
-    ecosystem = run!(experiment, n_generations = 5)
-    @test typeof(ecosystem) <: BasicEcosystem
-    @test length(ecosystem.species) == 3
+    state = EvolutionaryState(experiment)
+    state = evolve(state)
+    @test typeof(state) <: EvolutionaryState
+    @test length(get_all_species(state)) == 3
 end
 
 @testset "CollisionGame: Disco" begin
-    experiment = make_prediction_game_experiment(
+    experiment = PredictionGameExperimentConfiguration(
         game = "collision_game",
         topology = "three_mixed",
         substrate = "gnarl_networks",
         reproducer = "disco",
         n_population = 10,
-        communication_dimension = 1
+        communication_dimension = 1,
+        n_generations = 5
     )
-
-    ecosystem = run!(experiment, n_generations = 5)
-    @test typeof(ecosystem) <: BasicEcosystem
-    @test length(ecosystem.species) == 3
+    state = EvolutionaryState(experiment)
+    state = evolve(state)
+    @test typeof(state) <: EvolutionaryState
+    @test length(get_all_species(state)) == 3
 end
 
 end

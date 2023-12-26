@@ -12,7 +12,7 @@ import ...Ecosystems: create_ecosystem
 
 import ...Jobs: create_jobs
 import ...Abstract.States: get_all_species, get_phenotype_creators, get_evaluators, get_interactions
-import ...Abstract.States: get_n_workers, get_rng_state_after_creation
+import ...Abstract.States: get_n_workers, get_rng_state_after_creation, get_trial
 
 using Random: AbstractRNG
 using ...Counters: Counter
@@ -81,6 +81,7 @@ get_all_species(state::EvolutionaryState) = state.ecosystem.species
 get_n_workers(state::EvolutionaryState) = get_n_workers(state.configuration)
 get_interactions(state::EvolutionaryState) = state.job_creator.interactions
 get_rng_state_after_creation(state::EvolutionaryState) = state.global_state.rng_state_after_creation
+get_trial(state::EvolutionaryState) = state.configuration.globals.trial
 
 
 
@@ -214,7 +215,7 @@ end
 
 function create_state(state::EvolutionaryState)
     state = increment_generation(state)
-    println("----$(get_generation(state))-------")
+    #println("----Generation: $(get_generation(state))-------")
     ecosystem, reproduction_time = create_ecosystem(state)
     state = EvolutionaryState(ecosystem, state)
     #println("RNG_state_after_create = $(get_rng(state).state)")
@@ -226,6 +227,7 @@ function create_state(state::EvolutionaryState)
     #println("RNG_state_after_evaluate = $(get_rng(state).state)")
     global_state = GlobalState(simulation_time, reproduction_time, evaluation_time, state)
     state = EvolutionaryState(global_state, state)
+    flush(stdout)
     return state
 end
 
