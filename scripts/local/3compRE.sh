@@ -2,7 +2,7 @@
 
 mkdir -p logs/3compRE
 
-for i in {1..1}
+for i in {1..30}
 do
    echo "Running trial $i"
    julia --project=. run/prediction_game/run.jl \

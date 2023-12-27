@@ -17,7 +17,7 @@ end
 
 function get_modes_interactions(prune_species::PruneSpecies, state::State)
     interactions = get_interactions(state)
-    println("interactions: $interactions")
+    #println("interactions: $interactions")
     interactions = filter(interaction -> prune_species.id in interaction.species_ids, interactions)
     if length(interactions) == 0
         println("interactions after: $interactions")
