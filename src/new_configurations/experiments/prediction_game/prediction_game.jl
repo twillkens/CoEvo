@@ -6,7 +6,7 @@ export load_individuals, load_species_state, load_species, load_ecosystem
 export load_most_recent_ecosystem
 
 using ...GlobalConfigurations.Basic: BasicGlobalConfiguration
-using HDF5: h5open, File 
+using HDF5: h5open, File, read 
 
 include("subconfigurations/subconfigurations.jl")
 
@@ -125,13 +125,14 @@ function load_species(
         return species
     end
     generations = [parse(Int, key) for key in keys(file["generations"])]
-    all_previous_pruned = Set(state.pruned)
+    all_previous_pruned = Set(individual.genotype for individual in state.pruned)
     previous_generations = filter(generation -> generation < gen, generations)
     for previous_gen in previous_generations
         previous_state = load_species_state(
             file, species_creator, previous_gen
         )
-        all_previous_pruned = union(all_previous_pruned, previous_state.pruned)
+        previous_pruned_genotypes = Set(individual.genotype for individual in previous_state.pruned)
+        all_previous_pruned = union(all_previous_pruned, previous_pruned_genotypes)
     end
 
     species = ModesSpecies(
@@ -139,6 +140,8 @@ function load_species(
         current_state = state,
         previous_state = state,
         all_previous_pruned = all_previous_pruned,
+        change = Int(read(file["generations/$gen/modes/change"])),
+        novelty = Int(read(file["generations/$gen/modes/novelty"]))
     )
     return species
 end
