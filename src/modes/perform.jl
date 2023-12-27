@@ -17,7 +17,13 @@ end
 
 function get_modes_interactions(prune_species::PruneSpecies, state::State)
     interactions = get_interactions(state)
-    filter!(interaction -> prune_species.id in interaction.species_ids, interactions)
+    println("interactions: $interactions")
+    interactions = filter(interaction -> prune_species.id in interaction.species_ids, interactions)
+    if length(interactions) == 0
+        println("interactions after: $interactions")
+        println("prune_species.id: $(prune_species.id)")
+        throw(ErrorException("No interactions found for species $(prune_species.id)."))
+    end
 
     # TODO: Refactor to make generic
     interactions = map(interactions) do interaction
