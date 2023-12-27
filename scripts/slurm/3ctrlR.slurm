@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#SBATCH --job-name=2compD
+#SBATCH --job-name=3ctrlR
 #SBATCH --partition=guest-compute
 #SBATCH --account=guest
 #SBATCH --qos=low
 #SBATCH --array=1-30%30
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --output=logs/2compD/%a.out
-#SBATCH --error=logs/2compD/%a.err
+#SBATCH --output=logs/3ctrlR/%a.out
+#SBATCH --error=logs/3ctrlR/%a.err
 
 # Load Julia module or set up the environment
 module purge
@@ -23,8 +23,8 @@ srun julia --project=. run/prediction_game/run.jl \
         --trial $SLURM_ARRAY_TASK_ID \
         --n_workers $SLURM_CPUS_PER_TASK \
         --game continuous_prediction_game \
-        --topology two_competitive \
-        --reproduction disco \
+        --topology three_control \
+        --reproduction roulette \
         --n_generations 30000 \
         --n_nodes_per_output 1 \
         --archive_interval 50 \

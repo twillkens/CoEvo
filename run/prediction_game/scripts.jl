@@ -28,23 +28,24 @@ end
 function generate_local_script(;
     n_species::Int,
     interaction::String,
-    reproducer::String,
-    n_generations::Int = 20_000,
+    reproduction::String,
+    n_generations::Int = 30_000,
     n_trials::Int = 1,
-    report::String = "deploy",
     n_nodes_per_output::Int = 1,
     archive_interval::Int = 50,
     n_workers::Int = 1,
     function_set::String = "all",
     mutation::String = "shrink_volatile",
     noise_std::String = "high",
+    n_population::Int = 50,
+    n_children::Int = 50,
     n_elites::Int = 0,
     episode_length::Int = 16,
     tag::String = "",
 )
     # Use the existing dictionaries to get aliases
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
-    job_name = make_job_name(n_species, n_elites, interaction, reproducer)
+    job_name = make_job_name(n_species, n_elites, interaction, reproduction)
     job_name = job_name * "$tag"
 
     # Generate the bash script content with log redirection
@@ -61,14 +62,15 @@ function generate_local_script(;
             --n_workers $n_workers \\
             --game continuous_prediction_game \\
             --topology $topology \\
-            --report $report \\
-            --reproducer $reproducer \\
+            --reproduction $reproduction \\
             --n_generations $n_generations \\
             --n_nodes_per_output $n_nodes_per_output \\
             --archive_interval $archive_interval \\
             --function_set $function_set \\
             --mutation $mutation \\
             --noise_std $noise_std \\
+            --n_population $n_population \\
+            --n_children $n_children \\
             --n_elites $n_elites \\
             --episode_length $episode_length \\
             > logs/$job_name/\$i.log 2>&1 &
@@ -92,21 +94,23 @@ end
 function generate_slurm_script(;
     n_species::Int, 
     interaction::String, 
-    reproducer::String,
+    reproduction::String,
     user::String = "twillkens",
-    n_generations::Int = 20_000,
+    n_generations::Int = 30_000,
     n_workers::Int = 1,
-    n_trials::Int = 20,
+    n_trials::Int = 30,
     n_nodes_per_output::Int = 1,
     archive_interval::Int = 50,
     function_set::String = "all",
     mutation::String = "shrink_volatile",
     noise_std::String = "high",
+    n_population::Int = 50,
+    n_children::Int = 50,
     n_elites::Int = 0,
     episode_length::Int = 16,
     tag::String = "",
 )
-    job_name = make_job_name(n_species, n_elites, interaction, reproducer)
+    job_name = make_job_name(n_species, n_elites, interaction, reproduction)
     job_name = job_name * "$tag"
     topology = N_SPECIES_ALIAS_DICT[n_species] * "_" * interaction
 
@@ -138,14 +142,15 @@ function generate_slurm_script(;
             --n_workers \$SLURM_CPUS_PER_TASK \\
             --game continuous_prediction_game \\
             --topology $topology \\
-            --report deploy \\
-            --reproducer $reproducer \\
+            --reproduction $reproduction \\
             --n_generations $n_generations \\
             --n_nodes_per_output $n_nodes_per_output \\
             --archive_interval $archive_interval \\
             --function_set $function_set \\
             --mutation $mutation \\
             --noise_std $noise_std \\
+            --n_population $n_population \\
+            --n_children $n_children \\
             --n_elites $n_elites \\
             --episode_length $episode_length \\
     """
@@ -168,5 +173,25 @@ function generate_script(;
         generate_slurm_script(;kwargs...)
     else
         throw(ArgumentError("Unknown type: $type"))
+    end
+end
+
+function generate_scripts()
+    for type in ["local", "slurm"]
+        for n_species in [2, 3]
+            for interaction in ["control", "cooperative", "competitive", "mixed"]
+                for reproduction in ["roulette", "disco"]
+                    for n_elites in [0, 50]
+                        generate_script(
+                            type = type,
+                            n_species = n_species,
+                            interaction = interaction,
+                            reproduction = reproduction,
+                            n_elites = n_elites,
+                        )
+                    end
+                end
+            end
+        end
     end
 end
