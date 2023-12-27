@@ -195,3 +195,54 @@ function generate_scripts()
         end
     end
 end
+
+using HDF5: File, Group, read, h5open, isfile
+
+function recursively_copy_item(source::File, dest::File, base_path::String)
+    if typeof(source[base_path]) == Group
+        for sub_item in keys(source[base_path])
+            recursively_copy_item(source, dest, "$base_path/$sub_item")
+        end
+    else
+        value = read(source[base_path])
+        dest[base_path] = value
+    end
+end
+
+function copy_data_to_filtered_file(source_file_path, max_generation)
+    destination_file_path = replace(source_file_path, r"\.h5$" => "_filtered.h5")
+
+    source_file = h5open(source_file_path, "r")
+    destination_file = h5open(destination_file_path, "w")
+
+    try
+        recursively_copy_item(source_file, destination_file, "configuration")
+
+        if "generations" in keys(source_file)
+            for generation in sort(parse.(Int, collect(keys(source_file["generations"]))), rev = true)
+                if generation <= max_generation
+                    gen_path = "generations/$(generation)"
+                    recursively_copy_item(source_file, destination_file, gen_path)
+                end
+            end
+        end
+    finally
+        close(source_file)
+        close(destination_file)
+    end
+end
+
+using Base: rename
+
+function rename_files(original_file_path)
+    original_backup_file_path = replace(original_file_path, r"\.h5$" => "_orig.h5")
+    filtered_file_path = replace(original_file_path, r"\.h5$" => "_filtered.h5")
+
+    if isfile(original_file_path)
+        rename(original_file_path, original_backup_file_path)
+    end
+
+    if isfile(filtered_file_path)
+        rename(filtered_file_path, original_file_path)
+    end
+end
