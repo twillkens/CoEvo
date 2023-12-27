@@ -183,7 +183,10 @@ function perform_modes(species::ModesSpecies, state::State)
 
     perform_simulation!(dummy_species, state; assign_full_fitness = true)
     #println("rng_after_simulation = $(get_rng(state).state)")
-    if first(get_interactions(state)).id == "Control-A-B" || is_fully_pruned(prune_species)
+    if first(get_interactions(state)).id == "Control-A-B" 
+        pruned_individuals = [prune_species.currents ; prune_species.pruned]
+        return pruned_individuals
+    elseif is_fully_pruned(prune_species)
         pruned_individuals = prune_species.pruned
         return prune_species.pruned
     end
