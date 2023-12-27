@@ -3,6 +3,7 @@
 #SBATCH --job-name=3mixRE
 #SBATCH --partition=guest-compute
 #SBATCH --account=guest
+#SBATCH --exclude=compute-0-24
 #SBATCH --qos=low
 #SBATCH --array=1-30%30
 #SBATCH --ntasks=1
@@ -27,7 +28,7 @@ srun julia --project=. run/prediction_game/run.jl \
         --reproduction roulette \
         --n_generations 30000 \
         --n_nodes_per_output 1 \
-        --archive_interval 50 \
+        --archive_interval 100 \
         --function_set simple \
         --mutation shrink_volatile \
         --noise_std high \
