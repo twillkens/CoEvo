@@ -227,7 +227,6 @@ function create_state(state::EvolutionaryState)
     #println("RNG_state_after_evaluate = $(get_rng(state).state)")
     global_state = GlobalState(simulation_time, reproduction_time, evaluation_time, state)
     state = EvolutionaryState(global_state, state)
-    flush(stdout)
     return state
 end
 

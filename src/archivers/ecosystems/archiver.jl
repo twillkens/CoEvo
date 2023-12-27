@@ -83,4 +83,5 @@ function archive!(archiver::EcosystemArchiver, state::State)
     file = h5open(archiver.h5_path, "r+")
     archive!(file, base_path, ecosystem)
     close(file)
+    flush(stdout)
 end
