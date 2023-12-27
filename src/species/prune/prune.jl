@@ -49,7 +49,9 @@ end
 
 using ...Species: get_population
 
-function PruneSpecies(species::ModesSpecies{I}) where {I <: ModesIndividual}
+using ...Genotypes: Genotype
+
+function PruneSpecies(species::ModesSpecies)
     persistent_tags = get_persistent_tags(species)
     #println("id_tags = ", [individual.id => individual.tag for individual in get_population(species)])
     #println("persistent_tags_$(species.id): $persistent_tags")

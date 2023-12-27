@@ -25,6 +25,8 @@ function add_elites_to_archive(
         current_state = new_current_state,
         previous_state = species.previous_state,
         all_previous_pruned = species.all_previous_pruned,
+        change = species.change,
+        novelty = species.novelty,
     )
     return new_species
 end

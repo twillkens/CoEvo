@@ -236,9 +236,9 @@ end
 end
 
 @inline function evaluate_function(
-    ::IfLessThenElseGraphFunction, x::Float32, y::Float32, z::Float32, w::Float32
+    ::IfLessThenElseGraphFunction, w::Float32, x::Float32, y::Float32, z::Float32
 )::Float32
-    return x < y ? z : w
+    return w < x ? y : z
 end
     
 

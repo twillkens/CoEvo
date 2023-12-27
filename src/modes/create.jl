@@ -1,3 +1,4 @@
+
 using ..Individuals.Modes: age_individuals
 using ..Individuals.Prune: print_full_summaries, print_prune_summaries
 using ..Counters: Counter, count!
@@ -86,16 +87,19 @@ function make_checkpoint_species(
     species::ModesSpecies, new_population::Vector{I}, state::State
 ) where {I <: ModesIndividual}
     #println("make_checkpoint_species")
+    #println("generation in make_checkpoint_species = ", get_generation(state))
     species = ModesSpecies(
         id = species.id, 
         current_state = ModesCheckpointState(
             population = new_population,
             pruned = I[],
             pruned_fitnesses = Float64[],
-            elites = get_elites(species)
+            elites = get_elites(species),
         ),
         previous_state = species.previous_state,
-        all_previous_pruned = union(species.all_previous_pruned, get_pruned(species))
+        all_previous_pruned = species.all_previous_pruned,
+        change = species.change,
+        novelty = species.novelty,
     )
     #println("rng_before_modes = ", get_rng(state).state)
     new_pruned = perform_modes(species, state)
@@ -113,11 +117,20 @@ function make_checkpoint_species(
         pruned_fitnesses = pruned_fitnesses,
         elites = get_elites(species)
     )
+    #new_pruned_genotypes = Set(individual.genotype for individual in new_modes_pruned)
+    #new_species = ModesSpecies(
+    #    id = species.id, 
+    #    current_state = new_current_state,
+    #    previous_state = new_current_state,
+    #    all_previous_pruned = union(species.all_previous_pruned, new_pruned_genotypes)
+    #)
     new_species = ModesSpecies(
         id = species.id, 
         current_state = new_current_state,
-        previous_state = new_current_state,
-        all_previous_pruned = union(species.all_previous_pruned, new_modes_pruned)
+        previous_state = species.previous_state,
+        all_previous_pruned = species.all_previous_pruned,
+        change = species.change,
+        novelty = species.novelty,
     )
     return new_species
 end
@@ -135,7 +148,9 @@ function make_normal_species(species::ModesSpecies, new_population::Vector{<:Mod
         id = species.id, 
         current_state = new_current_state,
         previous_state = species.previous_state,
-        all_previous_pruned = species.all_previous_pruned
+        all_previous_pruned = species.all_previous_pruned,
+        change = species.change,
+        novelty = species.novelty,
     )
     return new_species
 end
@@ -209,6 +224,10 @@ function create_species(
     #    (individual.id, individual.parent_id, individual.tag) 
     #    for individual in get_population(species)]
     #)
+    #println("ids_previous = ", [
+    #    (individual.id, individual.parent_id, individual.tag) 
+    #    for individual in get_previous_population(species)]
+    #)
     #println("ids_previous = ", [individual.id for individual in get_previous_population(species)])
     #println("tags_current = ", [individual.tag for individual in get_population(species)])
     #println("tags_previous = ", [individual.tag for individual in get_previous_population(species)])
@@ -222,6 +241,58 @@ function create_species(
     #println("ids_new = ", [individual.id for individual in get_population(new_species)])
     #println("$(species.id)_$generation = ", [individual.id for individual in get_population(new_species)])
     return new_species
+end
+
+using ...Species.Modes: get_pruned_genotypes, get_all_previous_pruned_genotypes
+using ...Species.Modes: get_previous_pruned_genotypes
+
+function measure_novelty(all_species::Vector{<:ModesSpecies})
+    pruned_genotypes = Set(get_pruned_genotypes(all_species))
+    all_previous_pruned_genotypes = get_all_previous_pruned_genotypes(all_species)
+    new_genotypes = setdiff(pruned_genotypes, all_previous_pruned_genotypes)
+    novelty = length(new_genotypes)
+    return novelty
+end
+
+function measure_change(all_species::Vector{<:ModesSpecies})
+    pruned_genotypes = Set(get_pruned_genotypes(all_species))
+    previous_pruned_genotypes = Set(get_previous_pruned_genotypes(all_species))
+    new_genotypes = setdiff(pruned_genotypes, previous_pruned_genotypes)
+    change = length(new_genotypes)
+    return change
+end
+
+function create_species(
+    species_creators::Vector{<:ModesSpeciesCreator}, 
+    all_species::Vector{S}, 
+    state::State
+) where {S <: ModesSpecies}
+    all_new_species = [
+        create_species(species_creator, species, state)
+        for (species_creator, species) in zip(species_creators, all_species)
+    ]
+    using_modes = first(species_creators).modes_interval > 0
+    is_modes_checkpoint = using_modes && get_generation(state) % first(species_creators).modes_interval == 0
+    if is_modes_checkpoint
+        novelty = measure_novelty(all_new_species)
+        change = measure_change(all_new_species)
+        all_final_species = S[]
+        for species in all_new_species
+            new_all_previous_pruned = union(species.all_previous_pruned, Set(get_pruned_genotypes(species)))
+            final_species = ModesSpecies(
+                id = species.id, 
+                current_state = species.current_state,
+                previous_state = species.current_state,
+                all_previous_pruned = new_all_previous_pruned,
+                change = change,
+                novelty = novelty,
+            )
+            push!(all_final_species, final_species)
+        end
+    else
+        all_final_species = all_new_species
+    end
+    return all_final_species
 end
     #ids = [individual.id for individual in species.population]
     #parent_ids = [individual.parent_id for individual in species.population]

@@ -50,15 +50,14 @@ get_previous_elites(species::ModesSpecies) = species.previous_state.elites
 get_previous_pruned(species::ModesSpecies) = species.previous_state.pruned
 get_previous_pruned_fitnesses(species::ModesSpecies) = species.previous_state.pruned_fitnesses
 get_previous_pruned_genotypes(species::ModesSpecies) = [
-    individual.genotype for individual in species.previous_state.pruned
+    individual.genotype for individual in get_previous_pruned(species)
 ]
 get_previous_pruned_genotypes(all_species::Vector{<:ModesSpecies}) = vcat(
     [get_previous_pruned_genotypes(species) for species in all_species]...
 )
-get_all_previous_pruned_genotypes(species::ModesSpecies) = [
-    individual.genotype for individual in species.all_previous_pruned
-]
-get_all_previous_pruned_genotypes(all_species::Vector{<:ModesSpecies}) = vcat(
+get_all_previous_pruned_genotypes(species::ModesSpecies) = species.all_previous_pruned
+
+get_all_previous_pruned_genotypes(all_species::Vector{<:ModesSpecies}) = union(
     [get_all_previous_pruned_genotypes(species) for species in all_species]...
 )
 

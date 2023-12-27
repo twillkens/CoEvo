@@ -68,13 +68,18 @@ function create_ecosystem(
 )
 
     #println("create_ecosystem not null")
-    all_species = [
-        create_species(species_creator, species, state)
-        for (species_creator, species) in zip(
-            ecosystem_creator.species_creators, 
-            ecosystem.species
-        )
-    ]
+    #all_species = [
+    #    create_species(species_creator, species, state)
+    #    for (species_creator, species) in zip(
+    #        ecosystem_creator.species_creators, 
+    #        ecosystem.species
+    #    )
+    #]
+    all_species = create_species(
+        ecosystem_creator.species_creators, 
+        ecosystem.species, 
+        state
+    )           
     #println("popids: ", [individual.id for individual in get_population(all_species[1])])
     new_ecosystem = SimpleEcosystem(ecosystem_creator.id, all_species)
     return new_ecosystem

@@ -20,5 +20,5 @@ FUNCTION_SETS = Dict(
     "circle" => [
         :IDENTITY, :ADD, :MULTIPLY, :DIVIDE, :MAXIMUM, :SINE, :COSINE, :ARCTANGENT, #:IF_LESS_THEN_ELSE
     ],
-    "simple" => [:ADD, :ARCTANGENT, ]#:IF_LESS_THEN_ELSE]
+    "simple" => [:ADD, :RELU, :SINE, :IF_LESS_THEN_ELSE]
 )
