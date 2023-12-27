@@ -4,7 +4,6 @@ FUNCTION_SETS = Dict(
     "all" => [
         :IDENTITY,
         :ADD,
-        :SUBTRACT,
         :MULTIPLY,
         :DIVIDE,
         :MAXIMUM,

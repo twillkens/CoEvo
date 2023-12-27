@@ -27,7 +27,8 @@ function measure_genotype_size(species::AbstractSpecies; do_minimize::Bool = fal
     std_value   = round(aggregate_measurements["std"]; digits = 3)
     tag = "$(size_key)_genotype_size_$(species.id)"
     println("$(tag): mean: $mean_value, min: $min_value, max: $max_value, std: $std_value)")
-    sizes = Dict("all" => aggregate_measurements, "by_id" => sizes)
+    #sizes = Dict("all" => aggregate_measurements, "by_id" => sizes)
+    sizes = Dict("all" => aggregate_measurements)
     sizes = Dict(species.id => sizes)
     return sizes
 end

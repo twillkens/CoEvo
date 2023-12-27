@@ -15,7 +15,8 @@ using ...Evaluators: Evaluation
 function measure_fitness(evaluation::Evaluation)
     fitnesses = Dict(string(record.id) => record.fitness for record in evaluation.records)
     aggregate_measurements = get_aggregate_measurements(collect(values(fitnesses)))
-    fitness = Dict("all" => aggregate_measurements, "by_id" => fitnesses)
+    #fitness = Dict("all" => aggregate_measurements, "by_id" => fitnesses)
+    fitness = Dict("all" => aggregate_measurements)
     return fitness
 end
 

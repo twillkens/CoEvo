@@ -419,7 +419,6 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
     function_probabilities::Dict{Symbol, Float64} = Dict(
         :IDENTITY => 1 / 13,
         :ADD => 1 / 13,
-        :SUBTRACT => 1 / 13,
         :MULTIPLY => 1 / 13,
         :DIVIDE => 1 / 13,
         :MAXIMUM => 1 / 13,
@@ -429,7 +428,8 @@ Base.@kwdef struct FunctionGraphMutator <: Mutator
         :ARCTANGENT => 1 / 13,
         :SIGMOID => 1 / 13,
         :TANH => 1 / 13,
-        :RELU => 1 / 13
+        :RELU => 1 / 13,
+        :IF_LESS_THEN_ELSE => 1 / 13,
     )
 end
 
