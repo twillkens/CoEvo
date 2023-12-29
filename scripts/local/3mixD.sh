@@ -14,7 +14,7 @@ do
         --n_generations 30000 \
         --n_nodes_per_output 1 \
         --archive_interval 200 \
-        --function_set all \
+        --function_set simple \
         --mutation shrink_hypervolatile \
         --noise_std high \
         --n_population 100\
