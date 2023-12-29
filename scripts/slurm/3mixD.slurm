@@ -17,7 +17,7 @@ module load gnu7/7.3.0 anaconda/5.2_py2 openmpi3/3.1.0
 source /home/twillkens/.bashrc
 conda activate "/home/twillkens/.conda/envs/coevo"
 
-srun julia --project -e 'push!(LOAD_PATH, "@CoEvo"); using PkgLock; PkgLock.instantiate_precompile()'
+# srun julia --project -e 'push!(LOAD_PATH, "@CoEvo"); using PkgLock; PkgLock.instantiate_precompile()'
 
 # Run script
 srun julia --project=. run/prediction_game/run.jl \
