@@ -13,12 +13,12 @@ do
         --reproduction roulette \
         --n_generations 30000 \
         --n_nodes_per_output 1 \
-        --archive_interval 100 \
+        --archive_interval 200 \
         --function_set all \
         --mutation shrink_small \
         --noise_std high \
-        --n_population 50 \
-        --n_children 50 \
+        --n_population 100\
+        --n_children 100\
         --n_elites 0 \
         --episode_length 16 \
         > logs/3ctrlR/$i.log 2>&1 &
