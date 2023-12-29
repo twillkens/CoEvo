@@ -10,6 +10,7 @@ using Test
 
 mkpath("test/tmp")
 ENV["COEVO_TRIAL_DIR"] = "test/tmp"
+original_stdout = stdout
 output_file = open("test/normal.out", "w")
 redirect_stdout(output_file)
 config = PredictionGameExperimentConfiguration(
@@ -83,6 +84,7 @@ rng_state_after_corruption = get_rng(state).state
 
 rm("test/tmp", recursive = true, force = true)
 close(output_file)
+redirect_stdout(original_stdout)
 @test rng_state_clean == rng_state_after_checkpoint
 @test rng_state_clean == rng_state_after_corruption
 
