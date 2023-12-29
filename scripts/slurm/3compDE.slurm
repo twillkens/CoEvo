@@ -3,7 +3,7 @@
 #SBATCH --job-name=3compDE
 #SBATCH --partition=guest-compute
 #SBATCH --account=guest
-#SBATCH --exclude=compute-0-24
+#SBATCH --exclude=compute-0-24,compute-0-2
 #SBATCH --qos=low
 #SBATCH --array=1-30%30
 #SBATCH --ntasks=1
