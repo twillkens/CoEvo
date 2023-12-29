@@ -11,11 +11,11 @@ do
         --game continuous_prediction_game \
         --topology two_competitive \
         --reproduction disco \
-        --n_generations 30000 \
+        --n_generations 20000 \
         --n_nodes_per_output 1 \
         --archive_interval 100 \
         --function_set all \
-        --mutation shrink_volatile \
+        --mutation shrink_small_hypervolatile \
         --noise_std high \
         --n_population 50 \
         --n_children 50 \

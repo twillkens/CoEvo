@@ -11,6 +11,7 @@ using Random: AbstractRNG
 using StableRNGs: StableRNG
 using ....Counters.Basic: BasicCounter
 using ....Performers.Cache: CachePerformer
+using ....Performers.Basic: BasicPerformer
 using ...GlobalConfigurations: GlobalConfiguration
 
 Base.@kwdef struct BasicGlobalConfiguration <: GlobalConfiguration
@@ -35,5 +36,6 @@ function make_random_number_generator(configuration::BasicGlobalConfiguration)
 end
 
 make_performer(config::BasicGlobalConfiguration) = CachePerformer(n_workers = config.n_workers)
+#make_performer(config::BasicGlobalConfiguration) = BasicPerformer(n_workers = config.n_workers)
     
 end

@@ -26,7 +26,7 @@ end
 
 function load_globals(file::File, generation::Int)
     base_path = "generations/$generation/global_state"
-    rng_state = read(file["$base_path/rng_state"])
+    rng_state = read(file["$base_path/rng_state_after_creation"])
     gene_id_counter_state = read(file["$base_path/gene_id_counter_state"])
     individual_id_counter_state = read(file["$base_path/individual_id_counter_state"])
 

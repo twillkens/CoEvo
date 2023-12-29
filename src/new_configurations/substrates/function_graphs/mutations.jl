@@ -17,6 +17,13 @@ const MUTATION_PROBABILITIES = Dict(
         :swap_function => 0.25,
         :redirect_connection => 0.25,
     ),
+    "shrink_small_hypervolatile" => Dict(
+        :identity => 0.0,
+        :add_function => .225,
+        :remove_function => .275,
+        :swap_function => 0.25,
+        :redirect_connection => 0.25,
+    ),
     "shrink_small" => Dict(
         :identity => 0.5,
         :add_function => 1 / 9,

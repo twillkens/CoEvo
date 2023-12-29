@@ -47,6 +47,7 @@ function archive!(file::File, base_path::String, species::ModesSpecies)
     n_pruned = length(pruned)
     n_elites = length(elites)
     println("archiving $(species.id): $n_population population, $n_pruned pruned, and $n_elites elites")
+    #println("archived_pop_ids: ", [individual.id for individual in population])
     archive!(file, "$base_path/population", population)
     archive!(file, "$base_path/pruned", pruned)
     file["$base_path/pruned_fitness_ids"] = pruned_fitness_ids
@@ -79,9 +80,13 @@ function archive!(archiver::EcosystemArchiver, state::State)
     end
     ecosystem = get_ecosystem(state)
     generation = get_generation(state)
+    #if get_generation(state) == 40
+    #    throw(ErrorException("stop"))
+    #end
     base_path = "generations/$generation/ecosystem"
     file = h5open(archiver.h5_path, "r+")
     archive!(file, base_path, ecosystem)
+    file["generations/$(get_generation(state))/valid"] = true
     close(file)
     flush(stdout)
 end

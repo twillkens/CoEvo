@@ -155,7 +155,7 @@ function make_normal_species(species::ModesSpecies, new_population::Vector{<:Mod
     return new_species
 end
 
-
+using ..Mutators.FunctionGraphs: FunctionGraphMutator
 function create_new_population(
     species_creator::ModesSpeciesCreator, 
     species::ModesSpecies, 
@@ -163,7 +163,16 @@ function create_new_population(
     state::State
 )
     rng = get_rng(state)
+    #ids_fitness = [(record.id, record.fitness) for record in evaluation.records]
+    #println("fitnesses: $ids_fitness")
+    #println("individual_id_counter_before = ", get_individual_id_counter(state).current_value)
+    #println("gene_id_counter_before = ", get_gene_id_counter(state).current_value)
     elders = replace(species_creator.replacer, rng, species, evaluation)
+    #elder_clones = recombine(
+    #    species_creator.recombiner, rng, get_individual_id_counter(state), elders;
+    #)
+    #noise_mutator = FunctionGraphMutator(mutation_probabilities = Dict(:identity => 1.0), noise_std = 0.1)
+    #elder_mutants =  mutate(noise_mutator, rng, get_gene_id_counter(state), elder_clones)
     #println("elders = ", [elder.id for elder in elders])
     #println("rng_state_elders = ", rng.state)
     parents = select(species_creator.selector, rng, elders, evaluation)
@@ -179,7 +188,12 @@ function create_new_population(
     for mutator in species_creator.mutators
         children = mutate(mutator, rng, get_gene_id_counter(state), children)
     end
+    #println("individual_id_counter_after = ", get_individual_id_counter(state).current_value)
+    #println("gene_id_counter_after = ", get_gene_id_counter(state).current_value)
+    #println("rng_state_mutation = ", rng.state)
     new_population = [elders ; children]
+    #new_population = [elder_clones ; children]
+    #new_population = [elder_mutants ; children]
     return new_population
 end
 
@@ -214,16 +228,25 @@ function create_species(
     return species
 end
 
+import ...Results: get_individual_outcomes
+
 function create_species(
     species_creator::ModesSpeciesCreator,
     species::ModesSpecies,
     state::State
 ) 
-    #println("------species.id = ", species.id, "---------")
+    #println("------species_id = ", species.id, "---------")
     #println("ids_current = ", [
     #    (individual.id, individual.parent_id, individual.tag) 
     #    for individual in get_population(species)]
     #)
+    #if get_generation(state) == 21
+    #    println("genotypes_$(species.id) = ", [
+    #        (individual.id, individual.genotype) 
+    #        for individual in get_population(species)]
+    #    )
+    #    println("individual_outcomes_$(species.id) = ", get_individual_outcomes(state.results))
+    #end
     #println("ids_previous = ", [
     #    (individual.id, individual.parent_id, individual.tag) 
     #    for individual in get_previous_population(species)]
@@ -235,6 +258,12 @@ function create_species(
     evaluation = get_evaluation(state, species.id)
     using_modes = species_creator.modes_interval > 0
     is_modes_checkpoint = using_modes && generation % species_creator.modes_interval == 0
+    #if is_modes_checkpoint
+    #    println("disco_info_$(species.id) = "[
+    #        (record.rank, round(record.crowding, digits=3), round(record.fitness, digits=3)) 
+    #        for record in evaluation.records]
+    #    )
+    #end
     new_species = create_species(
         species_creator, species, evaluation, state; is_modes_checkpoint = is_modes_checkpoint
     )
@@ -267,10 +296,12 @@ function create_species(
     all_species::Vector{S}, 
     state::State
 ) where {S <: ModesSpecies}
+    #println("rng_state_before_creation: ", get_rng(state).state)
     all_new_species = [
         create_species(species_creator, species, state)
         for (species_creator, species) in zip(species_creators, all_species)
     ]
+    #println("rng_state_after_creation: ", get_rng(state).state)
     using_modes = first(species_creators).modes_interval > 0
     is_modes_checkpoint = using_modes && get_generation(state) % first(species_creators).modes_interval == 0
     if is_modes_checkpoint
@@ -289,6 +320,7 @@ function create_species(
             )
             push!(all_final_species, final_species)
         end
+        #println("rng_state_after_modes = ", get_rng(state).state)
     else
         all_final_species = all_new_species
     end

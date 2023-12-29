@@ -102,12 +102,26 @@ function create_jobs(ecosystem::Ecosystem, state::State)
     return jobs
 end
 
-
+using ...Species: get_population
 function perform_simulation(state::EvolutionaryState)
     simulation_time_start = time()
     ecosystem = state.ecosystem
     jobs = create_jobs(ecosystem, state)
     results = perform(state.performer, jobs)
+    #if get_generation(state) == 20
+    #    for species in ecosystem.species
+    #        for individual in get_population(species)
+    #            id = individual.id
+    #            genotype = individual.genotype
+    #            println("genotype_$id = ", genotype)
+    #        end
+    #    end
+    #    for phenotype in values(first(jobs).phenotypes)
+    #        id = phenotype.id
+    #        println("phenotype_$id = ", phenotype)
+    #    end
+    #    println("individual_outcomes = ", get_individual_outcomes(results))
+    #end
     simulation_time = time() - simulation_time_start
     return results, simulation_time
 end
@@ -215,7 +229,7 @@ end
 
 function create_state(state::EvolutionaryState)
     state = increment_generation(state)
-    #println("----Generation: $(get_generation(state))-------")
+    #println("\n----Generation: $(get_generation(state))-------")
     ecosystem, reproduction_time = create_ecosystem(state)
     state = EvolutionaryState(ecosystem, state)
     #println("RNG_state_after_create = $(get_rng(state).state)")
@@ -279,10 +293,24 @@ using ...States.Global: load_most_recent_global_state
 using ...NewConfigurations.ExperimentConfigurations.PredictionGame: load_prediction_game_experiment, get_archive_path
 using ...NewConfigurations.ExperimentConfigurations.PredictionGame: get_archive_path
 using ...NewConfigurations.ExperimentConfigurations.PredictionGame: load_most_recent_ecosystem
+using ...NewConfigurations.ExperimentConfigurations.PredictionGame: delete_most_recent_checkpoint
+
+function get_most_recent_generation(file::File)
+    generations = [parse(Int, key) for key in keys(file["generations"])]
+    gen = maximum(generations)
+    return gen
+end
+
+using HDF5: delete_object
 
 
 function load_state_from_checkpoint(file::File)
     config = load_prediction_game_experiment(file)
+    most_recent_generation = get_most_recent_generation(file)
+    checkpoint_is_valid = "valid" in keys(file["generations/$most_recent_generation"])
+    if !checkpoint_is_valid
+        delete_most_recent_checkpoint(file)
+    end
     ecosystem = load_most_recent_ecosystem(file)
     global_state = load_most_recent_global_state(file)
     state = EvolutionaryState(
@@ -296,6 +324,7 @@ function load_state_from_checkpoint(file::File)
         NullEvaluation[], 
         make_archivers(config), 
     )
+    #println("RNG_state_after_create = $(get_rng(state).state)")
     results, simulation_time = perform_simulation(state)
     state = EvolutionaryState(results, state)
     #println("RNG_state_after_perform = $(get_rng(state).state)")
@@ -306,6 +335,7 @@ function load_state_from_checkpoint(file::File)
         simulation_time, get_reproduction_time(state), evaluation_time, state
     )
     state = EvolutionaryState(global_state, state)
+    #println("Loaded state at generation $(get_generation(state))")
     return state
 end
 
@@ -321,7 +351,7 @@ function evolve!(config::PredictionGameExperimentConfiguration)
         state = EvolutionaryState(config)
     else 
         println("Loading archive from $archive_path")
-        file = h5open(archive_path, "r")
+        file = h5open(archive_path, "r+")
         state = load_state_from_checkpoint(file)
         close(file)
     end

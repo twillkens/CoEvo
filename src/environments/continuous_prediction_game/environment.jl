@@ -34,8 +34,8 @@ function create_environment(
     phenotype_1::Phenotype,
     phenotype_2::Phenotype,
 ) where {D <: Domain}
-    reset!(phenotype_1)
-    reset!(phenotype_2)
+    #reset!(phenotype_1)
+    #reset!(phenotype_2)
     environment = ContinuousPredictionGameEnvironment(
         domain = environment_creator.domain,
         entity_1 = phenotype_1,

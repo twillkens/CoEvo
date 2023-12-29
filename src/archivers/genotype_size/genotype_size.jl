@@ -71,6 +71,7 @@ function archive!(archiver::GenotypeSizeArchiver, state::State)
     if do_not_archive || !is_archive_interval
         return
     end
+    #println("archiving genotype sizes for generation $generation")
     file = h5open(archiver.h5_path, "r+")
     base_path = "generations/$generation/genotype_size"
     genotype_sizes = measure_genotype_size(state; do_minimize = false)
@@ -78,6 +79,7 @@ function archive!(archiver::GenotypeSizeArchiver, state::State)
     sizes = merge(genotype_sizes, minimized_genotype_sizes)
     add_measurements_to_hdf5(file, base_path, sizes)
     close(file)
+    #println("done archiving genotype sizes for generation $generation")
 end
 
 end

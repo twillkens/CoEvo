@@ -277,6 +277,9 @@ function reset!(phenotype::LinearizedFunctionGraphPhenotype)
             node.input_values[i] = 0.0f0
         end
     end
+    for i in eachindex(phenotype.output_values)
+        phenotype.output_values[i] = 0.0f0
+    end
 end
 
 end

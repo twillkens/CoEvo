@@ -60,16 +60,20 @@ function interact(environment::Environment)
     return interact(environment, NullObserver[])
 end
 
+using ...Phenotypes: reset!
+
 function interact(
     interaction::BasicInteraction{E, M, O},
     individual_ids::Vector{Int},
     phenotypes::Vector{Phenotype},
 ) where {E <: EnvironmentCreator, M <: MatchMaker, O <: Observer}
+    [reset!(phenotype) for phenotype in phenotypes]
     environment_creator = interaction.environment_creator
     environment = create_environment(environment_creator, phenotypes...)
     outcome_set = interact(environment, interaction.observers)
     observations = create_observations(interaction.observers)
     result = BasicResult(interaction.id, individual_ids, outcome_set, observations)
+    [reset!(phenotype) for phenotype in phenotypes]
     return result
 end
 

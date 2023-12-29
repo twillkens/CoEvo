@@ -94,6 +94,10 @@ end
 function step!(
     environment::ContinuousPredictionGameEnvironment{D, <:Phenotype, <:Phenotype}
 ) where {D <: PredictionGameDomain}
+    #if environment.entity_1.id in [176, 191] && environment.entity_2.id in [176, 191]
+    #    println("p_$(environment.entity_1.id) = ", environment.entity_1)
+    #    println("p_$(environment.entity_2.id) = ", environment.entity_2)
+    #end
     environment.timestep += 1
     movement_1 = get_action!(
         environment.entity_1, 

@@ -89,6 +89,7 @@ function load_species_state(file::File, species_creator::ModesSpeciesCreator, ge
     base_path = "generations/$gen/ecosystem/$species_id"
 
     population = load_individuals(file, "$base_path/population", species_creator)
+    sort!(population, by = individual -> individual.id)
     I = typeof(first(population))
     if "pruned" ∉ keys(file[base_path])
         pruned = I[]
@@ -143,6 +144,7 @@ function load_species(
         change = Int(read(file["generations/$gen/modes/change"])),
         novelty = Int(read(file["generations/$gen/modes/novelty"]))
     )
+    println("loaded_ids_$(species_creator.id) = ", [individual.id for individual in state.population])
     return species
 end
 
@@ -167,7 +169,9 @@ end
 
 function load_most_recent_ecosystem(file::File)
     generations = [parse(Int, key) for key in keys(file["generations"])]
+    println("generations = ", generations)
     gen = maximum(generations)
+    println("gen = ", gen)
     ecosystem = load_ecosystem(file, gen)
     return ecosystem
 end
@@ -178,5 +182,17 @@ function load_most_recent_ecosystem(path::String)
     close(file)
     return ecosystem
 end
+
+using HDF5: delete_object
+
+export delete_most_recent_checkpoint
+
+function delete_most_recent_checkpoint(file::File)
+    generations = [parse(Int, key) for key in keys(file["generations"])]
+    gen = maximum(generations)
+    delete_object(file, "generations/$gen")
+end
+
+
 
 end

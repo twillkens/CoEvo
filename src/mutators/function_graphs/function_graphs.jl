@@ -509,6 +509,7 @@ function mutate(
     gene_id_counter::Counter, 
     genotype::FunctionGraphGenotype
 ) 
+    genotype = deepcopy(genotype)
     mutations = sample(
         rng, 
         collect(keys(mutator.mutation_probabilities)), 
@@ -517,6 +518,8 @@ function mutate(
     )
     #println("mutator = $mutator")
     #println("mutations = $mutations")
+    #println("hidden_node_ids = $(genotype.hidden_node_ids)")
+    #println("rng_state = $(rng.state)")
     n_input_nodes = length(genotype.input_node_ids)
     n_bias_nodes = length(genotype.bias_node_ids)
     n_hidden_nodes = length(genotype.hidden_node_ids)

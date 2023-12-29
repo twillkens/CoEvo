@@ -2,7 +2,7 @@
 
 mkdir -p logs/3mixD
 
-for i in {1..30}
+for i in {1..4}
 do
    echo "Running trial $i"
    julia --project=. run/prediction_game/run.jl \
@@ -15,7 +15,7 @@ do
         --n_nodes_per_output 1 \
         --archive_interval 100 \
         --function_set all \
-        --mutation shrink_volatile \
+        --mutation shrink_hypervolatile \
         --noise_std high \
         --n_population 50 \
         --n_children 50 \
