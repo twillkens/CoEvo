@@ -6,18 +6,18 @@ FUNCTION_SETS = Dict(
         :ADD,
         :MULTIPLY,
         :DIVIDE,
-        :MAXIMUM,
-        :MINIMUM,
         :SINE,
         :COSINE,
-        :ARCTANGENT,
         :SIGMOID,
         :TANH,
         :RELU,
+        :MAXIMUM,
+        :MINIMUM,
         :IF_LESS_THEN_ELSE,
     ],
     "circle" => [
         :IDENTITY, :ADD, :MULTIPLY, :DIVIDE, :MAXIMUM, :SINE, :COSINE, :ARCTANGENT, #:IF_LESS_THEN_ELSE
     ],
-    "simple" => [:ADD, :RELU, :SINE, :IF_LESS_THEN_ELSE]
+    "simple" => [:ADD, :RELU, :SINE, :IF_LESS_THEN_ELSE],
+    "simple_minmax" => [:ADD, :RELU, :SINE, :COSINE, :MAXIMUM, :MINIMUM, :IF_LESS_THEN_ELSE],
 )

@@ -9,7 +9,7 @@ using HDF5: h5open
 
 struct ModesArchiver <: Archiver
     archive_interval::Int
-    h5_path::String
+    archive_directory::String
 end
 
 function archive!(archiver::ModesArchiver, state::State)
@@ -30,8 +30,10 @@ function archive!(archiver::ModesArchiver, state::State)
     ecology = measure_ecology(state)
     measurements = merge(complexity, change, novelty, ecology)
     println("change: $(change["change"]), novelty: $(novelty["novelty"]), ecology: $(ecology["ecology"])")
-    base_path = "generations/$generation/modes"
-    file = h5open(archiver.h5_path, "r+")
+    base_path = "modes"
+
+    archive_path = "$(archiver.archive_directory)/generations/$generation.h5"
+    file = h5open(archive_path, "r+")
     add_measurements_to_hdf5(file, base_path, measurements)
     close(file)
 end

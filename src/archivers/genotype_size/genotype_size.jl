@@ -60,7 +60,7 @@ end
 
 struct GenotypeSizeArchiver <: Archiver
     archive_interval::Int
-    h5_path::String
+    archive_directory::String
 end
 
 function archive!(archiver::GenotypeSizeArchiver, state::State)
@@ -72,8 +72,9 @@ function archive!(archiver::GenotypeSizeArchiver, state::State)
         return
     end
     #println("archiving genotype sizes for generation $generation")
-    file = h5open(archiver.h5_path, "r+")
-    base_path = "generations/$generation/genotype_size"
+    archive_path = "$(archiver.archive_directory)/generations/$generation.h5"
+    file = h5open(archive_path, "r+")
+    base_path = "genotype_size"
     genotype_sizes = measure_genotype_size(state; do_minimize = false)
     minimized_genotype_sizes = measure_genotype_size(state; do_minimize = true)
     sizes = merge(genotype_sizes, minimized_genotype_sizes)

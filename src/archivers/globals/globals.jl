@@ -16,7 +16,7 @@ using ...Abstract.States: get_rng_state_after_creation, get_trial
 
 struct GlobalStateArchiver <: Archiver
     archive_interval::Int
-    h5_path::String
+    archive_directory::String
 end
 
 function archive!(archiver::GlobalStateArchiver, state::State)
@@ -27,8 +27,11 @@ function archive!(archiver::GlobalStateArchiver, state::State)
     if do_not_archive || !is_archive_interval
         return
     end
-    file = h5open(archiver.h5_path, "r+")
-    base_path = "generations/$generation/global_state"
+    mkpath("$(archiver.archive_directory)/generations")
+    archive_path = "$(archiver.archive_directory)/generations/$generation.h5"
+    file = h5open(archive_path, "w")
+    base_path = "global_state"
+    file["$base_path/generation"] = generation
     file["$base_path/rng_state"] = string(get_rng(state).state)
     file["$base_path/rng_state_after_creation"] = get_rng_state_after_creation(state)
     file["$base_path/individual_id_counter_state"] = get_individual_id_counter(state).current_value

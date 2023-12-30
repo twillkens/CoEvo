@@ -29,7 +29,6 @@ using ...Results: get_individual_outcomes
 using ...Evaluators: evaluate
 using ...States.Global: GlobalState
 using ...NewConfigurations.ExperimentConfigurations: ExperimentConfiguration
-using ...NewConfigurations.ExperimentConfigurations.PredictionGame: get_archive_path, get_root_directory
 
 using ...NewConfigurations.ExperimentConfigurations.PredictionGame: PredictionGame as PredictionGameConfig
 using .PredictionGameConfig: PredictionGameExperimentConfiguration
@@ -292,11 +291,9 @@ end
 
 using HDF5: h5open, File
 
-using ...States.Global: load_most_recent_global_state
-using ...NewConfigurations.ExperimentConfigurations.PredictionGame: load_prediction_game_experiment, get_archive_path
-using ...NewConfigurations.ExperimentConfigurations.PredictionGame: get_archive_path
-using ...NewConfigurations.ExperimentConfigurations.PredictionGame: load_most_recent_ecosystem
-using ...NewConfigurations.ExperimentConfigurations.PredictionGame: delete_most_recent_checkpoint
+using ...NewConfigurations.ExperimentConfigurations.PredictionGame: load_prediction_game_experiment 
+using ...NewConfigurations.ExperimentConfigurations.PredictionGame: get_archive_directory
+using ...NewConfigurations.ExperimentConfigurations.PredictionGame: load_ecosystem
 
 function get_most_recent_generation(file::File)
     generations = [parse(Int, key) for key in keys(file["generations"])]
@@ -306,16 +303,12 @@ end
 
 using HDF5: delete_object
 
+export load_state_from_checkpoint, find_recent_valid_checkpoint, initialize_new_archive
+using ...States.Global: load_global_state
 
-function load_state_from_checkpoint(file::File)
-    config = load_prediction_game_experiment(file)
-    most_recent_generation = get_most_recent_generation(file)
-    checkpoint_is_valid = "valid" in keys(file["generations/$most_recent_generation"])
-    if !checkpoint_is_valid
-        delete_most_recent_checkpoint(file)
-    end
-    ecosystem = load_most_recent_ecosystem(file)
-    global_state = load_most_recent_global_state(file)
+function load_state_from_checkpoint(config::PredictionGameExperimentConfiguration, file::File)
+    global_state = load_global_state(file)
+    ecosystem = load_ecosystem(config, global_state.generation, file)
     state = EvolutionaryState(
         config,
         global_state,
@@ -342,26 +335,111 @@ function load_state_from_checkpoint(file::File)
     return state
 end
 
+function load_state_from_checkpoint(
+    config::PredictionGameExperimentConfiguration, file_path::String
+)
+    file = h5open(file_path, "r+")
+    state = load_state_from_checkpoint(config, file)
+    close(file)
+    return state
+end
+
+function initialize_new_archive(config::PredictionGameExperimentConfiguration)
+    archive_directory = get_archive_directory(config)
+    println("Creating new archive directory at $archive_directory")
+    mkpath(archive_directory)
+    config_file = h5open("$archive_directory/configuration.h5", "w")
+    archive!(config_file, config, "configuration")
+    close(config_file)
+    return EvolutionaryState(config)
+end
+
+function find_recent_valid_checkpoint(archive_directory::String)
+    generations_directory = joinpath(archive_directory, "generations")
+    checkpoint_files = filter(x -> occursin(r"\.h5$", x), readdir(generations_directory))
+    sort!(checkpoint_files, by = x -> parse(Int, match(r"(\d+)\.h5$", x).captures[1]), rev = true)
+    
+    for chk_file in checkpoint_files
+        file_path = joinpath(generations_directory, chk_file)  # Corrected the path
+        file = nothing  # Initialize `file` to nothing
+        try
+            file = h5open(file_path, "r")
+            if "valid" in keys(file)
+                println("Valid checkpoint found: $file_path")
+                return file_path  # Return the path of the valid checkpoint
+            else
+                println("Invalid checkpoint, deleting: $file_path")
+                rm(file_path; force=true)
+            end
+        catch e
+            println("Error reading checkpoint $file_path: $e")
+            # Optionally delete the corrupted file
+            if isfile(file_path)
+                rm(file_path; force=true)
+            end
+        finally
+            # Safely attempt to close the file if it was opened
+            if file !== nothing
+                close(file)
+            end
+        end
+    end
+    return nothing  # Return nothing if no valid checkpoints are found
+end
+
+
 
 function evolve!(config::PredictionGameExperimentConfiguration)
-    archive_path = get_archive_path(config)
-    if !isfile(archive_path)
-        println("Creating new archive at $archive_path")
-        mkpath(get_root_directory(config))
-        file = h5open(archive_path, "w")
-        archive!(file, config, "configuration")
-        close(file)
-        state = EvolutionaryState(config)
-    else 
-        println("Loading archive from $archive_path")
+    archive_directory = get_archive_directory(config)
+
+    if !isdir(archive_directory)
+        state = initialize_new_archive(config)
+    else
+        println("Loading archive from $archive_directory")
         println("config = $config")
-        file = h5open(archive_path, "r+")
-        state = load_state_from_checkpoint(file)
-        close(file)
+        config_path = "$archive_directory/configuration.h5"
+        config = load_prediction_game_experiment(config_path)
+
+        checkpoint_path = find_recent_valid_checkpoint(archive_directory)
+        
+        if checkpoint_path !== nothing
+            state = load_state_from_checkpoint(config, checkpoint_path)
+        else
+            println("No valid checkpoints found. Starting from initial state.")
+            state = EvolutionaryState(config)
+        end
     end
+
     flush(stdout)
     state = evolve!(state)
     return state
 end
+
+
+#function evolve!(config::PredictionGameExperimentConfiguration)
+#    archive_directory = get_archive_directory(config)
+#    if !isdir(archive_directory)
+#        println("Creating new archive directory at $archive_directory")
+#        mkpath(archive_directory)
+#        config_file = h5open("$archive_directory/config.h5", "w")
+#        archive!(config_file, config, "configuration")
+#        close(config_file)
+#        state = EvolutionaryState(config)
+#    else 
+#        println("Loading archive from $archive_path")
+#        println("config = $config")
+#        # change this so that we scan the archive directory for the most recent checkpoint
+#        # each generation archive is numbered e.g., 1.h5, 50.h5, 100.h5, etc.
+#        # we try to open the checkpoint. If it is corrupted or if it does not contain 
+#        # the "valid" key, we delete it and try the next most recent checkpoint
+#        #file = h5open(archive_path, "r+")
+#        file = nothing
+#        state = load_state_from_checkpoint(file)
+#        close(file)
+#    end
+#    flush(stdout)
+#    state = evolve!(state)
+#    return state
+#end
 
 end

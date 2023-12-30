@@ -16,13 +16,13 @@ const ID_TO_ARCHIVER_TYPE_MAP = Dict(
 
 function make_archivers(config::PredictionGameExperimentConfiguration)
     archive_interval = config.archive.archive_interval
-    archive_path = ENV["COEVO_TRIAL_DIR"] * "/" * config.id * ".h5"
+    archive_directory = ENV["COEVO_TRIAL_DIR"] * "/" * config.id
     archivers = [
-        GlobalStateArchiver(archive_interval, archive_path),
-        FitnessArchiver(archive_interval, archive_path),
-        GenotypeSizeArchiver(archive_interval, archive_path),
-        ModesArchiver(archive_interval, archive_path),
-        EcosystemArchiver(archive_interval, archive_path),
+        GlobalStateArchiver(archive_interval, archive_directory),
+        FitnessArchiver(archive_interval, archive_directory),
+        GenotypeSizeArchiver(archive_interval, archive_directory),
+        ModesArchiver(archive_interval, archive_directory),
+        EcosystemArchiver(archive_interval, archive_directory),
     ]
     return archivers
 end

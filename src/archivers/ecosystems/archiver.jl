@@ -14,7 +14,7 @@ using ...CoEvo.Ecosystems: Ecosystem
 
 struct EcosystemArchiver <: Archiver
     archive_interval::Int
-    h5_path::String
+    archive_directory::String
 end
 
 function archive!(file::File, base_path::String, individual::BasicIndividual)
@@ -80,13 +80,11 @@ function archive!(archiver::EcosystemArchiver, state::State)
     end
     ecosystem = get_ecosystem(state)
     generation = get_generation(state)
-    #if get_generation(state) == 40
-    #    throw(ErrorException("stop"))
-    #end
-    base_path = "generations/$generation/ecosystem"
-    file = h5open(archiver.h5_path, "r+")
+    archive_path = "$(archiver.archive_directory)/generations/$generation.h5"
+    file = h5open(archive_path, "r+")
+    base_path = "ecosystem"
     archive!(file, base_path, ecosystem)
-    file["generations/$(get_generation(state))/valid"] = true
+    file["valid"] = true
     close(file)
     flush(stdout)
 end

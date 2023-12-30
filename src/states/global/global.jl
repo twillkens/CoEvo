@@ -1,6 +1,6 @@
 module Global
 
-export GlobalState, load_global_state, load_most_recent_global_state
+export GlobalState, load_global_state #, load_most_recent_global_state
 
 using Random: AbstractRNG
 using ...Counters.Basic: BasicCounter
@@ -50,35 +50,37 @@ function GlobalState(
     )
     return state
 end
+
 using StableRNGs: StableRNG
 
-function load_global_state(file::File, generation::Int)
-    base_path = "generations/$generation/global_state"
+# We assume that the full results and evaluation are not stored,
+# but that the rng state is stored after creating the species, and that
+# the species are stored completely. Simulations and evaluations are performed but 
+# information about them has already been archived.
+function load_global_state(file::File)
+    base_path = "global_state"
     rng_state_after_creation = read(file["$base_path/rng_state_after_creation"])
     gene_id_counter_state = read(file["$base_path/gene_id_counter_state"])
     individual_id_counter_state = read(file["$base_path/individual_id_counter_state"])
-    reproduction_time = read(file["$base_path/reproduction_time"])
-    simulation_time = read(file["$base_path/simulation_time"])
-    evaluation_time = read(file["$base_path/evaluation_time"])
     globals = GlobalState(
-        generation, 
-        StableRNG(state = parse(UInt128, rng_state_after_creation)),
-        rng_state_after_creation,
-        BasicCounter(individual_id_counter_state),
-        BasicCounter(gene_id_counter_state),
-        reproduction_time,
-        simulation_time,
-        evaluation_time,
+        generation = read(file["$base_path/generation"]), 
+        rng = StableRNG(state = parse(UInt128, rng_state_after_creation)),
+        rng_state_after_creation = rng_state_after_creation,
+        individual_id_counter = BasicCounter(individual_id_counter_state),
+        gene_id_counter = BasicCounter(gene_id_counter_state),
+        reproduction_time = read(file["$base_path/reproduction_time"]),
+        simulation_time = read(file["$base_path/simulation_time"]),
+        evaluation_time = read(file["$base_path/evaluation_time"]),
     )
     return globals
 end
 
-function load_most_recent_global_state(file::File)
-    generations = [parse(Int, key) for key in keys(file["generations"])]
-    gen = maximum(generations)
-    state = load_global_state(file, gen)
-    return state
-end
+#function load_most_recent_global_state(file::File)
+#    generations = [parse(Int, key) for key in keys(file["generations"])]
+#    gen = maximum(generations)
+#    state = load_global_state(file, gen)
+#    return state
+#end
 
 
 end

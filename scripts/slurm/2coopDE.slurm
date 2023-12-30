@@ -29,7 +29,7 @@ srun julia --project=. run/prediction_game/run.jl \
         --n_generations 30000 \
         --n_nodes_per_output 1 \
         --archive_interval 200 \
-        --function_set simple \
+        --function_set simple_minmax \
         --mutation shrink_small \
         --noise_std high \
         --n_population 100\

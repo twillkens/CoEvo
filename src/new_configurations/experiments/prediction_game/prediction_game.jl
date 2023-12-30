@@ -3,7 +3,7 @@ module PredictionGame
 export get_n_generations, make_ecosystem_creator, PredictionGameExperimentConfiguration
 export make_job_creator, make_performer, load_prediction_game_experiment
 export load_individuals, load_species_state, load_species, load_ecosystem
-export load_most_recent_ecosystem
+#export load_most_recent_ecosystem
 
 using ...GlobalConfigurations.Basic: BasicGlobalConfiguration
 using HDF5: h5open, File, read 
@@ -84,9 +84,9 @@ end
 
 using ....Species.Modes: ModesCheckpointState
 
-function load_species_state(file::File, species_creator::ModesSpeciesCreator, gen::Int)
+function load_species_state(file::File, species_creator::ModesSpeciesCreator)
     species_id = species_creator.id
-    base_path = "generations/$gen/ecosystem/$species_id"
+    base_path = "ecosystem/$species_id"
 
     population = load_individuals(file, "$base_path/population", species_creator)
     sort!(population, by = individual -> individual.id)
@@ -116,22 +116,25 @@ end
 using ....Species.Modes: ModesSpecies
 
 function load_species(
+    config::PredictionGameExperimentConfiguration,
+    generation::Int,
     file::File, 
     species_creator::ModesSpeciesCreator, 
-    gen::Int
 )
-    state = load_species_state(file, species_creator, gen)
-    if gen == 1
+    state = load_species_state(file, species_creator)
+    if generation == 1
         species = ModesSpecies(species_creator.id, state.population)
         return species
     end
-    generations = [parse(Int, key) for key in keys(file["generations"])]
     all_previous_pruned = Set(individual.genotype for individual in state.pruned)
-    previous_generations = filter(generation -> generation < gen, generations)
-    for previous_gen in previous_generations
-        previous_state = load_species_state(
-            file, species_creator, previous_gen
-        )
+    generations_directory = joinpath(get_archive_directory(config), "generations")
+    checkpoint_files = filter(x -> occursin(r"\.h5$", x), readdir(generations_directory))
+    filter!(x -> x != "$generation.h5", checkpoint_files)
+    sort!(checkpoint_files, by = x -> parse(Int, match(r"(\d+)\.h5$", x).captures[1]), rev = false)
+
+    for file_path in checkpoint_files
+        file = h5open(joinpath(generations_directory, file_path), "r")
+        previous_state = load_species_state(file, species_creator,)
         previous_pruned_genotypes = Set(individual.genotype for individual in previous_state.pruned)
         all_previous_pruned = union(all_previous_pruned, previous_pruned_genotypes)
     end
@@ -141,23 +144,24 @@ function load_species(
         current_state = state,
         previous_state = state,
         all_previous_pruned = all_previous_pruned,
-        change = Int(read(file["generations/$gen/modes/change"])),
-        novelty = Int(read(file["generations/$gen/modes/novelty"]))
+        change = Int(read(file["modes/change"])),
+        novelty = Int(read(file["modes/novelty"]))
     )
-    println("loaded_ids_$(species_creator.id) = ", [individual.id for individual in state.population])
+    #println("loaded_ids_$(species_creator.id) = ", [individual.id for individual in state.population])
     return species
 end
 
 using ....Ecosystems.Simple: SimpleEcosystem
 
-function load_ecosystem(file::File, gen::Int)
-    experiment = load_prediction_game_experiment(file)
-    ecosystem_creator = make_ecosystem_creator(experiment)
+function load_ecosystem(
+    config::PredictionGameExperimentConfiguration, generation::Int, file::File
+)
+    ecosystem_creator = make_ecosystem_creator(config)
     species_creators = ecosystem_creator.species_creators
     all_species = [
-        load_species(file, species_creator, gen) for species_creator in species_creators
+        load_species(config, generation, file, species_creator) for species_creator in species_creators
     ]
-    return SimpleEcosystem(experiment.id, all_species)
+    return SimpleEcosystem(config.id, all_species)
 end
 
 function load_ecosystem(path::String, gen::Int)
@@ -167,31 +171,31 @@ function load_ecosystem(path::String, gen::Int)
     return ecosystem
 end
 
-function load_most_recent_ecosystem(file::File)
-    generations = [parse(Int, key) for key in keys(file["generations"])]
-    println("generations = ", generations)
-    gen = maximum(generations)
-    println("gen = ", gen)
-    ecosystem = load_ecosystem(file, gen)
-    return ecosystem
-end
-
-function load_most_recent_ecosystem(path::String)
-    file = h5open(path, "r")
-    ecosystem = load_most_recent_ecosystem(file)
-    close(file)
-    return ecosystem
-end
-
-using HDF5: delete_object
-
-export delete_most_recent_checkpoint
-
-function delete_most_recent_checkpoint(file::File)
-    generations = [parse(Int, key) for key in keys(file["generations"])]
-    gen = maximum(generations)
-    delete_object(file, "generations/$gen")
-end
+#function load_most_recent_ecosystem(file::File)
+#    generations = [parse(Int, key) for key in keys(file["generations"])]
+#    println("generations = ", generations)
+#    gen = maximum(generations)
+#    println("gen = ", gen)
+#    ecosystem = load_ecosystem(file, gen)
+#    return ecosystem
+#end
+#
+#function load_most_recent_ecosystem(path::String)
+#    file = h5open(path, "r")
+#    ecosystem = load_most_recent_ecosystem(file)
+#    close(file)
+#    return ecosystem
+#end
+#
+#using HDF5: delete_object
+#
+#export delete_most_recent_checkpoint
+#
+#function delete_most_recent_checkpoint(file::File)
+#    generations = [parse(Int, key) for key in keys(file["generations"])]
+#    gen = maximum(generations)
+#    delete_object(file, "generations/$gen")
+#end
 
 
 

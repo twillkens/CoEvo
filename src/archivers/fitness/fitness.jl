@@ -29,7 +29,7 @@ measure_fitness(state::State) = measure_fitness(get_evaluations(state))
 
 struct FitnessArchiver <: Archiver
     archive_interval::Int
-    h5_path::String
+    archive_directory::String
 end
 
 function archive!(archiver::FitnessArchiver, state::State)
@@ -40,8 +40,9 @@ function archive!(archiver::FitnessArchiver, state::State)
     if do_not_archive || !is_archive_interval
         return
     end
-    file = h5open(archiver.h5_path, "r+")
-    base_path = "generations/$generation/fitness"
+    archive_path = "$(archiver.archive_directory)/generations/$generation.h5"
+    file = h5open(archive_path, "r+")
+    base_path = "fitness"
     fitnesses = measure_fitness(state)
     add_measurements_to_hdf5(file, base_path, fitnesses)
     #println("fitnesses: ", fitnesses)

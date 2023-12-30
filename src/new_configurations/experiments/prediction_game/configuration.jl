@@ -1,5 +1,5 @@
 export PredictionGameExperimentConfiguration, get_root_directory, clip_last_subfield
-export get_archive_path
+export get_archive_path, get_archive_directory
 
 using ...ExperimentConfigurations: ExperimentConfiguration
 using ...TopologyConfigurations: TopologyConfiguration
@@ -62,4 +62,9 @@ end
 function get_archive_path(config::PredictionGameExperimentConfiguration)
     archive_path = ENV["COEVO_TRIAL_DIR"] * "/" * config.id * ".h5"
     return archive_path
+end
+
+function get_archive_directory(config::PredictionGameExperimentConfiguration)
+    archive_directory = ENV["COEVO_TRIAL_DIR"] * "/" * config.id
+    return archive_directory
 end
