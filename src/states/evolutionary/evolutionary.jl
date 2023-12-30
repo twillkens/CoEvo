@@ -241,6 +241,9 @@ function create_state(state::EvolutionaryState)
     #println("RNG_state_after_evaluate = $(get_rng(state).state)")
     global_state = GlobalState(simulation_time, reproduction_time, evaluation_time, state)
     state = EvolutionaryState(global_state, state)
+    if get_generation(state) % 25 == 0
+        GC.gc()
+    end
     return state
 end
 

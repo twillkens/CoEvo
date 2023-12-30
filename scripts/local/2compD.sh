@@ -11,7 +11,7 @@ do
         --game continuous_prediction_game \
         --topology two_competitive \
         --reproduction disco \
-        --n_generations 20000 \
+        --n_generations 30000 \
         --n_nodes_per_output 1 \
         --archive_interval 200 \
         --function_set simple \

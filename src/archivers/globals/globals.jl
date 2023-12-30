@@ -44,7 +44,6 @@ function archive!(archiver::GlobalStateArchiver, state::State)
     evaluation_time = round(get_evaluation_time(state); digits = 3)
     println("reproduction_time: $reproduction_time, simulation_time: $simulation_time, evaluation_time: $evaluation_time")
     close(file)
-    GC.gc()
 end
 
 end
