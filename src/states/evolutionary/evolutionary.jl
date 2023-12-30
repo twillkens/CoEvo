@@ -354,10 +354,12 @@ function evolve!(config::PredictionGameExperimentConfiguration)
         state = EvolutionaryState(config)
     else 
         println("Loading archive from $archive_path")
+        println("config = $config")
         file = h5open(archive_path, "r+")
         state = load_state_from_checkpoint(file)
         close(file)
     end
+    flush(stdout)
     state = evolve!(state)
     return state
 end
