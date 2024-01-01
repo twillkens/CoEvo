@@ -2,7 +2,7 @@
 
 mkdir -p logs/2compDE
 
-for i in {1..30}
+for i in {1..5}
 do
    echo "Running trial $i"
    julia --project=. run/prediction_game/run.jl \
@@ -13,13 +13,13 @@ do
         --reproduction disco \
         --n_generations 30000 \
         --n_nodes_per_output 1 \
-        --archive_interval 200 \
-        --function_set simple_minmax \
+        --archive_interval 100 \
+        --function_set all \
         --mutation shrink_small \
-        --noise_std high \
-        --n_population 100\
-        --n_children 100\
-        --n_elites 50 \
-        --episode_length 16 \
+        --noise_std low \
+        --n_population 50 \
+        --n_children 50 \
+        --n_elites 0 \
+        --episode_length 32 \
         > logs/2compDE/$i.log 2>&1 &
 done

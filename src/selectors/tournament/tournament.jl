@@ -46,13 +46,13 @@ function run_tournament(rng::AbstractRNG, contenders::Array{<:NSGAIIRecord})
                 return record_2
             else
                 return rand(rng, (record_1, record_2))
-                if record_1.fitness > record_2.fitness
-                    return record_1
-                elseif record_2.fitness > record_1.fitness
-                    return record_2
-                else
-                    return rand(rng, (record_1, record_2))
-                end
+                #if record_1.fitness > record_2.fitness
+                #    return record_1
+                #elseif record_2.fitness > record_1.fitness
+                #    return record_2
+                #else
+                #    return rand(rng, (record_1, record_2))
+                #end
             end
         end
     end

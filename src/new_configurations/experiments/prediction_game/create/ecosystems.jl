@@ -1,5 +1,7 @@
 export make_species_creators, make_ecosystem_creator
 
+import ...ExperimentConfigurations: make_ecosystem_creator
+
 using ...SubstrateConfigurations: get_n_population, get_n_children, make_individual_creator
 using ...SubstrateConfigurations: make_genotype_creator, make_phenotype_creator
 using ...SubstrateConfigurations: make_recombiner, make_mutators

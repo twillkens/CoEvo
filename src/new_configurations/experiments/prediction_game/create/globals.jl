@@ -1,8 +1,8 @@
 export get_n_generations, get_n_workers, get_trial, make_random_number_generator
 export make_performer, get_seed
 
+import ...GlobalConfigurations: make_random_number_generator, make_performer
 import ....Abstract.States: get_n_generations, get_n_workers, get_trial, get_seed
-import ...GlobalConfigurations:  make_random_number_generator, make_performer
 
 
 get_n_generations(

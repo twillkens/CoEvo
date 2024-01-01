@@ -5,6 +5,7 @@ export get_individuals_to_evaluate, get_individuals_to_perform, get_previous_ind
 export get_children, get_elders, get_persistent_tags, get_population_genotypes
 export get_minimized_population_genotypes, get_pruned_genotypes, get_previous_pruned_genotypes
 export get_all_previous_pruned_genotypes, get_elites
+export get_previous_elite_ids, get_elite_ids
 
 import ...Species: get_population_genotypes, get_minimized_population_genotypes
 import ...Species: get_individuals_to_perform, get_individuals_to_evaluate
@@ -14,6 +15,7 @@ using ...Genotypes: minimize
 # Current population
 get_population(species::ModesSpecies) = species.current_state.population
 get_elites(species::ModesSpecies) = species.current_state.elites
+get_elite_ids(species::ModesSpecies) = species.current_state.elite_ids
 get_pruned(species::ModesSpecies) = species.current_state.pruned
 get_pruned_fitnesses(species::ModesSpecies) = species.current_state.pruned_fitnesses
 get_pruned_genotypes(species::ModesSpecies) = [
@@ -47,6 +49,7 @@ get_persistent_tags(species::ModesSpecies) = Set(
 # Previous checkpoint population
 get_previous_population(species::ModesSpecies) = species.previous_state.population
 get_previous_elites(species::ModesSpecies) = species.previous_state.elites
+get_previous_elite_ids(species::ModesSpecies) = species.previous_state.elite_ids
 get_previous_pruned(species::ModesSpecies) = species.previous_state.pruned
 get_previous_pruned_fitnesses(species::ModesSpecies) = species.previous_state.pruned_fitnesses
 get_previous_pruned_genotypes(species::ModesSpecies) = [
@@ -64,8 +67,11 @@ get_all_previous_pruned_genotypes(all_species::Vector{<:ModesSpecies}) = union(
 get_individuals_to_evaluate(species::ModesSpecies) = get_population(species)
 
 get_individuals_to_perform(species::ModesSpecies,) = [
-    get_population(species) ; get_elites(species)
+    get_population(species) ; 
+    [individual for individual in get_elites(species) if individual.id in get_elite_ids(species)]
 ]
 get_previous_individuals_to_perform(species::ModesSpecies) = [
-    get_previous_population(species) ; get_previous_elites(species)
+    get_previous_population(species) ; 
+    [individual for individual in get_previous_elites(species) if individual.id in get_previous_elite_ids(species)]
+
 ]

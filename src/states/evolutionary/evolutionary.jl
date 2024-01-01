@@ -32,7 +32,8 @@ using ...NewConfigurations.ExperimentConfigurations: ExperimentConfiguration
 
 using ...NewConfigurations.ExperimentConfigurations.PredictionGame: PredictionGame as PredictionGameConfig
 using .PredictionGameConfig: PredictionGameExperimentConfiguration
-using .PredictionGameConfig: make_ecosystem_creator, make_performer, make_archivers, make_job_creator
+#using .PredictionGameConfig: make_ecosystem_creator, make_performer, make_archivers, make_job_creator
+using ...NewConfigurations.ExperimentConfigurations: make_ecosystem_creator, make_performer, make_archivers, make_job_creator
 using ...Ecosystems.Null: NullEcosystem
 using ...Results.Null: NullResult
 using ...Evaluators.Null: NullEvaluation
@@ -268,13 +269,15 @@ function evolve(state::EvolutionaryState)
         #if get_generation(state) == 51
         #    return state
         #end
-        #println("Generation: ", get_generation(state))
+        println("Generation: ", get_generation(state))
         state = create_state(state)
     end
     return state
 end
 
-function EvolutionaryState(config::PredictionGameExperimentConfiguration)
+using ...NewConfigurations.ExperimentConfigurations: ExperimentConfiguration
+
+function EvolutionaryState(config::ExperimentConfiguration)
     state = EvolutionaryState(
         config,
         GlobalState(config.globals),

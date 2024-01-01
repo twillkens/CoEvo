@@ -1,5 +1,6 @@
 import ...Species: get_individuals_to_evaluate, get_individuals_to_perform
 using ...Species.Modes: get_previous_population, get_previous_elites
+using ...Species.Modes: get_previous_elite_ids
 
 using ...Results: get_individual_outcomes, get_observations
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
@@ -47,6 +48,7 @@ get_individuals_to_perform(species::SimpleSpecies) = species.population
 
 
 
+
 function get_modes_jobs(prune_species::PruneSpecies, state::State)
     interactions = get_modes_interactions(prune_species, state)
     job_creator = BasicJobCreator(interactions, get_n_workers(state))
@@ -56,7 +58,10 @@ function get_modes_jobs(prune_species::PruneSpecies, state::State)
     other_simple_species = [
         SimpleSpecies(species.id, [
             get_previous_population(species) ; 
-            get_previous_elites(species)
+            [
+                individual for individual in get_previous_elites(species) 
+                if individual.id in get_previous_elite_ids(species)
+            ]
         ])
         for species in filter(species -> species.id != prune_species.id, get_all_species(state))
     ]
@@ -68,6 +73,7 @@ function get_modes_jobs(prune_species::PruneSpecies, state::State)
     jobs = create_jobs(
         job_creator, get_rng(state), all_simple_species, get_phenotype_creators(state)
     )
+    #println("number_of_matches_$(prune_species.id) = $(length(first(jobs).matches))")
     return jobs, simple_species
 end
 

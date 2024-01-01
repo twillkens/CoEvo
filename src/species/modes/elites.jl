@@ -18,7 +18,8 @@ function add_elites_to_archive(
         population = get_population(species), 
         pruned = get_pruned(species), 
         pruned_fitnesses = get_pruned_fitnesses(species),
-        elites = elites
+        elites = elites,
+        elite_ids = get_elite_ids(species),
     )
     new_species = ModesSpecies(
         id = species.id,

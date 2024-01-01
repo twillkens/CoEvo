@@ -25,9 +25,9 @@ function DiscoReproductionConfiguration(;
     n_species::Int = 2, 
     n_population::Int = 10, 
     n_children::Int = 10, 
-    tournament_size::Int = 3,
+    tournament_size::Int = 5,
     max_clusters::Int = 5,
-    distance_method::String = "disco_average",
+    distance_method::String = "euclidean",
     kwargs...
 )
     reproduction = DiscoReproductionConfiguration(
@@ -52,7 +52,7 @@ function make_evaluator(reproduction::DiscoReproductionConfiguration)
         perform_disco = true, 
         max_clusters = reproduction.max_clusters,
         scalar_fitness_evaluator = ScalarFitnessEvaluator(),
-        distance_method = :disco_average
+        distance_method = :euclidean
     )
     return evaluator
 end

@@ -60,13 +60,35 @@ function measure(::NumbersGameDomain{Relativism}, A::Vector{<:Real}, B::Vector{<
     return outcome_decision(A[idx] > B[idx])
 end
 
+@kwdef struct CompareOnAll <: Metric
+    name::String = "CompareOnAll"
+end
+
+function measure(::NumbersGameDomain{CompareOnAll}, A::Vector{<:Real}, B::Vector{<:Real})
+    compare_results = [v1 >= v2 for (v1, v2) in zip(A, B)]
+    test_passed = all(compare_results) ? 1.0 : 0.0
+    return [test_passed, 1 - test_passed]
+end
+
+@kwdef struct CompareOnOne <: Metric
+    name::String = "CompareOnOne"
+end
+
+function measure(::NumbersGameDomain{CompareOnOne}, A::Vector{<:Real}, B::Vector{<:Real})
+    largest_dimension_B = findmax(B)[2]
+    test_passed = A[largest_dimension_B] >= B[largest_dimension_B] ? 1.0 : 0.0
+    return [test_passed, 1 - test_passed]
+end
+
 function NumbersGameDomain(metric_string::String)
     string_to_metric = Dict(
         "Control" => Control,
         "Sum" => Sum,
         "Gradient" => Gradient,
         "Focusing" => Focusing,
-        "Relativism" => Relativism
+        "Relativism" => Relativism,
+        "CompareOnAll" => CompareOnAll,
+        "CompareOnOne" => CompareOnOne
     )
     outcome_metric = string_to_metric[metric_string]()
     domain = NumbersGameDomain(outcome_metric)

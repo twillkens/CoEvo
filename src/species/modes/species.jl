@@ -7,6 +7,7 @@ Base.@kwdef struct ModesCheckpointState{I <: ModesIndividual}
     pruned::Vector{I}
     pruned_fitnesses::Vector{Float64}
     elites::Vector{I}
+    elite_ids::Vector{Int}
 end
 
 function ModesCheckpointState(population::Vector{I}) where {I <: ModesIndividual}
@@ -15,6 +16,7 @@ function ModesCheckpointState(population::Vector{I}) where {I <: ModesIndividual
         pruned = I[], 
         pruned_fitnesses = Float64[],
         elites = I[],
+        elite_ids = Int[],
     )
     return state
 end

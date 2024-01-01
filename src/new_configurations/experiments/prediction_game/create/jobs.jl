@@ -1,5 +1,7 @@
 export make_job_creator
 
+import ...ExperimentConfigurations: make_job_creator
+
 using ....Jobs.Basic: BasicJobCreator
 using ....MatchMakers.AllVersusAll: AllVersusAllMatchMaker
 using ...NewConfigurations.GameConfigurations: make_environment_creator

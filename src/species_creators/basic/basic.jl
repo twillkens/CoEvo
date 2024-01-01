@@ -19,6 +19,7 @@ using ...Recombiners: Recombiner, recombine
 using ...Recombiners.Clone: CloneRecombiner
 using ...Mutators: Mutator, mutate
 using ..SpeciesCreators: SpeciesCreator
+using ...Abstract.States: State, get_rng, get_individual_id_counter, get_gene_id_counter
 
 Base.@kwdef struct BasicSpeciesCreator{
     G <: GenotypeCreator,
@@ -76,6 +77,21 @@ function create_species(
 end
 
 function create_species(
+    species_creator::BasicSpeciesCreator, 
+    state::State
+)
+    species = create_species(
+        species_creator, 
+        get_rng(state), 
+        get_individual_id_counter(state),
+        get_gene_id_counter(state)
+    )
+
+    return species
+end
+    
+
+function create_species(
     species_creator::BasicSpeciesCreator,
     rng::AbstractRNG, 
     individual_id_counter::Counter,  
@@ -111,6 +127,26 @@ function create_species(
     end
     new_species = BasicSpecies(species_creator.id, new_population, new_children)
     return new_species
+end
+
+using ...Abstract.States: find_by_id
+
+function create_species(
+    species_creator::BasicSpeciesCreator, 
+    species::BasicSpecies, 
+    state::State
+)
+    evaluation = find_by_id(state.evaluations,species.id,  )
+    species = create_species(
+        species_creator, 
+        get_rng(state), 
+        get_individual_id_counter(state),
+        get_gene_id_counter(state),
+        species, 
+        evaluation
+    )
+
+    return species
 end
 
 

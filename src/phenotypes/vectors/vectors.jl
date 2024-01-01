@@ -2,7 +2,7 @@ module Vectors
 
 export BasicVectorPhenotype
 
-import ..Phenotypes: create_phenotype, act!
+import ..Phenotypes: create_phenotype, act!, reset!
 
 using ...Genotypes.Vectors: BasicVectorGenotype
 using ..Phenotypes: Phenotype, PhenotypeCreator
@@ -26,5 +26,7 @@ end
 function act!(phenotype::BasicVectorPhenotype, ::Any)
     phenotype.values
 end
+ 
+reset!(phenotype::BasicVectorPhenotype) = nothing
 
 end

@@ -8,6 +8,7 @@ using Random: AbstractRNG
 using DataStructures: OrderedDict
 using ...Individuals: Individual
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluation
+using ...Evaluators: Evaluation
 using ..Selectors: Selector
 
 Base.@kwdef struct FitnessProportionateSelector <: Selector
@@ -38,7 +39,7 @@ function select(
     selector::FitnessProportionateSelector,
     rng::AbstractRNG, 
     new_population::Vector{<:Individual},
-    evaluation::ScalarFitnessEvaluation
+    evaluation::Evaluation
 )
     ids = [individual.id for individual in new_population]
     records_dict = Dict(record.id => record for record in evaluation.records)

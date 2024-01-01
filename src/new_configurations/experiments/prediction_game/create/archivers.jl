@@ -1,5 +1,7 @@
 export make_archivers
 
+import ...ExperimentConfigurations: make_archivers
+
 using ....Archivers.Globals: GlobalStateArchiver
 using ....Archivers.Fitness: FitnessArchiver
 using ....Archivers.GenotypeSize: GenotypeSizeArchiver

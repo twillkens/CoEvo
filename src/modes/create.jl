@@ -82,6 +82,7 @@ function reset_tags(individuals::Vector{<:ModesIndividual})
     return individuals
 end
 
+using StatsBase: sample
 
 function make_checkpoint_species(
     species::ModesSpecies, new_population::Vector{I}, state::State
@@ -95,6 +96,7 @@ function make_checkpoint_species(
             pruned = I[],
             pruned_fitnesses = Float64[],
             elites = get_elites(species),
+            elite_ids = get_elite_ids(species),
         ),
         previous_state = species.previous_state,
         all_previous_pruned = species.all_previous_pruned,
@@ -110,12 +112,16 @@ function make_checkpoint_species(
     print_prune_summaries(species.id, new_pruned)
     new_modes_pruned = get_new_modes_pruned(new_pruned)
     new_population = reset_tags(new_population)
+    n_elite_ids = min(length(get_elites(species)), 100)
+    all_elite_ids = [individual.id for individual in get_elites(species)]
+    elite_ids = sample(get_rng(state), all_elite_ids, n_elite_ids; replace = false)
     #println("new_population = ", [individual.id for individual in new_population])
     new_current_state = ModesCheckpointState(
         population = new_population,
         pruned = new_modes_pruned,
         pruned_fitnesses = pruned_fitnesses,
-        elites = get_elites(species)
+        elites = get_elites(species),
+        elite_ids = elite_ids,
     )
     #new_pruned_genotypes = Set(individual.genotype for individual in new_modes_pruned)
     #new_species = ModesSpecies(
@@ -135,14 +141,21 @@ function make_checkpoint_species(
     return new_species
 end
 
+using ...Species.Modes: get_elite_ids
 
-function make_normal_species(species::ModesSpecies, new_population::Vector{<:ModesIndividual})
+function make_normal_species(
+    species::ModesSpecies, new_population::Vector{<:ModesIndividual}, state::State
+)
     #println("make_normal_species")
+    n_elite_ids = min(length(get_elites(species)), 50)
+    all_elite_ids = [individual.id for individual in get_elites(species)]
+    elite_ids = sample(get_rng(state), all_elite_ids, n_elite_ids; replace = false)
     new_current_state = ModesCheckpointState(
         population = new_population,
         pruned = get_pruned(species),
         pruned_fitnesses = get_pruned_fitnesses(species),
-        elites = get_elites(species)
+        elites = get_elites(species),
+        elite_ids = elite_ids
     )
     new_species = ModesSpecies(
         id = species.id, 
@@ -197,13 +210,26 @@ function create_new_population(
     return new_population
 end
 
-function add_elite_to_archive(species::ModesSpecies, n_elites::Int, evaluation::Evaluation)
+using StatsBase: sample
+
+using ...Species.Modes: get_elites
+
+function add_elite_to_archive(
+    species::ModesSpecies, n_elites::Int, evaluation::Evaluation, state::State
+)
     population_ids = [individual.id for individual in get_population(species)]
     population_records = [record for record in get_records(evaluation, population_ids)]
-    elite_individual_id = last(sort(population_records, by = record -> record.fitness)).id
+    population_records = filter(record -> record.rank == 1 && record.crowding == Inf, population_records)
+    elite_ids = [record.id for record in population_records]
+    elites = [individual for individual in get_population(species) if individual.id in elite_ids]
+
+    #elite_individual_id = last(sort(population_records, by = record -> record.fitness)).id
     #elite_individual_fitness = last(sort(population_records, by = record -> record.fitness)).fitness
-    elite_individual = find_by_id(get_population(species), elite_individual_id)
-    new_species = add_elites_to_archive(species, n_elites, [elite_individual])
+    #elite_individual = find_by_id(get_population(species), elite_individual_id)
+    #new_species = add_elites_to_archive(species, n_elites, [elite_individual])
+    new_species = add_elites_to_archive(species, 1000, elites)
+    #println("elites_archive_length = ", length(get_elites(new_species)))
+    flush(stdout)
     return new_species
 end
 
@@ -216,12 +242,14 @@ function create_species(
     is_modes_checkpoint::Bool = false
 )
     #new_species = add_elite_to_archive(species, species_creator.n_elites, evaluation)
-    species = add_elite_to_archive(species, species_creator.n_elites, evaluation)
+    if get_generation(state) % 20 == 0
+        species = add_elite_to_archive(species, species_creator.n_elites, evaluation, state)
+    end
     population_length_before = length(get_population(species))
     new_population = create_new_population(species_creator, species, evaluation, state)
     species = is_modes_checkpoint ? 
         make_checkpoint_species(species, new_population, state) :
-        make_normal_species(species, new_population)
+        make_normal_species(species, new_population, state)
     if population_length_before != length(get_population(species))
         throw(ErrorException("population length changed"))
     end
