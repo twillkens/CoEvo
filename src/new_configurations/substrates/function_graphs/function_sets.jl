@@ -14,6 +14,9 @@ FUNCTION_SETS = Dict(
         :MAXIMUM,
         :MINIMUM,
         :IF_LESS_THEN_ELSE,
+        :MODULO,
+        :NATURAL_LOG,
+        :EXP,
     ],
     "circle" => [
         :IDENTITY, :ADD, :MULTIPLY, :DIVIDE, :MAXIMUM, :SINE, :COSINE, :ARCTANGENT, #:IF_LESS_THEN_ELSE

@@ -240,6 +240,83 @@ end
 )::Float32
     return w < x ? y : z
 end
+
+@kwdef struct ModuloGraphFunction <: GraphFunction 
+    name::Symbol = :MODULO
+    arity::Int = 2
+end
+
+@inline function evaluate_function(::ModuloGraphFunction, x::Float32, y::Float32)::Float32
+    v = 0.0f0
+    if y == 0.0f0 || x == 0.0f0 || isinf(x) || isinf(y)
+        v = 0.0f0
+        #return 0.0f0 # Modulo by zero is not defined
+    else
+        v = x - y * floor(x / y)
+    end
+    if isnan(v)
+        println("x: $x")
+        println("y: $y")
+        println("v: $v")
+        throw(ErrorException("NaN encountered in ModuloGraphFunction"))
+    end
+    return v
+end
+
+@kwdef struct NaturalLogGraphFunction <: GraphFunction 
+    name::Symbol = :NATURAL_LOG
+    arity::Int = 1
+end
+
+@inline function evaluate_function(::NaturalLogGraphFunction, x::Float32)::Float32
+    v = 0.0f0
+    if x == Inf32
+        v = Inf32
+        #return Inf32
+    elseif x == 0.0f0
+        v = 0.0f0
+        #return 0.0f0
+    elseif x < 0.0f0
+        #return -log(-x)
+        v = -log(-x)
+    else
+        v = log(x)
+        #return log(x)
+    end
+    if isnan(v)
+        println("x: $x")
+        println("v: $v")
+        throw(ErrorException("NaN encountered in NaturalLogGraphFunction"))
+    end
+    return v
+end
+
+@kwdef struct ExpGraphFunction <: GraphFunction 
+    name::Symbol = :EXP
+    arity::Int = 1
+end
+
+@inline function evaluate_function(::ExpGraphFunction, x::Float32)::Float32
+    v = 0.0f0
+    if x == Inf32
+        v = Inf32
+        #return Inf32
+    elseif x == -Inf32
+        v = 0.0f0
+        #return 0.0f0
+    else
+        v = exp(x)
+        #return exp(x)
+    end
+    if isnan(v)
+        println("x: $x")
+        println("v: $v")
+        throw(ErrorException("NaN encountered in ExpGraphFunction"))
+    end
+    return v
+end
+
+
     
 
 const FUNCTION_MAP = Dict(
@@ -263,7 +340,10 @@ const FUNCTION_MAP = Dict(
     :NAND => NandGraphFunction(),
     :XOR => XorGraphFunction(),
     :ARCTANGENT => ArcTangentGraphFunction(),
-    :IF_LESS_THEN_ELSE => IfLessThenElseGraphFunction()
+    :IF_LESS_THEN_ELSE => IfLessThenElseGraphFunction(),
+    :MODULO => ModuloGraphFunction(),
+    :NATURAL_LOG => NaturalLogGraphFunction(),
+    :EXP => ExpGraphFunction()
 )
 
 @inline function evaluate_function(func::GraphFunction, inputs::Vector{Float32})::Float32

@@ -64,11 +64,33 @@ function get_phenotype_state(phenotype::LinearizedFunctionGraphPhenotype)
     return state
 end
 
+#function safe_median(values::Vector{T}) where {T <: Real}
+#    median_value = median(values)
+#    median_value = isinf(median_value) ? T(0.0) : median_value
+#    return median_value
+#end
+
 function safe_median(values::Vector{T}) where {T <: Real}
     median_value = median(values)
-    median_value = isinf(median_value) ? T(0.0) : median_value
+
+    # Handle +Inf by returning the maximum non-infinite value for the type T
+    if isinf(median_value) && median_value > 0
+        return prevfloat(Inf32)
+    end
+
+    # Handle -Inf by returning the minimum (negative) non-infinite value for the type T
+    if isinf(median_value) && median_value < 0
+        return nextfloat(-Inf32)
+    end
+
+    # Handle NaN by returning 0
+    if isnan(median_value)
+        return T(0.0)
+    end
+
     return median_value
 end
+
 
 # TODO: fix to use linearized state
 function get_node_median_value(

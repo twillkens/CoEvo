@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mkdir -p logs/2compDE
-n_trials=4
+n_trials=6
 #for i in {1..$n_trials}
 for ((i=1; i<=n_trials; i++))
 do
@@ -17,8 +17,8 @@ do
         --n_nodes_per_output 1 \
         --archive_interval 100 \
         --function_set all \
-        --mutation shrink_modest \
-        --noise_std low \
+        --mutation equal_volatile \
+        --noise_std high \
         --n_population 50 \
         --n_children 50 \
         --n_elites 0 \
