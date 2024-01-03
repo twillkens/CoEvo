@@ -247,6 +247,26 @@ function get_nsew(trial::Int, n_x::Int, n_y::Int)
 
     return [north, south, east, west]
 end
+
+function get_cardinal_directions(trial::Int, n_x::Int, n_y::Int)
+    # Calculate the row and column of the trial
+    row, col = divrem(trial - 1, n_x) .+ 1
+
+    # Calculate the primary directions with toroidal wrapping
+    north = ((row - 2 + n_y) % n_y) * n_x + col
+    south = (row % n_y) * n_x + col
+    east = (row - 1) * n_x + (col % n_x) + 1
+    west = (row - 1) * n_x + ((col - 2 + n_x) % n_x) + 1
+
+    # Calculate the diagonal directions with toroidal wrapping
+    northeast = ((row - 2 + n_y) % n_y) * n_x + (col % n_x) + 1
+    northwest = ((row - 2 + n_y) % n_y) * n_x + ((col - 2 + n_x) % n_x) + 1
+    southeast = (row % n_y) * n_x + (col % n_x) + 1
+    southwest = (row % n_y) * n_x + ((col - 2 + n_x) % n_x) + 1
+
+    return [north, south, east, west, northeast, northwest, southeast, southwest]
+end
+
 function even_grid(n::Int)
     # Check if n is a perfect square
     if isqrt(n)^2 == n
@@ -351,7 +371,7 @@ function create_migration_population(
     n_trials = state.configuration.globals.n_trials
     x, y = even_grid(n_trials)
     trial = get_trial(state)
-    nsew_trials = get_nsew(trial, x, y)
+    nsew_trials = get_cardinal_directions(trial, x, y)
     migration_elites = load_migration_elites(species_creator, nsew_trials, state)
     n_truncate = length(migration_elites)
     replacer = TruncationReplacer(n_truncate)
