@@ -112,7 +112,7 @@ function make_checkpoint_species(
     print_prune_summaries(species.id, new_pruned)
     new_modes_pruned = get_new_modes_pruned(new_pruned)
     new_population = reset_tags(new_population)
-    n_elite_ids = min(length(get_elites(species)), 100)
+    n_elite_ids = min(length(get_elites(species)), 50)
     all_elite_ids = [individual.id for individual in get_elites(species)]
     elite_ids = sample(get_rng(state), all_elite_ids, n_elite_ids; replace = false)
     #println("new_population = ", [individual.id for individual in new_population])
@@ -169,6 +169,8 @@ function make_normal_species(
 end
 
 using ..Mutators.FunctionGraphs: FunctionGraphMutator
+using ..Abstract.States: get_trial
+
 function create_new_population(
     species_creator::ModesSpeciesCreator, 
     species::ModesSpecies, 
@@ -192,7 +194,7 @@ function create_new_population(
     #println("parents = ", [parent.id for parent in parents])
     #println("rng_state_parents = ", rng.state)
     children = recombine(
-        species_creator.recombiner, rng, get_individual_id_counter(state), parents;
+        species_creator.recombiner, get_individual_id_counter(state), get_trial(state), parents;
     )
     #println("children = ", [child.id for child in children])
     #println("rng_state_children = ", rng.state)
@@ -227,10 +229,138 @@ function add_elite_to_archive(
     #elite_individual_fitness = last(sort(population_records, by = record -> record.fitness)).fitness
     #elite_individual = find_by_id(get_population(species), elite_individual_id)
     #new_species = add_elites_to_archive(species, n_elites, [elite_individual])
-    new_species = add_elites_to_archive(species, 1000, elites)
+    new_species = add_elites_to_archive(species, 0, elites)
     #println("elites_archive_length = ", length(get_elites(new_species)))
     flush(stdout)
     return new_species
+end
+
+function get_nsew(trial::Int, n_x::Int, n_y::Int)
+    # Calculate the row and column of the trial
+    row, col = divrem(trial - 1, n_x) .+ 1
+
+    # Calculate the neighbors with toroidal wrapping
+    north = ((row - 2 + n_y) % n_y) * n_x + col
+    south = (row % n_y) * n_x + col
+    east = (row - 1) * n_x + (col % n_x) + 1
+    west = (row - 1) * n_x + ((col - 2 + n_x) % n_x) + 1
+
+    return [north, south, east, west]
+end
+function even_grid(n::Int)
+    # Check if n is a perfect square
+    if isqrt(n)^2 == n
+        return (isqrt(n), isqrt(n))
+    end
+
+    # Find factors of n that are as close as possible to each other
+    for i in reverse(1:isqrt(n))
+        if n % i == 0
+            return (i, n ÷ i)
+        end
+    end
+
+    # If no suitable factors found, throw an error
+    throw(ArgumentError("Cannot create an even grid with $n elements"))
+end
+using HDF5: h5open, read, File
+using ...Genotypes: load_genotype
+
+function load_migration_individuals(file::File, species_creator::ModesSpeciesCreator, state::State)
+    base_path = "$(species_creator.id)"
+    individuals = []
+    genotype_creator = species_creator.genotype_creator
+    individual_ids = sort(parse.(Int, keys(file[base_path])))
+    for individual_id in individual_ids
+        individual_path = "$base_path/$individual_id"
+        individual = ModesIndividual(
+            individual_id, 
+            read(file["$individual_path/parent_id"]),
+            read(file["$individual_path/tag"]),
+            read(file["$individual_path/age"]),
+            load_genotype(file, "$individual_path/genotype", genotype_creator),
+        )
+        push!(individuals, individual)
+    end
+    individuals = [individual for individual in individuals]
+    individuals = recombine(
+        species_creator.recombiner, get_individual_id_counter(state), get_trial(state), individuals;
+    )
+    return individuals
+end
+
+using ...Replacers.Truncation: TruncationReplacer
+function clip_last_subfield(directory::String)
+    parts = split(directory, "/")
+    return join(parts[1:end-1], "/")
+end
+
+function get_root_directory(config)
+    root_directory = joinpath(ENV["COEVO_TRIAL_DIR"], clip_last_subfield(config.id))
+    return root_directory
+end
+
+function load_migration_elites(species_creator::ModesSpeciesCreator, nsew_trials::Vector{Int}, state::State)
+    root_directory = get_root_directory(state.configuration)
+    println("root_directory = ", root_directory)
+    all_migration_elites = []
+    target_generation = get_generation(state) - 1
+
+    for trial in nsew_trials
+        trial_path = joinpath(root_directory, string(trial), "generations", string(target_generation) * ".h5")
+        file_loaded = false
+
+        while !file_loaded
+            try
+                # Check if the file exists
+                if isfile(trial_path)
+                    file = h5open(trial_path, "r")
+
+                    # Check if "valid" exists in the keys
+                    if "valid" in keys(file)
+                        elites = load_migration_individuals(file, species_creator, state)
+                        append!(all_migration_elites, elites)
+                        file_loaded = true
+                    else
+                        # If "valid" does not exist, sleep and retry
+                        sleep(10)
+                    end
+                else
+                    # If file does not exist, sleep and retry
+                    sleep(10)
+                end
+            catch e
+                @warn "Error opening file: $(e)"
+                sleep(10)  # Sleep after catching an error
+            end
+        end
+    end
+
+    all_migration_elites = [elite for elite in all_migration_elites]
+    return all_migration_elites
+end
+
+using ..Species: get_population
+
+function create_migration_population(
+    species_creator::ModesSpeciesCreator, 
+    species::ModesSpecies,
+    state::State
+)
+    original_length = length(get_population(species))
+    n_trials = state.configuration.globals.n_trials
+    x, y = even_grid(n_trials)
+    trial = get_trial(state)
+    nsew_trials = get_nsew(trial, x, y)
+    migration_elites = load_migration_elites(species_creator, nsew_trials, state)
+    n_truncate = length(migration_elites)
+    replacer = TruncationReplacer(n_truncate)
+    natives = replace(replacer, get_rng(state), species, get_evaluation(state, species.id))
+    new_population = [natives ; migration_elites]
+    if length(new_population) != original_length
+        throw(ErrorException("population length changed"))
+    end
+    return new_population
 end
 
 
@@ -246,7 +376,9 @@ function create_species(
         species = add_elite_to_archive(species, species_creator.n_elites, evaluation, state)
     end
     population_length_before = length(get_population(species))
-    new_population = create_new_population(species_creator, species, evaluation, state)
+    new_population = is_modes_checkpoint ? 
+        create_migration_population(species_creator, species, state) :
+        create_new_population(species_creator, species, evaluation, state)
     species = is_modes_checkpoint ? 
         make_checkpoint_species(species, new_population, state) :
         make_normal_species(species, new_population, state)

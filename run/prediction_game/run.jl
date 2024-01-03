@@ -25,6 +25,10 @@ function parse_cmdline_args()
             arg_type = String
             default = "verbose_test"
             help = "Report type"
+        "--n_trials" 
+            arg_type = Int
+            default = 1
+            help = "Number of trials"
         "--trial"
             arg_type = Int
             default = 1
@@ -107,6 +111,7 @@ config = PredictionGameExperimentConfiguration(;
     topology = args["topology"],
     substrate = args["substrate"],
     reproduction = args["reproduction"],
+    n_trials = args["n_trials"],
     trial = args["trial"],
     seed = args["seed"],
     n_workers = args["n_workers"],

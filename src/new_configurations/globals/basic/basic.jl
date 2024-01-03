@@ -20,6 +20,7 @@ Base.@kwdef struct BasicGlobalConfiguration <: GlobalConfiguration
     n_generations::Int
     n_workers::Int
     seed::Int
+    n_trials::Int
 end
 
 get_n_generations(config::BasicGlobalConfiguration) = config.n_generations

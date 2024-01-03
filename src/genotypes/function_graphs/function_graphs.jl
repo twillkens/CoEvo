@@ -30,4 +30,6 @@ include("minimize.jl")
 
 include("show.jl")
 
+include("load.jl")
+
 end

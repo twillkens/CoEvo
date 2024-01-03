@@ -6,7 +6,7 @@ using ....Archivers.Globals: GlobalStateArchiver
 using ....Archivers.Fitness: FitnessArchiver
 using ....Archivers.GenotypeSize: GenotypeSizeArchiver
 using ....Archivers.Modes: ModesArchiver
-using ....Archivers.Ecosystems: EcosystemArchiver
+using ....Archivers.Ecosystems: EcosystemArchiver, MigrationArchiver
 
 const ID_TO_ARCHIVER_TYPE_MAP = Dict(
     "global_state" => GlobalStateArchiver,
@@ -24,6 +24,7 @@ function make_archivers(config::PredictionGameExperimentConfiguration)
         FitnessArchiver(archive_interval, archive_directory),
         GenotypeSizeArchiver(archive_interval, archive_directory),
         ModesArchiver(archive_interval, archive_directory),
+        MigrationArchiver(archive_interval, archive_directory),
         EcosystemArchiver(archive_interval, archive_directory),
     ]
     return archivers

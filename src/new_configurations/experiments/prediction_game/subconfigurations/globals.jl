@@ -7,6 +7,7 @@ function get_globals(;
     n_generations::Int = 100,
     n_workers::Int = 1,
     seed::Int = 42,
+    n_trials::Int = 1,
     kwargs...
 )
     configuration = BasicGlobalConfiguration(
@@ -14,6 +15,7 @@ function get_globals(;
         n_generations = n_generations,
         n_workers = n_workers,
         seed = seed,
+        n_trials = n_trials,
     )
     return configuration
 end
