@@ -17,6 +17,14 @@ const MUTATION_PROBABILITIES = Dict(
         :swap_function => 0.25,
         :redirect_connection => 0.25,
     ),
+    "shrink_minor" => Dict(
+        :identity => 0.0, 
+        :add_function => 0.95, 
+        :remove_function => 1.05, 
+        :swap_function => 1.0, 
+        :redirect_connection => 1.0, 
+    ), 
+
     "shrink_modest" => Dict(
         :identity => 0.0,
         :add_function => .225,

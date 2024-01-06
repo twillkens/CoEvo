@@ -43,6 +43,7 @@ See specific sub-modules and functions for detailed usage instructions.
 module CoEvo
 
 export Counters, Genotypes, Phenotypes, Individuals, Species, Criteria, Evaluators, Replacers
+export Clusterers
 export Selectors, Recombiners, Mutators, SpeciesCreators, Metrics, Domains, Matches
 export MatchMakers, Observers, Results, Environments, Interactions, Jobs, Performers
 export States, Archivers, Ecosystems, Names, Configurations, run!
@@ -75,6 +76,10 @@ println("loaded species")
 include("criteria/criteria.jl")
 using .Criteria: Criteria
 println("loaded criteria")
+
+include("clusterers/clusterers.jl")
+using .Clusterers: Clusterers
+println("loaded clusterers")
 
 include("evaluators/evaluators.jl")
 using .Evaluators: Evaluators

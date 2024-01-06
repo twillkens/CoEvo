@@ -10,7 +10,7 @@ using CoEvo.Names
         game = "collision_game",
         topology = "three_mixed",
         substrate = "gnarl_networks",
-        reproducer = "roulette",
+        reproduction = "roulette",
         n_population = 10,
         communication_dimension = 1,
         n_generations = 5
@@ -26,7 +26,8 @@ end
         game = "collision_game",
         topology = "three_mixed",
         substrate = "gnarl_networks",
-        reproducer = "disco",
+        reproduction = "disco",
+        clusterer = "xmeans",
         n_population = 10,
         communication_dimension = 1,
         n_generations = 5

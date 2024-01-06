@@ -17,6 +17,7 @@ struct DiscoReproductionConfiguration <: ReproductionConfiguration
     n_children::Int
     tournament_size::Int
     max_clusters::Int
+    clusterer::String
     distance_method::String
 end
 
@@ -27,9 +28,11 @@ function DiscoReproductionConfiguration(;
     n_children::Int = 10, 
     tournament_size::Int = 5,
     max_clusters::Int = 5,
+    clusterer::String = "global_kmeans",
     distance_method::String = "euclidean",
     kwargs...
 )
+    tournament_size = n_population <= 50 ? 3 : 5
     reproduction = DiscoReproductionConfiguration(
         id,
         n_species,
@@ -37,6 +40,7 @@ function DiscoReproductionConfiguration(;
         n_children,
         tournament_size,
         max_clusters,
+        clusterer,
         distance_method,
     )
     return reproduction
@@ -52,7 +56,8 @@ function make_evaluator(reproduction::DiscoReproductionConfiguration)
         perform_disco = true, 
         max_clusters = reproduction.max_clusters,
         scalar_fitness_evaluator = ScalarFitnessEvaluator(),
-        distance_method = :euclidean
+        clusterer = reproduction.clusterer,
+        distance_method = reproduction.distance_method,
     )
     return evaluator
 end

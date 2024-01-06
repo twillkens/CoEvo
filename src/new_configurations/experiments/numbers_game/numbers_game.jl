@@ -29,6 +29,8 @@ struct NumbersGameExperimentConfiguration <: ExperimentConfiguration
     globals::BasicGlobalConfiguration
     evaluation::String
     game::String
+    clusterer::String
+    distance_method::String
 end
 
 function NumbersGameExperimentConfiguration(;
@@ -36,14 +38,16 @@ function NumbersGameExperimentConfiguration(;
     seed::Int = 42, 
     evaluation::String = "disco", 
     game::String = "COA",
+    clusterer::String = "xmeans",
+    distance_method::String = "euclidean",
     kwargs...
 )
     id = "ng_trial_$trial"
-    globals = BasicGlobalConfiguration(id = id, trial = trial, seed = seed, n_generations = 500, n_workers = 1)
-    return NumbersGameExperimentConfiguration(id, globals, evaluation, game)
+    globals = BasicGlobalConfiguration(id = id, n_trials=1, trial = trial, seed = seed, n_generations = 500, n_workers = 1)
+    return NumbersGameExperimentConfiguration(id, globals, evaluation, game, clusterer, distance_method)
 end
 
-function make_evaluator(evaluation::String)
+function make_evaluator(evaluation::String, clusterer::String, distance_method::String)
     if evaluation == "roulette"
         return ScalarFitnessEvaluator()
     elseif evaluation == "disco"
@@ -52,7 +56,8 @@ function make_evaluator(evaluation::String)
             perform_disco = true, 
             max_clusters = 5,
             scalar_fitness_evaluator = ScalarFitnessEvaluator(),
-            distance_method = :euclidean
+            clusterer = clusterer,
+            distance_method = distance_method
         )
     else
         error("Invalid evaluation method: $evaluation")
@@ -152,7 +157,7 @@ function make_species_creators(config::NumbersGameExperimentConfiguration)
             genotype_creator = BasicVectorGenotypeCreator([0.0, 0.0, 0.0, 0.0, 0.0]),
             individual_creator = BasicIndividualCreator(),
             phenotype_creator = DefaultPhenotypeCreator(),
-            evaluator = make_evaluator(config.evaluation),
+            evaluator = make_evaluator(config.evaluation, config.clusterer, config.distance_method),
             replacer = TruncationReplacer(100),
             selector = make_selector(config.evaluation),
             recombiner = CloneRecombiner(),
@@ -166,7 +171,7 @@ function make_species_creators(config::NumbersGameExperimentConfiguration)
             genotype_creator = BasicVectorGenotypeCreator([0.0, 0.0, 0.0, 0.0, 0.0]),
             individual_creator = BasicIndividualCreator(),
             phenotype_creator = DefaultPhenotypeCreator(),
-            evaluator = make_evaluator(config.evaluation),
+            evaluator = make_evaluator(config.evaluation, config.clusterer, config.distance_method),
             replacer = TruncationReplacer(100),
             selector = make_selector(config.evaluation),
             recombiner = CloneRecombiner(),
@@ -240,8 +245,7 @@ make_job_creator(config::NumbersGameExperimentConfiguration) = BasicJobCreator(
         BasicInteraction(
             id = "numbers_game",
             environment_creator = StatelessEnvironmentCreator(
-                domain = config.game == "COA" ? 
-                NumbersGameDomain("CompareOnAll") : NumbersGameDomain("CompareOnOne")
+                domain = NumbersGameDomain(config.game)
             ),
             species_ids = ["A", "B"],
             matchmaker = AllVersusAllMatchMaker(),

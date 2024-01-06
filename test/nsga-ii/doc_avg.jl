@@ -114,27 +114,6 @@ function reset_clusters!(
     foreach(empty!, cluster_indices)
 end
 
-
-function row_means(columns::Vector{Vector{Float64}})
-    # First, compute the number of rows and columns
-    nrows = length(columns[1])
-    ncols = length(columns)
-
-    # Initialize a vector to store the sum of each row
-    row_sums = zeros(Float64, nrows)
-
-    # Calculate the sum for each row
-    for col in columns
-        for i in 1:nrows
-            row_sums[i] += col[i]
-        end
-    end
-
-    # Compute the mean of each row
-    row_means = row_sums ./ ncols
-    return row_means
-end
-
 # Assign samples to the closest centroid
 function assign_samples_to_clusters!(
     samples::Vector{Vector{Float64}}, 
@@ -432,7 +411,7 @@ function get_derived_tests(
 end
 
 const DISTANCE_METHODS = Dict(
-    :euclidean => SquaredEuclidean(),
+    :euclidean => Euclidean(),
     :disco_binary => DiscoBinary(),
     :disco_average => DiscoAverage()
 )

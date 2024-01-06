@@ -108,8 +108,8 @@ function archive!(archiver::MigrationArchiver, state::State)
     archive_path = "$(archiver.archive_directory)/generations/$generation.h5"
     file = h5open(archive_path, "w")
     for (species, evaluation) in zip(get_all_species(state), get_evaluations(state))
-        migration_ids = [record.id for record in evaluation.records[1:10]]
-        summaries = [(record.id, record.rank, record.crowding) for record in evaluation.records[1:10]]
+        migration_ids = [record.id for record in evaluation.records[1:5]]
+        summaries = [(record.id, record.rank, record.crowding) for record in evaluation.records[1:5]]
         println("archiving migration individuals: $summaries")
         migration_individuals = [
             individual for individual in get_population(species) 

@@ -17,11 +17,11 @@ do
         --n_nodes_per_output 1 \
         --archive_interval 100 \
         --function_set all \
-        --mutation equal_volatile \
+        --mutation shrink_minor \
         --noise_std high \
         --n_population 50 \
         --n_children 50 \
         --n_elites 0 \
-        --episode_length 16 \
+        --episode_length 32 \
         > logs/2compDE/$i.log 2>&1 &
 done

@@ -13,6 +13,7 @@ using .Genotypes.Vectors: BasicVectorGenotype
 using .Individuals.Basic: BasicIndividual
 using .Species.Basic: BasicSpecies
 using .Evaluators.NSGAII
+using .Clusterers.GlobalKMeans
 
 @testset "Compression of the Interaction Matrix" begin
     random_number_generator = StableRNG(42)
@@ -47,7 +48,7 @@ using .Evaluators.NSGAII
 
     individual_tests = make_individual_tests(species.population, outcomes)
 
-    derived_tests = get_derived_tests(random_number_generator, individual_tests, 2, :euclidean)
+    derived_tests = get_derived_tests(random_number_generator, individual_tests, 2, "euclidean")
 
     @test derived_tests[1] == [4.0, 1.0]
     @test derived_tests[2] == [5.0, 1.5]

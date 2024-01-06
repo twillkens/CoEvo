@@ -112,7 +112,7 @@ function make_checkpoint_species(
     print_prune_summaries(species.id, new_pruned)
     new_modes_pruned = get_new_modes_pruned(new_pruned)
     new_population = reset_tags(new_population)
-    n_elite_ids = min(length(get_elites(species)), 50)
+    n_elite_ids = min(length(get_elites(species)), 25)
     all_elite_ids = [individual.id for individual in get_elites(species)]
     elite_ids = sample(get_rng(state), all_elite_ids, n_elite_ids; replace = false)
     #println("new_population = ", [individual.id for individual in new_population])
@@ -147,7 +147,7 @@ function make_normal_species(
     species::ModesSpecies, new_population::Vector{<:ModesIndividual}, state::State
 )
     #println("make_normal_species")
-    n_elite_ids = min(length(get_elites(species)), 50)
+    n_elite_ids = min(length(get_elites(species)), 25)
     all_elite_ids = [individual.id for individual in get_elites(species)]
     elite_ids = sample(get_rng(state), all_elite_ids, n_elite_ids; replace = false)
     new_current_state = ModesCheckpointState(
@@ -229,7 +229,7 @@ function add_elite_to_archive(
     #elite_individual_fitness = last(sort(population_records, by = record -> record.fitness)).fitness
     #elite_individual = find_by_id(get_population(species), elite_individual_id)
     #new_species = add_elites_to_archive(species, n_elites, [elite_individual])
-    new_species = add_elites_to_archive(species, 0, elites)
+    new_species = add_elites_to_archive(species, 1000, elites)
     #println("elites_archive_length = ", length(get_elites(new_species)))
     flush(stdout)
     return new_species
@@ -371,7 +371,7 @@ function create_migration_population(
     n_trials = state.configuration.globals.n_trials
     x, y = even_grid(n_trials)
     trial = get_trial(state)
-    nsew_trials = get_cardinal_directions(trial, x, y)
+    nsew_trials = get_nsew(trial, x, y)
     migration_elites = load_migration_elites(species_creator, nsew_trials, state)
     n_truncate = length(migration_elites)
     replacer = TruncationReplacer(n_truncate)

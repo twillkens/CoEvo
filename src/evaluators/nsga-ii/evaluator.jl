@@ -7,13 +7,16 @@ import ...Evaluators: get_elite_ids, get_elite_records
 using ...Species: get_individuals_to_evaluate
 
 using ...Individuals: get_individuals
+using ...Clusterers.XMeans: get_derived_tests as get_derived_tests_xmeans
+using ...Clusterers.GlobalKMeans: get_derived_tests as get_derived_tests_global_kmeans
 
 Base.@kwdef struct NSGAIIEvaluator <: Evaluator 
     scalar_fitness_evaluator::ScalarFitnessEvaluator = ScalarFitnessEvaluator()
     maximize::Bool = true
     perform_disco::Bool = true
     max_clusters::Int = -1
-    distance_method::Symbol = :disco_average
+    clusterer::String = "xmeans"
+    distance_method::String = "euclidean"
     function_minimums::Union{Vector{Float64}, Nothing} = nothing
     function_maximums::Union{Vector{Float64}, Nothing} = nothing
 end
@@ -97,11 +100,22 @@ function evaluate(
     fitnesses = calculate_fitnesses(individual_tests)
     check_for_nan_in_fitnesses(fitnesses)
 
-    if evaluator.perform_disco
-        individual_tests = get_derived_tests(
-            rng, individual_tests, evaluator.max_clusters
+    if evaluator.clusterer == "xmeans"
+        individual_tests = get_derived_tests_xmeans(
+            rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
         )
+    elseif evaluator.clusterer == "global_kmeans"
+        individual_tests = get_derived_tests_global_kmeans(
+            rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
+        )
+    else
+        throw(ErrorException("Unknown clusterer: $(evaluator.clusterer)"))
     end
+    #if evaluator.perform_disco
+    #    individual_tests = get_derived_tests(
+    #        rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
+    #    )
+    #end
 
     disco_fitnesses = calculate_fitnesses(individual_tests)
     check_for_nan_in_fitnesses(disco_fitnesses)

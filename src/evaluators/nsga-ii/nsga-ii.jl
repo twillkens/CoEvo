@@ -13,8 +13,6 @@ using ...Criteria: Criterion, Maximize, Minimize
 using ..Evaluators: Evaluation, Evaluator
 using ..Evaluators.ScalarFitness: ScalarFitnessEvaluator, ScalarFitnessEvaluation
 
-include("fast_global_kmeans.jl")
-
 include("methods.jl")
 
 include("evaluator.jl")
