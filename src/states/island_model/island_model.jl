@@ -211,6 +211,59 @@ function IslandModelState(config::PredictionGameConfiguration)
     return state
 end
 
+function get_nsew(trial::Int, n_x::Int, n_y::Int)
+    # Calculate the row and column of the trial
+    row, col = divrem(trial - 1, n_x) .+ 1
+
+    # Calculate the neighbors with toroidal wrapping
+    north = ((row - 2 + n_y) % n_y) * n_x + col
+    south = (row % n_y) * n_x + col
+    east = (row - 1) * n_x + (col % n_x) + 1
+    west = (row - 1) * n_x + ((col - 2 + n_x) % n_x) + 1
+
+    return [north, south, east, west]
+end
+
+
+function even_grid(n::Int)
+    # Check if n is a perfect square
+    if isqrt(n)^2 == n
+        return (isqrt(n), isqrt(n))
+    end
+
+    # Find factors of n that are as close as possible to each other
+    for i in reverse(1:isqrt(n))
+        if n % i == 0
+            return (i, n ÷ i)
+        end
+    end
+
+    # If no suitable factors found, throw an error
+    throw(ArgumentError("Cannot create an even grid with $n elements"))
+end
+
+function merge_dicts(dicts::Vector{Dict{T, Vector{U}}}) where {T, U}
+    merged = Dict{T, Vector{U}}()
+
+    # Iterate over all dictionaries
+    for d in dicts
+        # Iterate over each key-value pair in the dictionary
+        for (key, value) in d
+            # If the key already exists in the merged dictionary, append the values
+            if haskey(merged, key)
+                append!(merged[key], value)
+            else
+                # Otherwise, create a new entry with the key and its values
+                merged[key] = value
+            end
+        end
+    end
+
+    return merged
+end
+
+
+
 function evolve!(state::IslandModelState)
     for _ in 1:100
         futures = []
@@ -245,11 +298,16 @@ function evolve!(state::IslandModelState)
 
         # Step 3: Distribute migrants (this could be more sophisticated in a real implementation)
         # For simplicity, rotate the migrant_dicts
-        rotated_migrant_dicts = circshift(migrant_dicts, 1)
+        # TODO: REPLACE rotated_migrant_dicts with logic using NSEW, merging the dictionaries as needed
+        # rotated_migrant_dicts = circshift(migrant_dicts, 1)
+
 
         # Step 4: Integrate migrants into each ecosystem
         futures = []
-        for (channel, migrants) in zip(state.ecosystem_channels, rotated_migrant_dicts)
+        for (i, channel,) in enumerate(state.ecosystem_channels,)
+            nsew = get_nsew(i, even_grid(state.configuration.n_ecosystems)...)
+            migrants = merge_dicts([migrant_dicts[j] for j in nsew])
+
             future = @spawnat channel.where begin
                 modes_state = take!(channel)
                 accept_migrants!(modes_state, migrants)
@@ -260,12 +318,6 @@ function evolve!(state::IslandModelState)
 
         [fetch(future) for future in futures]
 
-
-        # Give a test of retrieval and migrant acceptance HERE
-
-
-        # Implement any operations needed after each generation
-        # Note: These operations should avoid moving the whole state from the workers
     end
 end
 
