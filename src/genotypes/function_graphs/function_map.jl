@@ -357,3 +357,9 @@ const FUNCTION_MAP = Dict(
         throw(ErrorException("Unsupported arity: $(func.arity)"))
     end
 end
+
+using StaticArrays
+
+@inline function evaluate_function(func::GraphFunction, inputs::MVector)::Float32
+    return evaluate_function(func, inputs...)
+end

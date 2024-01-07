@@ -255,6 +255,7 @@ function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{
                 node.input_values[input_index] = connection.weight * value
             end
             node.current_value = evaluate_function(node.func, node.input_values)
+            #println("func = $(node.func.name), input_values = $(node.input_values), current_value = $(node.current_value)")
         end
         # First, reset all output_values to 0
         for i in eachindex(phenotype.output_values)

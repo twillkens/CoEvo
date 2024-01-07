@@ -19,6 +19,7 @@ using ...Ecosystems.Null
 using ...Evaluators.Null
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotypeCreator
 using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeCreator
+using ...Phenotypes.FunctionGraphs.Efficient: EfficientFunctionGraphPhenotypeCreator
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
 using ...Evaluators.NSGAII: NSGAIIEvaluator
 using ...Selectors.FitnessProportionate: FitnessProportionateSelector

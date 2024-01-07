@@ -600,6 +600,8 @@ end
 
     phenotype_creator = LinearizedFunctionGraphPhenotypeCreator()
     phenotype = create_phenotype(phenotype_creator, genotype)
+    println("\n\nIDS: ", [node.id for node in phenotype.nodes])
+    println("FUNC NAMES: ", [node.func.name for node in phenotype.nodes])
 
     input_outputs = [
         ([0.0, 0.0, 0.0], [0.0, 0.0]),
@@ -613,6 +615,7 @@ end
     ]
 
     for (input_values, expected_output) in input_outputs
+        println("NEW TEST: $input_values, $expected_output")
         output = act!(phenotype, input_values)
         @test output == expected_output
         #println(output == expected_output)
