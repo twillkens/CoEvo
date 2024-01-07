@@ -3,6 +3,7 @@ module Globals
 export GlobalStateArchiver
 
 import ...Archivers: archive!
+using Distributed
 
 using HDF5: h5open
 using ...Species: AbstractSpecies, get_population_genotypes, get_minimized_population_genotypes
@@ -26,8 +27,10 @@ function archive!(archiver::GlobalStateArchiver, state::State)
     evaluation_time = state.evaluation_time
     generation = state.generation
     trial = state.configuration.trial
+    ecosystem_id = state.ecosystem.id
 
-    println("------Trial: $trial, Generation: $generation------)")
+    println("------Trial: $trial, Generation: $generation, Ecosystem: $ecosystem_id------)")
+    println("worker_id = $(myid())")
     println("rng_state = $rng_state")
     println("individual_id: $current_individual_id, gene_id: $current_gene_id")
     println("reproduction_time: $reproduction_time, " * 

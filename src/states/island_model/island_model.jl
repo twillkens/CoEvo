@@ -19,6 +19,7 @@ abstract type Configuration end
 
 using ...Results
 using ...Results: get_individual_outcomes
+using ...Individuals
 
 
 Base.@kwdef mutable struct ModesEcosystemState{
@@ -127,12 +128,40 @@ function next_generation!(state::ModesEcosystemState)
     [archive!(archiver, state) for archiver in state.archivers]
 end
 
-function evolve!(state::ModesEcosystemState)
-    for _ in 1:state.configuration.n_generations
+function evolve!(state::ModesEcosystemState, n_generations::Int)
+    println("received evolution command")
+    for _ in 1:n_generations
         next_generation!(state)
         if state.generation % 25 == 0
             GC.gc()
         end
+    end
+end
+
+evolve!(state::ModesEcosystemState) = evolve!(state, state.configuration.n_generations)
+
+function retrieve_migrants(state::ModesEcosystemState)
+    I = typeof(first(first(state.ecosystem.species).population))
+    migrant_dict = Dict{String, Vector{I}}()
+    for (species, evaluation) in zip(state.ecosystem.species, state.evaluations)
+        migrant_ids = Set([record.id for record in evaluation.records[1:state.configuration.n_migrate]])
+        migrants = [individual for individual in species.population if individual.id in migrant_ids]
+        println("migrants_retrieve_$(species.id): ", [individual.id for individual in migrants])
+        migrant_dict[species.id] = migrants
+    end
+    return migrant_dict
+end
+
+#function accept_migrants!(state::ModesEcosystemState, migrant_dict::Dict{String, Vector{<:Individual}})
+function accept_migrants!(state::ModesEcosystemState, migrant_dict::Dict)
+    println("accept_migrants!")
+    for (species, evaluation) in zip(state.ecosystem.species, state.evaluations)
+        species_migrants = migrant_dict[species.id]
+        println("migrants_accept_$(species.id): ", [individual.id for individual in species_migrants])
+        reversed_record_ids = [record.id for record in reverse(evaluation.records)]
+        to_replace_ids = Set(reversed_record_ids[1:state.configuration.n_migrate])
+        filter!(individual -> individual.id ∉ to_replace_ids, species.population)
+        append!(species.population, species_migrants)
     end
 end
 
@@ -159,7 +188,7 @@ end
 function IslandModelState(config::PredictionGameConfiguration)
     rng = StableRNG(config.seed)
     ecosystem_seeds = [abs(rand(rng, Int)) for _ in 1:config.n_ecosystems]
-    ecosystem_channels = [RemoteChannel(()->Channel{ModesEcosystemState}(1)) for _ in 1:config.n_ecosystems]
+    ecosystem_channels = [RemoteChannel(()->Channel{ModesEcosystemState}(1), i + 1) for i in 1:config.n_ecosystems]
         for (i, seed) in enumerate(ecosystem_seeds)
         @spawnat i+1 begin
             state = ModesEcosystemState(config, i, seed)
@@ -171,7 +200,7 @@ function IslandModelState(config::PredictionGameConfiguration)
     #archivers = [EcosystemArchiver(config.archive_interval, get_archive_directory(config)) for _ in 1:config.n_ecosystems]
     state = IslandModelState(
         configuration = config,
-        generation =0,
+        generation = 0,
         reproduction_time = 0.0,
         simulation_time = 0.0,
         evaluation_time = 0.0,
@@ -183,7 +212,7 @@ function IslandModelState(config::PredictionGameConfiguration)
 end
 
 function evolve!(state::IslandModelState)
-    for _ in 1:state.configuration.n_generations
+    for _ in 1:100
         futures = []
         for channel in state.ecosystem_channels
             # Determine the worker ID where the ModesEcosystemState resides
@@ -191,16 +220,49 @@ function evolve!(state::IslandModelState)
             # Run next_generation! on the worker process, updating the state in-place
             future = @spawnat worker_id begin
                 modes_state = take!(channel)
-                evolve!(modes_state)
+                evolve!(modes_state, 100)
                 put!(channel, modes_state)
             end
             push!(futures, future)
         end
 
         # Wait for all processes to complete their task
-        for future in futures
-            fetch(future)
+        [fetch(future) for future in futures]
+
+                # Step 2: Retrieve migrants from each ecosystem
+        migrant_dicts = []
+        for channel in state.ecosystem_channels
+            future = @spawnat channel.where begin
+                modes_state = take!(channel)
+                migrants = retrieve_migrants(modes_state)
+                put!(channel, modes_state)
+                return migrants
+            end
+            push!(migrant_dicts, future)
         end
+        migrant_dicts = [fetch(future) for future in migrant_dicts]
+        #println("migrant_dicts: ", migrant_dicts)
+
+        # Step 3: Distribute migrants (this could be more sophisticated in a real implementation)
+        # For simplicity, rotate the migrant_dicts
+        rotated_migrant_dicts = circshift(migrant_dicts, 1)
+
+        # Step 4: Integrate migrants into each ecosystem
+        futures = []
+        for (channel, migrants) in zip(state.ecosystem_channels, rotated_migrant_dicts)
+            future = @spawnat channel.where begin
+                modes_state = take!(channel)
+                accept_migrants!(modes_state, migrants)
+                put!(channel, modes_state)
+            end
+            push!(futures, future)
+        end
+
+        [fetch(future) for future in futures]
+
+
+        # Give a test of retrieval and migrant acceptance HERE
+
 
         # Implement any operations needed after each generation
         # Note: These operations should avoid moving the whole state from the workers
