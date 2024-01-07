@@ -1,5 +1,7 @@
 export mutate
 
+using ..Abstract.States: State
+
 function mutate(
     mutator::Mutator, 
     rng::AbstractRNG, 
@@ -26,6 +28,7 @@ function mutate(
     return individuals
 end
 
+
 using ..Individuals.Modes: ModesIndividual
 
 function mutate(
@@ -39,10 +42,19 @@ function mutate(
             individual.id,
             individual.parent_id,
             individual.tag,
-            individual.age,
             mutate(mutator, rng, gene_id_counter, individual.genotype),
         ) for individual in individuals
     ]
 
+    return individuals
+end
+
+function mutate(mutator::Mutator, individuals::Vector{<:Individual}, state::State)
+    individuals = mutate(
+        mutator,
+        state.rng,
+        state.gene_id_counter,
+        individuals
+    )
     return individuals
 end

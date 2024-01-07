@@ -10,6 +10,7 @@ using ...Individuals: Individual
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluation
 using ...Evaluators: Evaluation
 using ..Selectors: Selector
+using ...Abstract.States: State
 
 Base.@kwdef struct FitnessProportionateSelector <: Selector
     n_parents::Int
@@ -48,5 +49,12 @@ function select(
     parents = [new_population[i] for i in parent_indices]
     return parents  
 end
+
+select(
+    selector::FitnessProportionateSelector,
+    new_population::Vector{<:Individual},
+    evaluation::Evaluation,
+    state::State
+) = select(selector, state.rng, new_population, evaluation)
 
 end

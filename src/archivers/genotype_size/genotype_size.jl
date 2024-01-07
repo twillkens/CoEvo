@@ -36,7 +36,9 @@ end
 function measure_genotype_size(
     all_species::Vector{<:AbstractSpecies}; do_minimize::Bool = false
 )
-    all_genotypes = get_population_genotypes(all_species)
+    all_genotypes = [
+        individual.genotype for species in all_species for individual in species.population
+    ]
     all_sizes = do_minimize ? Dict(
         "all" => get_aggregate_measurements(
             [get_size(minimize(genotype)) for genotype in all_genotypes])
@@ -53,33 +55,31 @@ function measure_genotype_size(
 end
 
 function measure_genotype_size(state::State; do_minimize::Bool = false)
-    all_species = get_all_species(state)
+    all_species = [species for species in state.ecosystem.species]
     genotype_size = measure_genotype_size(all_species; do_minimize = do_minimize)
     return genotype_size
 end
 
 struct GenotypeSizeArchiver <: Archiver
-    archive_interval::Int
-    archive_directory::String
 end
 
 function archive!(archiver::GenotypeSizeArchiver, state::State)
-    generation = get_generation(state)
-    do_not_archive = archiver.archive_interval == 0
-    is_archive_interval = get_generation(state) == 1 ||
-        get_generation(state) % archiver.archive_interval == 0
-    if do_not_archive || !is_archive_interval
-        return
-    end
+    #generation = get_generation(state)
+    #do_not_archive = archiver.archive_interval == 0
+    #is_archive_interval = get_generation(state) == 1 ||
+    #    get_generation(state) % archiver.archive_interval == 0
+    #if do_not_archive || !is_archive_interval
+    #    return
+    #end
     #println("archiving genotype sizes for generation $generation")
-    archive_path = "$(archiver.archive_directory)/generations/$generation.h5"
-    file = h5open(archive_path, "r+")
-    base_path = "genotype_size"
     genotype_sizes = measure_genotype_size(state; do_minimize = false)
     minimized_genotype_sizes = measure_genotype_size(state; do_minimize = true)
-    sizes = merge(genotype_sizes, minimized_genotype_sizes)
-    add_measurements_to_hdf5(file, base_path, sizes)
-    close(file)
+    #sizes = merge(genotype_sizes, minimized_genotype_sizes)
+    #archive_path = "$(archiver.archive_directory)/generations/$generation.h5"
+    #file = h5open(archive_path, "r+")
+    #base_path = "genotype_size"
+    #add_measurements_to_hdf5(file, base_path, sizes)
+    #close(file)
     #println("done archiving genotype sizes for generation $generation")
 end
 

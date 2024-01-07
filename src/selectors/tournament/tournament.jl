@@ -11,6 +11,7 @@ using ...Evaluators: Evaluation
 using ...Evaluators.ScalarFitness: ScalarFitnessRecord
 using ...Evaluators.NSGAII: NSGAIIRecord
 using ..Selectors: Selector
+using ...Abstract.States: State
 
 Base.@kwdef struct TournamentSelector <: Selector
     n_parents::Int # number of parents to select
@@ -82,5 +83,12 @@ function select(
     
     return parents
 end
+
+select(
+    selector::TournamentSelector,
+    new_population::Vector{<:Individual},
+    evaluation::Evaluation,
+    state::State
+) = select(selector, state.rng, new_population, evaluation)
 
 end

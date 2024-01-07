@@ -225,9 +225,9 @@ function create_phenotype(
     return phenotype
 end
 
-@inline function update_previous_value!(node::LinearizedFunctionGraphNode)
-    node.previous_value = node.current_value
-end
+#@inline function update_previous_value!(node::LinearizedFunctionGraphNode)
+#    
+#end
 
 function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{Float32})
     if any(isnan, input_values)
@@ -240,7 +240,7 @@ function act!(phenotype::LinearizedFunctionGraphPhenotype, input_values::Vector{
                                  phenotype.n_hidden_nodes
         for index in eachindex(1:hidden_nodes_end_index)
             node = phenotype.nodes[index]
-            update_previous_value!(node)
+            node.previous_value = node.current_value
             if index <= phenotype.n_input_nodes
                 node.current_value = input_values[index]
             end

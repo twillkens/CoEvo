@@ -19,14 +19,14 @@ using ..Ecosystems: Ecosystem, EcosystemCreator
 using ...Abstract.States: State, get_ecosystem
 
 struct SimpleEcosystem{S <: AbstractSpecies} <: Ecosystem
-    id::String
+    id::Int
     species::Vector{S}
 end
 
 get_all_species(ecosystem::SimpleEcosystem) = ecosystem.species
 
 Base.@kwdef mutable struct SimpleEcosystemCreator{S <: SpeciesCreator} <: EcosystemCreator
-    id::String
+    id::Int
     species_creators::Vector{S}
 end
 
@@ -47,9 +47,7 @@ get_phenotype_creators(ecosystem_creator::SimpleEcosystemCreator) = [
 using ...Species: get_population
 
 function create_ecosystem(
-    ecosystem_creator::SimpleEcosystemCreator, 
-    ::NullEcosystem,
-    state::State
+    ecosystem_creator::SimpleEcosystemCreator, ::NullEcosystem, state::State
 )
     #println("create_ecosystem null")
     all_species = [

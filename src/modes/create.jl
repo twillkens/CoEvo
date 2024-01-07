@@ -1,5 +1,4 @@
 
-using ..Individuals.Modes: age_individuals
 using ..Individuals.Prune: print_full_summaries, print_prune_summaries
 using ..Counters: Counter, count!
 using ..Abstract.States: get_generation

@@ -1,6 +1,7 @@
 export archive!, load
 
 using ..Genotypes: GenotypeCreator
+using ..Abstract.States: State
 
 
 function archive!(archiver::Archiver, genotype::Genotype, group::Group)
@@ -13,6 +14,12 @@ function archive!(archiver::Archiver, measurement::Measurement, group::Group)
     throw(ErrorException("archive! not implemented for 
         $(typeof(archiver)) and 
         $(typeof(measurement))"))
+end
+
+function archive!(archiver::Archiver, state::State)
+    throw(ErrorException("archive! not implemented for 
+        $(typeof(archiver)) and 
+        $(typeof(state))"))
 end
 
 function load(

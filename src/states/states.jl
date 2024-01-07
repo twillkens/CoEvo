@@ -1,7 +1,7 @@
 module States
 
 export Basic
-export Global, Evolutionary, Full
+export Global, Evolutionary, IslandModel
 
 import ..SpeciesCreators: create_species
 
@@ -20,7 +20,7 @@ using .Global: Global
 include("evolutionary/evolutionary.jl")
 using .Evolutionary: Evolutionary
 
-include("full/full.jl")
-using .Full: Full
+include("island_model/island_model.jl")
+using .IslandModel: IslandModel
 
 end

@@ -21,7 +21,6 @@ struct ModesIndividual{G <: Genotype} <: Individual
     id::Int
     parent_id::Int
     tag::Int
-    age::Int
     genotype::G
 end
 
@@ -38,29 +37,19 @@ function create_individuals(
     ids = count!(individual_id_counter, n_population)
     genotypes = create_genotypes(genotype_creator, rng, gene_id_counter, n_population)
     individuals = [
-        ModesIndividual(id, id, id, 0, genotype) 
-        for (tag, (id, genotype)) in enumerate(zip(ids, genotypes))
+        ModesIndividual(id, id, id, genotype) 
+        for (id, genotype) in zip(ids, genotypes)
     ]
     return individuals
 end
 
-function is_child(individual::ModesIndividual)
-    is_child = individual.tag == 0
-    return is_child
-end
-
-function age_individuals(individuals::Vector{<:ModesIndividual}) 
-    individuals = [
-        ModesIndividual(
-            individual.id, 
-            individual.parent_id,
-            individual.tag, 
-            individual.age + 1,
-            individual.genotype,
-        ) 
-        for individual in individuals
-    ]
-    return individuals
-end
+create_individuals(
+    individual_creator::ModesIndividualCreator, 
+    genotype_creator::GenotypeCreator,
+    state::State
+) = create_individuals(
+    individual_creator, state.rng, genotype_creator, state.n_population, 
+    state.individual_id_counter, state.gene_id_counter
+)
 
 end

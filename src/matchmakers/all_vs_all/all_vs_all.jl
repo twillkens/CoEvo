@@ -1,5 +1,7 @@
 module AllVersusAll
 
+export AllVersusAllMatchMaker, make_matches
+
 import ..MatchMakers: make_matches
 
 using Random: AbstractRNG
@@ -39,6 +41,7 @@ function make_matches(
     ids_2 = collect(Set(ids_2))
     match_ids = vec(collect(Iterators.product(ids_1, ids_2)))
     matches = [BasicMatch(interaction_id, [id_1, id_2]) for (id_1, id_2) in match_ids]
+    #println("n_matches = $(length(matches))")
     return matches
 end
 

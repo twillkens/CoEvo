@@ -15,6 +15,7 @@ using StatsBase: sample, Weights
 using ...Counters: Counter, count!
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode
 using ...Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP
+using ...Abstract.States: State
 using ..Mutators: Mutator
 
 @kwdef struct ConnectionRedirectionSpecification
@@ -536,5 +537,9 @@ function mutate(
     end
     return genotype
 end
+
+mutate(
+    mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, state::State
+) = mutate(mutator, state.rng, state.gene_id_counter, genotype)
 
 end
