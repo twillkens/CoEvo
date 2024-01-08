@@ -16,8 +16,9 @@ function construct_layers(genotype::FunctionGraphGenotype)::Vector{Vector{Int}}
     layers = Vector{Vector{Int}}()
     # Initialize pool with all nodes except the input nodes
     first_layer = [genotype.input_node_ids ; genotype.bias_node_ids]
+    last_layer = genotype.output_node_ids
     node_pool = Set(keys(genotype.nodes))
-    setdiff!(node_pool, first_layer)
+    setdiff!(node_pool, [first_layer; last_layer])
     current_layer = first_layer
     while !isempty(current_layer)
         # Add the current layer to layers
@@ -48,6 +49,7 @@ function construct_layers(genotype::FunctionGraphGenotype)::Vector{Vector{Int}}
         # Set the next layer as the current layer for the next iteration
         current_layer = next_layer
     end
+    push!(layers, last_layer)
 
     return layers
 end

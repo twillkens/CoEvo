@@ -48,16 +48,25 @@ function create_phenotype(
     node_id_to_position_dict = create_node_id_to_position_dict(ordered_node_ids)
     linearized_nodes = make_linearized_nodes(genotype, ordered_node_ids, node_id_to_position_dict)
 
+    node_states = zeros(Float32, length(linearized_nodes))
+    for i in eachindex(linearized_nodes)
+        if linearized_nodes[i].func.name == :BIAS
+            node_states[i] = 1.0
+        end
+    end
+
+    output_values = zeros(Float32, length(genotype.output_node_ids))
+
     phenotype = EfficientFunctionGraphPhenotype(
         id = id,
         nodes = linearized_nodes,
-        n_input_nodes = 2,
-        n_bias_nodes = 1,
-        n_hidden_nodes = length(layers[3:end-1]),
-        n_output_nodes = 1,
-        node_states = zeros(Float32, length(linearized_nodes)),
+        n_input_nodes = length(genotype.input_node_ids),
+        n_bias_nodes = length(genotype.bias_node_ids),
+        n_hidden_nodes = length(genotype.hidden_node_ids),
+        n_output_nodes = length(genotype.output_node_ids),
+        node_states = node_states,
         #node_states = MVector(zeros(Float32, length(linearized_nodes))...),
-        output_values = zeros(Float32, 1)
+        output_values = output_values
     )
     return phenotype
 end

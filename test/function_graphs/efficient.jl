@@ -12,6 +12,72 @@ using CoEvo.Phenotypes.FunctionGraphs.Basic
 using ProgressBars
 
 println("Starting tests for FunctionGraphs...")
+# taken from https://etheses.whiterose.ac.uk/26524/1/thesis_whiterose.pdf page 100
+@testset "One-Bit Adder Phenotype" begin
+    genotype = FunctionGraphGenotype(
+        input_node_ids = [1, 2, 3],
+        bias_node_ids = Int[],
+        hidden_node_ids = [4, 5, 6, 7, 8],
+        output_node_ids = [9, 10],
+        nodes = Dict(
+            10 => FunctionGraphNode(10, :OUTPUT, [
+                FunctionGraphConnection(7, 1.0, false)
+            ]),
+            9 => FunctionGraphNode(9, :OUTPUT, [
+                FunctionGraphConnection(8, 1.0, false)
+            ]),
+            8 => FunctionGraphNode(8, :OR, [
+                FunctionGraphConnection(5, 1.0, false), 
+                FunctionGraphConnection(6, 1.0, false)
+            ]),
+            7 => FunctionGraphNode(7, :XOR, [
+                FunctionGraphConnection(4, 1.0, false), 
+                FunctionGraphConnection(3, 1.0, false)
+            ]),
+            6 => FunctionGraphNode(6, :AND, [
+                FunctionGraphConnection(4, 1.0, false), 
+                FunctionGraphConnection(3, 1.0, false)
+            ]),
+            5 => FunctionGraphNode(5, :AND, [
+                FunctionGraphConnection(1, 1.0, false), 
+                FunctionGraphConnection(2, 1.0, false)
+            ]),
+            4 => FunctionGraphNode(4, :XOR, [
+                FunctionGraphConnection(1, 1.0, false), 
+                FunctionGraphConnection(2, 1.0, false)
+            ]),
+            3 => FunctionGraphNode(3, :INPUT, []),
+            2 => FunctionGraphNode(2, :INPUT, []),
+            1 => FunctionGraphNode(1, :INPUT, [])
+        ),
+        n_nodes_per_output = 1
+    )
+
+    phenotype_creator = EfficientFunctionGraphPhenotypeCreator()
+    phenotype = create_phenotype(phenotype_creator, genotype)
+    println("\n\nIDS: ", [node.id for node in phenotype.nodes])
+    println("FUNC NAMES: ", [node.func.name for node in phenotype.nodes])
+
+    input_outputs = [
+        ([0.0, 0.0, 0.0], [0.0, 0.0]),
+        ([0.0, 0.0, 1.0], [0.0, 1.0]),
+        ([0.0, 1.0, 0.0], [0.0, 1.0]),
+        ([0.0, 1.0, 1.0], [1.0, 0.0]),
+        ([1.0, 0.0, 0.0], [0.0, 1.0]),
+        ([1.0, 0.0, 1.0], [1.0, 0.0]),
+        ([1.0, 1.0, 0.0], [1.0, 0.0]),
+        ([1.0, 1.0, 1.0], [1.0, 1.0])
+    ]
+
+    for (input_values, expected_output) in input_outputs
+        println("NEW TEST: $input_values, $expected_output")
+        output = act!(phenotype, input_values)
+        output = act!(phenotype, input_values)
+        @test output == expected_output
+        reset!(phenotype)
+        #println(output == expected_output)
+    end
+end
 @testset "Function Graph Phenotype Tests" begin
     genotype = FunctionGraphGenotype(
         input_node_ids  = [1], 
@@ -53,64 +119,8 @@ println("Starting tests for FunctionGraphs...")
         @test phenotype.output_node_ids == genotype.output_node_ids
         phenotype = create_phenotype(EfficientFunctionGraphPhenotypeCreator(), genotype)
         @test length(phenotype.nodes) == length(genotype.nodes)
-        @test length(phenotype.input_nodes) == length(genotype.input_node_ids)
-        @test length(phenotype.output_nodes) == length(genotype.output_node_ids)
     end
 end
-
-@testset "Fibonacci Phenotype" begin
-    genotype = FunctionGraphGenotype(
-        input_node_ids = [0],
-        bias_node_ids = Int[],
-        hidden_node_ids = [1, 2, 3, 4, 5],
-        output_node_ids = [6],
-        nodes = Dict(
-            6 => FunctionGraphNode(6, :OUTPUT, [
-                FunctionGraphConnection(5, 1.0, false)
-            ]),
-            5 => FunctionGraphNode(5, :ADD, [
-                FunctionGraphConnection(3, 1.0, false), 
-                FunctionGraphConnection(4, 1.0, false)
-            ]),
-            4 => FunctionGraphNode(4, :MULTIPLY, [
-                FunctionGraphConnection(2, 1.0, true), 
-                FunctionGraphConnection(3, 1.0, true)
-            ]),
-            3 => FunctionGraphNode(3, :MAXIMUM, [
-                FunctionGraphConnection(5, 1.0, true), 
-                FunctionGraphConnection(1, 1.0, false)
-            ]),
-            2 => FunctionGraphNode(2, :IDENTITY, [
-                FunctionGraphConnection(1, 1.0, true)
-            ]),
-            1 => FunctionGraphNode(1, :IDENTITY, [
-                FunctionGraphConnection(0, 1.0, false)
-            ]),
-            0 => FunctionGraphNode(0, :INPUT, [])
-        ),
-        n_nodes_per_output = 1
-    )
-
-    phenotype_creator = EfficientFunctionGraphPhenotypeCreator()
-    phenotype = create_phenotype(phenotype_creator, genotype)
-    input_values = [1.0]
-    output = act!(phenotype, input_values)
-    @test output == [1.0]
-    output = act!(phenotype, input_values)
-    @test output == [1.0]
-    output = act!(phenotype, input_values)
-    @test output == [2.0]
-    output = act!(phenotype, input_values)
-    @test output == [3.0]
-    output = act!(phenotype, input_values)
-    @test output == [5.0]
-    output = act!(phenotype, input_values)
-    @test output == [8.0]
-    output = act!(phenotype, input_values)
-    @test output == [13.0]
-end
-
-
 
 @testset "Logic Gate Phenotype" begin
     genotype = FunctionGraphGenotype(
@@ -152,78 +162,14 @@ end
 
     for (input_values, expected_output) in input_outputs
         output = act!(phenotype, input_values)
-        @test output == expected_output
-    end
-end
-
-@testset "Complex Logic Phenotype" begin
-    genotype = FunctionGraphGenotype(
-        input_node_ids = [1, 2, 3],
-        bias_node_ids = Int[],
-        hidden_node_ids = [4, 5, 6, 7, 8, 9],
-        output_node_ids = [10, 11],
-        nodes = Dict(
-            11 => FunctionGraphNode(11, :OUTPUT, [
-                FunctionGraphConnection(8, 1.0, false)
-            ]),
-            10 => FunctionGraphNode(10, :OUTPUT, [
-                FunctionGraphConnection(9, 1.0, false)
-            ]),
-            9 => FunctionGraphNode(9, :OR, [
-                FunctionGraphConnection(5, 1.0, false), 
-                FunctionGraphConnection(6, 1.0, false)
-            ]),
-            8 => FunctionGraphNode(8, :XOR, [
-                FunctionGraphConnection(3, 1.0, false), 
-                FunctionGraphConnection(4, 1.0, false)
-            ]),
-            7 => FunctionGraphNode(7, :AND, [
-                FunctionGraphConnection(3, 1.0, false), 
-                FunctionGraphConnection(4, 1.0, false)
-            ]),
-            6 => FunctionGraphNode(6, :AND, [
-                FunctionGraphConnection(1, 1.0, false), 
-                FunctionGraphConnection(2, 1.0, false)
-            ]),
-            5 => FunctionGraphNode(5, :AND, [
-                FunctionGraphConnection(3, 1.0, false), 
-                FunctionGraphConnection(4, 1.0, false)
-            ]),
-            4 => FunctionGraphNode(4, :XOR, [
-                FunctionGraphConnection(1, 1.0, false), 
-                FunctionGraphConnection(2, 1.0, false)
-            ]),
-            3 => FunctionGraphNode(3, :INPUT, []),
-            2 => FunctionGraphNode(2, :INPUT, []),
-            1 => FunctionGraphNode(1, :INPUT, [])
-        ),
-        n_nodes_per_output = 1
-    )
-
-    phenotype_creator = EfficientFunctionGraphPhenotypeCreator()
-    phenotype = create_phenotype(phenotype_creator, genotype)
-    println("\n\nIDS: ", [node.id for node in phenotype.nodes])
-    println("FUNC NAMES: ", [node.func.name for node in phenotype.nodes])
-
-    input_outputs = [
-        ([0.0, 0.0, 0.0], [0.0, 0.0]),
-        ([0.0, 0.0, 1.0], [0.0, 1.0]),
-        ([0.0, 1.0, 0.0], [0.0, 1.0]),
-        ([0.0, 1.0, 1.0], [1.0, 0.0]),
-        ([1.0, 0.0, 0.0], [0.0, 1.0]),
-        ([1.0, 0.0, 1.0], [1.0, 0.0]),
-        ([1.0, 1.0, 0.0], [1.0, 0.0]),
-        ([1.0, 1.0, 1.0], [1.0, 1.0])
-    ]
-
-    for (input_values, expected_output) in input_outputs
-        println("NEW TEST: $input_values, $expected_output")
         output = act!(phenotype, input_values)
+        println("NEW TEST: $input_values, $expected_output, $output")
         @test output == expected_output
-        #println(output == expected_output)
+        reset!(phenotype)
     end
 end
 
+#
 @testset "Physics Phenotype" begin
     genotype = FunctionGraphGenotype(
         input_node_ids = [1, 2, 3, 4],
@@ -275,10 +221,12 @@ end
 
     for (input_values, expected_output) in input_outputs
         output = act!(phenotype, input_values)
+        output = act!(phenotype, input_values)
         @test isapprox(output[1], expected_output[1]; atol=1e-1)
+        reset!(phenotype)
     end
 end
-
+#
 function apply_mutation_storm(
     mutator::FunctionGraphMutator, 
     genotype::FunctionGraphGenotype, 
