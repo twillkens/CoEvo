@@ -27,8 +27,8 @@ Base.@kwdef struct PredictionGameConfiguration
     substrate::String = "function_graphs"
     function_set::String = "all"
     mutation_method::String = "shrink_minor"
-    n_mutations::Int = 1
-    noise_type::String = "high"
+    n_mutations::Int = 10
+    noise_type::String = "low"
     # EVALUATION
     evaluation_method::String = "disco"
     tournament_size::Int = 3

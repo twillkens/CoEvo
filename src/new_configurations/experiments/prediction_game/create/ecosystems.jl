@@ -77,7 +77,7 @@ using ....Ecosystems.Simple: SimpleEcosystemCreator
 
 function make_ecosystem_creator(config::PredictionGameExperimentConfiguration,)
     ecosystem_creator = SimpleEcosystemCreator(
-        id = config.id,
+        id = 1,
         species_creators = make_species_creators(config)
     )
     return ecosystem_creator

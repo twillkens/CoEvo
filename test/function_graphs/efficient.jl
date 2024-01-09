@@ -229,57 +229,31 @@ end
 end
 
 ## Now, let's write some tests
-#@testset "minimize function tests" begin
-#    # Define a small genotype for testing.
-#    genotype = SimpleFunctionGraphGenotype([
-#        SimpleFunctionGraphNode(1, :INPUT, []),
-#        SimpleFunctionGraphNode(2, :INPUT, []),
-#        SimpleFunctionGraphNode(3, :BIAS, []),
-#        SimpleFunctionGraphNode(4, :ADD, [
-#            SimpleFunctionGraphConnection(1, 1.0, true), 
-#            SimpleFunctionGraphConnection(3, 1.0, true)
-#        ]),
-#        SimpleFunctionGraphNode(5, :ADD, [
-#            SimpleFunctionGraphConnection(2, 1.0, true), 
-#            SimpleFunctionGraphConnection(4, 1.0, true)
-#        ]),
-#        SimpleFunctionGraphNode(6, :OUTPUT, [
-#            SimpleFunctionGraphConnection(5, 1.0, false)
-#        ])
-#    ])
-#
-#
-#    # Minimize the genotype
-#    minimized_genotype = minimize(genotype)
-#    
-#        
-#    # Test 1: Ensure that all nodes in the minimized genotype are connected to output
-#    @test all(id -> id in minimized_genotype.input_node_ids ||
-#                   id in minimized_genotype.bias_node_ids ||
-#                   id in minimized_genotype.hidden_node_ids ||
-#                   id in minimized_genotype.output_node_ids,
-#              keys(minimized_genotype.nodes)
-#          )
-#
-#    # Test 2: The not connected node (id: 6) should be removed after minimization
-#    @test !haskey(minimized_genotype.nodes, 6)
-#
-#    # Test 3: Validate the output node(s) should remain the same after minimization
-#    @test minimized_genotype.output_node_ids == test_genotype.output_node_ids
-#    
-#    # Test 4: Ensure nodes in input, bias, hidden, and output node id vectors really exist in the minimized nodes
-#    @test all(id -> haskey(minimized_genotype.nodes, id),
-#              vcat(minimized_genotype.input_node_ids, minimized_genotype.bias_node_ids,
-#                   minimized_genotype.hidden_node_ids, minimized_genotype.output_node_ids)
-#          )
-#
-#    # Test 5: Check if input and bias nodes remain unchanged
-#    @test minimized_genotype.input_node_ids == test_genotype.input_node_ids
-#    @test minimized_genotype.bias_node_ids == test_genotype.bias_node_ids
-#    
-#    # Test 6: Validate that input, bias, and output nodes in minimized genotype are the same as in the original genotype
-#    @test all(id -> minimized_genotype.nodes[id] == test_genotype.nodes[id],
-#              vcat(minimized_genotype.input_node_ids, minimized_genotype.bias_node_ids, minimized_genotype.output_node_ids)
-#          )
-#    
-#end
+@testset "minimize function tests" begin
+    # Define a small genotype for testing.
+    genotype = SimpleFunctionGraphGenotype([
+        SimpleFunctionGraphNode(1, :INPUT, []),
+        SimpleFunctionGraphNode(2, :INPUT, []),
+        SimpleFunctionGraphNode(3, :BIAS, []),
+        SimpleFunctionGraphNode(4, :ADD, [
+            SimpleFunctionGraphConnection(1, 1.0, true), 
+            SimpleFunctionGraphConnection(3, 1.0, true)
+        ]),
+        SimpleFunctionGraphNode(5, :ADD, [
+            SimpleFunctionGraphConnection(2, 1.0, true), 
+            SimpleFunctionGraphConnection(4, 1.0, true)
+        ]),
+        SimpleFunctionGraphNode(6, :OUTPUT, [
+            SimpleFunctionGraphConnection(5, 1.0, false)
+        ])
+    ])
+
+    # Minimize the genotype
+    minimized_genotype = minimize(genotype)
+        
+    @test minimized_genotype.input_node_ids == test_genotype.input_node_ids
+    @test minimized_genotype.bias_node_ids == test_genotype.bias_node_ids
+    @test minimized_genotype.hidden_ids == [5]
+    @test minimized_genotype.output_ids == test_genotype.output_ids
+    
+end

@@ -15,7 +15,7 @@ Get the size of a `SimpleFunctionGraphGenotype` as determined by the number of h
 - An integer representing the number of hidden nodes in the genotype.
 """
 function get_size(genotype::SimpleFunctionGraphGenotype)
-    return length(genotype.hidden_node_ids)
+    return length(genotype.hidden_ids)
 end
 
 function get_active_gene_ids(genotype::SimpleFunctionGraphGenotype)
@@ -34,7 +34,7 @@ function get_active_gene_ids(genotype::SimpleFunctionGraphGenotype)
 
         # Find the node by its ID.
         node = genotype[node_id]
-        println("node = ", node)
+        #println("node = ", node)
 
         # Recursively call for all input connections of the current node, if it exists.
         for edge in node.edges

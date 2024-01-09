@@ -30,12 +30,12 @@ function make_mutator(config::PredictionGameConfiguration)
     function_probabilities = Dict(
         Symbol(func) => 1 / length(function_set) for func in function_set
     )
-    mutator = FunctionGraphMutator(
-        n_mutations = config.n_mutations,
+    mutator = SimpleFunctionGraphMutator(
+        max_mutations = config.n_mutations,
         validate_genotypes = false,
-        mutation_probabilities = MUTATION_PROBABILITIES[config.mutation_method],
+        mutation_weights = MUTATION_PROBABILITIES[config.mutation_method],
         noise_std = GAUSSIAN_NOISE_STD[config.noise_type],
-        function_probabilities = function_probabilities
+        function_set = function_set,
     )
     return mutator
 end
@@ -52,14 +52,14 @@ function make_species_creators(config::PredictionGameConfiguration)
             n_archive = config.n_archive,
             archive_interval = config.archive_interval,
             max_archive_length = config.max_archive_length,
-            genotype_creator = FunctionGraphGenotypeCreator(
-                n_inputs = 2, n_outputs = 1, n_bias = 1, n_nodes_per_output = 1
+            genotype_creator = SimpleFunctionGraphGenotypeCreator(
+                n_inputs = 2, n_outputs = 1, n_bias = 1
             ),
             individual_creator = ModesIndividualCreator(),
             phenotype_creator = EfficientFunctionGraphPhenotypeCreator(),
             evaluator = make_evaluator(config),
             selector = make_selector(config),
-            recombiner = CloneRecombiner(),
+            recombiner = HorizontalGeneTransferRecombiner(),
             mutator = make_mutator(config)
         ) 
         for species_id in topology_config.species_ids

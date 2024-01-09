@@ -17,16 +17,16 @@ using ...Performers.Cache
 using ...Ecosystems.Simple
 using ...Ecosystems.Null
 using ...Evaluators.Null
-using ...Genotypes.FunctionGraphs: FunctionGraphGenotypeCreator
-using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeCreator
+using ...Genotypes.SimpleFunctionGraphs: SimpleFunctionGraphGenotypeCreator
+#using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeCreator
 using ...Phenotypes.FunctionGraphs.Efficient: EfficientFunctionGraphPhenotypeCreator
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
 using ...Evaluators.NSGAII: NSGAIIEvaluator
 using ...Selectors.FitnessProportionate: FitnessProportionateSelector
 using ...Selectors.Tournament: TournamentSelector
 using ...SpeciesCreators.Archive: ArchiveSpeciesCreator
-using ...Recombiners.Clone: CloneRecombiner
-using ...Mutators.FunctionGraphs: FunctionGraphMutator
+using ...Recombiners.HorizontalGeneTransfer: HorizontalGeneTransferRecombiner
+using ...Mutators.SimpleFunctionGraphs: SimpleFunctionGraphMutator
 using ...Ecosystems.Simple: SimpleEcosystemCreator
 using ...Abstract.States
 using ...Individuals.Modes
