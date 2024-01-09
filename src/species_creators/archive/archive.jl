@@ -95,16 +95,20 @@ function create_species(
     evaluation::Evaluation,
     state::State
 ) 
+    n_population_before = length(species.population)
     #println("------$(species.id)-----")
     ordered_ids = [record.id for record in evaluation.records]
     parent_ids = Set(ordered_ids[1:species_creator.n_parents])
     parent_set = [individual for individual in species.population if individual.id in parent_ids]
+    #println("parent_set_length = ", length(parent_set))
     #println("parent_set_ids = ", [individual.id for individual in parent_set])
     #println("rng state = ", rng.state)
     parents = select(species_creator.selector, parent_set, evaluation, state)
+    #println("parents_length = ", length(parents))
     #println("parents_ids = ", [individual.id for individual in parents])
     #println("rng state = ", rng.state)
     new_children = recombine(species_creator.recombiner, parents, state)
+    #println("new_children_length = ", length(new_children))
     #println("new_children_ids = ", [individual.id for individual in new_children])
     #println("rng state = ", rng.state)
     new_children = mutate(species_creator.mutator, new_children, state)
@@ -116,7 +120,7 @@ function create_species(
         new_population = new_children
     end
 
-    if species_creator.archive_interval > 0 && state.generation % species_creator.archive_interval == 0
+    if false#species_creator.archive_interval > 0 && state.generation % species_creator.archive_interval == 0
         new_archive_ids = [record.id for record in evaluation.records[1:species_creator.n_archive]]
         new_archive_individuals = [
             individual for individual in species.population if individual.id in new_archive_ids
@@ -132,6 +136,12 @@ function create_species(
     end
     #new_species_ids = [individual.id for individual in new_species.population]
     #println("new_species_ids = ", new_species_ids)
+    n_population_after = length(new_species.population)
+    if n_population_after != n_population_before
+        error("Population size changed from $n_population_before to $n_population_after")
+    end
+
+
     return new_species
 end
 
