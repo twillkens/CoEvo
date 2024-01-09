@@ -24,6 +24,8 @@ include("layers.jl")
 
 include("create.jl")
 
+include("create_simple.jl")
+
 include("act.jl")
 
 include("prune.jl")

@@ -1,6 +1,7 @@
 module Mutators
 
 export Identity, Vectors, GeneticPrograms, GnarlNetworks, FiniteStateMachines, FunctionGraphs
+export SimpleFunctionGraphs
 
 using Random: AbstractRNG
 using ..Counters: Counter
@@ -29,5 +30,8 @@ using .FiniteStateMachines: FiniteStateMachines
 
 include("function_graphs/function_graphs.jl")
 using .FunctionGraphs: FunctionGraphs
+
+include("simple_function_graphs/simple_function_graphs.jl")
+using .SimpleFunctionGraphs: SimpleFunctionGraphs
 
 end

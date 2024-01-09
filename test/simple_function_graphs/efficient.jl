@@ -19,30 +19,30 @@ println("Starting tests for FunctionGraphs...")
         SimpleFunctionGraphNode(2, :INPUT, []),
         SimpleFunctionGraphNode(3, :INPUT, []),
         SimpleFunctionGraphNode(4, :XOR, [
-            SimpleFunctionGraphConnection(1, 1.0, false), 
-            SimpleFunctionGraphConnection(2, 1.0, false)
+            SimpleFunctionGraphEdge(1, 1.0, false), 
+            SimpleFunctionGraphEdge(2, 1.0, false)
         ]),
         SimpleFunctionGraphNode(5, :AND, [
-            SimpleFunctionGraphConnection(1, 1.0, false), 
-            SimpleFunctionGraphConnection(2, 1.0, false)
+            SimpleFunctionGraphEdge(1, 1.0, false), 
+            SimpleFunctionGraphEdge(2, 1.0, false)
         ]),
         SimpleFunctionGraphNode(6, :AND, [
-            SimpleFunctionGraphConnection(4, 1.0, false), 
-            SimpleFunctionGraphConnection(3, 1.0, false)
+            SimpleFunctionGraphEdge(4, 1.0, false), 
+            SimpleFunctionGraphEdge(3, 1.0, false)
         ]),
         SimpleFunctionGraphNode(7, :XOR, [
-            SimpleFunctionGraphConnection(4, 1.0, false), 
-            SimpleFunctionGraphConnection(3, 1.0, false)
+            SimpleFunctionGraphEdge(4, 1.0, false), 
+            SimpleFunctionGraphEdge(3, 1.0, false)
         ]),
         SimpleFunctionGraphNode(8, :OR, [
-            SimpleFunctionGraphConnection(5, 1.0, false), 
-            SimpleFunctionGraphConnection(6, 1.0, false)
+            SimpleFunctionGraphEdge(5, 1.0, false), 
+            SimpleFunctionGraphEdge(6, 1.0, false)
         ]),
         SimpleFunctionGraphNode(9, :OUTPUT, [
-            SimpleFunctionGraphConnection(8, 1.0, false)
+            SimpleFunctionGraphEdge(8, 1.0, false)
         ]),
         SimpleFunctionGraphNode(10, :OUTPUT, [
-            SimpleFunctionGraphConnection(7, 1.0, false)
+            SimpleFunctionGraphEdge(7, 1.0, false)
         ])
     ])
 
@@ -78,19 +78,19 @@ end
         SimpleFunctionGraphNode(1, :INPUT, []),
         SimpleFunctionGraphNode(2, :INPUT, []),
         SimpleFunctionGraphNode(3, :NAND, [
-            SimpleFunctionGraphConnection(1, 1.0, false), 
-            SimpleFunctionGraphConnection(2, 1.0, false)
+            SimpleFunctionGraphEdge(1, 1.0, false), 
+            SimpleFunctionGraphEdge(2, 1.0, false)
         ]),
         SimpleFunctionGraphNode(4, :OR, [
-            SimpleFunctionGraphConnection(1, 1.0, false), 
-            SimpleFunctionGraphConnection(2, 1.0, false)
+            SimpleFunctionGraphEdge(1, 1.0, false), 
+            SimpleFunctionGraphEdge(2, 1.0, false)
         ]),
         SimpleFunctionGraphNode(5, :AND, [
-            SimpleFunctionGraphConnection(3, 1.0, false), 
-            SimpleFunctionGraphConnection(4, 1.0, false)
+            SimpleFunctionGraphEdge(3, 1.0, false), 
+            SimpleFunctionGraphEdge(4, 1.0, false)
         ]),
         SimpleFunctionGraphNode(6, :OUTPUT, [
-            SimpleFunctionGraphConnection(5, 1.0, false)
+            SimpleFunctionGraphEdge(5, 1.0, false)
         ])
     ])
 
@@ -122,23 +122,23 @@ end
         SimpleFunctionGraphNode(3, :INPUT, []),
         SimpleFunctionGraphNode(4, :INPUT, []),
         SimpleFunctionGraphNode(5, :MULTIPLY, [
-            SimpleFunctionGraphConnection(2, 1.0, false), 
-            SimpleFunctionGraphConnection(3, 1.0, false)
+            SimpleFunctionGraphEdge(2, 1.0, false), 
+            SimpleFunctionGraphEdge(3, 1.0, false)
         ]),
         SimpleFunctionGraphNode(6, :MULTIPLY, [
-            SimpleFunctionGraphConnection(4, 1.0, false), 
-            SimpleFunctionGraphConnection(4, 1.0, false)
+            SimpleFunctionGraphEdge(4, 1.0, false), 
+            SimpleFunctionGraphEdge(4, 1.0, false)
         ]),
         SimpleFunctionGraphNode(7, :DIVIDE, [
-            SimpleFunctionGraphConnection(5, 1.0, false), 
-            SimpleFunctionGraphConnection(6, 1.0, false)
+            SimpleFunctionGraphEdge(5, 1.0, false), 
+            SimpleFunctionGraphEdge(6, 1.0, false)
         ]),
         SimpleFunctionGraphNode(8, :MULTIPLY, [
-            SimpleFunctionGraphConnection(1, 1.0, false), 
-            SimpleFunctionGraphConnection(7, 1.0, false)
+            SimpleFunctionGraphEdge(1, 1.0, false), 
+            SimpleFunctionGraphEdge(7, 1.0, false)
         ]),
         SimpleFunctionGraphNode(9, :OUTPUT, [
-            SimpleFunctionGraphConnection(8, 1.0, false)
+            SimpleFunctionGraphEdge(8, 1.0, false)
         ])
     ])
 
@@ -202,25 +202,22 @@ function apply_mutation_storm(
 end
 
 @testset "Mutation Storm" begin
-    #genotype = SimpleFunctionGraphGenotype([
-    #    SimpleFunctionGraphNode(1, :INPUT, []),
-    #    SimpleFunctionGraphNode(2, :INPUT, []),
-    #    SimpleFunctionGraphNode(3, :BIAS, []),
-    #    SimpleFunctionGraphNode(4, :ADD, [
-    #        SimpleFunctionGraphConnection(1, 1.0, true), 
-    #        SimpleFunctionGraphConnection(3, 1.0, true)
-    #    ]),
-    #    SimpleFunctionGraphNode(5, :ADD, [
-    #        SimpleFunctionGraphConnection(2, 1.0, true), 
-    #        SimpleFunctionGraphConnection(4, 1.0, true)
-    #    ]),
-    #    SimpleFunctionGraphNode(6, :OUTPUT, [
-    #        SimpleFunctionGraphConnection(5, 1.0, false)
-    #    ])
-    #])
-
-    genotype_creator = SimpleFunctionGraphGenotypeCreator(2, 1, 1)
-    genotype = first(create_genotypes(genotype_creator, StableRNG(1), BasicCounter(1), 1))
+    genotype = SimpleFunctionGraphGenotype([
+        SimpleFunctionGraphNode(1, :INPUT, []),
+        SimpleFunctionGraphNode(2, :INPUT, []),
+        SimpleFunctionGraphNode(3, :BIAS, []),
+        SimpleFunctionGraphNode(4, :ADD, [
+            SimpleFunctionGraphEdge(1, 1.0, true), 
+            SimpleFunctionGraphEdge(3, 1.0, true)
+        ]),
+        SimpleFunctionGraphNode(5, :ADD, [
+            SimpleFunctionGraphEdge(2, 1.0, true), 
+            SimpleFunctionGraphEdge(4, 1.0, true)
+        ]),
+        SimpleFunctionGraphNode(6, :OUTPUT, [
+            SimpleFunctionGraphEdge(5, 1.0, false)
+        ])
+    ])
 
     mutator = SimpleFunctionGraphMutator() 
     
@@ -236,15 +233,15 @@ end
 #        SimpleFunctionGraphNode(2, :INPUT, []),
 #        SimpleFunctionGraphNode(3, :BIAS, []),
 #        SimpleFunctionGraphNode(4, :ADD, [
-#            SimpleFunctionGraphConnection(1, 1.0, true), 
-#            SimpleFunctionGraphConnection(3, 1.0, true)
+#            SimpleFunctionGraphEdge(1, 1.0, true), 
+#            SimpleFunctionGraphEdge(3, 1.0, true)
 #        ]),
 #        SimpleFunctionGraphNode(5, :ADD, [
-#            SimpleFunctionGraphConnection(2, 1.0, true), 
-#            SimpleFunctionGraphConnection(4, 1.0, true)
+#            SimpleFunctionGraphEdge(2, 1.0, true), 
+#            SimpleFunctionGraphEdge(4, 1.0, true)
 #        ]),
 #        SimpleFunctionGraphNode(6, :OUTPUT, [
-#            SimpleFunctionGraphConnection(5, 1.0, false)
+#            SimpleFunctionGraphEdge(5, 1.0, false)
 #        ])
 #    ])
 #

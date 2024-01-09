@@ -54,7 +54,7 @@ that throw errors and need to be overridden for specific genotypes.
 """
 module Genotypes
 
-export Vectors, GeneticPrograms, GnarlNetworks, FiniteStateMachines, FunctionGraphs
+export Vectors, GeneticPrograms, GnarlNetworks, FiniteStateMachines, FunctionGraphs, SimpleFunctionGraphs
 
 using Random: AbstractRNG
 using HDF5: Group
@@ -78,5 +78,8 @@ using .FiniteStateMachines: FiniteStateMachines
 
 include("function_graphs/function_graphs.jl")
 using .FunctionGraphs: FunctionGraphs
+
+include("simple_function_graphs/simple_function_graphs.jl")
+using .SimpleFunctionGraphs: SimpleFunctionGraphs
 
 end

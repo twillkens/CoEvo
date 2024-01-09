@@ -9,7 +9,7 @@ Use `CloneRecombiner` to create offspring by directly copying the genotype of pa
 """
 module Recombiners
 
-export Clone, Identity
+export Clone, Identity, HorizontalGeneTransfer
 
 using Random: AbstractRNG
 using ..Counters: Counter
@@ -24,5 +24,8 @@ using .Clone: Clone
 
 include("identity/identity.jl")
 using .Identity: Identity
+
+include("horizontal_gene_transfer/horizontal_gene_transfer.jl")
+using .HorizontalGeneTransfer: HorizontalGeneTransfer
 
 end
