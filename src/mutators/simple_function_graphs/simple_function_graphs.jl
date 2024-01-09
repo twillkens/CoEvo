@@ -187,6 +187,13 @@ function mutate_node!(
         all_edges = filter(edge -> !(edge in edges_to_remove), node.edges)
     end
     shuffle!(rng, all_edges)
+    if length(all_edges) != new_function.arity
+        println("node = $node")
+        println("old_function = $old_function")
+        println("new_function = $new_function")
+        println("all_edges = $all_edges")
+        throw(ErrorException("Incorrect number of edges"))
+    end
     mutate_node!(node, new_function.name, all_edges)
 end
 

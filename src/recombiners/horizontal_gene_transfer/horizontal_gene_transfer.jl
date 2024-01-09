@@ -44,6 +44,9 @@ function recombine(
     original_donor::SimpleFunctionGraphGenotype,
     state::State
 )
+    if rand(state.rng) < 0.5
+        return deepcopy(original_recipient)
+    end
     original_recipent_size = get_size(original_recipient)
     recipient = deepcopy(original_recipient)
     donor = deepcopy(original_donor)
