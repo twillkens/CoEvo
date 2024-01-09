@@ -202,10 +202,23 @@ using JLD2: @save
 function evolve!(
     ecosystem_creator::BasicEcosystemCreator;
     n_generations::Int = 100,
+    check_interval = 100,
+    check_name = "checkpoint.jld2"
 )
-    ecosystem = create_ecosystem(ecosystem_creator)
+    
     last_reproduce_time = 0.0
-    for generation in 1:n_generations
+
+    if isfile(check_name)
+        check = load(check_name)
+	ecosystem = check["ecosystem"]
+	start_gen = check["generation"]
+	println("RESUMING FROM $start_gen")
+    else
+	println("CREATING NEW RUN")
+	ecosystem = create_ecosystem(ecosystem_creator)
+	start_gen = 1
+    end
+    for generation in start_gen:n_generations
         eval_time_start = time()
         phenotype_creators = [
             species_creator.phenotype_creator 
@@ -231,6 +244,9 @@ function evolve!(
         last_reproduce_time_start = time()
         ecosystem = create_ecosystem(ecosystem_creator, generation, ecosystem, results, reports)
         last_reproduce_time = time() - last_reproduce_time_start
+	if generation % check_interval == 1
+	    save(check_name, Dict("ecosystem" => ecosystem, "generation" => generation))
+	end
     end
 
     return ecosystem
