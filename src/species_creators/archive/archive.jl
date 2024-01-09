@@ -20,6 +20,7 @@ using ...Recombiners.Clone: CloneRecombiner
 using ...Mutators: Mutator, mutate
 using ..SpeciesCreators: SpeciesCreator
 using ...Abstract.States: State, get_rng, get_individual_id_counter, get_gene_id_counter
+using StatsBase: sample
 
 Base.@kwdef struct ArchiveSpeciesCreator{
     G <: GenotypeCreator,
@@ -38,6 +39,7 @@ Base.@kwdef struct ArchiveSpeciesCreator{
     n_archive::Int
     archive_interval::Int
     max_archive_length::Int
+    max_archive_matches::Int
     genotype_creator::G
     individual_creator::I
     phenotype_creator::P
@@ -120,20 +122,24 @@ function create_species(
         new_population = new_children
     end
 
-    if false#species_creator.archive_interval > 0 && state.generation % species_creator.archive_interval == 0
-        new_archive_ids = [record.id for record in evaluation.records[1:species_creator.n_archive]]
-        new_archive_individuals = [
-            individual for individual in species.population if individual.id in new_archive_ids
-        ]
-        new_archive = add_elites_to_archive(
-            species.archive, new_archive_individuals, species_creator.max_archive_length
-        )
-        new_species = ArchiveSpecies(species_creator.id, new_population, new_archive)
+    best_records = filter(record -> record.rank == 1 && isinf(record.crowding), evaluation.records)
+    best_record = reduce(
+        (record1, record2) -> record1.fitness > record2.fitness ? record1 : record2, 
+    best_records)
+    best_individual = find_by_id(species.population, best_record.id)
+
+    new_archive = add_elites_to_archive(
+        species.archive, [best_individual], species_creator.max_archive_length
+    )
+    if species_creator.max_archive_matches > 0
+        n_archive_matches = min(species_creator.max_archive_matches, length(new_archive))
+        println("n_archive_matches = ", n_archive_matches)
+        new_archive_individuals = sample(state.rng, new_archive, n_archive_matches)
+        new_archive_ids = [individual.id for individual in new_archive_individuals]
     else
-        #println("new_mutant_ids = ", [individual.id for individual in new_children])
-        #println("rng state = ", rng.state)
-        new_species = ArchiveSpecies(species_creator.id, new_population)
+        new_archive_ids = Int[]
     end
+    new_species = ArchiveSpecies(species.id, new_population, new_archive, new_archive_ids)
     #new_species_ids = [individual.id for individual in new_species.population]
     #println("new_species_ids = ", new_species_ids)
     n_population_after = length(new_species.population)

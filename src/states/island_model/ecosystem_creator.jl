@@ -27,9 +27,6 @@ make_selector(config::PredictionGameConfiguration) =
 
 function make_mutator(config::PredictionGameConfiguration)
     function_set = FUNCTION_SETS[config.function_set]
-    function_probabilities = Dict(
-        Symbol(func) => 1 / length(function_set) for func in function_set
-    )
     mutator = SimpleFunctionGraphMutator(
         max_mutations = config.n_mutations,
         validate_genotypes = false,
@@ -52,6 +49,7 @@ function make_species_creators(config::PredictionGameConfiguration)
             n_archive = config.n_archive,
             archive_interval = config.archive_interval,
             max_archive_length = config.max_archive_length,
+            max_archive_matches = config.n_archive_matches,
             genotype_creator = SimpleFunctionGraphGenotypeCreator(
                 n_inputs = 2, n_outputs = 1, n_bias = 1
             ),
