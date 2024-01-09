@@ -29,7 +29,7 @@ include("getters.jl")
 
 include("minimize.jl")
 
-#include("show.jl")
+include("show.jl")
 
 #include("archive.jl")
 

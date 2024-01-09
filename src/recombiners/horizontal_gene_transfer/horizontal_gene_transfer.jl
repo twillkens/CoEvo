@@ -85,9 +85,10 @@ function recombine(
     end
     shuffle!(state.rng, parents)
     children = I[]
-    for i in 1:2:length(parents)-1
-        donor = parents[i]
-        recipient = parents[i+1]
+    for recipient in parents
+        #donor = parents[i]
+        donors = Set(filter(individual -> individual.id != recipient.id, parents))
+        donor = rand(state.rng, donors)
         genotype = recombine(
             recombiner,
             recipient.genotype,
