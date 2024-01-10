@@ -125,7 +125,8 @@ function create_species(
     best_records = filter(record -> record.rank == 1 && isinf(record.crowding), evaluation.records)
     best_record = reduce(
         (record1, record2) -> record1.fitness > record2.fitness ? record1 : record2, 
-    best_records)
+        best_records
+    )
     best_individual = find_by_id(species.population, best_record.id)
 
     new_archive = add_elites_to_archive(
