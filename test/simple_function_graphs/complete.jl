@@ -281,7 +281,6 @@ end
 end
 
 @testset "Mutation Storm" begin
-
     genotype_creator = SimpleFunctionGraphGenotypeCreator(2, 1, 1)
     genotype = first(create_genotypes(genotype_creator, StableRNG(1), BasicCounter(1), 1))
 

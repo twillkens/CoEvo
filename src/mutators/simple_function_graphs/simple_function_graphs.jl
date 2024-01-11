@@ -27,6 +27,23 @@ MUTATION_MAP = Dict(
     :mutate_node! => mutate_node!,
     :mutate_edge! => mutate_edge!,
 )
+const LARGE = [
+    :IDENTITY,
+    :ADD,
+    :MULTIPLY,
+    :DIVIDE,
+    :SINE,
+    :COSINE,
+    :SIGMOID,
+    :TANH,
+    :RELU,
+    :MAXIMUM,
+    :MINIMUM,
+    :IF_LESS_THEN_ELSE,
+    :MODULO,
+    :NATURAL_LOG,
+    :EXP,
+]
 
 Base.@kwdef struct SimpleFunctionGraphMutator <: Mutator
     # Number of structural changes to perform per generation
@@ -41,10 +58,7 @@ Base.@kwdef struct SimpleFunctionGraphMutator <: Mutator
         :mutate_edge! => 1.0,
     )
     noise_std::Float32 = 0.1
-    function_set::Vector{Symbol} = [
-        :IDENTITY, :ADD, :MULTIPLY, :DIVIDE, :MAXIMUM, :MINIMUM, :SINE, :COSINE,
-        :ARCTANGENT, :SIGMOID, :TANH, :RELU, :IF_LESS_THEN_ELSE
-    ]
+    function_set::Vector{Symbol} = LARGE
     validate_genotypes::Bool = false
 end
 

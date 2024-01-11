@@ -70,11 +70,17 @@ function interact(
     [reset!(phenotype) for phenotype in phenotypes]
     environment_creator = interaction.environment_creator
     environment = create_environment(environment_creator, phenotypes...)
-    outcome_set = interact(environment, interaction.observers)
-    observations = create_observations(interaction.observers)
-    result = BasicResult(interaction.id, individual_ids, outcome_set, observations)
-    [reset!(phenotype) for phenotype in phenotypes]
-    return result
+    try 
+        outcome_set = interact(environment, interaction.observers)
+        observations = create_observations(interaction.observers)
+        result = BasicResult(interaction.id, individual_ids, outcome_set, observations)
+        [reset!(phenotype) for phenotype in phenotypes]
+        return result
+    catch
+        println("environment = $environment")
+        println("phenotypes = $phenotypes")
+        throw(ErrorException("Error in interact"))
+    end
 end
 
 end
