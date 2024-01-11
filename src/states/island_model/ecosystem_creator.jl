@@ -54,7 +54,7 @@ function make_species_creators(config::PredictionGameConfiguration)
                 n_inputs = 2, n_outputs = 1, n_bias = 1
             ),
             individual_creator = ModesIndividualCreator(),
-            phenotype_creator = EfficientFunctionGraphPhenotypeCreator(),
+            phenotype_creator = CompleteFunctionGraphPhenotypeCreator(),
             evaluator = make_evaluator(config),
             selector = make_selector(config),
             recombiner = HorizontalGeneTransferRecombiner(),

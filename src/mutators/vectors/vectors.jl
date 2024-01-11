@@ -7,7 +7,7 @@ import ..Mutators: mutate
 using Random: AbstractRNG, randn
 using ...Counters: Counter
 using ...Genotypes.Vectors: BasicVectorGenotype
-using ..Mutators: Mutator
+using ...Abstract
 
 Base.@kwdef struct BasicVectorMutator <: Mutator
     noise_standard_deviation::Float64 = 0.1

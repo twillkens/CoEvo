@@ -25,8 +25,8 @@ export FunctionGraphGenotype, FunctionGraphGenotypeCreator
 using ..Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphGenotypeCreator
 
 # Mutators
-export Mutator, mutate
-using ..Mutators: Mutator, mutate
+export mutate
+using ..Mutators: mutate
 
 export IdentityMutator
 using ..Mutators.Identity: IdentityMutator

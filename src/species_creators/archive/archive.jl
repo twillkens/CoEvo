@@ -17,7 +17,7 @@ using ...Replacers: Replacer, replace
 using ...Selectors: Selector, select
 using ...Recombiners: Recombiner, recombine
 using ...Recombiners.Clone: CloneRecombiner
-using ...Mutators: Mutator, mutate
+using ...Mutators: Mutator, mutate, mutate!
 using ..SpeciesCreators: SpeciesCreator
 using ...Abstract.States: State, get_rng, get_individual_id_counter, get_gene_id_counter
 using StatsBase: sample
@@ -105,15 +105,19 @@ function create_species(
     #println("parent_set_length = ", length(parent_set))
     #println("parent_set_ids = ", [individual.id for individual in parent_set])
     #println("rng state = ", rng.state)
+    #println("starting selection")
     parents = select(species_creator.selector, parent_set, evaluation, state)
     #println("parents_length = ", length(parents))
     #println("parents_ids = ", [individual.id for individual in parents])
     #println("rng state = ", rng.state)
+    #println("starting recombination")
     new_children = recombine(species_creator.recombiner, parents, state)
     #println("new_children_length = ", length(new_children))
     #println("new_children_ids = ", [individual.id for individual in new_children])
     #println("rng state = ", rng.state)
-    new_children = mutate(species_creator.mutator, new_children, state)
+    #new_children = mutate(species_creator.mutator, new_children, state)
+    #println("starting mutation")
+    mutate!(species_creator.mutator, new_children, state)
     if species_creator.n_elites > 0
         elite_ids = [record.id for record in evaluation.records[1:species_creator.n_elites]]
         elites = [individual for individual in species.population if individual.id in elite_ids]
@@ -134,7 +138,7 @@ function create_species(
     )
     if species_creator.max_archive_matches > 0
         n_archive_matches = min(species_creator.max_archive_matches, length(new_archive))
-        println("n_archive_matches = ", n_archive_matches)
+        println("n_archive_matches = ", n_archive_matches, ", length(new_archive) = ", length(new_archive))
         new_archive_individuals = sample(state.rng, new_archive, n_archive_matches)
         new_archive_ids = [individual.id for individual in new_archive_individuals]
     else

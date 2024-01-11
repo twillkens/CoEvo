@@ -31,6 +31,11 @@ include("minimize.jl")
 
 include("show.jl")
 
+include("sort.jl")
+
+include("validate.jl")
+
+include("manipulate/manipulate.jl")
 #include("archive.jl")
 
 end

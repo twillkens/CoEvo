@@ -122,9 +122,13 @@ using ...Archivers: archive!
 
 function next_generation!(state::ModesEcosystemState)
     state.generation += 1
+    #println("starting creation")
     create_ecosystem!(state)
+    #println("starting simulation")
     perform_simulation!(state)
+    #println("starting evaluation")
     perform_evaluation!(state)
+    #println("starting archiving")
     [archive!(archiver, state) for archiver in state.archivers]
 end
 
@@ -294,13 +298,6 @@ function evolve!(state::IslandModelState)
             push!(migrant_dicts, future)
         end
         migrant_dicts = [fetch(future) for future in migrant_dicts]
-        #println("migrant_dicts: ", migrant_dicts)
-
-        # Step 3: Distribute migrants (this could be more sophisticated in a real implementation)
-        # For simplicity, rotate the migrant_dicts
-        # TODO: REPLACE rotated_migrant_dicts with logic using NSEW, merging the dictionaries as needed
-        # rotated_migrant_dicts = circshift(migrant_dicts, 1)
-
 
         # Step 4: Integrate migrants into each ecosystem
         futures = []

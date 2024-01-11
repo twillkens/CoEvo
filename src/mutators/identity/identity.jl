@@ -7,7 +7,7 @@ import ..Mutators: mutate
 using Random: AbstractRNG
 using ...Counters: Counter
 using ...Genotypes: Genotype
-using ..Mutators: Mutator
+using ..Abstract
 
 struct IdentityMutator <: Mutator end
 

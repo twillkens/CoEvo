@@ -142,6 +142,45 @@ donor = SimpleFunctionGraphGenotype([
     ]),
 ])
 
+mutator = SimpleFunctionGraphMutator()
+
+Base.@kwdef mutable struct DummyState <: State
+    rng::StableRNG
+    individual_id_counter::BasicCounter
+    gene_id_counter::BasicCounter
+    mutator::SimpleFunctionGraphMutator
+end
+
+mutator = SimpleFunctionGraphMutator(
+    max_mutations = 10,
+    n_mutations_decay_rate = 0.5,
+    recurrent_edge_probability = 0.5,
+    mutation_weights = Dict(
+        :add_node! => 1.0,
+        :remove_node! => 1.0,
+        :mutate_node! => 1.0,
+        :mutate_edge! => 1.0,
+    ),
+    noise_std = 0.1,
+    validate_genotypes = true
+) 
+
+state = DummyState(
+    StableRNG(0),
+    BasicCounter(3),
+    BasicCounter(10),
+    mutator
+)
+
+for i in 1:10_000
+    mutate!(mutator, recipient, state)
+    mutate!(mutator, donor, state)
+    recipent = recombine(HorizontalGeneTransferRecombiner(), recipient, donor, state)
+    validate_genotype(recipient, :recipient)
+    validate_genotype(donor, :donor)
+end
+    
+
 
 #genotype = recombine(
 #    HorizontalGeneTransferRecombiner(), 

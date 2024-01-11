@@ -17,7 +17,7 @@ using ....Individuals.Basic: BasicIndividualCreator
 using ....Phenotypes.Defaults: DefaultPhenotypeCreator
 using ....Replacers.Truncation: TruncationReplacer
 using ....Recombiners.Clone: CloneRecombiner
-using ....Mutators: Mutator
+using ....Abstract
 import ....Mutators: mutate
 using ....Counters: Counter
 using Random: AbstractRNG, randn

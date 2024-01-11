@@ -10,7 +10,7 @@ using Random: AbstractRNG, shuffle!
 using ...Counters: Counter, count!
 using ...Genotypes.GnarlNetworks: GnarlNetworkGenotype, ConnectionGene
 using ...Genotypes.GnarlNetworks: NodeGene, get_neuron_positions
-using ..Mutators: Mutator
+using ...Abstract
 
 "Mutate the weight of genes"
 function mutate_weight(

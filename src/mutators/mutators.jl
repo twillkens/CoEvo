@@ -9,8 +9,6 @@ using ..Genotypes: Genotype
 using ..Individuals: Individual
 using ..Individuals.Basic: BasicIndividual
 
-include("abstract/abstract.jl")
-
 include("interfaces/interfaces.jl")
 
 include("identity/identity.jl")

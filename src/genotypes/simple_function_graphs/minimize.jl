@@ -57,12 +57,29 @@ end
 
 function minimize(genotype::SimpleFunctionGraphGenotype)
 
+    for node in genotype.nodes
+        for edge in node.edges
+            if !edge.is_recurrent && edge.target == node.id
+                println("original_genotype = ", genotype)
+                throw(ErrorException("WOW Edge to self is non-recurrent"))
+            end
+        end
+    end
     active_gene_ids = get_active_gene_ids(genotype)
     # Construct the minimized genotype, keeping only essential nodes.
     minimized_nodes = filter(node -> node.id in active_gene_ids, genotype.nodes)
 
     # Return a new SimpleFunctionGraphGenotype with minimized nodes.
     minimized_genotype = SimpleFunctionGraphGenotype(minimized_nodes)
+    for node in minimized_genotype.nodes
+        for edge in node.edges
+            if !edge.is_recurrent && edge.target == node.id
+                println("original_genotype = ", genotype)
+                println("minimized_genotype = ", minimized_genotype)
+                throw(ErrorException("MY FAULT Edge to self is non-recurrent"))
+            end
+        end
+    end
     return minimized_genotype
 end
 

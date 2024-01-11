@@ -16,7 +16,7 @@ using ...Counters: Counter, count!
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotype, FunctionGraphNode
 using ...Genotypes.FunctionGraphs: FunctionGraphConnection, FUNCTION_MAP
 using ...Abstract.States: State
-using ..Mutators: Mutator
+using ...Abstract
 
 @kwdef struct ConnectionRedirectionSpecification
     node_id::Int

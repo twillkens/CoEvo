@@ -11,8 +11,8 @@ using ..Recombiners: Recombiner
 using ...Abstract.States: State
 using ...Genotypes
 using ...Genotypes.SimpleFunctionGraphs
-
-include("remove.jl")
+using ...Genotypes.SimpleFunctionGraphs: validate_genotype
+using ...Genotypes.SimpleFunctionGraphs: add_node!, remove_node!, mutate_node!, mutate_edge!
 
 struct HorizontalGeneTransferRecombiner <: Recombiner end
 
@@ -72,7 +72,7 @@ function recombine(
 
     # Identifying inactive nodes in the recipient
     inactive_recipient = SimpleFunctionGraphGenotype([
-        node for node in recipient.nodes if !(node in active_recipient.nodes)
+        node for node in recipient.nodes if !(node in active_recipient.hidden_nodes)
     ])
 
 
@@ -81,12 +81,14 @@ function recombine(
         get_size(inactive_recipient), get_size(active_donor)
     )
 
+    # TODO: hack until state is flattened
+    mutator = first(state.ecosystem_creator.species_creators).mutator
     # Remove nodes from inactive recipient and active donor
     for _ in 1:n_remove_inactive
-        remove_node!(state.rng, inactive_recipient)
+        remove_node!(inactive_recipient, mutator, state)
     end
     for _ in 1:n_remove_donor
-        remove_node!(state.rng, active_donor)
+        remove_node!(active_donor, mutator, state)
     end
     relabel_node_ids!(active_donor.hidden_nodes, state.gene_id_counter)
 
@@ -101,6 +103,16 @@ function recombine(
         println("original_donor = ", original_donor)
         println("genotype = ", genotype)
         throw(ErrorException("The size of the genotype has changed."))
+    end
+    for node in genotype.nodes
+        for edge in node.edges
+            if !edge.is_recurrent && edge.target == node.id
+                println("original_genotype = ", original_recipient)
+                println("original_donor = ", original_donor)
+                println("genotype = ", genotype)
+                throw(ErrorException("RECOMBINER Edge to self is non-recurrent"))
+            end
+        end
     end
 
     return genotype

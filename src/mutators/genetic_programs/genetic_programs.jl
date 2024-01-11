@@ -11,7 +11,7 @@ using ...Genotypes.GeneticPrograms: Terminal, FuncAlias, ExpressionNode
 using ...Genotypes.GeneticPrograms: GeneticProgramGenotype, all_nodes, get_ancestors
 using ...Genotypes.GeneticPrograms: get_descendents, get_node, get_child_index
 using ...Genotypes.GeneticPrograms: protected_sine, if_less_then_else, protected_cosine, protected_division
-using ..Mutators: Mutator
+using ...Abstract
 
 function replace_child!(
     parent_node::ExpressionNode, 

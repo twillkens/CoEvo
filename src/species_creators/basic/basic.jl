@@ -17,7 +17,8 @@ using ...Replacers: Replacer, replace
 using ...Selectors: Selector, select
 using ...Recombiners: Recombiner, recombine
 using ...Recombiners.Clone: CloneRecombiner
-using ...Mutators: Mutator, mutate
+using ...Mutators: mutate
+using ...Abstract
 using ..SpeciesCreators: SpeciesCreator
 using ...Abstract.States: State, get_rng, get_individual_id_counter, get_gene_id_counter
 

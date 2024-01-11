@@ -20,6 +20,7 @@ using ...Evaluators.Null
 using ...Genotypes.SimpleFunctionGraphs: SimpleFunctionGraphGenotypeCreator
 #using ...Phenotypes.FunctionGraphs.Linearized: LinearizedFunctionGraphPhenotypeCreator
 using ...Phenotypes.FunctionGraphs.Efficient: EfficientFunctionGraphPhenotypeCreator
+using ...Phenotypes.FunctionGraphs.Complete: CompleteFunctionGraphPhenotypeCreator
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
 using ...Evaluators.NSGAII: NSGAIIEvaluator
 using ...Selectors.FitnessProportionate: FitnessProportionateSelector

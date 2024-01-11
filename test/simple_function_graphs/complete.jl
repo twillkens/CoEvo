@@ -7,7 +7,7 @@ using CoEvo.Names
 using CoEvo.Genotypes.SimpleFunctionGraphs
 using CoEvo.Mutators.SimpleFunctionGraphs
 #using CoEvo.Mutators.FunctionGraphs: add_function as fg_add_function, remove_function as fg_remove_function
-using CoEvo.Phenotypes.FunctionGraphs.Efficient
+using CoEvo.Phenotypes.FunctionGraphs.Complete
 #using CoEvo.Phenotypes.FunctionGraphs.Basic
 using ProgressBars
 
@@ -47,7 +47,7 @@ println("Starting tests for FunctionGraphs...")
     ])
 
 
-    phenotype_creator = EfficientFunctionGraphPhenotypeCreator()
+    phenotype_creator = CompleteFunctionGraphPhenotypeCreator()
     phenotype = create_phenotype(phenotype_creator, genotype)
     println("\n\nIDS: ", [node.id for node in phenotype.nodes])
     println("FUNC NAMES: ", [node.func.name for node in phenotype.nodes])
@@ -95,7 +95,7 @@ end
     ])
 
 
-    phenotype_creator = EfficientFunctionGraphPhenotypeCreator()
+    phenotype_creator = CompleteFunctionGraphPhenotypeCreator()
     phenotype = create_phenotype(phenotype_creator, genotype)
 
     input_outputs = [
@@ -145,7 +145,7 @@ end
 
     newtons_law_of_gravitation = (g, m1, m2, r) -> (Float32(g) * Float32(m1) * Float32(m2)) / Float32(r)^2
 
-    phenotype_creator = EfficientFunctionGraphPhenotypeCreator()
+    phenotype_creator = CompleteFunctionGraphPhenotypeCreator()
     phenotype = create_phenotype(phenotype_creator, genotype)
 
     inputs_1 = Float32.([1, 2, 3, 4])
@@ -165,6 +165,46 @@ end
         reset!(phenotype)
     end
 end
+
+@testset "Fibonacci Phenotype" begin
+    genotype = SimpleFunctionGraphGenotype([
+        SimpleFunctionGraphNode(0, :INPUT, []),
+        SimpleFunctionGraphNode(1, :IDENTITY, [SimpleFunctionGraphEdge(0, 1.0, false)]),
+        SimpleFunctionGraphNode(2, :IDENTITY, [SimpleFunctionGraphEdge(1, 1.0, true)]),
+        SimpleFunctionGraphNode(3, :MAXIMUM, [
+            SimpleFunctionGraphEdge(5, 1.0, true), 
+            SimpleFunctionGraphEdge(1, 1.0, false)
+        ]),
+        SimpleFunctionGraphNode(4, :MULTIPLY, [
+            SimpleFunctionGraphEdge(2, 1.0, true), 
+            SimpleFunctionGraphEdge(3, 1.0, true)
+        ]),
+        SimpleFunctionGraphNode(5, :ADD, [
+            SimpleFunctionGraphEdge(3, 1.0, false),
+            SimpleFunctionGraphEdge(4, 1.0, false)
+        ]),
+        SimpleFunctionGraphNode(6, :OUTPUT, [SimpleFunctionGraphEdge(5, 1.0, false)])
+    ])
+
+
+    phenotype_creator = CompleteFunctionGraphPhenotypeCreator()
+    phenotype = create_phenotype(phenotype_creator, genotype)
+    input_values = [1.0]
+    output = act!(phenotype, input_values)
+    @test output == [1.0]
+    output = act!(phenotype, input_values)
+    @test output == [1.0]
+    output = act!(phenotype, input_values)
+    @test output == [2.0]
+    output = act!(phenotype, input_values)
+    @test output == [3.0]
+    output = act!(phenotype, input_values)
+    @test output == [5.0]
+    output = act!(phenotype, input_values)
+    @test output == [8.0]
+    output = act!(phenotype, input_values)
+    @test output == [13.0]
+end
 #
 Base.@kwdef mutable struct DummyState <: State
     rng::StableRNG
@@ -180,7 +220,7 @@ function apply_mutation_storm(
     test_output::Bool = false
 )
     state = DummyState(StableRNG(42), BasicCounter(2), BasicCounter(7))
-    phenotype_creator = EfficientFunctionGraphPhenotypeCreator()
+    phenotype_creator = CompleteFunctionGraphPhenotypeCreator()
     output_length_equals_expected = Bool[]
 
     
