@@ -127,15 +127,20 @@ function create_species(
     end
 
     best_records = filter(record -> record.rank == 1 && isinf(record.crowding), evaluation.records)
-    best_record = reduce(
-        (record1, record2) -> record1.fitness > record2.fitness ? record1 : record2, 
-        best_records
-    )
-    best_individual = find_by_id(species.population, best_record.id)
-
+    best_ids = [record.id for record in best_records]
+    best_individuals = [individual for individual in species.population if individual.id in best_ids]
     new_archive = add_elites_to_archive(
-        species.archive, [best_individual], species_creator.max_archive_length
+        species.archive, best_individuals, species_creator.max_archive_length
     )
+    #best_record = reduce(
+    #    (record1, record2) -> record1.fitness > record2.fitness ? record1 : record2, 
+    #    best_records
+    #)
+    #best_individual = find_by_id(species.population, best_record.id)
+
+    #new_archive = add_elites_to_archive(
+    #    species.archive, [best_individual], species_creator.max_archive_length
+    #)
     if species_creator.max_archive_matches > 0
         n_archive_matches = min(species_creator.max_archive_matches, length(new_archive))
         println("n_archive_matches = ", n_archive_matches, ", length(new_archive) = ", length(new_archive))

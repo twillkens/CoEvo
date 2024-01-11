@@ -56,9 +56,9 @@ static_mutator = SimpleFunctionGraphMutator(
         :mutate_node! => 1.0,
         :mutate_edge! => 1.0,
     ),
-    noise_std = 0.1,
+    noise_std = 1000,
     validate_genotypes = true,
-    function_set = [:MODULO, :DIVIDE, :MULTIPLY, :ADD, :EXP, :NATURAL_LOG]
+    #function_set = [:MODULO, :DIVIDE, :MULTIPLY, :ADD, :EXP, :NATURAL_LOG]
 ) 
 add_mutator = SimpleFunctionGraphMutator(
     max_mutations = 1,
@@ -70,9 +70,9 @@ add_mutator = SimpleFunctionGraphMutator(
         :mutate_node! => 0.0,
         :mutate_edge! => 0.0,
     ),
-    noise_std = 0.1,
+    noise_std = 1000,
     validate_genotypes = true,
-    function_set = [:MODULO, :DIVIDE, :MULTIPLY, :ADD, :EXP, :NATURAL_LOG]
+    #function_set = [:MODULO, :DIVIDE, :MULTIPLY, :ADD, :EXP, :NATURAL_LOG]
 ) 
 
 for i in ProgressBar(1:500)

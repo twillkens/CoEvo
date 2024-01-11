@@ -3,6 +3,7 @@ export OutputGraphFunction, IdentityGraphFunction, AddGraphFunction, SubtractGra
 export MultiplyGraphFunction, GraphDivide, MaximumGraphFunction, MinimumGraphFunction
 export SineGraphFunction, CosineGraphFunction, SigmoidGraphFunction, TanhGraphFunction
 export ReluGraphFunction, AndGraphFunction, OrGraphFunction, NandGraphFunction, XorGraphFunction
+export IfLessThenElseGraphFunction, ModuloGraphFunction, NaturalLogGraphFunction, ExpGraphFunction
 
 using Base: @kwdef
 

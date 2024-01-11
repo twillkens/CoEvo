@@ -12,9 +12,9 @@ import ...Phenotypes: create_phenotype, act!, reset!, get_phenotype_state
 using Base: @kwdef
 using StatsBase: median
 using ....Genotypes
-using ....Genotypes.FunctionGraphs
-using ....Genotypes.FunctionGraphs: GraphFunction
-using ....Genotypes.FunctionGraphs: FUNCTION_MAP
+using ....Genotypes.SimpleFunctionGraphs
+using ....Genotypes.SimpleFunctionGraphs: GraphFunction
+using ....Genotypes.SimpleFunctionGraphs: FUNCTION_MAP
 using ...Phenotypes: Phenotype, PhenotypeCreator, PhenotypeState
 using StaticArrays
 

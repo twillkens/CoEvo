@@ -1,12 +1,18 @@
 
-function act!(phenotype::CompleteFunctionGraphPhenotype, edge_values::Vector{Float32})
+function act!(phenotype::CompleteFunctionGraphPhenotype, input_values::Vector{Float32})
+
+    if any(isnan, input_values)
+        println("input_values = ", input_values)
+        println("phenotype = ", phenotype)
+        throw(ErrorException("NaN in input_values"))
+    end
     @inbounds begin
         n_nodes = length(phenotype.nodes)
         # Update output values from the node_states
 
         # Update node states for input nodes
         for i in 1:phenotype.n_input_nodes
-            phenotype.current_node_states[i] = edge_values[i]
+            phenotype.current_node_states[i] = input_values[i]
         end
 
         # Starting index for processing nodes beyond input and bias nodes
@@ -21,6 +27,12 @@ function act!(phenotype::CompleteFunctionGraphPhenotype, edge_values::Vector{Flo
                     phenotype.previous_node_states[edge.target_index] :
                     phenotype.current_node_states[edge.target_index]
                 node.edge_values[j] = edge.weight * edge_value
+            end
+            if any(isnan, node.edge_values)
+                println("node = ", node)
+                println("edge_values = ", node.edge_values)
+                println("phenotype = ", phenotype)
+                throw(ErrorException("NaN in edge_values"))
             end
             phenotype.current_node_states[i] = evaluate_function(node.func, node.edge_values)
         end
