@@ -43,7 +43,12 @@ const MUTATION_PROBABILITIES = Dict(
         :mutate_node! => 1.0, 
         :mutate_edge! => 1.0, 
     ), 
-
+    "shrink_minor_stable" => Dict(
+        :add_node! => 95,
+        :remove_node! => 105,
+        :mutate_node! => 1000,
+        :mutate_edge! => 1000,
+    ),
 )
 
 const GAUSSIAN_NOISE_STD = Dict(
