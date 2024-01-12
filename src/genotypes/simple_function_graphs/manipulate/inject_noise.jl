@@ -43,3 +43,13 @@ function inject_noise!(
     # Using deterministic function to inject noise
     inject_noise!(genotype, noise_map)
 end
+
+function inject_noise!(node::Node, mutator::Mutator, state::State)
+    noise = randn(state.rng) * mutator.noise_std
+    node.bias += noise
+end
+
+function inject_noise!(edge::Edge, mutator::Mutator, state::State)
+    noise = randn(state.rng) * mutator.noise_std
+    edge.weight += noise
+end

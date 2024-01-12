@@ -299,19 +299,34 @@ end
     )
     genotype = first(create_genotypes(genotype_creator, StableRNG(1), BasicCounter(1), 1))
 
+    #mutator = BinomialFunctionGraphMutator(
+    #    mutation_rates = Dict(
+    #        "CLONE_NODE"    => 0.011,
+    #        "REMOVE_NODE"   => 0.01,
+    #        "MUTATE_NODE"   => 0.025,
+    #        "MUTATE_BIAS"   => 0.05,
+    #        "MUTATE_EDGE"   => 0.025,
+    #        "MUTATE_WEIGHT" => 0.05,
+    #    ),
+    #    validate_genotypes = true
+    #)
     mutator = BinomialFunctionGraphMutator(
-        mutation_rates = Dict(
-            "CLONE_NODE"    => 0.011,
-            "REMOVE_NODE"   => 0.01,
-            "MUTATE_NODE"   => 0.025,
-            "MUTATE_BIAS"   => 0.05,
-            "MUTATE_EDGE"   => 0.025,
-            "MUTATE_WEIGHT" => 0.05,
+        binomial_rates = Dict(
+            "ADD_NODE" =>  0.02,
+            "REMOVE_NODE" => 0.02,
+            "MUTATE_NODE" => 0.05,
+            "MUTATE_EDGE" => 0.05,
         ),
-        validate_genotypes = true
+        exponential_weights = Dict(
+            "ADD_NODE" => 2.0,
+            "REMOVE_NODE" => 2.0,
+            "MUTATE_NODE" => 20.0,
+            "MUTATE_EDGE" => 20.0,
+        )
+
     )
     
-    n_mutations = 8_000  # Number of mutations
+    n_mutations = 100_000  # Number of mutations
     apply_mutation_storm(mutator, genotype, n_mutations)
 end
 ### Now, let's write some tests

@@ -40,32 +40,43 @@ const LARGE = [
     :EXP,
 ]
 
+
 Base.@kwdef struct BinomialFunctionGraphMutator <: Mutator
-    n_minimum_hidden_nodes::Int = 1
+    n_minimum_hidden_nodes::Int = 0
     # Number of structural changes to perform per generation
     recurrent_edge_probability::Float64 = 0.1
     # Uniform probability of each type of structural change
-    mutation_rates::Dict{String, Float64} = Dict(
-        "CLONE_NODE" =>  0.01,
-        "REMOVE_NODE" => 0.02,
-        "MUTATE_NODE" => 0.05,
-        "MUTATE_BIAS" => 0.10,
-        "MUTATE_EDGE" => 0.05,
-        "MUTATE_WEIGHT" => 0.10,
-    )
     mutation_map = Dict(
-        "CLONE_NODE" => clone_node!,
+        "ADD_NODE" => add_node!,
         "REMOVE_NODE" => remove_node!,
         "MUTATE_NODE" => mutate_node!,
-        "MUTATE_BIAS" => mutate_bias!,
         "MUTATE_EDGE" => mutate_edge!,
-        "MUTATE_WEIGHT" => mutate_weight!,
     )
+    binomial_rates::Dict{String, Float64} = Dict(
+        "ADD_NODE" =>  0.01,
+        "REMOVE_NODE" => 0.02,
+        "MUTATE_NODE" => 0.05,
+        "MUTATE_EDGE" => 0.05,
+    )
+    max_mutations::Int = 10
+    n_mutations_decay_rate::Float64 = 0.5
+    exponential_weights::Dict{String, Float64} = Dict(
+        "ADD_NODE" => 1.0,
+        "REMOVE_NODE" => 2.0,
+        "MUTATE_NODE" => 20.0,
+        "MUTATE_EDGE" => 20.0,
+    )
+    probability_mutate_bias::Float64 = 0.05
     bias_value_range::Tuple{Float32, Float32} = Float32.((-π, π))
+    probability_mutate_weight::Float64 = 0.05
     weight_value_range::Tuple{Float32, Float32} = Float32.((-π, π))
+    noise_std::Float32 = 0.1
+    probability_inject_noise_bias::Float64 = 0.5
+    probability_inject_noise_weight::Float64 = 0.5
     function_set::Vector{Symbol} = LARGE
     validate_genotypes::Bool = false
 end
+
 
 function apply_mutations!(
     mutator::BinomialFunctionGraphMutator, 
@@ -97,54 +108,71 @@ function sample_binomial_mutations(
     function_string::String,
     state::State
 )
-    if function_string in ["CLONE_NODE", "REMOVE_NODE", "MUTATE_NODE"]
+    if function_string in ["ADD_NODE", "REMOVE_NODE", "MUTATE_NODE"]
         n_elements = length(genotype.hidden_nodes)
     elseif function_string in ["MUTATE_EDGE"]
         n_elements = length(genotype.edges)
     else
         throw(ErrorException("Invalid function string: $function_string"))
     end
-    mutation_rate = mutator.mutation_rates[function_string]
+    mutation_rate = mutator.binomial_rates[function_string]
     n_samples = sample_binomial(state.rng, n_elements, mutation_rate)
     mutation_strings = [function_string for _ in 1:n_samples]
     return mutation_strings
 end
 
-function mutate_size!(
-    mutator::BinomialFunctionGraphMutator, genotype::SimpleFunctionGraphGenotype, state::State
-)
-    size_mutations = [
-        sample_binomial_mutations(mutator, genotype, "CLONE_NODE", state) ;
-        sample_binomial_mutations(mutator, genotype, "REMOVE_NODE", state) ;
-    ]
-    shuffle!(state.rng, size_mutations)
-    #println("size_mutations = $size_mutations")
-    apply_mutations!(mutator, genotype, size_mutations, state)
+function get_n_mutations(mutator::BinomialFunctionGraphMutator, state::State)
+    # Create probabilities for each possible number of mutations
+    probabilities = exp.(-mutator.n_mutations_decay_rate * collect(0:mutator.max_mutations - 1))
+    # Normalize the probabilities so they sum to 1
+    probabilities /= sum(probabilities)
+    # Sample a number of mutations based on the probabilities
+    n_mutations = sample(state.rng, Weights(probabilities))
+    return n_mutations
 end
 
-function mutate_sites!(
+function sample_exponential_mutations(mutator::BinomialFunctionGraphMutator, state::State)
+    n_mutations = get_n_mutations(mutator, state)
+    mutation_symbols = collect(keys(mutator.exponential_weights))
+    weights = Weights(collect(values(mutator.exponential_weights)))
+    mutation_symbols = sample(state.rng, mutation_symbols, weights, n_mutations)
+    return mutation_symbols
+end
+
+function mutate_structure!(
     mutator::BinomialFunctionGraphMutator, genotype::SimpleFunctionGraphGenotype, state::State
 )
-    site_mutations = [
+    exponential_mutations = sample_exponential_mutations(mutator, state)
+    binomial_mutations = [
+        sample_binomial_mutations(mutator, genotype, "ADD_NODE", state) ;
+        sample_binomial_mutations(mutator, genotype, "REMOVE_NODE", state) ;
         sample_binomial_mutations(mutator, genotype, "MUTATE_NODE", state) ;
         sample_binomial_mutations(mutator, genotype, "MUTATE_EDGE", state) ;
     ]
-    shuffle!(state.rng, site_mutations)
+    mutations = [exponential_mutations ; binomial_mutations]
+    println("n_mutations = ", length(mutations))
+    shuffle!(state.rng, mutations)
     #println("site_mutations = $site_mutations")
-    apply_mutations!(mutator, genotype, site_mutations, state)
+    apply_mutations!(mutator, genotype, mutations, state)
 end
 
 function mutate_values!(
     mutator::BinomialFunctionGraphMutator, genotype::SimpleFunctionGraphGenotype, state::State
 )
     for node in [genotype.hidden_nodes ; genotype.output_nodes]
-        if rand(state.rng) < mutator.mutation_rates["MUTATE_BIAS"]
+        if rand(state.rng) < mutator.probability_mutate_bias
             mutate_bias!(node, mutator, state)
+        end
+        if rand(state.rng) < mutator.probability_inject_noise_bias
+            inject_noise!(node, mutator, state)
         end
     end
     for edge in genotype.edges
-        if rand(state.rng) < mutator.mutation_rates["MUTATE_WEIGHT"]
+        if rand(state.rng) < mutator.probability_mutate_weight
             mutate_weight!(edge, mutator, state)
+        end
+        if rand(state.rng) < mutator.probability_inject_noise_weight
+            inject_noise!(edge, mutator, state)
         end
     end
 end
@@ -152,8 +180,7 @@ end
 function mutate!(
     mutator::BinomialFunctionGraphMutator, genotype::SimpleFunctionGraphGenotype, state::State
 )
-    mutate_size!(mutator, genotype, state)
-    mutate_sites!(mutator, genotype, state)
+    mutate_structure!(mutator, genotype, state)
     mutate_values!(mutator, genotype, state)
 end
 
