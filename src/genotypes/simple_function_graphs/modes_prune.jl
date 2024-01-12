@@ -12,10 +12,10 @@ function remove_node_and_redirect(
             continue
         end
 
-        new_edges = SimpleFunctionGraphEdge[]
+        new_edges = Edge[]
         for connection in node.edges
             if connection.target == to_prune_node_id
-                push!(new_edges, SimpleFunctionGraphEdge(
+                push!(new_edges, Edge(
                     target = bias_node_id, 
                     weight = new_weight, 
                     is_recurrent = true
@@ -24,7 +24,7 @@ function remove_node_and_redirect(
                 push!(new_edges, connection)
             end
         end
-        genotype.nodes[id] = SimpleFunctionGraphNode(id, node.func, new_edges)
+        genotype.nodes[id] = Node(id, node.func, new_edges)
     end
 
     # Remove the nodes in the subtree

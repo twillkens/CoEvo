@@ -29,7 +29,9 @@ using .FiniteStateMachines: FiniteStateMachines
 include("function_graphs/function_graphs.jl")
 using .FunctionGraphs: FunctionGraphs
 
-include("simple_function_graphs/simple_function_graphs.jl")
-using .SimpleFunctionGraphs: SimpleFunctionGraphs
+#include("simple_function_graphs/simple_function_graphs.jl")
+#using .SimpleFunctionGraphs: SimpleFunctionGraphs
 
+include("binomial_function_graphs/binomial_function_graphs.jl")
+using .BinomialFunctionGraphs: BinomialFunctionGraphs
 end

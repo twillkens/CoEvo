@@ -46,23 +46,23 @@ function hash(genotype::SimpleFunctionGraphGenotype, h::UInt)
 end
 
 # TODO: Refactor this to use the `==` and `hash` functions for SimpleFunctionGraphGenotype
-function ==(a::SimpleFunctionGraphEdge, b::SimpleFunctionGraphEdge)
+function ==(a::Edge, b::Edge)
     return a.target == b.target && 
            isapprox(a.weight, b.weight) && 
            a.is_recurrent == b.is_recurrent
 end
 
-function hash(a::SimpleFunctionGraphEdge, h::UInt)
+function hash(a::Edge, h::UInt)
     return hash(a.target, hash(a.weight, hash(a.is_recurrent, h)))
 end
 
 
-function ==(a::SimpleFunctionGraphNode, b::SimpleFunctionGraphNode)
+function ==(a::Node, b::Node)
     return a.id == b.id && 
            a.func == b.func && 
-           a.edges == b.edges  # Note: relies on `==` for SimpleFunctionGraphEdge
+           a.edges == b.edges  # Note: relies on `==` for Edge
 end
 
-function hash(a::SimpleFunctionGraphNode, h::UInt)
-    return hash(a.id, hash(a.func, hash(a.edges, h)))  # Note: relies on `hash` for SimpleFunctionGraphEdge
+function hash(a::Node, h::UInt)
+    return hash(a.id, hash(a.func, hash(a.edges, h)))  # Note: relies on `hash` for Edge
 end

@@ -1,7 +1,8 @@
 using ....Genotypes.SimpleFunctionGraphs: SimpleFunctionGraphGenotype, sort_by_execution_order!
 using ....Genotypes: minimize
+using ....Genotypes.SimpleFunctionGraphs: Node as GenotypeNode
 
-
+get_bias(node::GenotypeNode) = Float32(node.bias)
 
 function make_linearized_nodes(
     genotype::SimpleFunctionGraphGenotype, ordered_node_ids::Vector{Int}, 
@@ -28,6 +29,7 @@ function make_linearized_nodes(
         linearized_nodes[i] = Node(
             id = id,
             func = func,
+            bias = get_bias(genotype_node),
             edges = edges,
             edge_values = zeros(Float32, func.arity)
         )

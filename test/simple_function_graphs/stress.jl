@@ -7,142 +7,142 @@ using StableRNGs: StableRNG
 using CoEvo.Counters.Basic
 
 genotype = SimpleFunctionGraphGenotype([
-    SimpleFunctionGraphNode(0, :INPUT, []),
-    SimpleFunctionGraphNode(1, :IDENTITY, [SimpleFunctionGraphEdge(0, 5.0, false)]),
-    SimpleFunctionGraphNode(2, :SINE, [SimpleFunctionGraphEdge(1, -10.0, false)]),
-    SimpleFunctionGraphNode(3, :COSINE, [SimpleFunctionGraphEdge(2, 15.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(4, :EXP, [SimpleFunctionGraphEdge(3, -20.0, false)]),
-    SimpleFunctionGraphNode(5, :NATURAL_LOG, [SimpleFunctionGraphEdge(4, 30.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(6, :TANH, [SimpleFunctionGraphEdge(5, -40.0, false)]),
-    SimpleFunctionGraphNode(7, :SIGMOID, [SimpleFunctionGraphEdge(6, 50.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(8, :RELU, [SimpleFunctionGraphEdge(7, -60.0, false)]),
-    SimpleFunctionGraphNode(9, :ARCTANGENT, [SimpleFunctionGraphEdge(8, 70.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(10, :ADD, [
-        SimpleFunctionGraphEdge(9, -80.0, false),
-        SimpleFunctionGraphEdge(8, 80.0, false)
+    Node(0, :INPUT, []),
+    Node(1, :IDENTITY, [Edge(0, 5.0, false)]),
+    Node(2, :SINE, [Edge(1, -10.0, false)]),
+    Node(3, :COSINE, [Edge(2, 15.0, true)]),  # Recurrent
+    Node(4, :EXP, [Edge(3, -20.0, false)]),
+    Node(5, :NATURAL_LOG, [Edge(4, 30.0, true)]),  # Recurrent
+    Node(6, :TANH, [Edge(5, -40.0, false)]),
+    Node(7, :SIGMOID, [Edge(6, 50.0, true)]),  # Recurrent
+    Node(8, :RELU, [Edge(7, -60.0, false)]),
+    Node(9, :ARCTANGENT, [Edge(8, 70.0, true)]),  # Recurrent
+    Node(10, :ADD, [
+        Edge(9, -80.0, false),
+        Edge(8, 80.0, false)
     ]),
-    SimpleFunctionGraphNode(11, :SUBTRACT, [
-        SimpleFunctionGraphEdge(10, 90.0, false),
-        SimpleFunctionGraphEdge(9, -90.0, true)  # Recurrent
+    Node(11, :SUBTRACT, [
+        Edge(10, 90.0, false),
+        Edge(9, -90.0, true)  # Recurrent
     ]),
-    SimpleFunctionGraphNode(12, :MULTIPLY, [
-        SimpleFunctionGraphEdge(11, 100.0, false),
-        SimpleFunctionGraphEdge(10, -100.0, true)  # Recurrent
+    Node(12, :MULTIPLY, [
+        Edge(11, 100.0, false),
+        Edge(10, -100.0, true)  # Recurrent
     ]),
-    SimpleFunctionGraphNode(13, :DIVIDE, [
-        SimpleFunctionGraphEdge(12, 110.0, false),
-        SimpleFunctionGraphEdge(11, -110.0, true)  # Recurrent
+    Node(13, :DIVIDE, [
+        Edge(12, 110.0, false),
+        Edge(11, -110.0, true)  # Recurrent
     ]),
-    SimpleFunctionGraphNode(14, :MAXIMUM, [
-        SimpleFunctionGraphEdge(13, 120.0, false),
-        SimpleFunctionGraphEdge(12, -120.0, true)  # Recurrent
+    Node(14, :MAXIMUM, [
+        Edge(13, 120.0, false),
+        Edge(12, -120.0, true)  # Recurrent
     ]),
-    SimpleFunctionGraphNode(15, :MINIMUM, [
-        SimpleFunctionGraphEdge(14, 130.0, false),
-        SimpleFunctionGraphEdge(13, -130.0, false)
+    Node(15, :MINIMUM, [
+        Edge(14, 130.0, false),
+        Edge(13, -130.0, false)
     ]),
-    SimpleFunctionGraphNode(16, :MODULO, [
-        SimpleFunctionGraphEdge(15, 140.0, false),
-        SimpleFunctionGraphEdge(14, -140.0, true)  # Recurrent
+    Node(16, :MODULO, [
+        Edge(15, 140.0, false),
+        Edge(14, -140.0, true)  # Recurrent
     ]),
-    SimpleFunctionGraphNode(17, :IF_LESS_THEN_ELSE, [
-        SimpleFunctionGraphEdge(16, 150.0, false),
-        SimpleFunctionGraphEdge(15, -150.0, false),
-        SimpleFunctionGraphEdge(14, 160.0, false),
-        SimpleFunctionGraphEdge(13, -160.0, true)  # Recurrent
+    Node(17, :IF_LESS_THEN_ELSE, [
+        Edge(16, 150.0, false),
+        Edge(15, -150.0, false),
+        Edge(14, 160.0, false),
+        Edge(13, -160.0, true)  # Recurrent
     ]),
-    SimpleFunctionGraphNode(18, :OUTPUT, [SimpleFunctionGraphEdge(17, 170.0, false)])
+    Node(18, :OUTPUT, [Edge(17, 170.0, false)])
 ])
 
 double_genotype = SimpleFunctionGraphGenotype([
-    SimpleFunctionGraphNode(0, :INPUT, []),
-    SimpleFunctionGraphNode(1, :IDENTITY, [SimpleFunctionGraphEdge(0, 10.0, false)]),
-    SimpleFunctionGraphNode(2, :IDENTITY, [SimpleFunctionGraphEdge(1, -10.0, false)]),
-    SimpleFunctionGraphNode(3, :SINE, [SimpleFunctionGraphEdge(2, 20.0, false)]),
-    SimpleFunctionGraphNode(4, :SINE, [SimpleFunctionGraphEdge(3, -20.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(5, :COSINE, [SimpleFunctionGraphEdge(4, 30.0, false)]),
-    SimpleFunctionGraphNode(6, :COSINE, [SimpleFunctionGraphEdge(5, -30.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(7, :EXP, [SimpleFunctionGraphEdge(6, 40.0, false)]),
-    SimpleFunctionGraphNode(8, :EXP, [SimpleFunctionGraphEdge(7, -40.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(9, :NATURAL_LOG, [SimpleFunctionGraphEdge(8, 50.0, false)]),
-    SimpleFunctionGraphNode(10, :NATURAL_LOG, [SimpleFunctionGraphEdge(9, -50.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(11, :TANH, [SimpleFunctionGraphEdge(10, 60.0, false)]),
-    SimpleFunctionGraphNode(12, :TANH, [SimpleFunctionGraphEdge(11, -60.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(13, :SIGMOID, [SimpleFunctionGraphEdge(12, 70.0, false)]),
-    SimpleFunctionGraphNode(14, :SIGMOID, [SimpleFunctionGraphEdge(13, -70.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(15, :RELU, [SimpleFunctionGraphEdge(14, 80.0, false)]),
-    SimpleFunctionGraphNode(16, :RELU, [SimpleFunctionGraphEdge(15, -80.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(17, :ARCTANGENT, [SimpleFunctionGraphEdge(16, 90.0, false)]),
-    SimpleFunctionGraphNode(18, :ARCTANGENT, [SimpleFunctionGraphEdge(17, -90.0, true)]),  # Recurrent
-    SimpleFunctionGraphNode(19, :ADD, [
-        SimpleFunctionGraphEdge(17, 100.0, false)
-        SimpleFunctionGraphEdge(18, 100.0, false)
+    Node(0, :INPUT, []),
+    Node(1, :IDENTITY, [Edge(0, 10.0, false)]),
+    Node(2, :IDENTITY, [Edge(1, -10.0, false)]),
+    Node(3, :SINE, [Edge(2, 20.0, false)]),
+    Node(4, :SINE, [Edge(3, -20.0, true)]),  # Recurrent
+    Node(5, :COSINE, [Edge(4, 30.0, false)]),
+    Node(6, :COSINE, [Edge(5, -30.0, true)]),  # Recurrent
+    Node(7, :EXP, [Edge(6, 40.0, false)]),
+    Node(8, :EXP, [Edge(7, -40.0, true)]),  # Recurrent
+    Node(9, :NATURAL_LOG, [Edge(8, 50.0, false)]),
+    Node(10, :NATURAL_LOG, [Edge(9, -50.0, true)]),  # Recurrent
+    Node(11, :TANH, [Edge(10, 60.0, false)]),
+    Node(12, :TANH, [Edge(11, -60.0, true)]),  # Recurrent
+    Node(13, :SIGMOID, [Edge(12, 70.0, false)]),
+    Node(14, :SIGMOID, [Edge(13, -70.0, true)]),  # Recurrent
+    Node(15, :RELU, [Edge(14, 80.0, false)]),
+    Node(16, :RELU, [Edge(15, -80.0, true)]),  # Recurrent
+    Node(17, :ARCTANGENT, [Edge(16, 90.0, false)]),
+    Node(18, :ARCTANGENT, [Edge(17, -90.0, true)]),  # Recurrent
+    Node(19, :ADD, [
+        Edge(17, 100.0, false)
+        Edge(18, 100.0, false)
     ]),
-    SimpleFunctionGraphNode(20, :ADD, [
-        SimpleFunctionGraphEdge(19, -100.0, false),
-        SimpleFunctionGraphEdge(18, 100.0, false)
+    Node(20, :ADD, [
+        Edge(19, -100.0, false),
+        Edge(18, 100.0, false)
     ]),
-    SimpleFunctionGraphNode(21, :SUBTRACT, [
-        SimpleFunctionGraphEdge(20, 110.0, false),
-        SimpleFunctionGraphEdge(19, -110.0, false)
+    Node(21, :SUBTRACT, [
+        Edge(20, 110.0, false),
+        Edge(19, -110.0, false)
     ]),
-    SimpleFunctionGraphNode(22, :SUBTRACT, [
-        SimpleFunctionGraphEdge(21, 120.0, false),
-        SimpleFunctionGraphEdge(20, -120.0, false)
+    Node(22, :SUBTRACT, [
+        Edge(21, 120.0, false),
+        Edge(20, -120.0, false)
     ]),
-    SimpleFunctionGraphNode(23, :MULTIPLY, [
-        SimpleFunctionGraphEdge(22, 130.0, false),
-        SimpleFunctionGraphEdge(21, -130.0, false)
+    Node(23, :MULTIPLY, [
+        Edge(22, 130.0, false),
+        Edge(21, -130.0, false)
     ]),
-    SimpleFunctionGraphNode(24, :MULTIPLY, [
-        SimpleFunctionGraphEdge(23, 140.0, false),
-        SimpleFunctionGraphEdge(22, -140.0, false)
+    Node(24, :MULTIPLY, [
+        Edge(23, 140.0, false),
+        Edge(22, -140.0, false)
     ]),
-    SimpleFunctionGraphNode(25, :DIVIDE, [
-        SimpleFunctionGraphEdge(24, 150.0, false),
-        SimpleFunctionGraphEdge(23, -150.0, false)
+    Node(25, :DIVIDE, [
+        Edge(24, 150.0, false),
+        Edge(23, -150.0, false)
     ]),
-    SimpleFunctionGraphNode(26, :DIVIDE, [
-        SimpleFunctionGraphEdge(25, 160.0, false),
-        SimpleFunctionGraphEdge(24, -160.0, false)
+    Node(26, :DIVIDE, [
+        Edge(25, 160.0, false),
+        Edge(24, -160.0, false)
     ]),
-    SimpleFunctionGraphNode(27, :MAXIMUM, [
-        SimpleFunctionGraphEdge(26, 170.0, false),
-        SimpleFunctionGraphEdge(25, -170.0, false)
+    Node(27, :MAXIMUM, [
+        Edge(26, 170.0, false),
+        Edge(25, -170.0, false)
     ]),
-    SimpleFunctionGraphNode(28, :MAXIMUM, [
-        SimpleFunctionGraphEdge(27, 180.0, false),
-        SimpleFunctionGraphEdge(26, -180.0, false)
+    Node(28, :MAXIMUM, [
+        Edge(27, 180.0, false),
+        Edge(26, -180.0, false)
     ]),
-    SimpleFunctionGraphNode(29, :MINIMUM, [
-        SimpleFunctionGraphEdge(28, 190.0, false),
-        SimpleFunctionGraphEdge(27, -190.0, false)
+    Node(29, :MINIMUM, [
+        Edge(28, 190.0, false),
+        Edge(27, -190.0, false)
     ]),
-    SimpleFunctionGraphNode(30, :MINIMUM, [
-        SimpleFunctionGraphEdge(29, 200.0, false),
-        SimpleFunctionGraphEdge(28, -200.0, false)
+    Node(30, :MINIMUM, [
+        Edge(29, 200.0, false),
+        Edge(28, -200.0, false)
     ]),
-    SimpleFunctionGraphNode(31, :MODULO, [
-        SimpleFunctionGraphEdge(30, 210.0, false),
-        SimpleFunctionGraphEdge(29, -210.0, false)
+    Node(31, :MODULO, [
+        Edge(30, 210.0, false),
+        Edge(29, -210.0, false)
     ]),
-    SimpleFunctionGraphNode(32, :MODULO, [
-        SimpleFunctionGraphEdge(31, 220.0, false),
-        SimpleFunctionGraphEdge(30, -220.0, false)
+    Node(32, :MODULO, [
+        Edge(31, 220.0, false),
+        Edge(30, -220.0, false)
     ]),
-    SimpleFunctionGraphNode(33, :IF_LESS_THEN_ELSE, [
-        SimpleFunctionGraphEdge(32, 230.0, false),
-        SimpleFunctionGraphEdge(31, -230.0, false),
-        SimpleFunctionGraphEdge(30, 240.0, false),
-        SimpleFunctionGraphEdge(29, -240.0, false)
+    Node(33, :IF_LESS_THEN_ELSE, [
+        Edge(32, 230.0, false),
+        Edge(31, -230.0, false),
+        Edge(30, 240.0, false),
+        Edge(29, -240.0, false)
     ]),
-    SimpleFunctionGraphNode(34, :IF_LESS_THEN_ELSE, [
-        SimpleFunctionGraphEdge(33, 250.0, false),
-        SimpleFunctionGraphEdge(32, -250.0, false),
-        SimpleFunctionGraphEdge(31, 260.0, false),
-        SimpleFunctionGraphEdge(30, -260.0, false)
+    Node(34, :IF_LESS_THEN_ELSE, [
+        Edge(33, 250.0, false),
+        Edge(32, -250.0, false),
+        Edge(31, 260.0, false),
+        Edge(30, -260.0, false)
     ]),
-    SimpleFunctionGraphNode(35, :OUTPUT, [SimpleFunctionGraphEdge(34, 270.0, false)])
+    Node(35, :OUTPUT, [Edge(34, 270.0, false)])
 ])
 
 Base.@kwdef mutable struct DummyState <: State

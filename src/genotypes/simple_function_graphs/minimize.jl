@@ -56,7 +56,6 @@ function get_active_gene_ids(genotype::SimpleFunctionGraphGenotype)
 end
 
 function minimize(genotype::SimpleFunctionGraphGenotype)
-
     for node in genotype.nodes
         for edge in node.edges
             if !edge.is_recurrent && edge.target == node.id

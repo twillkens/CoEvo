@@ -1,6 +1,6 @@
 export inject_noise!
 
-function inject_noise!(node::SimpleFunctionGraphNode, noise_values::Vector{Float32})
+function inject_noise!(node::Node, noise_values::Vector{Float32})
     for (edge, noise_value) in zip(node.edges, noise_values)
         edge.weight += noise_value
         if isinf(edge.weight) || isnan(edge.weight)

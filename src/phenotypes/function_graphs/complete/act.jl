@@ -34,7 +34,8 @@ function act!(phenotype::CompleteFunctionGraphPhenotype, input_values::Vector{Fl
                 println("phenotype = ", phenotype)
                 throw(ErrorException("NaN in edge_values"))
             end
-            phenotype.current_node_states[i] = evaluate_function(node.func, node.edge_values)
+            current_state = evaluate_function(node.func, node.edge_values) * node.bias
+            phenotype.current_node_states[i] = current_state
         end
 
         for i in 1:phenotype.n_output_nodes

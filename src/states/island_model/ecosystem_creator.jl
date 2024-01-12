@@ -51,14 +51,14 @@ function make_species_creators(config::PredictionGameConfiguration)
             max_archive_length = config.max_archive_length,
             max_archive_matches = config.n_archive_matches,
             genotype_creator = SimpleFunctionGraphGenotypeCreator(
-                n_inputs = 2, n_outputs = 1, n_bias = 1
+                n_inputs = 2, n_hidden = 1, n_outputs = 1, n_bias = 1
             ),
             individual_creator = ModesIndividualCreator(),
             phenotype_creator = CompleteFunctionGraphPhenotypeCreator(),
             evaluator = make_evaluator(config),
             selector = make_selector(config),
             recombiner = HorizontalGeneTransferRecombiner(),
-            mutator = make_mutator(config)
+            mutator = BinomialFunctionGraphMutator()
         ) 
         for species_id in topology_config.species_ids
     ]

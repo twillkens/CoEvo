@@ -6,164 +6,85 @@ using Random
 using StableRNGs: StableRNG
 using CoEvo.Names
 using CoEvo.Genotypes.SimpleFunctionGraphs
-using CoEvo.Mutators.SimpleFunctionGraphs
-using CoEvo.Phenotypes.FunctionGraphs.Efficient
+using CoEvo.Mutators.BinomialFunctionGraphs
 using CoEvo.Counters: count!
 using CoEvo.Counters.Basic: BasicCounter
 using CoEvo.Recombiners.HorizontalGeneTransfer
 using ProgressBars
 
 
-function get_depth_dictionary(genotype::SimpleFunctionGraphGenotype)
-    # Create a dictionary to store node depths
-    depth_dict = Dict{Int, Int}()
 
-    # Identify nodes that have edges pointing to them
-    nodes_with_incoming_edges = Set{Int}()
-    for node in genotype.nodes
-        for edge in node.edges
-            push!(nodes_with_incoming_edges, edge.target)
-        end
-    end
 
-    # Root nodes are those not in nodes_with_incoming_edges
-    root_nodes = [node.id for node in genotype.nodes if !(node.id in nodes_with_incoming_edges)]
 
-    # Set depth of root nodes to 0 and others to a large number
-    for node in genotype.nodes
-        depth_dict[node.id] = node.id in root_nodes ? 0 : typemax(Int)
-    end
+#recipient = SimpleFunctionGraphGenotype([
+#    Node(-1, :INPUT, []),
+#    Node(-2, :BIAS, []),
+#    Node(1, :ADD, [
+#        Edge(-1, 1.0, true), 
+#        Edge(-2, 1.0, true)
+#    ]),
+#    Node(2, :RELU, [
+#        Edge(3, 1.0, true), 
+#    ]),
+#    Node(3, :MINIMUM, [
+#        Edge(3, 1.0, true), 
+#        Edge(3, 1.0, true), 
+#    ]),
+#    Node(-3, :OUTPUT, [
+#        Edge(1, 1.0, true),
+#    ]),
+#])
+#donor = SimpleFunctionGraphGenotype([
+#    Node(-1, :INPUT, []),
+#    Node(-2, :BIAS, []),
+#    Node(4, :MAXIMUM, [
+#        Edge(-1, 1.0, true), 
+#        Edge(-2, 1.0, true)
+#    ]),
+#    Node(-3, :OUTPUT, [
+#        Edge(4, 1.0, true), 
+#    ]),
+#])
+make_edges(source_id::Int, target_ids::Vector{Int}) =
+    [Edge(source_id, target_id) for target_id in target_ids]
 
-    # Function to recursively update the depth of connected nodes
-    function update_depth(node_id, current_depth, visited)
-        if node_id in visited
-            return
-        end
-        push!(visited, node_id)
-        depth_dict[node_id] = min(depth_dict[node_id], current_depth)
-        for edge in genotype.nodes[findfirst(n -> n.id == node_id, genotype.nodes)].edges
-            update_depth(edge.target, current_depth + 1, visited)
-        end
-    end
-
-    # Update depths starting from the root nodes
-    for root_id in root_nodes
-        update_depth(root_id, 0, Set{Int}())
-    end
-
-    return depth_dict
-end
-#function get_depth_dictionary(genotype::SimpleFunctionGraphGenotype)
-#    # Create a dictionary to store node depths
-#    depth_dict = Dict{Int, Int}()
-#
-#    # Initialize all node depths to a large number
-#    for node in genotype.nodes
-#        depth_dict[node.id] = typemax(Int)
-#    end
-#
-#    # Identify nodes that are targets of edges
-#    target_nodes = Set{Int}([edge.target for node in genotype.nodes for edge in node.edges])
-#
-#    # Identify root nodes (nodes that are not targets)
-#    root_nodes = [node.id for node in genotype.nodes if !(node.id in target_nodes)]
-#
-#    # Set depth of root nodes to 0
-#    for root_id in root_nodes
-#        depth_dict[root_id] = 0
-#    end
-#
-#    # Function to recursively update the depth of connected nodes
-#    function update_depth(node_id, current_depth)
-#        for edge in genotype.nodes[findfirst(n -> n.id == node_id, genotype.nodes)].edges
-#            if depth_dict[edge.target] > current_depth + 1
-#                depth_dict[edge.target] = current_depth + 1
-#                update_depth(edge.target, current_depth + 1)
-#            end
-#        end
-#    end
-#
-#    # Update depths starting from the root nodes
-#    for root_id in root_nodes
-#        update_depth(root_id, 0)
-#    end
-#
-#    return depth_dict
-#end
-
-genotype = SimpleFunctionGraphGenotype([
-    SimpleFunctionGraphNode(1, :INPUT, []),
-    SimpleFunctionGraphNode(2, :INPUT, []),
-    SimpleFunctionGraphNode(3, :NAND, [
-        SimpleFunctionGraphEdge(1, 1.0, false), 
-        SimpleFunctionGraphEdge(2, 1.0, false)
-    ]),
-    SimpleFunctionGraphNode(4, :OR, [
-        SimpleFunctionGraphEdge(1, 1.0, false), 
-        SimpleFunctionGraphEdge(2, 1.0, false)
-    ]),
-    SimpleFunctionGraphNode(5, :AND, [
-        SimpleFunctionGraphEdge(3, 1.0, false), 
-        SimpleFunctionGraphEdge(4, 1.0, false)
-    ]),
-    SimpleFunctionGraphNode(6, :OUTPUT, [
-        SimpleFunctionGraphEdge(5, 1.0, false)
-    ])
-])
-
+make_edges(source_id::Int, target_ids::Vector{Tuple{Int, Bool}}) =
+    [Edge(source_id, target_id[1], target_id[2]) for target_id in target_ids]
 
 recipient = SimpleFunctionGraphGenotype([
-    SimpleFunctionGraphNode(-1, :INPUT, []),
-    SimpleFunctionGraphNode(-2, :BIAS, []),
-    SimpleFunctionGraphNode(1, :ADD, [
-        SimpleFunctionGraphEdge(-1, 1.0, true), 
-        SimpleFunctionGraphEdge(-2, 1.0, true)
-    ]),
-    SimpleFunctionGraphNode(2, :RELU, [
-        SimpleFunctionGraphEdge(3, 1.0, true), 
-    ]),
-    SimpleFunctionGraphNode(3, :MINIMUM, [
-        SimpleFunctionGraphEdge(3, 1.0, true), 
-        SimpleFunctionGraphEdge(3, 1.0, true), 
-    ]),
-    SimpleFunctionGraphNode(-3, :OUTPUT, [
-        SimpleFunctionGraphEdge(1, 1.0, true),
-    ]),
-])
-donor = SimpleFunctionGraphGenotype([
-    SimpleFunctionGraphNode(-1, :INPUT, []),
-    SimpleFunctionGraphNode(-2, :BIAS, []),
-    SimpleFunctionGraphNode(4, :MAXIMUM, [
-        SimpleFunctionGraphEdge(-1, 1.0, true), 
-        SimpleFunctionGraphEdge(-2, 1.0, true)
-    ]),
-    SimpleFunctionGraphNode(-3, :OUTPUT, [
-        SimpleFunctionGraphEdge(4, 1.0, true), 
-    ]),
+    Node(-1, :INPUT), Node(-2, :BIAS),
+    Node(1, :ADD, make_edges(1, [-1, -2])),
+    Node(2, :RELU, make_edges(2, [3])),
+    Node(3, :MINIMUM, make_edges(3, [(3, true), (3, true)])),
+    Node(-3, :OUTPUT, make_edges(-3, [1])),
 ])
 
-mutator = SimpleFunctionGraphMutator()
+donor = SimpleFunctionGraphGenotype([
+    Node(-1, :INPUT), Node(-2, :BIAS),
+    Node(4, :MAXIMUM, make_edges(4, [-1, -2])),
+    Node(-3, :OUTPUT, make_edges(-3, [4])),
+])
+
+
 
 Base.@kwdef mutable struct DummyState <: State
     rng::StableRNG
     individual_id_counter::BasicCounter
     gene_id_counter::BasicCounter
-    mutator::SimpleFunctionGraphMutator
+    mutator::BinomialFunctionGraphMutator
 end
 
-mutator = SimpleFunctionGraphMutator(
-    max_mutations = 10,
-    n_mutations_decay_rate = 0.5,
-    recurrent_edge_probability = 0.5,
-    mutation_weights = Dict(
-        :add_node! => 1.0,
-        :remove_node! => 1.0,
-        :mutate_node! => 1.0,
-        :mutate_edge! => 1.0,
+mutator = BinomialFunctionGraphMutator(
+    mutation_rates = Dict(
+        "CLONE_NODE"    => 0.01,
+        "REMOVE_NODE"   => 0.01,
+        "MUTATE_NODE"   => 0.025,
+        "MUTATE_BIAS"   => 0.05,
+        "MUTATE_EDGE"   => 0.025,
+        "MUTATE_WEIGHT" => 0.05,
     ),
-    noise_std = 0.1,
     validate_genotypes = true
-) 
+)
 
 state = DummyState(
     StableRNG(0),
@@ -176,8 +97,8 @@ for i in 1:10_000
     mutate!(mutator, recipient, state)
     mutate!(mutator, donor, state)
     recipent = recombine(HorizontalGeneTransferRecombiner(), recipient, donor, state)
-    validate_genotype(recipient, :recipient)
-    validate_genotype(donor, :donor)
+    validate_genotype(recipient, "recipient")
+    validate_genotype(donor, "donor")
 end
     
 
@@ -192,7 +113,7 @@ end
 #println(genotype)
 
 #struct HorizontalGeneTransferRecombiner <: Recombiner end
-#function relabel_node_ids!(nodes::Vector{<:SimpleFunctionGraphNode}, counter::Counter)
+#function relabel_node_ids!(nodes::Vector{<:Node}, counter::Counter)
 #    # Create a map to track old to new ID mappings
 #    id_map = Dict{Int, Int}()
 #

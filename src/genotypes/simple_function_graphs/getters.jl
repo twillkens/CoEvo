@@ -18,6 +18,8 @@ Base.getproperty(genotype::SimpleFunctionGraphGenotype, prop::Symbol) = begin
         return [node.id for node in filter(node -> node.func == :OUTPUT, genotype.nodes)]
     elseif prop == :node_ids
         return [node.id for node in genotype.nodes]
+    elseif prop == :edges
+        return [edge for node in genotype.nodes for edge in node.edges]
     else
         # Fallback to default behavior for other properties
         return getfield(genotype, prop)

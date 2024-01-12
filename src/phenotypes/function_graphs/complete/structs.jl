@@ -11,6 +11,7 @@ end
 @kwdef struct Node{G <: GraphFunction, E <: Edge}
     id::Int
     func::G
+    bias::Float32
     edges::Vector{E}
     edge_values::Vector{Float32}
 end

@@ -51,7 +51,7 @@ function load(file::File, base_path::String, genotype_creator::SimpleFunctionGra
 
         # Load the function and input connections for each node
         func = Symbol(file["$node_path/func"])
-        edges = Vector{SimpleFunctionGraphEdge}()
+        edges = Vector{Edge}()
 
         connection_data = file["$node_path/edges"]
         connection_indices = sort(Int.(keys(connection_data)))
@@ -62,12 +62,12 @@ function load(file::File, base_path::String, genotype_creator::SimpleFunctionGra
             is_recurrent = file["$conn_path/is_recurrent"]
 
             # Create and add the connection to the list
-            conn = SimpleFunctionGraphEdge(target, weight, is_recurrent)
+            conn = Edge(target, weight, is_recurrent)
             push!(edges, conn)
         end
 
         # Create the node and add it to the node data
-        node = SimpleFunctionGraphNode(node_id, func, edges)
+        node = Node(node_id, func, edges)
         node_data[node_id] = node
     end
 

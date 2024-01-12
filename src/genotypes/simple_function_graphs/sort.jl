@@ -8,12 +8,12 @@ function sort_by_execution_order!(genotype::SimpleFunctionGraphGenotype)
     hidden_nodes = filter(node -> node.func ∉ [:INPUT, :BIAS, :OUTPUT], genotype.nodes)
 
     # Helper function to check if node B has a nonrecurrent connection to node A
-    function has_nonrecurrent_connection(A::SimpleFunctionGraphNode, B::SimpleFunctionGraphNode)
+    function has_nonrecurrent_connection(A::Node, B::Node)
         any(edge -> edge.target == B.id && !edge.is_recurrent, A.edges)
     end
 
     # Sorting function for nodes within the same layer
-    function sort_layer(nodes::Vector{SimpleFunctionGraphNode})
+    function sort_layer(nodes::Vector{Node})
         sort(nodes, by = node -> sum(has_nonrecurrent_connection(node, other) for other in nodes))
     end
 
@@ -25,7 +25,7 @@ function sort_by_execution_order!(genotype::SimpleFunctionGraphGenotype)
     i = 0
 
     while !isempty(remaining_nodes)
-        next_layer = SimpleFunctionGraphNode[]
+        next_layer = Node[]
         for node in copy(remaining_nodes)
             if all([edge.is_recurrent || any(prev_node -> prev_node.id == edge.target, current_layer) for edge in node.edges])
 

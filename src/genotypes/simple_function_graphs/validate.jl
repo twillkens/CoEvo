@@ -35,7 +35,7 @@ function has_cycle_nonrecurrent(genotype::SimpleFunctionGraphGenotype)
     return false
 end
 
-function validate_genotype(genotype::SimpleFunctionGraphGenotype, last_mutation::Symbol)
+function validate_genotype(genotype::SimpleFunctionGraphGenotype, last_mutation::String)
     # 1. Ensure Unique IDs
     ids = Set{Int}()
     for node in genotype.nodes
@@ -84,5 +84,16 @@ function validate_genotype(genotype::SimpleFunctionGraphGenotype, last_mutation:
         println("genotype = ", genotype)
         println("last_mutation = ", last_mutation)
         throw(ErrorException("Non-recurrent cycle detected"))
+    end
+
+    for node in genotype.nodes
+        for edge in node.edges
+            if edge.source != node.id
+                println("genotype = ", genotype)
+                println("edge = ", edge)
+                println("last_mutation = ", last_mutation)
+                throw(ErrorException("Edge source is not node ID"))
+            end
+        end
     end
 end

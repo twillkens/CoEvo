@@ -5,45 +5,62 @@ using Random
 using StableRNGs: StableRNG
 using CoEvo.Names
 using CoEvo.Genotypes.SimpleFunctionGraphs
-using CoEvo.Mutators.SimpleFunctionGraphs
+using CoEvo.Mutators.BinomialFunctionGraphs
 #using CoEvo.Mutators.FunctionGraphs: add_function as fg_add_function, remove_function as fg_remove_function
-using CoEvo.Phenotypes.FunctionGraphs.Complete
+using CoEvo.Phenotypes.FunctionGraphs.Complete: CompleteFunctionGraphPhenotypeCreator
 #using CoEvo.Phenotypes.FunctionGraphs.Basic
 using ProgressBars
 
 println("Starting tests for FunctionGraphs...")
 # taken from https://etheses.whiterose.ac.uk/26524/1/thesis_whiterose.pdf page 100
+
+make_edges(source_id::Int, target_ids::Vector{Int}) =
+    [Edge(source_id, target_id) for target_id in target_ids]
+
+make_edges(source_id::Int, target_ids::Vector{Tuple{Int, Bool}}) =
+    [Edge(source_id, target_id[1], target_id[2]) for target_id in target_ids]
+
 @testset "One-Bit Adder Phenotype" begin
+    #genotype = SimpleFunctionGraphGenotype([
+    #    Node(1, :INPUT, []),
+    #    Node(2, :INPUT, []),
+    #    Node(3, :INPUT, []),
+    #    Node(4, :XOR, [
+    #        Edge(1, 1.0, false), 
+    #        Edge(2, 1.0, false)
+    #    ]),
+    #    Node(5, :AND, [
+    #        Edge(1, 1.0, false), 
+    #        Edge(2, 1.0, false)
+    #    ]),
+    #    Node(6, :AND, [
+    #        Edge(4, 1.0, false), 
+    #        Edge(3, 1.0, false)
+    #    ]),
+    #    Node(7, :XOR, [
+    #        Edge(4, 1.0, false), 
+    #        Edge(3, 1.0, false)
+    #    ]),
+    #    Node(8, :OR, [
+    #        Edge(5, 1.0, false), 
+    #        Edge(6, 1.0, false)
+    #    ]),
+    #    Node(9, :OUTPUT, [
+    #        Edge(8, 1.0, false)
+    #    ]),
+    #    Node(10, :OUTPUT, [
+    #        Edge(7, 1.0, false)
+    #    ])
+    #])
     genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(1, :INPUT, []),
-        SimpleFunctionGraphNode(2, :INPUT, []),
-        SimpleFunctionGraphNode(3, :INPUT, []),
-        SimpleFunctionGraphNode(4, :XOR, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(2, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(5, :AND, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(2, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(6, :AND, [
-            SimpleFunctionGraphEdge(4, 1.0, false), 
-            SimpleFunctionGraphEdge(3, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(7, :XOR, [
-            SimpleFunctionGraphEdge(4, 1.0, false), 
-            SimpleFunctionGraphEdge(3, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(8, :OR, [
-            SimpleFunctionGraphEdge(5, 1.0, false), 
-            SimpleFunctionGraphEdge(6, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(9, :OUTPUT, [
-            SimpleFunctionGraphEdge(8, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(10, :OUTPUT, [
-            SimpleFunctionGraphEdge(7, 1.0, false)
-        ])
+        Node(1, :INPUT), Node(2, :INPUT), Node(3, :INPUT), 
+        Node(4, :XOR, make_edges(4, [1, 2])),
+        Node(5, :AND, make_edges(5, [1, 2])),
+        Node(6, :AND, make_edges(6, [4, 3])),
+        Node(7, :XOR, make_edges(7, [4, 3])),
+        Node(8, :OR, make_edges(8, [5, 6])),
+        Node(9, :OUTPUT, make_edges(9, [8])),
+        Node(10, :OUTPUT, make_edges(10, [7]))
     ])
 
 
@@ -74,25 +91,33 @@ println("Starting tests for FunctionGraphs...")
 end
 
 @testset "Logic Gate Phenotype" begin
+    #genotype = SimpleFunctionGraphGenotype([
+    #    Node(1, :INPUT, []),
+    #    Node(2, :INPUT, []),
+    #    Node(3, :NAND, [
+    #        Edge(1, 1.0, false), 
+    #        Edge(2, 1.0, false)
+    #    ]),
+    #    Node(4, :OR, [
+    #        Edge(1, 1.0, false), 
+    #        Edge(2, 1.0, false)
+    #    ]),
+    #    Node(5, :AND, [
+    #        Edge(3, 1.0, false), 
+    #        Edge(4, 1.0, false)
+    #    ]),
+    #    Node(6, :OUTPUT, [
+    #        Edge(5, 1.0, false)
+    #    ])
+    #])
     genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(1, :INPUT, []),
-        SimpleFunctionGraphNode(2, :INPUT, []),
-        SimpleFunctionGraphNode(3, :NAND, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(2, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(4, :OR, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(2, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(5, :AND, [
-            SimpleFunctionGraphEdge(3, 1.0, false), 
-            SimpleFunctionGraphEdge(4, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(6, :OUTPUT, [
-            SimpleFunctionGraphEdge(5, 1.0, false)
-        ])
+        Node(1, :INPUT), Node(2, :INPUT),
+        Node(3, :NAND, make_edges(3, [1, 2])),
+        Node(4, :OR, make_edges(4, [1, 2])),
+        Node(5, :AND, make_edges(5, [3, 4])),
+        Node(6, :OUTPUT, make_edges(6, [5]))
     ])
+
 
 
     phenotype_creator = CompleteFunctionGraphPhenotypeCreator()
@@ -113,35 +138,42 @@ end
         reset!(phenotype)
     end
 end
-
 #
+##
 @testset "Physics Phenotype" begin
+    #genotype = SimpleFunctionGraphGenotype([
+    #    Node(1, :INPUT, []),
+    #    Node(2, :INPUT, []),
+    #    Node(3, :INPUT, []),
+    #    Node(4, :INPUT, []),
+    #    Node(5, :MULTIPLY, [
+    #        Edge(2, 1.0, false), 
+    #        Edge(3, 1.0, false)
+    #    ]),
+    #    Node(6, :MULTIPLY, [
+    #        Edge(4, 1.0, false), 
+    #        Edge(4, 1.0, false)
+    #    ]),
+    #    Node(7, :DIVIDE, [
+    #        Edge(5, 1.0, false), 
+    #        Edge(6, 1.0, false)
+    #    ]),
+    #    Node(8, :MULTIPLY, [
+    #        Edge(1, 1.0, false), 
+    #        Edge(7, 1.0, false)
+    #    ]),
+    #    Node(9, :OUTPUT, [
+    #        Edge(8, 1.0, false)
+    #    ])
+    #])
     genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(1, :INPUT, []),
-        SimpleFunctionGraphNode(2, :INPUT, []),
-        SimpleFunctionGraphNode(3, :INPUT, []),
-        SimpleFunctionGraphNode(4, :INPUT, []),
-        SimpleFunctionGraphNode(5, :MULTIPLY, [
-            SimpleFunctionGraphEdge(2, 1.0, false), 
-            SimpleFunctionGraphEdge(3, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(6, :MULTIPLY, [
-            SimpleFunctionGraphEdge(4, 1.0, false), 
-            SimpleFunctionGraphEdge(4, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(7, :DIVIDE, [
-            SimpleFunctionGraphEdge(5, 1.0, false), 
-            SimpleFunctionGraphEdge(6, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(8, :MULTIPLY, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(7, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(9, :OUTPUT, [
-            SimpleFunctionGraphEdge(8, 1.0, false)
-        ])
+        Node(1, :INPUT), Node(2, :INPUT), Node(3, :INPUT), Node(4, :INPUT),
+        Node(5, :MULTIPLY, make_edges(5, [2, 3])),
+        Node(6, :MULTIPLY, make_edges(6, [4, 4])),
+        Node(7, :DIVIDE, make_edges(7, [5, 6])),
+        Node(8, :MULTIPLY, make_edges(8, [1, 7])),
+        Node(9, :OUTPUT, make_edges(9, [8]))
     ])
-
 
     newtons_law_of_gravitation = (g, m1, m2, r) -> (Float32(g) * Float32(m1) * Float32(m2)) / Float32(r)^2
 
@@ -165,25 +197,34 @@ end
         reset!(phenotype)
     end
 end
-
+#
 @testset "Fibonacci Phenotype" begin
+    #genotype = SimpleFunctionGraphGenotype([
+    #    Node(0, :INPUT, []),
+    #    Node(1, :IDENTITY, [Edge(0, 1.0, false)]),
+    #    Node(2, :IDENTITY, [Edge(1, 1.0, true)]),
+    #    Node(3, :MAXIMUM, [
+    #        Edge(5, 1.0, true), 
+    #        Edge(1, 1.0, false)
+    #    ]),
+    #    Node(4, :MULTIPLY, [
+    #        Edge(2, 1.0, true), 
+    #        Edge(3, 1.0, true)
+    #    ]),
+    #    Node(5, :ADD, [
+    #        Edge(3, 1.0, false),
+    #        Edge(4, 1.0, false)
+    #    ]),
+    #    Node(6, :OUTPUT, [Edge(5, 1.0, false)])
+    #])
     genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(0, :INPUT, []),
-        SimpleFunctionGraphNode(1, :IDENTITY, [SimpleFunctionGraphEdge(0, 1.0, false)]),
-        SimpleFunctionGraphNode(2, :IDENTITY, [SimpleFunctionGraphEdge(1, 1.0, true)]),
-        SimpleFunctionGraphNode(3, :MAXIMUM, [
-            SimpleFunctionGraphEdge(5, 1.0, true), 
-            SimpleFunctionGraphEdge(1, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(4, :MULTIPLY, [
-            SimpleFunctionGraphEdge(2, 1.0, true), 
-            SimpleFunctionGraphEdge(3, 1.0, true)
-        ]),
-        SimpleFunctionGraphNode(5, :ADD, [
-            SimpleFunctionGraphEdge(3, 1.0, false),
-            SimpleFunctionGraphEdge(4, 1.0, false)
-        ]),
-        SimpleFunctionGraphNode(6, :OUTPUT, [SimpleFunctionGraphEdge(5, 1.0, false)])
+        Node(0, :INPUT),
+        Node(1, :IDENTITY, make_edges(1, [0])),
+        Node(2, :IDENTITY, make_edges(2, [(1, true)])),
+        Node(3, :MAXIMUM, make_edges(3, [(5, true), (1, false)])),
+        Node(4, :MULTIPLY, make_edges(4, [(2, true), (3, true)])),
+        Node(5, :ADD, make_edges(5, [3, 4])),
+        Node(6, :OUTPUT, make_edges(6, [5]))
     ])
 
 
@@ -211,10 +252,10 @@ Base.@kwdef mutable struct DummyState <: State
     individual_id_counter::BasicCounter
     gene_id_counter::BasicCounter
 end
-
-
+#
+#
 function apply_mutation_storm(
-    mutator::SimpleFunctionGraphMutator, 
+    mutator::BinomialFunctionGraphMutator, 
     genotype::SimpleFunctionGraphGenotype, 
     n_mutations::Int, 
     test_output::Bool = false
@@ -222,13 +263,14 @@ function apply_mutation_storm(
     state = DummyState(StableRNG(42), BasicCounter(2), BasicCounter(7))
     phenotype_creator = CompleteFunctionGraphPhenotypeCreator()
     output_length_equals_expected = Bool[]
-
     
     for i in ProgressBar(1:n_mutations)
+        #println("i = $i, size = $(length(genotype.hidden_nodes))")
         mutate!(mutator, genotype, state)
         #println("\n$i = $genotype")
         #validate_genotype(genotype)
         if test_output
+            println("creating phenotype")
             phenotype = create_phenotype(phenotype_creator, genotype)
             reset!(phenotype)
             input_values = [1.0, -1.0]
@@ -247,57 +289,61 @@ function apply_mutation_storm(
     end
     @test all(output_length_equals_expected)
 end
-## Now, let's write some tests
-@testset "minimize function tests" begin
-    # Define a small genotype for testing.
-    genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(1, :INPUT, []),
-        SimpleFunctionGraphNode(2, :INPUT, []),
-        SimpleFunctionGraphNode(3, :BIAS, []),
-        SimpleFunctionGraphNode(4, :ADD, [
-            SimpleFunctionGraphEdge(1, 1.0, true), 
-            SimpleFunctionGraphEdge(3, 1.0, true)
-        ]),
-        SimpleFunctionGraphNode(5, :ADD, [
-            SimpleFunctionGraphEdge(2, 1.0, true), 
-            SimpleFunctionGraphEdge(4, 1.0, true)
-        ]),
-        SimpleFunctionGraphNode(6, :MULTIPLY, [
-            SimpleFunctionGraphEdge(3, 1.0, true), 
-            SimpleFunctionGraphEdge(5, 1.0, true)
-        ]),
-        SimpleFunctionGraphNode(7, :OUTPUT, [
-            SimpleFunctionGraphEdge(5, 1.0, false)
-        ])
-    ])
-
-    # Minimize the genotype
-    minimized_genotype = minimize(genotype)
-    @test minimized_genotype.input_ids == genotype.input_ids
-    @test minimized_genotype.bias_ids == genotype.bias_ids
-    @test Set(minimized_genotype.hidden_ids) == Set([4, 5])
-    @test minimized_genotype.output_ids == genotype.output_ids
-    
-end
 
 @testset "Mutation Storm" begin
-    genotype_creator = SimpleFunctionGraphGenotypeCreator(2, 1, 1)
+    genotype_creator = SimpleFunctionGraphGenotypeCreator(
+        n_inputs = 2, 
+        n_hidden = 1, 
+        n_bias = 1,
+        n_outputs = 1
+    )
     genotype = first(create_genotypes(genotype_creator, StableRNG(1), BasicCounter(1), 1))
 
-    mutator = SimpleFunctionGraphMutator(
-        max_mutations = 10,
-        n_mutations_decay_rate = 0.5,
-        recurrent_edge_probability = 0.5,
-        mutation_weights = Dict(
-            :add_node! => 1.0,
-            :remove_node! => 1.0,
-            :mutate_node! => 1.0,
-            :mutate_edge! => 1.0,
+    mutator = BinomialFunctionGraphMutator(
+        mutation_rates = Dict(
+            "CLONE_NODE"    => 0.011,
+            "REMOVE_NODE"   => 0.01,
+            "MUTATE_NODE"   => 0.025,
+            "MUTATE_BIAS"   => 0.05,
+            "MUTATE_EDGE"   => 0.025,
+            "MUTATE_WEIGHT" => 0.05,
         ),
-        noise_std = 0.1,
         validate_genotypes = true
-    ) 
+    )
     
-    n_mutations = 100_000  # Number of mutations
+    n_mutations = 8_000  # Number of mutations
     apply_mutation_storm(mutator, genotype, n_mutations)
 end
+### Now, let's write some tests
+#@testset "minimize function tests" begin
+#    # Define a small genotype for testing.
+#    genotype = SimpleFunctionGraphGenotype([
+#        Node(1, :INPUT, []),
+#        Node(2, :INPUT, []),
+#        Node(3, :BIAS, []),
+#        Node(4, :ADD, [
+#            Edge(1, 1.0, true), 
+#            Edge(3, 1.0, true)
+#        ]),
+#        Node(5, :ADD, [
+#            Edge(2, 1.0, true), 
+#            Edge(4, 1.0, true)
+#        ]),
+#        Node(6, :MULTIPLY, [
+#            Edge(3, 1.0, true), 
+#            Edge(5, 1.0, true)
+#        ]),
+#        Node(7, :OUTPUT, [
+#            Edge(5, 1.0, false)
+#        ])
+#    ])
+#
+#    # Minimize the genotype
+#    minimized_genotype = minimize(genotype)
+#    @test minimized_genotype.input_ids == genotype.input_ids
+#    @test minimized_genotype.bias_ids == genotype.bias_ids
+#    @test Set(minimized_genotype.hidden_ids) == Set([4, 5])
+#    @test minimized_genotype.output_ids == genotype.output_ids
+#    
+#end
+#

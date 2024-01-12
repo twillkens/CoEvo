@@ -15,34 +15,34 @@ println("Starting tests for FunctionGraphs...")
 # taken from https://etheses.whiterose.ac.uk/26524/1/thesis_whiterose.pdf page 100
 @testset "One-Bit Adder Phenotype" begin
     genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(1, :INPUT, []),
-        SimpleFunctionGraphNode(2, :INPUT, []),
-        SimpleFunctionGraphNode(3, :INPUT, []),
-        SimpleFunctionGraphNode(4, :XOR, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(2, 1.0, false)
+        Node(1, :INPUT, []),
+        Node(2, :INPUT, []),
+        Node(3, :INPUT, []),
+        Node(4, :XOR, [
+            Edge(1, 1.0, false), 
+            Edge(2, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(5, :AND, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(2, 1.0, false)
+        Node(5, :AND, [
+            Edge(1, 1.0, false), 
+            Edge(2, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(6, :AND, [
-            SimpleFunctionGraphEdge(4, 1.0, false), 
-            SimpleFunctionGraphEdge(3, 1.0, false)
+        Node(6, :AND, [
+            Edge(4, 1.0, false), 
+            Edge(3, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(7, :XOR, [
-            SimpleFunctionGraphEdge(4, 1.0, false), 
-            SimpleFunctionGraphEdge(3, 1.0, false)
+        Node(7, :XOR, [
+            Edge(4, 1.0, false), 
+            Edge(3, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(8, :OR, [
-            SimpleFunctionGraphEdge(5, 1.0, false), 
-            SimpleFunctionGraphEdge(6, 1.0, false)
+        Node(8, :OR, [
+            Edge(5, 1.0, false), 
+            Edge(6, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(9, :OUTPUT, [
-            SimpleFunctionGraphEdge(8, 1.0, false)
+        Node(9, :OUTPUT, [
+            Edge(8, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(10, :OUTPUT, [
-            SimpleFunctionGraphEdge(7, 1.0, false)
+        Node(10, :OUTPUT, [
+            Edge(7, 1.0, false)
         ])
     ])
 
@@ -75,22 +75,22 @@ end
 
 @testset "Logic Gate Phenotype" begin
     genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(1, :INPUT, []),
-        SimpleFunctionGraphNode(2, :INPUT, []),
-        SimpleFunctionGraphNode(3, :NAND, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(2, 1.0, false)
+        Node(1, :INPUT, []),
+        Node(2, :INPUT, []),
+        Node(3, :NAND, [
+            Edge(1, 1.0, false), 
+            Edge(2, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(4, :OR, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(2, 1.0, false)
+        Node(4, :OR, [
+            Edge(1, 1.0, false), 
+            Edge(2, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(5, :AND, [
-            SimpleFunctionGraphEdge(3, 1.0, false), 
-            SimpleFunctionGraphEdge(4, 1.0, false)
+        Node(5, :AND, [
+            Edge(3, 1.0, false), 
+            Edge(4, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(6, :OUTPUT, [
-            SimpleFunctionGraphEdge(5, 1.0, false)
+        Node(6, :OUTPUT, [
+            Edge(5, 1.0, false)
         ])
     ])
 
@@ -117,28 +117,28 @@ end
 #
 @testset "Physics Phenotype" begin
     genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(1, :INPUT, []),
-        SimpleFunctionGraphNode(2, :INPUT, []),
-        SimpleFunctionGraphNode(3, :INPUT, []),
-        SimpleFunctionGraphNode(4, :INPUT, []),
-        SimpleFunctionGraphNode(5, :MULTIPLY, [
-            SimpleFunctionGraphEdge(2, 1.0, false), 
-            SimpleFunctionGraphEdge(3, 1.0, false)
+        Node(1, :INPUT, []),
+        Node(2, :INPUT, []),
+        Node(3, :INPUT, []),
+        Node(4, :INPUT, []),
+        Node(5, :MULTIPLY, [
+            Edge(2, 1.0, false), 
+            Edge(3, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(6, :MULTIPLY, [
-            SimpleFunctionGraphEdge(4, 1.0, false), 
-            SimpleFunctionGraphEdge(4, 1.0, false)
+        Node(6, :MULTIPLY, [
+            Edge(4, 1.0, false), 
+            Edge(4, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(7, :DIVIDE, [
-            SimpleFunctionGraphEdge(5, 1.0, false), 
-            SimpleFunctionGraphEdge(6, 1.0, false)
+        Node(7, :DIVIDE, [
+            Edge(5, 1.0, false), 
+            Edge(6, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(8, :MULTIPLY, [
-            SimpleFunctionGraphEdge(1, 1.0, false), 
-            SimpleFunctionGraphEdge(7, 1.0, false)
+        Node(8, :MULTIPLY, [
+            Edge(1, 1.0, false), 
+            Edge(7, 1.0, false)
         ]),
-        SimpleFunctionGraphNode(9, :OUTPUT, [
-            SimpleFunctionGraphEdge(8, 1.0, false)
+        Node(9, :OUTPUT, [
+            Edge(8, 1.0, false)
         ])
     ])
 
@@ -211,23 +211,23 @@ end
 @testset "minimize function tests" begin
     # Define a small genotype for testing.
     genotype = SimpleFunctionGraphGenotype([
-        SimpleFunctionGraphNode(1, :INPUT, []),
-        SimpleFunctionGraphNode(2, :INPUT, []),
-        SimpleFunctionGraphNode(3, :BIAS, []),
-        SimpleFunctionGraphNode(4, :ADD, [
-            SimpleFunctionGraphEdge(1, 1.0, true), 
-            SimpleFunctionGraphEdge(3, 1.0, true)
+        Node(1, :INPUT, []),
+        Node(2, :INPUT, []),
+        Node(3, :BIAS, []),
+        Node(4, :ADD, [
+            Edge(1, 1.0, true), 
+            Edge(3, 1.0, true)
         ]),
-        SimpleFunctionGraphNode(5, :ADD, [
-            SimpleFunctionGraphEdge(2, 1.0, true), 
-            SimpleFunctionGraphEdge(4, 1.0, true)
+        Node(5, :ADD, [
+            Edge(2, 1.0, true), 
+            Edge(4, 1.0, true)
         ]),
-        SimpleFunctionGraphNode(6, :MULTIPLY, [
-            SimpleFunctionGraphEdge(3, 1.0, true), 
-            SimpleFunctionGraphEdge(5, 1.0, true)
+        Node(6, :MULTIPLY, [
+            Edge(3, 1.0, true), 
+            Edge(5, 1.0, true)
         ]),
-        SimpleFunctionGraphNode(7, :OUTPUT, [
-            SimpleFunctionGraphEdge(5, 1.0, false)
+        Node(7, :OUTPUT, [
+            Edge(5, 1.0, false)
         ])
     ])
 

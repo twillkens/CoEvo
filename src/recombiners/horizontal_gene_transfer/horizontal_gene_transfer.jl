@@ -11,31 +11,11 @@ using ..Recombiners: Recombiner
 using ...Abstract.States: State
 using ...Genotypes
 using ...Genotypes.SimpleFunctionGraphs
-using ...Genotypes.SimpleFunctionGraphs: validate_genotype
+using ...Genotypes.SimpleFunctionGraphs: validate_genotype, relabel_node_ids!
 using ...Genotypes.SimpleFunctionGraphs: add_node!, remove_node!, mutate_node!, mutate_edge!
 
 struct HorizontalGeneTransferRecombiner <: Recombiner end
 
-function relabel_node_ids!(nodes::Vector{<:SimpleFunctionGraphNode}, counter::Counter)
-    # Create a map to track old to new ID mappings
-    id_map = Dict{Int, Int}()
-
-    # Update node IDs
-    for node in nodes
-        new_id = count!(counter)
-        id_map[node.id] = new_id
-        node.id = new_id
-    end
-
-    # Update edge target IDs
-    for node in nodes
-        for edge in node.edges
-            if edge.target > 0
-                edge.target = id_map[edge.target]
-            end
-        end
-    end
-end
 
 function get_n_reduce(n_recipient_inactive::Int, n_donor_active::Int)
     if n_donor_active >= n_recipient_inactive
@@ -81,16 +61,14 @@ function recombine(
         get_size(inactive_recipient), get_size(active_donor)
     )
 
-    # TODO: hack until state is flattened
-    mutator = first(state.ecosystem_creator.species_creators).mutator
     # Remove nodes from inactive recipient and active donor
     for _ in 1:n_remove_inactive
-        remove_node!(inactive_recipient, mutator, state)
+        remove_node!(inactive_recipient, state)
     end
     for _ in 1:n_remove_donor
-        remove_node!(active_donor, mutator, state)
+        remove_node!(active_donor, state)
     end
-    relabel_node_ids!(active_donor.hidden_nodes, state.gene_id_counter)
+    relabel_node_ids!(active_donor, state.gene_id_counter)
 
     # Combining genotypes
     genotype = SimpleFunctionGraphGenotype([

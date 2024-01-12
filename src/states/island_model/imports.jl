@@ -27,7 +27,8 @@ using ...Selectors.FitnessProportionate: FitnessProportionateSelector
 using ...Selectors.Tournament: TournamentSelector
 using ...SpeciesCreators.Archive: ArchiveSpeciesCreator
 using ...Recombiners.HorizontalGeneTransfer: HorizontalGeneTransferRecombiner
-using ...Mutators.SimpleFunctionGraphs: SimpleFunctionGraphMutator
+#using ...Mutators.SimpleFunctionGraphs: SimpleFunctionGraphMutator
+using ...Mutators.BinomialFunctionGraphs: BinomialFunctionGraphMutator
 using ...Ecosystems.Simple: SimpleEcosystemCreator
 using ...Abstract.States
 using ...Individuals.Modes
