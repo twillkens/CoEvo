@@ -10,7 +10,7 @@ function create_edge!(
     target = is_recurrent ? 
         get_random_recurrent_edge_target(genotype, state) : 
         get_random_nonrecurrent_edge_target(genotype, node, state)
-    weight = get_random_weight_value(mutator, state)
+    weight = 0.0f0 #get_random_weight_value(mutator, state)
     edge = Edge(
         source = node.id,
         target = target,

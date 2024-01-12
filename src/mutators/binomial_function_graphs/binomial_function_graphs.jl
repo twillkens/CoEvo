@@ -53,10 +53,10 @@ Base.@kwdef struct BinomialFunctionGraphMutator <: Mutator
         "MUTATE_EDGE" => mutate_edge!,
     )
     binomial_rates::Dict{String, Float64} = Dict(
-        "ADD_NODE" =>  0.01,
-        "REMOVE_NODE" => 0.02,
-        "MUTATE_NODE" => 0.05,
-        "MUTATE_EDGE" => 0.05,
+        "ADD_NODE" =>  0.005,
+        "REMOVE_NODE" => 0.01,
+        "MUTATE_NODE" => 0.02,
+        "MUTATE_EDGE" => 0.02,
     )
     max_mutations::Int = 10
     n_mutations_decay_rate::Float64 = 0.5
@@ -66,13 +66,13 @@ Base.@kwdef struct BinomialFunctionGraphMutator <: Mutator
         "MUTATE_NODE" => 20.0,
         "MUTATE_EDGE" => 20.0,
     )
-    probability_mutate_bias::Float64 = 0.05
+    probability_mutate_bias::Float64 = 0.02
     bias_value_range::Tuple{Float32, Float32} = Float32.((-π, π))
-    probability_mutate_weight::Float64 = 0.05
+    probability_mutate_weight::Float64 = 0.02
     weight_value_range::Tuple{Float32, Float32} = Float32.((-π, π))
-    noise_std::Float32 = 0.1
-    probability_inject_noise_bias::Float64 = 0.5
-    probability_inject_noise_weight::Float64 = 0.5
+    noise_std::Float32 = 0.01
+    probability_inject_noise_bias::Float64 = 1.0
+    probability_inject_noise_weight::Float64 = 1.0
     function_set::Vector{Symbol} = LARGE
     validate_genotypes::Bool = false
 end

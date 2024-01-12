@@ -10,7 +10,7 @@ function add_node!(genotype::SimpleFunctionGraphGenotype, mutator::Mutator, stat
     #println("genotype_before = $genotype")
     new_id = count!(state.gene_id_counter)
     func = FUNCTION_MAP[rand(state.rng, mutator.function_set)]
-    bias = get_random_bias_value(mutator, state)
+    bias = 0.0f0 #get_random_bias_value(mutator, state)
     node = Node(id = new_id, func = func.name, bias = bias,)
     for _ in 1:func.arity
         create_edge!(node, genotype, mutator, state)
