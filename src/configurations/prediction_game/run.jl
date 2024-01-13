@@ -6,7 +6,7 @@ function run!(configuration::PredictionGameConfiguration; n_generations::Int = 1
     dir_path = dirname(archive_path)
     # Check if the file exists
     if isfile(archive_path)
-        throw(ArgumentError("File already exists: $archive_path"))
+        @warn(ArgumentError("File already exists: $archive_path"))
     end
     mkpath(dir_path)
     if configuration.report_type in [:deploy]
