@@ -1,0 +1,150 @@
+export NSGAIIEvaluator, NSGAIIEvaluation
+export evaluate, make_individual_tests, calculate_fitnesses, check_for_nan_in_fitnesses
+export create_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
+export get_elite_ids, get_elite_records
+
+import ....Interfaces: get_elite_ids, get_elite_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
+using ....Interfaces: get_individuals_to_evaluate, get_individuals
+using ....Abstract: Evaluator, Evaluation, AbstractSpecies, Individual
+using ...Criteria
+
+using ...Clusterers.XMeans: get_derived_tests as get_derived_tests_xmeans
+using ...Clusterers.GlobalKMeans: get_derived_tests as get_derived_tests_global_kmeans
+
+Base.@kwdef struct NSGAIIEvaluator <: Evaluator 
+    scalar_fitness_evaluator::ScalarFitnessEvaluator = ScalarFitnessEvaluator()
+    maximize::Bool = true
+    perform_disco::Bool = true
+    max_clusters::Int = -1
+    clusterer::String = "global_kmeans"
+    distance_method::String = "euclidean"
+    function_minimums::Union{Vector{Float64}, Nothing} = nothing
+    function_maximums::Union{Vector{Float64}, Nothing} = nothing
+    evaluation_time::Float64 = 0.0
+end
+
+struct NSGAIIEvaluation <: Evaluation
+    id::String
+    records::Vector{NSGAIIRecord}
+    scalar_fitness_evaluation::ScalarFitnessEvaluation
+end
+
+function convert_to_sorteddict(dict::Dict{Int, Dict{Int, Float64}})::SortedDict{Int, SortedDict{Int, Float64}}
+    sorted_outer = SortedDict{Int, SortedDict{Int, Float64}}()
+
+    for (outer_key, inner_dict) in dict
+        sorted_inner = SortedDict{Int, Float64}()
+        for (inner_key, value) in inner_dict
+            sorted_inner[inner_key] = value
+        end
+        sorted_outer[outer_key] = sorted_inner
+    end
+
+    return sorted_outer
+end
+
+function make_individual_tests(
+    individuals::Vector{<:Individual},
+    outcomes::Dict{Int, Dict{Int, Float64}}
+)
+    ids = [individual.id for individual in individuals]
+    outcomes = convert_to_sorteddict(outcomes)
+    individual_tests = SortedDict{Int, Vector{Float64}}(
+        id => [pair.second for pair in outcomes[id]]
+        for id in ids
+    )
+    return individual_tests
+end
+
+function calculate_fitnesses(individual_tests::SortedDict{Int, Vector{Float64}})
+    [sum(tests) / length(tests) for tests in values(individual_tests)]
+end
+
+function check_for_nan_in_fitnesses(fitnesses::Vector{Float64})
+    if any(isnan, fitnesses)
+        throw(ErrorException("NaN in fitnesses"))
+    end
+end
+
+function create_records(
+    individual_tests::SortedDict{Int, Vector{Float64}},
+    fitnesses::Vector{Float64},
+    disco_fitnesses::Vector{Float64}
+)
+    records = NSGAIIRecord[]
+    for (index, id_tests) in enumerate(individual_tests)
+        id, tests = id_tests
+        record = NSGAIIRecord(
+            id = id, 
+            fitness = fitnesses[index], 
+            disco_fitness = disco_fitnesses[index],
+            tests = tests
+        )
+        push!(records, record)
+    end
+    records
+end
+
+function evaluate(
+    evaluator::NSGAIIEvaluator,
+    rng::AbstractRNG,
+    species::AbstractSpecies,
+    outcomes::Dict{Int, Dict{Int, Float64}}
+)
+    scalar_fitness_evaluation = evaluate(
+        evaluator.scalar_fitness_evaluator, rng, species, outcomes
+    )
+    individuals = get_individuals_to_evaluate(species)
+    filter!(individual -> individual.id in keys(outcomes), individuals)
+    
+    individual_tests = make_individual_tests(individuals, outcomes)
+
+    fitnesses = calculate_fitnesses(individual_tests)
+    check_for_nan_in_fitnesses(fitnesses)
+
+    if evaluator.clusterer == "xmeans"
+        individual_tests = get_derived_tests_xmeans(
+            rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
+        )
+    elseif evaluator.clusterer == "global_kmeans"
+        individual_tests = get_derived_tests_global_kmeans(
+            rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
+        )
+    else
+        throw(ErrorException("Unknown clusterer: $(evaluator.clusterer)"))
+    end
+
+    disco_fitnesses = calculate_fitnesses(individual_tests)
+    check_for_nan_in_fitnesses(disco_fitnesses)
+
+    records = create_records(individual_tests, fitnesses, disco_fitnesses)
+
+    criterion = evaluator.maximize ? Maximize() : Minimize()
+    sorted_records = nsga_sort!(
+        records, criterion, evaluator.function_minimums, evaluator.function_maximums
+    )
+    evaluation = NSGAIIEvaluation(species.id, sorted_records, scalar_fitness_evaluation)
+
+    return evaluation
+end
+
+function get_raw_fitnesses(evaluation::NSGAIIEvaluation)
+    fitnesses = get_raw_fitnesses(evaluation.scalar_fitness_evaluation)
+    return fitnesses
+end
+
+function get_scaled_fitnesses(evaluation::NSGAIIEvaluation)
+    fitnesses = get_scaled_fitnesses(evaluation.scalar_fitness_evaluation)
+    return fitnesses
+end
+
+
+function get_elite_ids(evaluation::NSGAIIEvaluation, n_elites::Int)
+    ids = [record.id for record in evaluation.scalar_fitness_evaluation.records]
+    return ids[1:n_elites]
+end
+
+function get_elite_records(evaluation::NSGAIIEvaluation, n_elites::Int)
+    records = get_elite_records(evaluation.scalar_fitness_evaluation, n_elites)
+    return records[1:n_elites]
+end
