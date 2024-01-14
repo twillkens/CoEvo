@@ -15,6 +15,10 @@ end
 
 Base.@kwdef mutable struct SimpleEcosystemCreator <: EcosystemCreator end
 
+Base.getindex(ecosystem::SimpleEcosystem, species_id::String) = begin
+    return first(filter(species -> species.id == species_id, ecosystem.all_species))
+end
+
 function create_ecosystem(::SimpleEcosystemCreator, id::Int, state::State)
     all_species = [
         create_species(state.species_creator, species_id, state)

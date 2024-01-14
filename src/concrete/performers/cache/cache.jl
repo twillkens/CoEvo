@@ -43,7 +43,7 @@ function perform(performer::CachePerformer, jobs::Vector{J}) where {J <: Job}
     for result in new_results
         push!(
             performer.cache, 
-            BasicMatch(result.interaction_id, result.individual_ids, result.species_ids) => result
+            result.match => result
         )
     end
     all_results = Result[cached_results ; new_results]

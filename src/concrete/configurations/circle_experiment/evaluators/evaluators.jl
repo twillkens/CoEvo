@@ -1,3 +1,4 @@
+import ....Interfaces: create_evaluator
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
 using ...Evaluators.NSGAII: NSGAIIEvaluator
 
@@ -10,3 +11,7 @@ const EVALUATORS = Dict(
         distance_method = "euclidean"
     ),
 )
+
+function create_evaluator(config::CircleExperimentConfiguration)
+    return EVALUATORS[config.evaluator]
+end

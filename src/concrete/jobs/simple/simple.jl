@@ -15,7 +15,7 @@ struct SimpleJob{I <: Interaction, P <: Phenotype, M <: Match} <: Job
     matches::Vector{M}
 end
 
-Base.@kwdef struct SimpleJobCreator{I <: Interaction} <: JobCreator
+Base.@kwdef struct SimpleJobCreator <: JobCreator
     n_workers::Int = 1
 end
 
@@ -62,11 +62,11 @@ function get_ids(matches::Vector{<:Match})
     return ids
 end
 
-function get_phenotype_dict(ecosystem::Ecosystem, ids::Set{Tuple{String, Int}}, state::State)
-    pairs = map(ids) do (species_id, individual_id)
-        species = ecosystem.all_species[species_id]
+function get_phenotype_dict(ecosystem::Ecosystem, ids::Set{Tuple{String, Int}})
+    pairs = map(collect(ids)) do (species_id, individual_id)
+        species = ecosystem[species_id]
         individual = species[individual_id]
-        individual.id => individual.phenotype
+        return individual.id => individual.phenotype
     end
     phenotype_dict = Dict(pairs)
     return phenotype_dict
@@ -80,7 +80,7 @@ function create_jobs(job_creator::SimpleJobCreator, ecosystem::Ecosystem, state:
     )
     jobs = map(match_partitions) do match_partition
         ids = get_ids(match_partition)
-        phenotype_dict = get_phenotype_dict(ids, state)
+        phenotype_dict = get_phenotype_dict(ecosystem, ids)
         SimpleJob(interactions, phenotype_dict, match_partition)
     end
     return jobs

@@ -9,7 +9,6 @@ Base.@kwdef struct BasicSimulator{
     M <: MatchMaker,
     J <: JobCreator,
     P <: Performer,
-    R <: Result
 } <: Simulator
     interactions::Vector{I}
     matchmaker::M

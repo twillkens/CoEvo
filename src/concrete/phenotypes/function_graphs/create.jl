@@ -1,6 +1,7 @@
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotype, sort_by_execution_order!
 using ...Genotypes.FunctionGraphs: FUNCTION_MAP 
 
+import ....Interfaces: create_phenotype
 using ....Abstract
 using ....Interfaces
 

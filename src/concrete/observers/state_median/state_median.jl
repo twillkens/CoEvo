@@ -22,13 +22,17 @@ end
 function observe!(
     observer::StateMedianObserver, phenotype::FunctionGraphPhenotype
 )
-    if !observer.is_active
-        return
-    end
     if phenotype.id in keys(observer.all_phenotype_states)
         push!(observer.all_phenotype_states[phenotype.id], phenotype.current_node_states)
     else
         observer.all_phenotype_states[phenotype.id] = [phenotype.current_node_states]
+    end
+end
+
+function observe!(observer::StateMedianObserver, environment::Environment)
+    if observer.is_active
+        observe!(observer, environment.entity_1)
+        observe!(observer, environment.entity_2)
     end
 end
 

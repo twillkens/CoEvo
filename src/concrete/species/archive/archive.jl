@@ -15,7 +15,7 @@ Base.@kwdef mutable struct ArchiveSpecies{I <: Individual} <: AbstractSpecies
 end
 
 function ArchiveSpecies(id::String, population::Vector{I}) where I <: Individual
-    return ArchiveSpecies(id, population, I[], Int[])
+    return ArchiveSpecies(id, population, I[], I[])
 end
 
 get_individuals_to_evaluate(species::ArchiveSpecies) = species.population

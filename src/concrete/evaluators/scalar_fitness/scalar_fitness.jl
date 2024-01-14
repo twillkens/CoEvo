@@ -11,8 +11,8 @@ import ....Interfaces: get_elite_ids, get_elite_records
 using Random: AbstractRNG
 using DataStructures: SortedDict
 using StatsBase: mean
-using ....Abstract: AbstractSpecies, Evaluator, Evaluation, Individual
-using ....Interfaces: get_individuals_to_evaluate
+using ....Abstract
+using ....Interfaces
 
 struct ScalarFitnessRecord
     id::Int
@@ -46,16 +46,21 @@ end
 
 function evaluate(
     evaluator::ScalarFitnessEvaluator,
-    rng::AbstractRNG,
     species::AbstractSpecies,
-    outcomes::Dict{Int, Dict{Int, Float64}}
+    outcomes::Dict{Int, Dict{Int, Float64}},
+    state::State
 )
     individuals = get_individuals_to_evaluate(species)
-    #println("n individuals: ", length(individuals))
-    if length(individuals) == 0
-        return ScalarFitnessEvaluation(species.id, ScalarFitnessRecord[])
+    for individual in individuals
+        if !haskey(outcomes, individual.id)
+            error("No outcomes for individual with id $(individual.id)")
+        end
     end
-    filter!(individual -> individual.id in keys(outcomes), individuals)
+    ##println("n individuals: ", length(individuals))
+    #if length(individuals) == 0
+    #    return ScalarFitnessEvaluation(species.id, ScalarFitnessRecord[])
+    #end
+    #filter!(individual -> individual.id in keys(outcomes), individuals)
     ids = [individual.id for individual in individuals]
     filtered_outcomes = Dict(id => outcomes[id] for id in ids if haskey(outcomes, id))
 
@@ -90,7 +95,7 @@ function evaluate(
         for (i, id) in enumerate(ids)
     ]
 
-    sort!(records, by = x -> (x.scaled_fitness, rand(rng)), rev = true)
+    sort!(records, by = x -> (x.scaled_fitness, rand(state.rng)), rev = true)
 
     evaluation = ScalarFitnessEvaluation(species.id, records)
     #println("rng state after evaluation: ", rng.state)

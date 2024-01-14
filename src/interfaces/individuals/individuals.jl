@@ -3,25 +3,12 @@ export convert_to_dictionary, convert_from_dictionary
 
 using ..Abstract
 
-function create_individuals(
-    individual_creator::IndividualCreator,
-    n_individuals::Int,
-    state::State
-)
+function create_individuals(individual_creator::IndividualCreator, state::State)
     individual_creator_type = typeof(individual_creator)
     state_type = typeof(state)
-    throw(ErrorException(
-        "create_individuals not implemented for $individual_creator_type " *
-        "and $state_type"
-    ))
-end
-
-function get_individuals(individuals::Vector{<:Individual}, ids::Vector{Int})
-    individuals = filter(individual -> individual.id in ids, individuals)
-    if length(individuals) != length(ids)
-        throw(ErrorException("Could not find all individuals with ids $ids"))
-    end
-    return individuals
+    error(
+        "create_individuals not implemented for $individual_creator_type " * "and $state_type"
+    )
 end
 
 function create_phenotype(

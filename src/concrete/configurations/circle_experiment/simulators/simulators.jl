@@ -1,4 +1,4 @@
-
+import ....Interfaces: create_simulator
 using ....Abstract
 using ...Results.Basic: BasicResult
 using ...Observers.StateMedian: StateMedianObserver, StateMedianObservation
@@ -7,7 +7,7 @@ using ...MatchMakers.AllVersusAll: AllVersusAllMatchMaker
 using ...Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironmentCreator
 using ...Domains.PredictionGame: PredictionGameDomain
 using ...Interactions.Basic: BasicInteraction
-using ...Jobs.Simple
+using ...Jobs.Simple: SimpleJobCreator
 using ...Simulators.Basic: BasicSimulator
 
 function make_environment_creator(
@@ -47,7 +47,7 @@ function make_interactions(
 end
 
 
-function BasicSimulator(config::CircleExperimentConfiguration)
+function create_simulator(config::CircleExperimentConfiguration)
     simulator = BasicSimulator(
         interactions = make_interactions(config, PREDICTION_GAME_TOPOLOGIES[config.topology]),
         matchmaker = AllVersusAllMatchMaker(),

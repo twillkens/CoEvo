@@ -31,14 +31,15 @@ end
 
 function make_matches(
     matchmaker::AllVersusAllMatchMaker, 
-    ::AbstractRNG,
     interaction_id::String, 
-    species_1::AbstractSpecies,
-    species_2::AbstractSpecies
+    species::Vector{<:AbstractSpecies},
+    ::State
 )
-    matches = make_matches(matchmaker, interaction_id, species_1, species_2)
+    if length(species) != 2
+        error("AllVersusAllMatchMaker requires exactly two species")
+    end
+    matches = make_matches(matchmaker, interaction_id, species[1], species[2])
     println("number of matches: $(length(matches))")
-    #println("length of species_1: $(length(get_individuals_to_perform(species_1)))")
     return matches
 end
 

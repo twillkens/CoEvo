@@ -1,6 +1,8 @@
 export scaled_arctangent, get_action!, apply_movement
 export get_clockwise_distance, get_counterclockwise_distance
 
+using ....Interfaces
+
 function is_active(environment::ContinuousPredictionGameEnvironment)
     return environment.timestep < environment.episode_length
 end
@@ -94,10 +96,6 @@ end
 function step!(
     environment::ContinuousPredictionGameEnvironment{D, <:Phenotype, <:Phenotype}
 ) where {D <: PredictionGameDomain}
-    #if environment.entity_1.id in [176, 191] && environment.entity_2.id in [176, 191]
-    #    println("p_$(environment.entity_1.id) = ", environment.entity_1)
-    #    println("p_$(environment.entity_2.id) = ", environment.entity_2)
-    #end
     environment.timestep += 1
     movement_1 = get_action!(
         environment.entity_1, 

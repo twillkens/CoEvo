@@ -14,18 +14,13 @@ Base.@kwdef struct BasicPerformer <: Performer
 end
 
 function perform(::BasicPerformer, job::SimpleJob)
-    results = Result[]
-    for match in job.matches
+    results = map(job.matches) do match
         interaction = job.interactions[match.interaction_id]
-        phenotypes = Phenotype[
+        phenotypes = [
             job.phenotypes[individual_id] for individual_id in match.individual_ids
         ]
-        result = interact(
-            interaction,
-            match.individual_ids,
-            phenotypes
-        )
-        push!(results, result)
+        result = interact(interaction, match, phenotypes)
+        return result
     end
     return results
 end

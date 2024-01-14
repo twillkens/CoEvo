@@ -8,6 +8,7 @@ using Random: AbstractRNG
 using StatsBase: median
 using ....Abstract
 using ....Interfaces
+using ....Interfaces: count!
 
 struct ModesIndividual{G <: Genotype, P <: Phenotype} <: Individual
     id::Int
@@ -20,17 +21,12 @@ end
 
 struct ModesIndividualCreator <: IndividualCreator end
 
-function create_individuals(
-    ::ModesIndividualCreator, 
-    genotype_creator::GenotypeCreator, 
-    phenotype_creator::PhenotypeCreator, 
-    state::State
-)
+function create_individuals(::ModesIndividualCreator, state::State)
     ids = count!(state.individual_id_counter, state.n_population)
-    full_genotypes = create_genotypes(genotype_creator, state)
+    full_genotypes = create_genotypes(state.genotype_creator, state)
     minimized_genotypes = [minimize(genotype) for genotype in full_genotypes]
     phenotypes = [
-        create_phenotype(phenotype_creator, genotype, id) 
+        create_phenotype(state.phenotype_creator, genotype, id) 
         for (genotype, id) in zip(minimized_genotypes, ids)
     ]
     individuals = [

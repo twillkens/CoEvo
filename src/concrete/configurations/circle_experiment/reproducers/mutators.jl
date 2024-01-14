@@ -45,8 +45,8 @@ const MUTATORS = Dict(
         noise_std = 0.01,
         probability_inject_noise_bias = 1.0 ,
         probability_inject_noise_weight = 1.0,
-        function_set = FUNCTION_SETS["large"]
-        validate_genotypes::Bool = false
+        function_set = FUNCTION_SETS["large"],
+        validate_genotypes = false
     ),
     "shrink_harsh" => FunctionGraphMutator(
         n_minimum_hidden_nodes = 0,
@@ -62,7 +62,7 @@ const MUTATORS = Dict(
         noise_std = 0.01,
         probability_inject_noise_bias = 1.0 ,
         probability_inject_noise_weight = 1.0,
-        function_set = FUNCTION_SETS["large"]
-        validate_genotypes::Bool = false
+        function_set = FUNCTION_SETS["large"],
+        validate_genotypes = false
     ),
 )

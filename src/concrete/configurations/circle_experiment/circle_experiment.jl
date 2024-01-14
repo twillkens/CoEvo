@@ -10,4 +10,6 @@ include("simulators/simulators.jl")
 
 include("evaluators/evaluators.jl")
 
+include("archivers/archivers.jl")
+
 end

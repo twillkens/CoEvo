@@ -1,5 +1,7 @@
 using ...Genotypes.FunctionGraphs: evaluate_function
 
+import ....Interfaces: act!, reset!
+
 function act!(phenotype::FunctionGraphPhenotype, input_values::Vector{Float32})
     if any(isnan, input_values)
         println("input_values = ", input_values)

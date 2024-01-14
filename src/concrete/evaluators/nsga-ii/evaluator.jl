@@ -4,8 +4,8 @@ export create_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
 export get_elite_ids, get_elite_records
 
 import ....Interfaces: get_elite_ids, get_elite_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
-using ....Interfaces: get_individuals_to_evaluate, get_individuals
-using ....Abstract: Evaluator, Evaluation, AbstractSpecies, Individual
+using ....Interfaces
+using ....Abstract
 using ...Criteria
 
 using ...Clusterers.XMeans: get_derived_tests as get_derived_tests_xmeans
@@ -29,7 +29,7 @@ struct NSGAIIEvaluation <: Evaluation
     scalar_fitness_evaluation::ScalarFitnessEvaluation
 end
 
-function convert_to_sorteddict(dict::Dict{Int, Dict{Int, Float64}})::SortedDict{Int, SortedDict{Int, Float64}}
+function convert_to_sorteddict(dict::Dict{Int, Dict{Int, Float64}})
     sorted_outer = SortedDict{Int, SortedDict{Int, Float64}}()
 
     for (outer_key, inner_dict) in dict
@@ -87,15 +87,20 @@ end
 
 function evaluate(
     evaluator::NSGAIIEvaluator,
-    rng::AbstractRNG,
     species::AbstractSpecies,
-    outcomes::Dict{Int, Dict{Int, Float64}}
+    outcomes::Dict{Int, Dict{Int, Float64}},
+    state::State
 )
     scalar_fitness_evaluation = evaluate(
-        evaluator.scalar_fitness_evaluator, rng, species, outcomes
+        evaluator.scalar_fitness_evaluator, species, outcomes, state
     )
     individuals = get_individuals_to_evaluate(species)
-    filter!(individual -> individual.id in keys(outcomes), individuals)
+    for individual in individuals
+        if individual.id ∉ keys(outcomes)
+            error("Individual $(individual.id) not in outcomes")
+        end
+    end
+    #filter!(individual -> individual.id in keys(outcomes), individuals)
     
     individual_tests = make_individual_tests(individuals, outcomes)
 
@@ -104,11 +109,11 @@ function evaluate(
 
     if evaluator.clusterer == "xmeans"
         individual_tests = get_derived_tests_xmeans(
-            rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
+            state.rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
         )
     elseif evaluator.clusterer == "global_kmeans"
         individual_tests = get_derived_tests_global_kmeans(
-            rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
+            state.rng, individual_tests, evaluator.max_clusters, evaluator.distance_method
         )
     else
         throw(ErrorException("Unknown clusterer: $(evaluator.clusterer)"))

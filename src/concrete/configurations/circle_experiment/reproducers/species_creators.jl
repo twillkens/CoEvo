@@ -1,3 +1,4 @@
+using ...SpeciesCreators.Archive: ArchiveSpeciesCreator
 
 const SPECIES_CREATORS = Dict(
     "small" => ArchiveSpeciesCreator(

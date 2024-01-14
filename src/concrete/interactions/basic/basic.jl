@@ -2,40 +2,29 @@ module Basic
 
 export BasicInteraction
 
-import ....Interfaces: interact, observe!
+import ....Interfaces: interact
 using ....Abstract
 using ....Interfaces
 
-using ...Observers.Null: NullObserver, NullObservation
+using ...Observers.Null: NullObserver
 using ...Results.Basic: BasicResult
 
-Base.@kwdef struct BasicInteraction{E <: EnvironmentCreator, O <: Observer, } <: Interaction
+Base.@kwdef struct BasicInteraction{E <: EnvironmentCreator, O <: Observer} <: Interaction
     id::String
     environment_creator::E
     species_ids::Vector{String}
     observer::O = NullObserver()
 end
 
-observe!(observers::Vector{<:Observer}, environment::Environment) = [
-   observe!(observer, environment) for observer in observers
-]
-
-function interact(environment::Environment, observers::Vector{<:Observer})
-    observe!(observers, environment)
+function interact(environment::Environment, observer::Observer)
+    observe!(observer, environment)
     while is_active(environment)
         step!(environment)
-        observe!(observers, environment)
+        observe!(observer, environment)
     end
     outcome_set = get_outcome_set(environment)
-    return outcome_set
-end
-
-function interact(environment::Environment, observer::Observer)
-    return interact(environment, [observer])
-end
-
-function interact(environment::Environment)
-    return interact(environment, NullObserver[])
+    observation = create_observation(observer)
+    return outcome_set, observation
 end
 
 function reset_phenotypes!(phenotypes::Vector{<:Phenotype})
@@ -45,23 +34,20 @@ function reset_phenotypes!(phenotypes::Vector{<:Phenotype})
 end
 
 function interact(
-    interaction::BasicInteraction{E, O},
-    individual_ids::Vector{Int},
-    phenotypes::Vector{Phenotype},
+    interaction::BasicInteraction{E, O}, match::Match, phenotypes::Vector{<:Phenotype},
 ) where {E <: EnvironmentCreator, O <: Observer}
     reset_phenotypes!(phenotypes)
     environment_creator = interaction.environment_creator
     environment = create_environment(environment_creator, phenotypes...)
     try 
-        outcome_set = interact(environment, interaction.observer)
-        observations = create_observation(interaction.observer)
-        result = BasicResult(interaction.id, individual_ids, outcome_set, observations)
+        outcome_set, observation = interact(environment, interaction.observer)
+        result = BasicResult(match, outcome_set, observation)
         reset_phenotypes!(phenotypes)
         return result
-    catch
+    catch e
         println("environment = $environment")
         println("phenotypes = $phenotypes")
-        throw(ErrorException("Error in interact"))
+        throw(e)
     end
 end
 

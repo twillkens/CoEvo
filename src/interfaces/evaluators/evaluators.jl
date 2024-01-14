@@ -6,27 +6,24 @@ using ..Abstract
 
 function evaluate(
     evaluator::Evaluator,
-    rng::AbstractRNG,
     species::AbstractSpecies,
     outcomes::Dict{Int, Dict{Int, Float64}},
-    #observations::Vector{<:Observation}
+    state::State
 )
-    throw(ErrorException(
-        "`evaluate` not implemented for $(typeof(evaluator)) and $(typeof(species))."))
+    error("`evaluate` not implemented for $(typeof(evaluator)) and $(typeof(species)).")
 end
 
 function evaluate(
-    evaluators::Vector{<:Evaluator},
-    rng::AbstractRNG,
-    species::Vector{<:AbstractSpecies},
-    individual_outcomes::Dict{Int, Dict{Int, Float64}},
-    #observations::Vector{<:Observation},
+    evaluator::Evaluator,
+    ecosystem::Ecosystem,
+    results::Vector{<:Result},
+    state::State
 )
+    individual_outcomes = get_individual_outcomes(results)
     evaluations = [
-        evaluate(evaluator, rng, species, individual_outcomes)
-        for (evaluator, species) in zip(evaluators, species)
+        evaluate(evaluator, species, individual_outcomes, state)
+        for species in ecosystem.all_species
     ]
-    
     return evaluations
 end
 

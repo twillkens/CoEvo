@@ -18,7 +18,7 @@ function get_individual_outcomes(results::Vector{Result})
         outcome_dict = get_individual_outcomes(result)
         for (id, outcome) in outcome_dict
             # The opposing individual's ID is the one not matching the current ID
-            opposing_id = setdiff(result.individual_ids, [id])[1]
+            opposing_id = first(setdiff(result.match.individual_ids, [id]))
             
             # If the key doesn't exist in `individual_outcomes`, initialize a new SortedDict 
             # and add the outcome

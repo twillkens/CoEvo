@@ -24,10 +24,8 @@ Base.@kwdef struct ArchiveSpeciesCreator <: SpeciesCreator
     max_archive_matches::Int
 end
 
-function create_species(species_creator::ArchiveSpeciesCreator, id::String, state::State)
-    population = create_individuals(
-        state.individual_creator, species_creator.n_population, state
-    )
+function create_species(::ArchiveSpeciesCreator, id::String, state::State)
+    population = create_individuals(state.individual_creator, state)
     species = ArchiveSpecies(id, population)
     return species
 end
