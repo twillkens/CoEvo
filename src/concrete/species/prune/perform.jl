@@ -1,9 +1,7 @@
-import ...Species: get_individuals_to_evaluate, get_individuals_to_perform
-using ...Species.Modes: get_previous_population, get_previous_elites
-using ...Species.Modes: get_previous_elite_ids
 
-using ...Results: get_individual_outcomes, get_observations
-using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
+using ....Abstract
+using ....Interfaces
+using ...Evaluators.ScalarFitness: ScIlarFitnessEvaluator
 
 function create_modes_interaction(interaction::BasicInteraction, observers::Vector{<:Observer})
     interaction = BasicInteraction(
@@ -87,7 +85,7 @@ function perform_evaluations(species::PruneSpecies, state::State)
     evaluator = ScalarFitnessEvaluator()
     evaluation = evaluate(evaluator, get_rng(state), simple_species, outcomes)
     #println("rng_after_evaluate = $(get_rng(state).state)")
-    observations = get_observations(results)
+    observations = [result.observation for result in results]
     return evaluation, observations
 end
 

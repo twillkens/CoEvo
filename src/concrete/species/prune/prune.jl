@@ -15,7 +15,7 @@ include("individuals.jl")
 
 struct PruneSpecies{I <: PruneIndividual} <: AbstractSpecies
     id::String
-    population::Vector{I}
+    currents::Vector{I}
     persistent_individuals::Vector{I}
 end
 

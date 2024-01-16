@@ -1,6 +1,6 @@
 module Archivers
 
-export Globals, Ecosystems, GenotypeSize, Fitness #, Modes
+export Globals, Ecosystems, GenotypeSize, Fitness, Modes
 
 
 include("utilities/utilities.jl")
@@ -17,7 +17,7 @@ using .GenotypeSize: GenotypeSize
 include("fitness/fitness.jl")
 using .Fitness: Fitness
 
-#include("modes/modes.jl")
-#using .Modes: Modes
+include("modes/modes.jl")
+using .Modes: Modes
 
 end

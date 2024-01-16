@@ -16,5 +16,8 @@ get_individuals(species::BasicSpecies) = species.population
 get_individuals_to_evaluate(species::BasicSpecies) = get_individuals(species)
 
 get_individuals_to_perform(species::BasicSpecies) = get_individuals(species)
+Base.getindex(species::BasicSpecies, id::Int) = begin
+    return first(filter(individual -> individual.id == id, get_individuals(species)))
+end
 
 end

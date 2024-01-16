@@ -38,4 +38,6 @@ include("manipulate/manipulate.jl")
 
 include("archive.jl")
 
+include("modes_prune.jl")
+
 end
