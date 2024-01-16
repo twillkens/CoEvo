@@ -10,7 +10,7 @@ function create_archivers(::CircleExperimentConfiguration)
         GlobalStateArchiver(), 
         FitnessArchiver(),
         GenotypeSizeArchiver(), 
-        #ModesArchiver(),
+        ModesArchiver(),
         EcosystemArchiver()
     ]
     return archivers

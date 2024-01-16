@@ -13,6 +13,7 @@ using StatsBase: median
 Base.@kwdef mutable struct StateMedianObserver <: Observer 
     is_active::Bool = false
     all_phenotype_states::Dict{Int, Dict{Int, Vector{Float32}}} = Dict{Int, Dict{Int, Vector{Float32}}}()
+    ids_to_observe::Vector{Int} = Int[]
 end
 
 Base.@kwdef mutable struct StateMedianObservation <: Observation
@@ -37,8 +38,12 @@ end
 
 function observe!(observer::StateMedianObserver, environment::Environment)
     if observer.is_active
-        observe!(observer, environment.entity_1)
-        observe!(observer, environment.entity_2)
+        if environment.entity_1.id in observer.ids_to_observe
+            observe!(observer, environment.entity_1)
+        end
+        if environment.entity_2.id in observer.ids_to_observe
+            observe!(observer, environment.entity_2)
+        end
     end
 end
 

@@ -9,13 +9,13 @@ using HDF5
 ENV["COEVO_TRIAL_DIR"] = "trials"
 
 rm("trials/1", force = true, recursive = true)
-file = open("trials/1.out", "w")
-redirect_stdout(file)
+#file = open("trials/1.out", "w")
+#redirect_stdout(file)
 #configuration = CircleExperimentConfiguration()
-configuration = CircleExperimentConfiguration(n_generations = 100, checkpoint_interval = 5, species = "test")
+configuration = CircleExperimentConfiguration(n_generations = 1000, checkpoint_interval = 100)
 
 state = evolve(configuration)
-close(file)
+#close(file)
 
 #rm("trials/1", force = true, recursive = true)
 #
