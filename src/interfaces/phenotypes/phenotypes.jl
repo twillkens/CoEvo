@@ -1,18 +1,21 @@
-export create_phenotype, act!, reset!, get_phenotype_state
+export create_phenotype, act!, reset! 
 
 using ..Abstract
 
-function create_phenotype(phenotype_creator::PhenotypeCreator, genotype::Genotype, id::Int)
-    error(
-        "Default phenotype creation for $phenotype_creator and $genotype not implemented for $id."
-    )
+function create_phenotype(phenotype_creator::PhenotypeCreator, id::Int, genotype::Genotype)
+    phenotype_creator = typeof(phenotype_creator)
+    id = typeof(id)
+    genotype = typeof(genotype)
+    error("Default phenotype creation for $phenotype_creator, $id, $genotype not implemented.")
 end
 
 function create_phenotype(phenotype_creator::PhenotypeCreator, genotype::Genotype)
-    return create_phenotype(phenotype_creator, genotype, 0)
+    return create_phenotype(phenotype_creator, 0, genotype)
 end
 
-function act!(phenotype::Phenotype, args...)
+function act!(phenotype::Phenotype, args::Any)
+    phenotype = typeof(phenotype)
+    args = typeof(args)
     error("act! not implemented for $phenotype with args $args")
 end
 
@@ -21,9 +24,6 @@ function act!(phenotype::Phenotype)
 end
 
 function reset!(phenotype::Phenotype)
+    phenotype = typeof(phenotype)
     error("reset! not implemented for $phenotype")
-end
-
-function get_phenotype_state(phenotype::Phenotype)
-    error("get_phenotype_state not implemented for $phenotype")
 end

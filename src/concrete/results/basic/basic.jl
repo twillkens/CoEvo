@@ -2,7 +2,7 @@ module Basic
 
 export BasicResult
 
-import ....Interfaces: get_individual_outcomes, get_observations
+import ....Interfaces: get_individual_outcomes
 
 using DataStructures: SortedDict
 using ....Abstract

@@ -1,6 +1,9 @@
 module States
 
-export Basic #, IslandModel
+export Primer, Basic #, IslandModel
+
+include("primer/primer.jl")
+using .Primer: Primer
 
 include("basic/basic.jl")
 using .Basic: Basic

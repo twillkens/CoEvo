@@ -1,6 +1,16 @@
 using ...SpeciesCreators.Archive: ArchiveSpeciesCreator
 
 const SPECIES_CREATORS = Dict(
+    "test" => ArchiveSpeciesCreator(
+        n_population = 6,
+        n_parents = 6,
+        n_children = 6,
+        n_elites = 0,
+        n_archive = 0,
+        archive_interval = 0,
+        max_archive_length = 0,
+        max_archive_matches = 0,
+    ),
     "small" => ArchiveSpeciesCreator(
         n_population = 100,
         n_parents = 50,

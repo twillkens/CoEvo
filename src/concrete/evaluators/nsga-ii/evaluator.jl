@@ -1,9 +1,8 @@
 export NSGAIIEvaluator, NSGAIIEvaluation
 export evaluate, make_individual_tests, calculate_fitnesses, check_for_nan_in_fitnesses
-export create_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
-export get_elite_ids, get_elite_records
+export create_records, evaluate
 
-import ....Interfaces: get_elite_ids, get_elite_records, evaluate, get_raw_fitnesses, get_scaled_fitnesses
+import ....Interfaces: evaluate
 using ....Interfaces
 using ....Abstract
 using ...Criteria
@@ -91,10 +90,14 @@ function evaluate(
     outcomes::Dict{Int, Dict{Int, Float64}},
     state::State
 )
+    
+    individuals = get_individuals_to_evaluate(species)
+    individual_ids = [individual.id for individual in individuals]
+    outcomes = Dict(filter(pair -> first(pair) in individual_ids, collect(outcomes)))
+        
     scalar_fitness_evaluation = evaluate(
         evaluator.scalar_fitness_evaluator, species, outcomes, state
     )
-    individuals = get_individuals_to_evaluate(species)
     for individual in individuals
         if individual.id ∉ keys(outcomes)
             error("Individual $(individual.id) not in outcomes")
@@ -103,9 +106,11 @@ function evaluate(
     #filter!(individual -> individual.id in keys(outcomes), individuals)
     
     individual_tests = make_individual_tests(individuals, outcomes)
+    #println("individual_tests = $individual_tests")
 
     fitnesses = calculate_fitnesses(individual_tests)
     check_for_nan_in_fitnesses(fitnesses)
+    #println("RNG BEFORE DISCO = $(state.rng.state)")
 
     if evaluator.clusterer == "xmeans"
         individual_tests = get_derived_tests_xmeans(
@@ -118,6 +123,7 @@ function evaluate(
     else
         throw(ErrorException("Unknown clusterer: $(evaluator.clusterer)"))
     end
+    #println("RNG AFTER DISCO = $(state.rng.state)")
 
     disco_fitnesses = calculate_fitnesses(individual_tests)
     check_for_nan_in_fitnesses(disco_fitnesses)
@@ -131,25 +137,4 @@ function evaluate(
     evaluation = NSGAIIEvaluation(species.id, sorted_records, scalar_fitness_evaluation)
 
     return evaluation
-end
-
-function get_raw_fitnesses(evaluation::NSGAIIEvaluation)
-    fitnesses = get_raw_fitnesses(evaluation.scalar_fitness_evaluation)
-    return fitnesses
-end
-
-function get_scaled_fitnesses(evaluation::NSGAIIEvaluation)
-    fitnesses = get_scaled_fitnesses(evaluation.scalar_fitness_evaluation)
-    return fitnesses
-end
-
-
-function get_elite_ids(evaluation::NSGAIIEvaluation, n_elites::Int)
-    ids = [record.id for record in evaluation.scalar_fitness_evaluation.records]
-    return ids[1:n_elites]
-end
-
-function get_elite_records(evaluation::NSGAIIEvaluation, n_elites::Int)
-    records = get_elite_records(evaluation.scalar_fitness_evaluation, n_elites)
-    return records[1:n_elites]
 end

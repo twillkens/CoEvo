@@ -18,7 +18,7 @@ end
 
 function create_species(species_creator::BasicSpeciesCreator, id::String, state::State)
     population = create_individuals(
-        state.individual_creator, species_creator.n_population, state
+        state.reproducer.individual_creator, species_creator.n_population, state
     )
     species = BasicSpecies(id, population)
     return species

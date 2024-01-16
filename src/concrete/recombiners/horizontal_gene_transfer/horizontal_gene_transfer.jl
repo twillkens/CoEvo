@@ -7,7 +7,7 @@ import ....Interfaces: recombine
 using Random: shuffle!
 using ....Abstract
 using ....Interfaces
-using ....Interfaces: count!
+using ....Interfaces: step!
 using ...Individuals.Modes: ModesIndividual
 using ...Genotypes.FunctionGraphs: FunctionGraphGenotype
 using ...Genotypes.FunctionGraphs: validate_genotype, relabel_node_ids!
@@ -42,6 +42,7 @@ function recombine(
     if rand(state.rng) < recombiner.transfer_probability
         return deepcopy(original_recipient)
     end
+    #println("RNG WITHIN RECOMBINE = $(state.rng.state)")
 
     # Deep copying the original genotypes
     recipient = deepcopy(original_recipient)
@@ -69,10 +70,11 @@ function recombine(
     for _ in 1:n_remove_donor
         remove_node!(active_donor, state)
     end
-    relabel_node_ids!(active_donor, state.gene_id_counter)
+    #println("RNG AFTER REMOVE NODES = $(state.rng.state)")
+    relabel_node_ids!(active_donor, state.reproducer.gene_id_counter)
 
     # Combining genotypes
-    genotype = SimpleFunctionGraphGenotype([
+    genotype = FunctionGraphGenotype([
         active_recipient.nodes ; inactive_recipient.hidden_nodes ; active_donor.hidden_nodes
     ])
 
@@ -96,14 +98,20 @@ function recombine(
     shuffle!(state.rng, parents)
     children = I[]
     for recipient in parents
-        donors = Set(filter(individual -> individual.id != recipient.id, parents))
+        donors = filter(individual -> individual.id != recipient.id, parents)
         donor = rand(state.rng, donors)
-        full_genotype = recombine(recombiner, recipient.genotype, donor.genotype, state)
-        id = count!(state.individual_id_counter)
+        #println("RNG AFTER SELECT DONOR = $(state.rng.state)")
+        full_genotype = recombine(
+            recombiner, recipient.full_genotype, donor.full_genotype, state
+        )
+        sort!(full_genotype.nodes, by = x -> x.id)
+        #println("RNG AFTER RECOMBINE = $(state.rng.state)")
+        new_id = step!(state.reproducer.individual_id_counter)
         minimized_genotype = minimize(full_genotype)
-        phenotype = create_phenotype(state.phenotype_creator, minimized_genotype, id)
+        sort!(minimized_genotype.nodes, by = x -> x.id)
+        phenotype = create_phenotype(state.reproducer.phenotype_creator, new_id, minimized_genotype)
         child = ModesIndividual(
-            id = id,
+            id = new_id,
             parent_id = recipient.id, 
             tag = recipient.tag, 
             full_genotype = full_genotype, 

@@ -18,6 +18,7 @@ todo
 trials/*
 logs/*
 plots/*
+.env
 
 python/gedlibpy/build
 

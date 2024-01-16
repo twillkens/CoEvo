@@ -6,7 +6,6 @@ import ....Interfaces: select
 
 using DataStructures: OrderedDict
 using ....Abstract
-using ...Evaluators.ScalarFitness: ScalarFitnessEvaluation
 
 Base.@kwdef struct FitnessProportionateSelector <: Selector
     n_parents::Int

@@ -1,64 +1,33 @@
-export create_genotypes, minimize, get_size, load_genotype, get_prunable_genes
-export get_maximum_complexity
+export create_genotypes, minimize, get_size, convert_to_dict, create_from_dict
 
 using ..Abstract
 using HDF5: Group, File
 
 
-function create_genotypes(
-    genotype_creator::GenotypeCreator, 
-    rng::AbstractRNG,
-    gene_id_counter::Counter,
-    n_population::Int
-)::Vector{Genotype}
-    throw(ErrorException(
-        "Default genotype creation for $genotype_creator, not implemented."
-    ))
+function create_genotypes(genotype_creator::GenotypeCreator, n_genotypes::Int, state::State)
+    genotype_creator = typeof(genotype_creator)
+    n_genotypes = typeof(n_genotypes)
+    state = typeof(state)
+    error("create_genotypes not implemented for $genotype_creator, $n_genotypes, $state")
 end
 
-function create_genotypes(genotype_creator::GenotypeCreator, state::State)
+function minimize(genotype::Genotype)
+    genotype = typeof(genotype)
+    error("Default genotype minimization for $genotype not implemented.")
+end
+
+function get_size(genotype::Genotype)
+    genotype = typeof(genotype)
+    error("Default genotype size for $genotype not implemented.")
+end
+
+function convert_to_dict(genotype::Genotype)
+    genotype = typeof(genotype)
+    error("convert_to_dict not implemented for $genotype")
+end
+
+function create_from_dict(genotype_creator::GenotypeCreator, dict::Dict)
     genotype_creator_type = typeof(genotype_creator)
-    state_type = typeof(state)
-    error("Default genotype creation for $genotype_creator_type and $state_type, not implemented.")
-end
-
-function minimize(genotype::Genotype)::Genotype
-    throw(ErrorException(
-        "Default genotype minimization for $genotype, not implemented."
-    ))
-end
-
-function get_size(genotype::Genotype)::Int
-    throw(ErrorException(
-        "Default genotype size for $genotype, not implemented."
-    ))
-end
-
-function load_genotype(genotype_creator::GenotypeCreator, genotype_group::Group)
-    throw(ErrorException(
-        "Default genotype loading for $genotype_creator, not implemented."
-    ))
-end
-
-function get_prunable_genes(genotype::Genotype)::Vector{Int}
-    throw(ErrorException(
-        "Default genotype prunable genes for $genotype, not implemented."
-    ))
-end
-
-function get_maximum_complexity(genotypes::Vector{<:Genotype})
-    maximum_complexity = maximum(get_size(genotype) for genotype in genotypes)
-    return maximum_complexity
-end
-
-function convert_to_dictionary(genotype::Genotype)
-    error("convert_to_dictionary not implemented for $genotype")
-end
-
-function convert_from_dictionary(
-    genotype_creator::GenotypeCreator, 
-    dict::Dict
-)
-    genotype_creator_type = typeof(genotype_creator)
-    error("convert_from_dictionary not implemented for $genotype_creator_type and $dict")
+    dict = typeof(dict)
+    error("create_from_dict not implemented for $genotype_creator_type, $dict")
 end

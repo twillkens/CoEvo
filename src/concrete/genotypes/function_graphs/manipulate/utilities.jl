@@ -63,7 +63,7 @@ function relabel_node_ids!(genotype::FunctionGraphGenotype, counter::Counter)
 
     # Update node IDs
     for node in genotype.hidden_nodes
-        new_id = count!(counter)
+        new_id = step!(counter)
         id_map[node.id] = new_id
         node.id = new_id
     end

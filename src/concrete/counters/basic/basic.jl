@@ -2,7 +2,7 @@ module Basic
 
 export BasicCounter
 
-import ....Interfaces: count!
+import ....Interfaces: step!
 
 using ....Abstract
 
@@ -12,14 +12,14 @@ end
 
 BasicCounter() = BasicCounter(1)
 
-function count!(counter::BasicCounter)
+function step!(counter::BasicCounter)
     value = counter.current_value
     counter.current_value += 1
     return value
 end
 
-function count!(c::BasicCounter, n::Int)
-    values = [count!(c) for _ in 1:n]
+function step!(c::BasicCounter, n::Int)
+    values = [step!(c) for _ in 1:n]
     return values
 end
 

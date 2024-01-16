@@ -5,7 +5,7 @@ using ..CoEvo
 
 using Random: AbstractRNG
 using DataStructures: OrderedDict
-using ..Counters: Counter, count!
+using ..Counters: Counter, step!
 using ..Individuals: Individual, IndividualCreator, create_individuals
 using ..Genotypes: GenotypeCreator, create_genotypes, Genotype, minimize
 using ..Phenotypes: PhenotypeCreator

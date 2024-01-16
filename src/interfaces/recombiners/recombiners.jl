@@ -2,19 +2,9 @@ export recombine
 
 using ..Abstract
 
-function recombine(
-    recombiner::Recombiner,
-    ::AbstractRNG, 
-    ::Counter, 
-    ::Vector{Individual}
-)
-    throw(ErrorException("recombine not implemented for $recombiner"))
-end
-
-function recombine(
-    recombiner::Recombiner,
-    ::Vector{Individual},
-    state::State
-)
-    error("recombine not implemented for $recombiner")
+function recombine(recombiner::Recombiner, individuals::Vector{Individual}, state::State)
+    recombiner = typeof(recombiner)
+    individuals = typeof(individuals)
+    state = typeof(state)
+    error("recombine not implemented for $recombiner, $individuals, $state")
 end

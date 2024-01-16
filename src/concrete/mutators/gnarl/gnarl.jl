@@ -8,7 +8,7 @@ import ....Interfaces: mutate
 using StatsBase: Weights, sample
 using Random: AbstractRNG, shuffle!
 using ....Abstract
-#using ....Abstract: count!
+#using ....Abstract: step!
 using ....Interfaces
 using ...Genotypes.GnarlNetworks: GnarlNetworkGenotype, ConnectionGene
 using ...Genotypes.GnarlNetworks: NodeGene, get_neuron_positions
@@ -44,7 +44,7 @@ function add_node(geno::GnarlNetworkGenotype, gene_id::Int, position::Float32)
 end
 
 function add_node(rng::AbstractRNG, gene_id_counter::Counter, geno::GnarlNetworkGenotype)
-    gene_id = count!(gene_id_counter)
+    gene_id = step!(gene_id_counter)
     position = Float32(rand(rng))
     geno = add_node(geno, gene_id, position)
     return geno
@@ -133,7 +133,7 @@ function create_connection(
     if destination <= 0 # Catching error where destination is an input
         throw("Invalid connection")
     end
-    gene_id = count!(gene_id_counter)
+    gene_id = step!(gene_id_counter)
     new_connection = ConnectionGene(gene_id, origin, destination, 0.0f0)
     return new_connection
 end
@@ -191,7 +191,7 @@ function add_connection(rng::AbstractRNG, gene_id_counter::Counter, geno::GnarlN
     if destination <= 0 # Catching error where destination is an input
         throw("Invalid connection")
     end
-    gene_id = count!(gene_id_counter)
+    gene_id = step!(gene_id_counter)
     geno = add_connection(geno, gene_id, origin, destination)
     return geno
 end

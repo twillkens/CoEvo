@@ -4,7 +4,7 @@ using ....Abstract: Mutator
 
 function clone_node!(genotype::FunctionGraphGenotype, state::State)
     #println("genotype_before = $genotype")
-    new_id = count!(state.gene_id_counter)
+    new_id = step!(state.gene_id_counter)
     parent_node = rand(state.rng, genotype.hidden_nodes)
     clone_node = deepcopy(parent_node)
     clone_node.id = new_id

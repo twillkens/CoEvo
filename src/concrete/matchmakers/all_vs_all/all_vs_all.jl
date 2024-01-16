@@ -20,6 +20,13 @@ function make_matches(
     ids_2 = [individual.id for individual in get_individuals_to_perform(species_2)]
     ids_1 = collect(Set(ids_1))
     ids_2 = collect(Set(ids_2))
+    for id in ids_1
+        if id in ids_2
+            println("ids_1 = $ids_1")
+            println("ids_2 = $ids_2")
+            error("individual with id $id is in both species")
+        end
+    end
     match_ids = vec(collect(Iterators.product(ids_1, ids_2)))
     matches = [
         BasicMatch(interaction_id, (id_1, id_2), (species_1.id, species_2.id)) 
@@ -39,7 +46,7 @@ function make_matches(
         error("AllVersusAllMatchMaker requires exactly two species")
     end
     matches = make_matches(matchmaker, interaction_id, species[1], species[2])
-    println("number of matches: $(length(matches))")
+    #println("number of matches: $(length(matches))")
     return matches
 end
 

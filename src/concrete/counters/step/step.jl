@@ -2,7 +2,7 @@ module Step
 
 export StepCounter
 
-import ....Interfaces: count!
+import ....Interfaces: step!
 
 using ....Abstract
 
@@ -11,14 +11,14 @@ mutable struct StepCounter <: Counter
     step_interval::Int
 end
 
-function count!(counter::StepCounter)
+function step!(counter::StepCounter)
     value = counter.current_value
     counter.current_value += counter.step_interval
     return value
 end
 
-function count!(c::StepCounter, n::Int)
-    values = [count!(c) for _ in 1:n]
+function step!(c::StepCounter, n::Int)
+    values = [step!(c) for _ in 1:n]
     return values
 end
 

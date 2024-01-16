@@ -147,7 +147,7 @@ function mutate_structure!(
         sample_binomial_mutations(mutator, genotype, "MUTATE_EDGE", state) ;
     ]
     mutations = [exponential_mutations ; binomial_mutations]
-    println("n_mutations = ", length(mutations))
+    #println("n_mutations = ", length(mutations))
     shuffle!(state.rng, mutations)
     #println("site_mutations = $site_mutations")
     apply_mutations!(mutator, genotype, mutations, state)
@@ -174,14 +174,12 @@ function mutate_values!(
     end
 end
 
-function mutate!(
-    mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, state::State
-)
+function mutate!(mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, state::State)
     mutate_structure!(mutator, genotype, state)
     mutate_values!(mutator, genotype, state)
 end
 
-mutate(mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, state::State
-) = mutate!(mutator, deepcopy(genotype), state)
+mutate(mutator::FunctionGraphMutator, genotype::FunctionGraphGenotype, state::State) = 
+    mutate!(mutator, deepcopy(genotype), state)
 
 end

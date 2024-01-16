@@ -3,7 +3,7 @@ export GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
 
 import ....Interfaces: create_genotypes
 using ....Abstract: Gene, Genotype, GenotypeCreator, Counter, AbstractRNG
-#using ....Interfaces: count!
+#using ....Interfaces: step!
 
 """
     NodeGene <: Gene

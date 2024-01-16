@@ -1,8 +1,5 @@
 export get_size, minimize
 
-
-import ....Interfaces: get_prunable_genes
-
 """
     get_size(genotype::FunctionGraphGenotype) -> Int
 
@@ -79,6 +76,7 @@ function minimize(genotype::FunctionGraphGenotype)
             end
         end
     end
+    sort!(minimized_genotype.nodes, by = x -> x.id)
     return minimized_genotype
 end
 

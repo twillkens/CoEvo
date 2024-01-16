@@ -87,7 +87,7 @@ function perform_evaluations(species::PruneSpecies, state::State)
     evaluator = ScalarFitnessEvaluator()
     evaluation = evaluate(evaluator, get_rng(state), simple_species, outcomes)
     #println("rng_after_evaluate = $(get_rng(state).state)")
-    observations = get_observations(results)
+    observations = [result.observation for result in results]
     return evaluation, observations
 end
 

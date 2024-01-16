@@ -40,13 +40,11 @@ function make_linearized_nodes(
 end
 
 function create_phenotype(
-    ::FunctionGraphPhenotypeCreator, genotype::FunctionGraphGenotype, id::Int
+    ::FunctionGraphPhenotypeCreator, id::Int, genotype::FunctionGraphGenotype 
 )
-    genotype = minimize(genotype)
     sort_by_execution_order!(genotype)
     ordered_node_ids = [node.id for node in genotype.nodes]
     linearized_nodes = make_linearized_nodes(genotype, ordered_node_ids)
-
     previous_node_states = zeros(Float32, length(linearized_nodes))
     current_node_states = zeros(Float32, length(linearized_nodes))
     for i in eachindex(linearized_nodes)

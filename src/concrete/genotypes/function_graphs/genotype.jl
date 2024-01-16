@@ -3,8 +3,9 @@ export Edge, Node
 export create_genotypes
 
 using Base: @kwdef
+import ....Interfaces: create_genotypes
 using ...Counters.Basic: BasicCounter
-using ....Abstract: State
+using ....Abstract
 
 """
     Edge
@@ -62,7 +63,7 @@ number of inputs, biases, outputs, and nodes associated with each output.
 end
 
 function get_ids(counter::Counter, n_ids::Int, make_negative::Bool)
-    ids = [id for id in count!(counter, n_ids)]
+    ids = [id for id in step!(counter, n_ids)]
     if make_negative
         ids = [-id for id in ids]
     end
@@ -98,9 +99,10 @@ function create_genotype(genotype_creator::FunctionGraphGenotypeCreator)
     return genotype
 end
 
-function create_genotypes(
-    genotype_creator::FunctionGraphGenotypeCreator, state::State
-)
-    genotypes = [create_genotype(genotype_creator) for _ in 1:state.n_population]
+function create_genotypes(genotype_creator::FunctionGraphGenotypeCreator, n_genotypes::Int)
+    genotypes = [create_genotype(genotype_creator) for _ in 1:n_genotypes]
     return genotypes
 end
+
+create_genotypes(genotype_creator::FunctionGraphGenotypeCreator, n_genotypes::Int, ::State) =
+    create_genotypes(genotype_creator, n_genotypes)

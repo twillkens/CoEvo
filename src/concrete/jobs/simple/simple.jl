@@ -22,12 +22,12 @@ end
 function make_all_matches(::SimpleJobCreator, ecosystem::Ecosystem, state::State)
     all_matches = [
         make_matches(
-            state.matchmaker, 
+            state.simulator.matchmaker, 
             interaction.id,
             find_by_id(ecosystem.all_species, interaction.species_ids),
             state
         ) 
-        for interaction in state.interactions
+        for interaction in state.simulator.interactions
     ]
     all_matches = vcat(all_matches...)
     return all_matches
@@ -76,7 +76,7 @@ function create_jobs(job_creator::SimpleJobCreator, ecosystem::Ecosystem, state:
     all_matches = make_all_matches(job_creator, ecosystem, state)
     match_partitions = make_partitions(all_matches, job_creator.n_workers)
     interactions = Dict(
-        interaction.id => interaction for interaction in state.interactions
+        interaction.id => interaction for interaction in state.simulator.interactions
     )
     jobs = map(match_partitions) do match_partition
         ids = get_ids(match_partition)

@@ -1,12 +1,9 @@
 module ScalarFitness
 
 export ScalarFitnessEvaluation, ScalarFitnessEvaluator, ScalarFitnessRecord
-export evaluate, get_record, get_raw_fitnesses, get_scaled_fitnesses, get_scaled_fitness
-export get_raw_fitness, get_elite_ids, get_elite_records
-export get_lowest_fitness_individuals_ids
+export evaluate, get_record
 
-import ....Interfaces: evaluate, get_raw_fitnesses, get_scaled_fitnesses, get_scaled_fitness
-import ....Interfaces: get_elite_ids, get_elite_records
+import ....Interfaces: evaluate
 
 using Random: AbstractRNG
 using DataStructures: SortedDict
@@ -102,75 +99,6 @@ function evaluate(
     return evaluation
 end
 
-function get_raw_fitnesses(evaluation::ScalarFitnessEvaluation)
-    return [record.raw_fitness for record in evaluation.records]
-end
-
-function get_scaled_fitnesses(evaluation::ScalarFitnessEvaluation)
-    return [record.scaled_fitness for record in evaluation.records]
-end
-
-function get_scaled_fitness(evaluation::ScalarFitnessEvaluation, id::Int)
-    record = get_record(evaluation, id)
-    return record.scaled_fitness
-end
-
-function get_scaled_fitness(evaluations::Vector{<:ScalarFitnessEvaluation}, id::Int)
-    for evaluation in evaluations
-        for record in evaluation.records
-            if record.id == id
-                return record.scaled_fitness
-            end
-        end
-    end
-    throw(ErrorException("Could not find id $id in evaluations."))
-end
-
-function get_raw_fitness(evaluation::ScalarFitnessEvaluation, id::Int)
-    record = get_record(evaluation, id)
-    return record.raw_fitness
-end
-
-function get_raw_fitness(evaluations::Vector{<:ScalarFitnessEvaluation}, id::Int)
-    for evaluation in evaluations
-        for record in evaluation.records
-            if record.id == id
-                return record.raw_fitness
-            end
-        end
-    end
-    throw(ErrorException("Could not find id $id in evaluations."))
-end
-
-function get_elite_ids(evaluation::ScalarFitnessEvaluation, n_elites::Int)
-    # Sort the records by fitness in descending order
-    sorted_records = sort(evaluation.records, by = x -> x.fitness, rev = true)
-
-    # Get the IDs of the top n_elites individuals
-    elite_ids = [record.id for record in sorted_records[1:n_elites]]
-
-    return elite_ids
-end
-
-function get_elite_records(evaluation::ScalarFitnessEvaluation, n_elites::Int)
-    # Sort the records by fitness in descending order
-    sorted_records = sort(evaluation.records, by = x -> x.fitness, rev = true)
-
-    # Get the IDs of the top n_elites individuals
-    elite_records = sorted_records[1:n_elites]
-
-    return elite_records
-end
-
-function get_lowest_fitness_individuals_ids(evaluation::ScalarFitnessEvaluation, n_individuals::Int)
-    # Sort the records based on fitness
-    sorted_records = sort(evaluation.records, by = record -> record.fitness)
-
-    # Select the first n_individuals
-    lowest_fitness_ids = [record.id for record in sorted_records[1:n_individuals]]
-
-    return lowest_fitness_ids
-end
 
 
 end

@@ -6,7 +6,7 @@ import ....Interfaces: recombine
 
 using Random: AbstractRNG
 using ....Abstract
-using ....Interfaces: count!
+using ....Interfaces: step!
 using ...Individuals.Basic: BasicIndividual
 using ...Individuals.Modes: ModesIndividual
 
@@ -19,7 +19,7 @@ function recombine(
     parents::Vector{<:BasicIndividual}
 ) 
     children = [
-        BasicIndividual(count!(individual_id_counter), parent.genotype, [parent.id]) 
+        BasicIndividual(step!(individual_id_counter), parent.genotype, [parent.id]) 
         for parent in parents
     ]
     return children
@@ -30,7 +30,7 @@ function recombine(
 ) 
     children = [
         ModesIndividual(
-            count!(individual_id_counter), parent.id, parent.tag, parent.genotype,
+            step!(individual_id_counter), parent.id, parent.tag, parent.genotype,
         ) 
         for parent in parents
     ]

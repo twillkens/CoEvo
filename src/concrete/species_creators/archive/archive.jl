@@ -4,7 +4,7 @@ export ArchiveSpeciesCreator, create_species, update_species!, update_archive!
 export add_individuals_to_archive!, update_active_archive_individuals!, update_population!
 
 import ....Interfaces: get_individuals, create_species, update_species!
-import ....Interfaces: convert_from_dictionary
+import ....Interfaces: create_from_dict
 using ....Abstract
 using ....Interfaces
 
@@ -24,8 +24,10 @@ Base.@kwdef struct ArchiveSpeciesCreator <: SpeciesCreator
     max_archive_matches::Int
 end
 
-function create_species(::ArchiveSpeciesCreator, id::String, state::State)
-    population = create_individuals(state.individual_creator, state)
+function create_species(species_creator::ArchiveSpeciesCreator, id::String, state::State)
+    n_population = species_creator.n_population
+    individual_creator = state.reproducer.individual_creator
+    population = create_individuals(individual_creator, n_population, state)
     species = ArchiveSpecies(id, population)
     return species
 end
@@ -100,25 +102,30 @@ function update_archive!(
     state::State
 )
     using_archive = species_creator.archive_interval > 0
-    is_archive_interval = state.generation % species_creator.archive_interval == 0
-    if using_archive && is_archive_interval
+    is_archive_interval = using_archive && state.generation % species_creator.archive_interval == 0
+    if is_archive_interval
         add_individuals_to_archive!(species_creator, species, evaluation)
         update_active_archive_individuals!(species_creator, species, state)
     end
 end
 
 function update_population!(
-    species_creator::ArchiveSpeciesCreator, 
     species::ArchiveSpecies, 
+    species_creator::ArchiveSpeciesCreator, 
     evaluation::Evaluation,
     state::State
 ) 
     ordered_ids = [record.id for record in evaluation.records]
     parent_ids = Set(ordered_ids[1:species_creator.n_parents])
     parent_set = [individual for individual in species.population if individual.id in parent_ids]
-    parents = select(state.selector, parent_set, evaluation, state)
-    new_children = recombine(state.recombiner, parents, state)
-    mutate!(state.mutator, new_children, state)
+    parents = select(state.reproducer.selector, parent_set, evaluation, state)
+    #println("RNG AFTER SELECT = $(state.rng.state)")
+    new_children = recombine(state.reproducer.recombiner, parents, state)
+    #println("RNG AFTER RECOMBINE = $(state.rng.state)")
+    for child in new_children
+        mutate!(state.reproducer.mutator, child, state)
+    end
+    #println("RNG AFTER MUTATE = $(state.rng.state)")
     if species_creator.n_elites > 0
         elite_ids = [record.id for record in evaluation.records[1:species_creator.n_elites]]
         elites = [individual for individual in species.population if individual.id in elite_ids]
@@ -131,42 +138,43 @@ function update_population!(
 end
 
 function update_species!(
-    species_creator::ArchiveSpeciesCreator, 
     species::ArchiveSpecies, 
+    species_creator::ArchiveSpeciesCreator, 
     evaluation::Evaluation,
     state::State
 ) 
     n_population_before = length(species.population)
     update_archive!(species_creator, species, evaluation, state)
-    update_population!(species_creator, species, evaluation, state)
+    #println("\nRNG AFTER UPDATE ARCHIVE = $(state.rng.state)")
+    update_population!(species, species_creator, evaluation, state)
+    #println("RNG AFTER UPDATE POPULATION = $(state.rng.state)")
     n_population_after = length(species.population)
     if n_population_after != n_population_before
         error("Population size changed from $n_population_before to $n_population_after")
     end
 end
 
-function convert_from_dictionary(
-    ::ArchiveSpeciesCreator, 
-    individual_creator::IndividualCreator,
-    genotype_creator::GenotypeCreator,
-    phenotype_creator::PhenotypeCreator,
-    dict::Dict
-)
+function create_from_dict(::ArchiveSpeciesCreator, dict::Dict, state::State)
+    individual_creator = state.reproducer.individual_creator
     id = dict["ID"]
-    population = convert_from_dictionary(
-        individual_creator, genotype_creator, phenotype_creator, dict["P"]
-    )
-    archive = convert_from_dictionary(
-        individual_creator, genotype_creator, phenotype_creator, dict["A"]
-    )
-    active_ids = Set(dict["A_IDS"])
-    active_individuals = [
-        individual for individual in archive if individual.id in active_ids
+    population = [
+        create_from_dict(individual_creator, individual_dict, state)
+        for individual_dict in values(dict["POPULATION"])
     ]
+    I = typeof(first(population))
+    if haskey(dict, "ARCHIVE")
+        archive = I[
+            create_from_dict(individual_creator, individual_dict, state)
+            for individual_dict in values(dict["ARCHIVE"])
+        ]
+        active_ids = Set(dict["ARCHIVE_IDS"])
+        active_individuals = I[individual for individual in archive if individual.id in active_ids]
+    else
+        archive = I[]
+        active_individuals = I[]
+    end
     species = ArchiveSpecies(id, population, archive, active_individuals)
     return species
-
 end
-
 
 end

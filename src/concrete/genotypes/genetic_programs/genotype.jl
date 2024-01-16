@@ -3,7 +3,7 @@ export ExpressionNode, GeneticProgramGenotype, GeneticProgramGenotypeCreator
 import ....Interfaces: create_genotypes   
 
 using ....Abstract: Genotype, GenotypeCreator, AbstractRNG, Counter
-using ....Interfaces: count!
+using ....Interfaces: step!
 """
     ExpressionNode
 
@@ -104,7 +104,7 @@ function create_genotype(
     geno_creator::GeneticProgramGenotypeCreator,
     gene_id_counter::Counter
 )
-    root_id = count!(gene_id_counter)
+    root_id = step!(gene_id_counter)
     genotype = GeneticProgramGenotype(
         root_id = root_id,
         terminals = Dict(

@@ -10,7 +10,7 @@ using ....Interfaces
 using ...Archivers.Utilities
 
 
-function measure_genotype_size(species::AbstractSpecies, do_minimize::Bool = false)
+function measure_genotype_size(species::AbstractSpecies; do_minimize::Bool = false)
     sizes = [
         get_size(do_minimize ? individual.minimized_genotype : individual.full_genotype) 
         for individual in species.population]
@@ -26,8 +26,7 @@ function measure_genotype_size(ecosystem::Ecosystem; do_minimize::Bool = false)
 end
 
 function measure_genotype_size(state::State; do_minimize::Bool = false)
-    all_species = [species for species in state.ecosystem.species]
-    genotype_size = measure_genotype_size(all_species; do_minimize = do_minimize)
+    genotype_size = measure_genotype_size(state.ecosystem; do_minimize = do_minimize)
     return genotype_size
 end
 
@@ -71,11 +70,21 @@ end
 function archive!(::GenotypeSizeArchiver, state::State)
     full_genotype_sizes = measure_genotype_size(state; do_minimize = false)
     print_genotype_sizes(full_genotype_sizes, "full")
-    archive_to_csv(full_genotype_sizes, state.archive_directory, "full_genotype_size.csv", state.generation)
+    archive_to_csv(
+        full_genotype_sizes, 
+        state.configuration.archive_directory, 
+        "full_genotype_size.csv", 
+        state.generation
+    )
 
     minimized_genotype_sizes = measure_genotype_size(state; do_minimize = true)
     print_genotype_sizes(minimized_genotype_sizes, "minimized")
-    archive_to_csv(minimized_genotype_sizes, state.archive_directory, "minimized_genotype_size.csv", state.generation)
+    archive_to_csv(
+        minimized_genotype_sizes, 
+        state.configuration.archive_directory, 
+        "minimized_genotype_size.csv", 
+        state.generation
+    )
 end
 
 end

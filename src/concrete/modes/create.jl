@@ -1,6 +1,6 @@
 
 using ..Individuals.Prune: print_full_summaries, print_prune_summaries
-using ..Counters: Counter, count!
+using ..Counters: Counter, step!
 using ..Abstract.States: get_generation
 using ..Genotypes: get_size
 using ..Abstract.States: get_rng, get_individual_id_counter, get_gene_id_counter

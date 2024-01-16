@@ -84,9 +84,9 @@ function add_function(
     terminals::Dict{Terminal, Int},
     ::Float64,
 )
-    newnode_id = count!(gene_id_counter) # Increment spawn counter to find unique gene id
+    newnode_id = step!(gene_id_counter) # Increment spawn counter to find unique gene id
     newnode_val, n_arguments = rand(rng, functions) # Choose a random function and number of args
-    new_child_ids = count!(gene_id_counter, n_arguments)
+    new_child_ids = step!(gene_id_counter, n_arguments)
     new_child_vals = Terminal[rand(rng, keys(terminals)) for _ in 1:n_arguments] # Choose random terminals
     # The new node is added to the genotype without a parent
     add_function(geno, newnode_id, newnode_val, new_child_ids, new_child_vals)

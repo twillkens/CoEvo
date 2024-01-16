@@ -3,7 +3,7 @@ module Archive
 export ArchiveSpecies, get_individuals, get_individual
 
 import ....Interfaces: get_individuals, get_individuals_to_evaluate, get_individuals_to_perform
-import ....Interfaces: convert_to_dictionary
+import ....Interfaces: convert_to_dict
 using ....Abstract
 using ....Utilities: find_by_id
 
@@ -34,13 +34,20 @@ Base.getindex(species::ArchiveSpecies, id::Int) = begin
     return first(filter(individual -> individual.id == id, get_individuals(species)))
 end
 
-function convert_to_dictionary(species::ArchiveSpecies)
-    return Dict(
+function convert_to_dict(species::ArchiveSpecies)
+    dict = Dict(
         "ID" => species.id,
-        "P" => Dict(individual.id => convert_to_dictionary(individual) for individual in species.population),
-        "A" => Dict(individual.id => convert_to_dictionary(individual) for individual in species.archive),
-        "A_IDS" => [individual.id for individual in species.active_archive_individuals]
+        "POPULATION" => Dict(
+            individual.id => convert_to_dict(individual) 
+            for individual in species.population
+        ),
+        "ARCHIVE" => Dict(
+            individual.id => convert_to_dict(individual) 
+            for individual in species.archive
+        ),
+        "ARCHIVE_IDS" => [individual.id for individual in species.active_archive_individuals]
     )
+    return dict
 end
 
 end

@@ -7,7 +7,7 @@ using StableRNGs: StableRNG
 using CoEvo.Names
 using CoEvo.Genotypes.SimpleFunctionGraphs
 using CoEvo.Mutators.BinomialFunctionGraphs
-using CoEvo.Counters: count!
+using CoEvo.Counters: step!
 using CoEvo.Counters.Basic: BasicCounter
 using CoEvo.Recombiners.HorizontalGeneTransfer
 using ProgressBars
@@ -119,7 +119,7 @@ end
 #
 #    # Update node IDs
 #    for node in nodes
-#        new_id = count!(counter)
+#        new_id = step!(counter)
 #        id_map[node.id] = new_id
 #        node.id = new_id
 #    end
@@ -179,7 +179,7 @@ end
 #            state
 #        )
 #        child = ModesIndividual(
-#            count!(individual_id_counter), recipient.id, recipient.tag, genotype, 
+#            step!(individual_id_counter), recipient.id, recipient.tag, genotype, 
 #        )
 #        push!(children, child)
 #    end

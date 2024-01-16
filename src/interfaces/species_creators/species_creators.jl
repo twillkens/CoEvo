@@ -1,35 +1,30 @@
-export create_species
+export create_species, update_species!, create_from_dict
 
 using ..Abstract
 
-function create_species(species_creator::SpeciesCreator, state::State)::AbstractSpecies
+function create_species(species_creator::SpeciesCreator, id::String, state::State)
     species_creator = typeof(species_creator)
+    id = typeof(id)
     state = typeof(state)
-    throw(ErrorException(
-        "`create_species` not implemented for species creator $species_creator with state $state"
-        )
-    )
+    error("`create_species` not implemented for $species_creator, $id, $state")
 end
 
-function create_species(
-    species_creator::SpeciesCreator, species::AbstractSpecies, state::State
-)::AbstractSpecies
-    species_creator = typeof(species_creator)
-    state = typeof(state)
-    throw(ErrorException(
-        "`create_species` not implemented for species $species_creator with state $state"
-        )
-    )
-end
-
-function create_species(
-    species_creators::Vector{<:SpeciesCreator},
-    all_species::Vector{<:AbstractSpecies},
+function update_species!(
+    species::AbstractSpecies, 
+    species_creator::SpeciesCreator, 
+    evaluation::Evaluation,
     state::State
 )
-    species = [
-        create_species(species_creator, species, state)
-        for (species_creator, species) in zip(species_creators, all_species)
-    ]
-    return species
+    species = typeof(species)
+    species_creator = typeof(species_creator)
+    evaluation = typeof(evaluation)
+    state = typeof(state)
+    error("`update_species!` not implemented for $species, $species_creator, $evaluation, $state")
+end
+
+function create_from_dict(species_creator::SpeciesCreator, dict::Dict, state::State)
+    species_creator = typeof(species_creator)
+    dict = typeof(dict)
+    state = typeof(state)
+    error("`create_from_dict` not implemented for $species_creator, $dict, $state")
 end

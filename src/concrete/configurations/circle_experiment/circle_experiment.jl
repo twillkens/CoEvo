@@ -12,4 +12,6 @@ include("evaluators/evaluators.jl")
 
 include("archivers/archivers.jl")
 
+include("states/states.jl")
+
 end

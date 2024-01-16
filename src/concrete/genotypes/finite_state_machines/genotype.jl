@@ -4,7 +4,7 @@ import ....Interfaces: create_genotypes
 import Base: length, ==, hash
 
 using ....Abstract: Genotype, GenotypeCreator, Counter, AbstractRNG
-using ....Interfaces: count!
+using ....Interfaces: step!
 
 """
     FiniteStateMachineGenotype{T}
@@ -86,7 +86,7 @@ function create_genotype(
     rng::AbstractRNG,
     gene_id_counter::Counter,
 )
-    id = count!(gene_id_counter)
+    id = step!(gene_id_counter)
     start_state_label = rand(rng, Bool)
     genotype = create_genotype(genotype_creator, id, start_state_label)
     return genotype

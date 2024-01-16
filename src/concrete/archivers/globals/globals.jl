@@ -13,11 +13,11 @@ end
 
 function archive!(::GlobalStateArchiver, state::State)
     rng_state = string(state.rng.state)
-    current_individual_id = state.individual_id_counter.current_value
-    current_gene_id = state.gene_id_counter.current_value
-    reproduction_time = state.reproduction_time
-    simulation_time = state.simulation_time
-    evaluation_time = state.evaluation_time
+    current_individual_id = state.reproducer.individual_id_counter.current_value
+    current_gene_id = state.reproducer.gene_id_counter.current_value
+    reproduction_time = state.timers.reproduction_time
+    simulation_time = state.timers.simulation_time
+    evaluation_time = state.timers.evaluation_time
     generation = state.generation
     trial = state.id
     ecosystem_id = state.ecosystem.id

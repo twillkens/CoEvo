@@ -34,7 +34,7 @@ function create_individuals(
     genotypes = create_genotypes(
         genotype_creator, rng, gene_id_counter, n_individuals
     )
-    individual_ids = count!(individual_id_counter, n_individuals)
+    individual_ids = step!(individual_id_counter, n_individuals)
     individuals = [
         BasicIndividual(individual_id, genotype, [individual_id]) 
         for (individual_id, genotype) in zip(individual_ids, genotypes)

@@ -8,6 +8,7 @@ import ....Interfaces: create_genotypes
 using Random: AbstractRNG
 using HDF5: Group
 using ....Abstract: Counter, Genotype, GenotypeCreator
+using ....Abstract
 
 abstract type VectorGenotype <: Genotype end
 
@@ -49,10 +50,8 @@ function create_genotype(creator::BasicVectorGenotypeCreator, ::AbstractRNG, ::C
 end
 
 function create_genotypes(
-    genotype_creator::BasicVectorGenotypeCreator, 
-    ::AbstractRNG, 
-    ::Counter, 
-    n_population::Int
+    genotype_creator::BasicVectorGenotypeCreator, n_population::Int, ::State
+    
 )
     genotypes = [BasicVectorGenotype(genotype_creator.default_vector) for _ in 1:n_population]
     return genotypes
@@ -85,10 +84,7 @@ Creates a list of vector genotypes, where each genotype has a scalar value from 
 defined by the `ScalarRangeGenotypeCreator`.
 """
 function create_genotypes(
-    genotype_creator::ScalarRangeGenotypeCreator,
-    ::AbstractRNG,
-    ::Counter,
-    n_population::Int
+    genotype_creator::ScalarRangeGenotypeCreator, n_population::Int, ::State
 )
     step_size = (genotype_creator.stop_value - genotype_creator.start_value) / (n_population - 1)
     scalars = collect(range(
@@ -100,9 +96,5 @@ function create_genotypes(
     return genotypes
 end
 
-function load_genotype(::BasicVectorGenotypeCreator, genotype_group::Group)
-    genes = genotype_group["genes"]
-    return BasicVectorGenotype(genes)
-end
 
 end

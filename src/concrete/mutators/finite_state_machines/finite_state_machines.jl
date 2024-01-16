@@ -124,12 +124,12 @@ function mutate(
 end
 
 function new_state!(gene_id_counter::Counter, ::FiniteStateMachineGenotype{String})
-    state = string(count!(gene_id_counter))
+    state = string(step!(gene_id_counter))
     return state
 end
 
 function new_state!(gene_id_counter::Counter, ::FiniteStateMachineGenotype{Int})
-    state = count!(gene_id_counter)
+    state = step!(gene_id_counter)
     return state
 end
 

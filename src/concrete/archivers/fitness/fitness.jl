@@ -38,13 +38,12 @@ function archive!(::FitnessArchiver, state::State)
     if isempty(records)
         return
     end
-    archive_directory = state.archive_directory
+    archive_directory = state.configuration.archive_directory
     csv_path = "$(archive_directory)/fitnesses.csv"
     # Convert records to a DataFrame
     df = DataFrame(records)
 
     # Check if the CSV file exists
-    csv_path = "$(state.archive_directory)/fitnesses.csv"
     if isfile(csv_path)
         # Read existing CSV and append new data
         existing_df = CSV.read(csv_path, DataFrame)

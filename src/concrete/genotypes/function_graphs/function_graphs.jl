@@ -13,11 +13,11 @@ function graphs,
 """
 module FunctionGraphs
 
-import ....Interfaces: create_genotypes, get_size, minimize, load_genotype
+import ....Interfaces: create_genotypes, get_size, minimize
 
 using Base: @kwdef
 using ....Abstract: Genotype, GenotypeCreator, AbstractRNG, Counter
-using ....Interfaces: count!
+using ....Interfaces: step!
 
 include("function_map.jl")
 
