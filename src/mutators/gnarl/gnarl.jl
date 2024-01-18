@@ -42,9 +42,19 @@ function add_node(geno::GnarlNetworkGenotype, gene_id::Int, position::Float32)
     return genotype
 end
 
+position_in_geno(geno::GnarlNetworkGenotype, position::Float32) =
+    any(x -> x.position == position, geno.hidden_nodes)
 function add_node(rng::AbstractRNG, gene_id_counter::Counter, geno::GnarlNetworkGenotype)
     gene_id = count!(gene_id_counter)
-    position = Float32(rand(rng))
+    # Samples a unique position for the genotype.
+    # This could break with sexual reproduction, if
+    # two parents have nodes with the same position
+    # and the child inherits both, but we don't
+    # support sexual reproduction yet.
+    position = rand(rng, Float32)
+    while position_in_geno(geno, position)
+        position = rand(rng, Float32)
+    end
     geno = add_node(geno, gene_id, position)
     return geno
 end
