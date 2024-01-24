@@ -5,17 +5,54 @@ using CoEvo.Interfaces
 using CoEvo.Utilities
 using CoEvo.Concrete.Archivers.Ecosystems: EcosystemArchiver
 using HDF5
+using Profile
+using PProf
 
 ENV["COEVO_TRIAL_DIR"] = "trials"
 
 rm("trials/1", force = true, recursive = true)
-#file = open("trials/1.out", "w")
-#redirect_stdout(file)
+file = open("test/circle/debug.out", "w")
+redirect_stdout(file)
 #configuration = CircleExperimentConfiguration()
-configuration = CircleExperimentConfiguration(n_generations = 1000, checkpoint_interval = 100)
+configuration = CircleExperimentConfiguration(
+    n_generations = 20_000, checkpoint_interval = 100, seed = 777, species = "small_archive",
+    n_workers_per_ecosystem = 5
+)
 
 state = evolve(configuration)
-#close(file)
+close(file)
+
+function benchmark()
+    ENV["COEVO_TRIAL_DIR"] = "trials"
+
+    rm("trials/1", force = true, recursive = true)
+    file = open("test/circle/debug.out", "w")
+    redirect_stdout(file)
+    #configuration = CircleExperimentConfiguration()
+    Profile.Allocs.clear()
+    configuration = CircleExperimentConfiguration(
+        n_generations = 50, checkpoint_interval = 5, seed = 777, species = "small_archive",
+        n_workers_per_ecosystem = 5
+    )
+
+    Profile.Allocs.@profile state = evolve(configuration)
+    close(file)
+
+    rm("trials/1", force = true, recursive = true)
+    file = open("test/circle/debug.out", "w")
+    redirect_stdout(file)
+    Profile.Allocs.clear()
+    configuration = CircleExperimentConfiguration(
+        n_generations = 500, checkpoint_interval = 100, seed = 777, species = "small_archive",
+        n_workers_per_ecosystem = 5
+    )
+
+    Profile.Allocs.@profile state = evolve(configuration)
+    close(file)
+    PProf.Allocs.pprof()
+end
+
+#benchmark()
 
 #rm("trials/1", force = true, recursive = true)
 #

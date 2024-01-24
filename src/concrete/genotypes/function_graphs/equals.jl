@@ -3,31 +3,44 @@ export depth_first_search!, get_label_sequence
 import Base: ==, hash
 
 function depth_first_search!(
+    label_sequence::Vector{String},
     genotype::FunctionGraphGenotype, 
     node_id::Int, 
     visited::Dict{Int, Bool}, 
-    label_sequence::Vector{String}
 )
-    func_string = string(genotype.nodes[node_id].func, "_")
+    current_node = find_node(genotype, node_id)
+    func_string = string(current_node.func)
     push!(label_sequence, func_string)
     visited[node_id] = true
-    for connection in genotype.nodes[node_id].edges
-        if !visited[connection.target]
-            node_id = connection.target
-            depth_first_search!(genotype, node_id, visited, label_sequence)
+
+    for edge in current_node.edges
+        # Append edge recurrency information to the label sequence
+        edge_info = edge.is_recurrent ? "R" : "N"
+        push!(label_sequence, edge_info)
+
+        if !visited[edge.target]
+            depth_first_search!(label_sequence, genotype, edge.target, visited)
         end
     end
 end
 
 function get_label_sequence(genotype::FunctionGraphGenotype)
-    visited = Dict{Int, Bool}([(id, false) for id in keys(genotype.nodes)])
+    visited = Dict{Int, Bool}([(node.id, false) for node in genotype.nodes])
     label_sequence = String[]
-    for output_id in genotype.output_node_ids
-        depth_first_search!(genotype, output_id, visited, label_sequence)
+
+    for output_node in filter(node -> node.is_output, genotype.nodes)
+        depth_first_search!(genotype, output_node.id, visited, label_sequence)
     end
-    label_sequence = join(label_sequence, "_")
-    return label_sequence
+
+    return join(label_sequence, "_")
 end
+
+
+# Helper function to find a node by its ID
+function find_node(genotype::FunctionGraphGenotype, node_id::Int)
+    return findfirst(node -> node.id == node_id, genotype.nodes)
+end
+
 
 function ==(genotype_1::FunctionGraphGenotype, genotype_2::FunctionGraphGenotype)
     if length(genotype_1.nodes) != length(genotype_2.nodes)

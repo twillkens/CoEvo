@@ -1,110 +1,19 @@
-export PruneIndividual, prune_species, merge_dicts, safe_median, get_node_medians
-export update_individual!, print_min_summaries, print_prune_summaries
+export prune_species, merge_dicts, safe_median, get_node_medians
 
 using StatsBase: median
 using ....Abstract
 using ....Interfaces
-using ...Phenotypes.FunctionGraphs: FunctionGraphPhenotype
-using ...Genotypes.FunctionGraphs: FunctionGraphGenotype
-using ...Genotypes.FunctionGraphs: substitute_node_with_bias_connection
 using ...Individuals.Modes: ModesIndividual
 using ...Ecosystems.Simple: SimpleEcosystem
+using ...Genotypes.FunctionGraphs: substitute_node_with_bias_connection
 using ...Species.Basic: BasicSpecies
+using ...Performers.Basic: BasicPerformer
+using ...Simulators.Basic: BasicSimulator
 
-Base.@kwdef mutable struct PruneIndividual{G <: Genotype, P <: Phenotype} <: Individual
-    id::Int
-    full_genotype::G
-    full_fitness::Float64
-    genes_to_check::Vector{Int}
-    current_genotype::G
-    current_fitness::Float64
-    current_node_medians::Dict{Int, Float32}
-    candidate_genotype::G
-    phenotype::P
+mutable struct PruneJob
+    node_id::Int
+    to_substitute_value::Float32
 end
-
-function PruneIndividual(
-    individual::ModesIndividual, 
-    observations::Vector{<:Observation}, 
-    evaluation::Evaluation,
-    state::State
-)
-   println("individual.id = ", individual.id)
-   current_fitness = first(filter(x -> x.id == individual.id, evaluation.records)).scaled_fitness
-   println("current_fitness = ", current_fitness)
-   current_node_medians = get_node_medians(individual, observations)
-   println("current_node_medians = ", current_node_medians)
-    if get_size(individual.minimized_genotype) == 0
-        println("get_size(individual.minimized_genotype) == 0")
-        return PruneIndividual(
-            id = individual.id,
-            full_genotype = individual.full_genotype,
-            full_fitness = current_fitness,
-            current_genotype = individual.minimized_genotype,
-            current_fitness = current_fitness,
-            current_node_medians = current_node_medians,
-            candidate_genotype = individual.minimized_genotype,
-            genes_to_check = Int[],
-            phenotype = individual.phenotype,
-        )
-    else
-        println("get_size(individual.minimized_genotype) != 0")
-        genes_to_check = [node.id for node in individual.minimized_genotype.hidden_nodes]
-        println("genes_to_check = ", genes_to_check)
-        gene_to_check = popfirst!(genes_to_check)
-        println("gene_to_check = ", gene_to_check)
-        candidate_genotype = substitute_node_with_bias_connection(
-            individual.minimized_genotype, gene_to_check, current_node_medians[gene_to_check]
-        )
-        println("creating phenotype")
-        phenotype = create_phenotype(
-            state.reproducer.phenotype_creator, 
-            individual.id,
-            candidate_genotype
-        )
-        return PruneIndividual(
-            id = individual.id,
-            full_genotype = individual.minimized_genotype,
-            full_fitness = current_fitness,
-            genes_to_check = genes_to_check,
-            current_genotype = individual.minimized_genotype,
-            current_fitness = current_fitness,
-            current_node_medians = current_node_medians,
-            candidate_genotype = candidate_genotype,
-            phenotype = phenotype,
-        )
-    end
-end
-
-#function merge_dicts(dicts::Vector{Dict{Int, Vector{Float32}}})
-#    merged = Dict{Int, Vector{Float32}}()
-#    for dict in dicts
-#        for (key, value) in dict
-#            if haskey(merged, key)
-#                append!(merged[key], value)
-#            else
-#                merged[key] = value
-#            end
-#        end
-#    end
-#
-#    return merged
-#end
-
-#function get_node_medians(individual::Individual, observations::Vector{<:Observation})
-#    individual_state_dicts = [
-#        observation.all_phenotype_states[individual.id] 
-#        for observation in observations 
-#            if individual.id in keys(observation.all_phenotype_states)
-#    ]
-#    node_states = merge_dicts(individual_state_dicts)
-#    node_medians = Dict(
-#        node_id => safe_median(node_states[node_id]) 
-#        for node_id in keys(node_states)
-#    )
-#    return node_medians
-#end
-
 
 function safe_median(values::Vector{Float32})
     median_value = median(values)
@@ -115,16 +24,15 @@ function safe_median(values::Vector{Float32})
     end
     return median_value
 end
+
 function merge_dicts(dicts::Vector{Dict{Int, Vector{Float32}}})
     merged = Dict{Int, Vector{Float32}}()
-
     for dict in dicts
         for (key, value) in dict
             merged_value = get!(merged, key, Vector{Float32}())
             append!(merged_value, value)
         end
     end
-
     return merged
 end
 
@@ -146,123 +54,140 @@ function get_node_medians(individual::Individual, observations::Vector{<:Observa
     return node_medians
 end
 
-
-function update_individual!(
-    individual::PruneIndividual, 
-    observations::Vector{<:Observation}, 
-    evaluation::Evaluation,
-    state::State
-)
-   candidate_fitness = first(filter(x -> x.id == individual.id, evaluation.records)).scaled_fitness
-   candidate_node_medians = get_node_medians(individual, observations)
-   if candidate_fitness >= individual.current_fitness
-       individual.current_genotype = individual.candidate_genotype
-       individual.current_fitness = candidate_fitness
-       individual.current_node_medians = candidate_node_medians
-   end
-    if length(individual.genes_to_check) == 0
-        return individual
-    end
-    gene_to_check = popfirst!(individual.genes_to_check)
-    candidate_genotype = substitute_node_with_bias_connection(
-        individual.current_genotype, 
-        gene_to_check, 
-        individual.current_node_medians[gene_to_check]
-    )
-    phenotype = create_phenotype(
-        state.reproducer.phenotype_creator, 
-        individual.id,
-        candidate_genotype
-    )
-    individual.candidate_genotype = candidate_genotype
-    individual.phenotype = phenotype
-end
-
-
-function print_min_summaries(species_id::String, new_modes_pruned::Vector{<:PruneIndividual})
-    ids = [individual.id for individual in new_modes_pruned]
-    sizes = [get_size(individual.full_genotype) for individual in new_modes_pruned]
-    fitnesses = [round(individual.full_fitness, digits = 3) for individual in new_modes_pruned]
-    summaries = [
-        (id, size, fitness) 
-        for (id, size, fitness) in zip(ids, sizes, fitnesses)
+# Create PruneJobs for a given individual
+function create_prune_jobs(individual::Individual, node_medians::Dict{Int, Float32})
+    prune_jobs = [
+        PruneJob(node.id, node_medians[node.id]) 
+        for node in individual.minimized_genotype.hidden_nodes
     ]
-    println("$(species_id)_min = $summaries")
+    return prune_jobs
 end
 
-function print_prune_summaries(species_id::String, new_pruned::Vector{<:PruneIndividual})
-    ids = [individual.id for individual in new_pruned]
-    sizes = [get_size(individual.current_genotype) for individual in new_pruned]
-    fitnesses = [individual.current_fitness for individual in new_pruned]
+function get_hidden_node_ids(individual::Individual)
+    # Assuming `hidden_nodes` is a property of the genotype that lists hidden node IDs
+    return [node.id for node in individual.minimizd_genotype.hidden_nodes]
+end
+
+function create_candidate(individual::ModesIndividual, job::PruneJob, state::State)
+    genotype = substitute_node_with_bias_connection(
+        individual.minimized_genotype, job.node_id, job.to_substitute_value
+    )
+    individual = ModesIndividual(
+        id = individual.id,
+        parent_id = individual.parent_id,
+        tag = individual.tag,
+        full_genotype = individual.full_genotype,
+        minimized_genotype = minimize(genotype),
+        phenotype = create_phenotype(state.reproducer.phenotype_creator, individual.id, genotype)
+    )
+    return individual
+end
+
+function create_modes_simulator(individual::ModesIndividual, state::State)
+    simulator = BasicSimulator(
+        interactions = state.simulator.interactions,
+        matchmaker = state.simulator.matchmaker,
+        job_creator = state.simulator.job_creator,
+        performer = BasicPerformer(state.simulator.performer.n_workers),
+    )
+    for interaction in simulator.interactions
+        interaction.observer.is_active = true
+        interaction.observer.ids_to_observe = [individual.id]
+    end
+    return simulator
+end
+
+using Serialization
+
+function get_node_medians_and_fitness(
+    species::BasicSpecies, individual::ModesIndividual, opponents::BasicSpecies, state::State
+)
+    simulator = create_modes_simulator(individual, state)
+    ecosystem = SimpleEcosystem(1, [BasicSpecies(species.id, [individual]), opponents])
+    try
+        results = simulate(simulator, ecosystem, state )
+        observations = [result.observation for result in results]
+        node_medians = get_node_medians(individual, observations)
+        evaluation = first(evaluate(ScalarFitnessEvaluator(), ecosystem, results, state))
+        fitness = first(filter(x -> x.id == individual.id, evaluation.records)).scaled_fitness
+        return node_medians, fitness
+    catch e
+        simulator_file = open("test/circle/simulator.jls", "w")
+        serialize(simulator_file, simulator)
+        close(simulator_file)
+        ecosystem_file = open("test/circle/ecosystem.jls", "w")
+        serialize(ecosystem_file, ecosystem)
+        close(ecosystem_file)
+        throw(e)
+    end
+
+end
+
+function update_prune_jobs!(prune_jobs::Vector{PruneJob}, node_medians::Dict{Int, Float32})
+    for job in prune_jobs
+        if haskey(node_medians, job.node_id)
+            job.to_substitute_value = node_medians[job.node_id]
+        end
+    end
+end
+
+function print_summaries(species::BasicSpecies, fitnesses::Dict{Int, Float64}, tag::String)
     summaries = [
-        (id, size, round(fitness; digits = 3)) 
-        for (id, size, fitness) in zip(ids, sizes, fitnesses)
+        (
+            individual.id, 
+            get_size(individual.minimized_genotype), 
+            round(fitnesses[individual.id]; digits = 3)
+        ) 
+        for individual in species.population
     ]
     sort!(summaries, by = x -> x[3]; rev = true)
-    println("$(species_id)_prune = ", summaries)
+    println("$(species.id)_$tag = ", summaries)
 end
+
+using Serialization
 
 function prune_species(modes::BasicSpecies, opponents::BasicSpecies, state::State)
-    ecosystem = SimpleEcosystem(1, [modes, opponents])
+    I = typeof(first(modes.population))
+    fully_pruned_individuals = I[]
+    original_fitnesses = Dict{Int, Float64}()
+    pruned_fitnesses = Dict{Int, Float64}()
+    
+    for current_individual in modes.population
+        try
+            node_medians, current_fitness = get_node_medians_and_fitness(modes, current_individual, opponents, state)
+            original_fitnesses[current_individual.id] = current_fitness
+            prune_jobs = create_prune_jobs(current_individual, node_medians)
+            for job in prune_jobs
+                # Perform pruning for the current node
+                try
+                    candidate = create_candidate(current_individual, job, state)
+                    node_medians, candidate_fitness = get_node_medians_and_fitness(
+                        modes, candidate, opponents, state
+                    )
 
-    for interaction in state.simulator.interactions
-        interaction.observer.is_active = true
-        interaction.observer.ids_to_observe = [individual.id for individual in modes.population]
-    end
-    println("starting simulation")
-    results = simulate(state.simulator, ecosystem, state )
-    println("n_results = ", length(results))
-    observations = [result.observation for result in results]
-    println("starting evaluation")
-    evaluation = first(evaluate(ScalarFitnessEvaluator(), ecosystem, results, state))
-
-    println("creating prune individuals")
-    prune_individuals = [
-        PruneIndividual(individual, observations, evaluation, state) 
-        for individual in modes.population
-    ]
-    I = typeof(prune_individuals[1])
-    to_prune = I[]
-    fully_pruned = I[]
-    for individual in prune_individuals
-        if length(individual.genes_to_check) == 0
-            push!(fully_pruned, individual)
-        else
-            push!(to_prune, individual)
-        end
-    end
-    max_iterations = 100
-    current_iteration = 0
-    println("starting pruning")
-
-    while length(to_prune) > 0
-        current_iteration += 1
-        println("current_iteration = ", current_iteration)
-        if current_iteration > max_iterations
-            println("to_prune = ", to_prune)
-            println("fully_pruned = ", fully_pruned)
-            error("Max iterations exceeded")
-        end
-        ecosystem = SimpleEcosystem(1, [BasicSpecies(modes.id, to_prune), opponents])
-        results = simulate(state.simulator, ecosystem, state )
-        observations = [result.observation for result in results]
-        evaluation = first(evaluate(ScalarFitnessEvaluator(), ecosystem, results, state))
-        for individual in to_prune
-            println("genes to check: ", individual.genes_to_check)
-            update_individual!(individual, observations, evaluation, state)
-            println("genes to check after update: ", individual.genes_to_check)
-            if length(individual.genes_to_check) == 0
-                push!(fully_pruned, individual)
-                filter!(x -> x.id != individual.id, to_prune)
+                    if current_fitness == candidate_fitness
+                        update_prune_jobs!(prune_jobs, node_medians)
+                        current_individual = candidate
+                    end
+                catch e
+                    println("Error in pruning: ", e)
+                    println("current_individual = ", current_individual)
+                    println("candidate = ", candidate)
+                    println("job = ", job)
+                    throw(e)
+                end
             end
+            push!(fully_pruned_individuals, current_individual)
+            pruned_fitnesses[current_individual.id] = current_fitness
+        catch e
+            println("Error in initialization: ", e)
+            println("current_individual = ", current_individual)
+            throw(e)
         end
     end
-    print_min_summaries(modes.id, fully_pruned)
-    print_prune_summaries(modes.id, fully_pruned)
-    for interaction in state.simulator.interactions
-        interaction.observer.is_active = false
-        interaction.observer.ids_to_observe = Int[]
-    end
-    return [individual.current_genotype for individual in fully_pruned]
-end
+    pruned_species = BasicSpecies(modes.id, fully_pruned_individuals)
+    print_summaries(modes, original_fitnesses, "original")
+    print_summaries(pruned_species, pruned_fitnesses, "pruned")
 
+    return pruned_species
+end

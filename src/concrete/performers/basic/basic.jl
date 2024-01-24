@@ -5,7 +5,7 @@ export BasicPerformer
 import ....Interfaces: perform
 using ....Abstract
 using ....Interfaces
-
+using Serialization
 using Distributed: remotecall, fetch
 using ...Jobs.Simple: SimpleJob
 
@@ -26,14 +26,21 @@ function perform(::BasicPerformer, job::SimpleJob)
 end
 
 function perform(performer::BasicPerformer, jobs::Vector{<:SimpleJob})
-    if length(jobs) == 1
-        results = perform(performer, jobs[1])
-    else
-        futures = [remotecall(perform, i, performer, job) for (i, job) in enumerate(jobs)]
-        results = [fetch(f) for f in futures]
+    try
+        if length(jobs) == 1
+            results = perform(performer, jobs[1])
+        else
+            futures = [remotecall(perform, i, performer, job) for (i, job) in enumerate(jobs)]
+            results = [fetch(f) for f in futures]
+        end
+        results = vcat(results...)
+        return results
+    catch e
+        f = open("test/circle/jobs.jls", "w")
+        serialize(f, jobs)
+        close(f)
+        throw(e)
     end
-    results = vcat(results...)
-    return results
 end
 
 end

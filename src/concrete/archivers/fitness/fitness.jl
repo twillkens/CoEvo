@@ -31,7 +31,7 @@ function archive!(::FitnessArchiver, state::State)
         maximum_value = round(measurements["maximum"]; digits = 3)
         minimum_value = round(measurements["minimum"]; digits = 3)
         std_value     = round(measurements["std"]; digits = 3)
-        println("fitness_$id: mean: $mean_value, min: $minimum_value, max: $maximum_value, std: $std_value)")
+        println("fitness_$id: mean: $mean_value, min: $minimum_value, max: $maximum_value, std: $std_value")
         record = merge(Dict("id" => id, "generation" => state.generation), measurements)
         push!(records, record)
     end

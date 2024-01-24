@@ -10,57 +10,7 @@ using ...States.Basic: BasicEvolutionaryState, Timers
 using ...Archivers.Ecosystems: EcosystemArchiver
 using ...Counters.Step: StepCounter
 
-function create_primer(config::CircleExperimentConfiguration, generation::Int, rng::AbstractRNG)
-    reproducer = create_reproducer(config)
-    simulator = create_simulator(config)
-    evaluator = create_evaluator(config)
-    primer_state = PrimerState(
-        id = config.id, 
-        configuration = config, 
-        generation = generation,
-        rng = rng, 
-        reproducer = reproducer,
-        simulator = simulator,
-        evaluator = evaluator
-    )
-    return primer_state
-end
 
-create_primer(config::CircleExperimentConfiguration) = create_primer(config, 1, StableRNG(config.seed))
-
-function create_state(config::CircleExperimentConfiguration)
-    state = create_primer(config)
-    ecosystem, reproduction_time = create_ecosystem_with_time(state)
-    #sort!(ecosystem.all_species, by = x -> x.id)
-    rng_state_after_reproduction = string(state.rng.state)
-    #println("rng_state_after_reproduction = $rng_state_after_reproduction")
-    results, simulation_time = simulate_with_time(state.simulator, ecosystem, state)
-    evaluations, evaluation_time = evaluate_with_time(state.evaluator, ecosystem, results, state)
-    #println("rng_state_after_evaluation = $(state.rng.state)")
-    archivers = create_archivers(config)
-    timers = Timers(reproduction_time, simulation_time, evaluation_time)
-
-    state = BasicEvolutionaryState(
-        id = config.id,
-        configuration = config,
-        generation = 1,
-        rng = state.rng,
-        rng_state_after_reproduction = rng_state_after_reproduction,
-        reproducer = state.reproducer,
-        simulator = state.simulator,
-        evaluator = state.evaluator,
-        ecosystem = ecosystem,
-        results = results,
-        evaluations = evaluations,
-        archivers = archivers,
-        checkpoint_interval = config.checkpoint_interval,
-        timers = timers
-    )
-    for archiver in state.archivers
-        archive!(archiver, state)
-    end
-    return state
-end
 
 function convert_to_dict(state::BasicEvolutionaryState, ::CircleExperimentConfiguration)
     println("saving_rng_state = $(state.rng_state_after_reproduction)")

@@ -48,6 +48,14 @@ include("species_creators/species_creators.jl")
 using .SpeciesCreators: SpeciesCreators
 println("loaded species creators")
 
+include("ecosystems/ecosystems.jl")
+using .Ecosystems: Ecosystems
+println("loaded ecosystems")
+
+include("reproducers/reproducers.jl")
+using .Reproducers: Reproducers
+
+println("loaded reproducers")
 include("domains/domains.jl")
 using .Domains: Domains
 println("loaded domains")
@@ -86,22 +94,13 @@ println("loaded performers")
 
 #include("modes/modes.jl")
 #using .Modes: Modes
-
-include("ecosystems/ecosystems.jl")
-using .Ecosystems: Ecosystems
-println("loaded ecosystems")
+include("simulators/simulators.jl")
+using .Simulators: Simulators
+println("loaded simulators")
 
 include("archivers/archivers.jl")
 using .Archivers: Archivers
 println("loaded archivers")
-
-include("reproducers/reproducers.jl")
-using .Reproducers: Reproducers
-println("loaded reproducers")
-
-include("simulators/simulators.jl")
-using .Simulators: Simulators
-println("loaded simulators")
 
 include("states/states.jl")
 using .States: States

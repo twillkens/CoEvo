@@ -2,7 +2,7 @@ module Stateless
 
 export StatelessEnvironment, StatelessEnvironmentCreator
 
-import ....Interfaces: create_environment, is_active, get_phenotypes
+import ....Interfaces: create_environment, is_active, get_phenotypes, get_outcome_set
 
 using ....Abstract: Environment, EnvironmentCreator, Domain, Phenotype
 using ...Domains.NumbersGame: NumbersGameDomain

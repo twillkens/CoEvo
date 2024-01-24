@@ -22,7 +22,7 @@ function archive!(::GlobalStateArchiver, state::State)
     trial = state.id
     ecosystem_id = state.ecosystem.id
 
-    println("------Trial: $trial, Generation: $generation, Ecosystem: $ecosystem_id------)")
+    println("------Trial: $trial, Generation: $generation, Ecosystem: $ecosystem_id------")
     println("worker_id = $(myid())")
     println("rng_state = $rng_state")
     println("individual_id: $current_individual_id, gene_id: $current_gene_id")

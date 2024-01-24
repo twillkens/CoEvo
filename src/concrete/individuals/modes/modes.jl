@@ -3,12 +3,8 @@ module Modes
 export ModesIndividual, ModesIndividualCreator, create_individuals
 
 import ....Interfaces: create_individuals, convert_to_dict, create_from_dict, mutate!
-
-using Random: AbstractRNG
-using StatsBase: median
 using ....Abstract
 using ....Interfaces
-using ....Interfaces: step!
 
 Base.@kwdef mutable struct ModesIndividual{G <: Genotype, P <: Phenotype} <: Individual
     id::Int

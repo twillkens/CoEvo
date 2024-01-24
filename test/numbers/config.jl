@@ -1,14 +1,18 @@
-using CoEvo.NewConfigurations.ExperimentConfigurations.NumbersGame: NumbersGameExperimentConfiguration
-using CoEvo.States.Evolutionary: EvolutionaryState, evolve!
+using CoEvo.Concrete.Configurations.NumbersGame
+using CoEvo.Concrete.States.Basic
+using CoEvo.Interfaces
 
 config = NumbersGameExperimentConfiguration(
-    game = "Relativism", 
-    evaluation = "disco", 
-    clusterer = "xmeans", 
+    domain = "CompareOnOneSymmetric", 
+    evaluator_type = "disco", 
+    clusterer_type = "global_kmeans", 
     distance_method = "euclidean", 
-    seed=abs(rand(Int))
+    seed = abs(rand(Int)),
+    archive_type = "basic",
+    n_workers = 1,
+    n_generations = 1000
 )
-state = EvolutionaryState(config)
-println(state)
+state = BasicEvolutionaryState(config)
+#println(state)
 state = evolve!(state)
 println("done")

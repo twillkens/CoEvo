@@ -88,10 +88,10 @@ function update_active_archive_individuals!(
         new_archive_individuals = sample(state.rng, candidates, n_archive_matches)
         empty!(species.active_archive_individuals)
         append!(species.active_archive_individuals, new_archive_individuals)
-        println(
-            "n_archive_matches_$(species.id) = ", n_archive_matches, 
-            ", length(new_archive) = ", length(species.archive)
-        )
+        #println(
+        #    "n_archive_matches_$(species.id) = ", n_archive_matches, 
+        #    ", length(new_archive) = ", length(species.archive)
+        #)
     end
 end
 

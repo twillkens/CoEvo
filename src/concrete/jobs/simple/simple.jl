@@ -62,6 +62,8 @@ function get_ids(matches::Vector{<:Match})
     return ids
 end
 
+using Serialization
+
 function get_phenotype_dict(ecosystem::Ecosystem, ids::Set{Tuple{String, Int}})
     pairs = map(collect(ids)) do (species_id, individual_id)
         species = ecosystem[species_id]
@@ -69,6 +71,14 @@ function get_phenotype_dict(ecosystem::Ecosystem, ids::Set{Tuple{String, Int}})
         return individual.id => individual.phenotype
     end
     phenotype_dict = Dict(pairs)
+    if typeof(phenotype_dict) == Dict{Int, Vector{Float32}}
+        f = open("test/circle/ecosystem.jls", "w")
+        serialize(f, ecosystem)
+        close(f)
+        f = open("test/circle/phenotypes.jls", "w")
+        serialize(f, phenotype_dict)
+        close(f)
+    end
     return phenotype_dict
 end
 

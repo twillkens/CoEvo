@@ -12,6 +12,7 @@ using ..Performers.Basic: BasicPerformer
 Base.@kwdef struct CachePerformer <: Performer 
     n_workers::Int = 1
     cache::Dict{BasicMatch, Result} = Dict{BasicMatch, Result}()
+
 end
 
 function filter_cached_matches(performer::CachePerformer, job::SimpleJob)

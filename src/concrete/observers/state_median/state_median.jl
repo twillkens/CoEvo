@@ -26,11 +26,17 @@ function observe!(
 )
     if phenotype.id in keys(observer.all_phenotype_states)
         for (node, state) in zip(phenotype.nodes, phenotype.current_node_states)
+            if node.id < 0
+                continue
+            end
             push!(observer.all_phenotype_states[phenotype.id][node.id], state)
         end
     else
         observer.all_phenotype_states[phenotype.id] = Dict{Int, Vector{Float32}}()
         for (node, state) in zip(phenotype.nodes, phenotype.current_node_states)
+            if node.id < 0
+                continue
+            end
             observer.all_phenotype_states[phenotype.id][node.id] = [state]
         end
     end
@@ -52,7 +58,9 @@ function create_observation(observer::StateMedianObserver)
     if !observer.is_active
         return StateMedianObservation()
     else
-        return StateMedianObservation(observer.all_phenotype_states)
+        observation = StateMedianObservation(observer.all_phenotype_states)
+        observer.all_phenotype_states = Dict{Int, Dict{Int, Vector{Float32}}}()
+        return observation
     end
 end
 

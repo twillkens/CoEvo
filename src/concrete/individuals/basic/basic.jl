@@ -2,44 +2,51 @@ module Basic
 
 export BasicIndividual, BasicIndividualCreator
 
-import ....Interfaces: create_individuals
+import ....Interfaces: create_individuals, mutate!
 
 using ....Abstract
 using ....Interfaces
+using ...Phenotypes.Defaults: DefaultPhenotypeCreator
 
-struct BasicIndividual{G <: Genotype} <: Individual
+Base.@kwdef mutable struct BasicIndividual{G <: Genotype, P <: Phenotype} <: Individual
     id::Int
+    parent_id::Int
     genotype::G
-    parent_ids::Vector{Int}
+    phenotype::P
 end
 
-function BasicIndividual(genotype::Genotype)
-    return BasicIndividual(0, genotype, [0])
-end
 
 function BasicIndividual(id::Int, genotype::Genotype)
-    return BasicIndividual(id, genotype, [id])
+    phenotype = create_phenotype(DefaultPhenotypeCreator(), id, genotype)
+    individual = BasicIndividual(id, id, genotype, phenotype)
+    return individual
 end
+
+BasicIndividual(genotype::Genotype) = BasicIndividual(0, genotype)
 
 struct BasicIndividualCreator <: IndividualCreator end
 
-function create_individuals(
-    ::BasicIndividualCreator,
-    rng::AbstractRNG,
-    genotype_creator::GenotypeCreator,
-    n_individuals::Int,
-    individual_id_counter::Counter,
-    gene_id_counter::Counter,
-)
+function create_individuals(::BasicIndividualCreator, n_individuals::Int, state::State)
+    ids = step!(state.reproducer.individual_id_counter, n_individuals)
     genotypes = create_genotypes(
-        genotype_creator, rng, gene_id_counter, n_individuals
+        state.reproducer.genotype_creator, n_individuals, state
     )
-    individual_ids = step!(individual_id_counter, n_individuals)
+    phenotypes = [
+        create_phenotype(state.reproducer.phenotype_creator, id, genotype) 
+        for (genotype, id) in zip(genotypes, ids)
+    ]
     individuals = [
-        BasicIndividual(individual_id, genotype, [individual_id]) 
-        for (individual_id, genotype) in zip(individual_ids, genotypes)
+        BasicIndividual(id, id, genotype, phenotype)
+        for (id, genotype, phenotype) in zip(ids, genotypes, phenotypes)
     ]
     return individuals
+end
+
+function mutate!(mutator::Mutator, individual::BasicIndividual, state::State)
+    mutate!(mutator, individual.genotype, state)
+    individual.phenotype = create_phenotype(
+        state.reproducer.phenotype_creator, individual.id, individual.genotype
+    )
 end
 
 end

@@ -40,7 +40,7 @@ function print_genotype_sizes(genotype_sizes, prefix)
         maximum_value = round(measurements["maximum"]; digits = 3)
         minimum_value = round(measurements["minimum"]; digits = 3)
         std_value     = round(measurements["std"]; digits = 3)
-        println("$(prefix)_genotype_size_$id: mean: $mean_value, min: $minimum_value, max: $maximum_value, std: $std_value)")
+        println("$(prefix)_genotype_size_$id: mean: $mean_value, min: $minimum_value, max: $maximum_value, std: $std_value")
     end
 end
 
