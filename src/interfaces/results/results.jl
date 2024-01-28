@@ -26,15 +26,21 @@ end
 #end
 
 
-function get_individual_outcomes(results::Vector{<:Result})
+function get_individual_outcomes(
+    results::Vector{<:Result}; rev = false, to_exclude::Vector{Int} = Int[]
+)
     # Initialize a dictionary to store interaction outcomes between individuals
     individual_outcomes = Dict{Int, Dict{Int, Float64}}()
+    to_exclude = Set(to_exclude)
 
     for result in results
-        outcome_dict = get_individual_outcomes(result)
+        outcome_dict = get_individual_outcomes(result; rev = rev)
         for (id, outcome) in outcome_dict
             # The opposing individual's ID is the one not matching the current ID
             opposing_id = setdiff(result.match.individual_ids, [id])[1]
+            if opposing_id in to_exclude
+                continue
+            end
             
             # If the key doesn't exist in `individual_outcomes`, initialize a new SortedDict 
             # and add the outcome
@@ -44,3 +50,5 @@ function get_individual_outcomes(results::Vector{<:Result})
 
     return individual_outcomes
 end
+
+

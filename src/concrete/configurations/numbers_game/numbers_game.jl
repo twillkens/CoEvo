@@ -3,13 +3,14 @@ module NumbersGame
 export NumbersGameExperimentConfiguration
 
 import ....Interfaces: create_reproducer, create_simulator, create_evaluator, create_archivers
-import ....Interfaces: mutate!, archive!
+import ....Interfaces: mutate!, archive!, create_phenotype, create_genotypes
 using Random: AbstractRNG, randn
 using StatsBase: sample
 using ....Abstract
 using ....Interfaces
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
 using ...Evaluators.NSGAII: NSGAIIEvaluator
+using ...Evaluators.Distinction: DistinctionEvaluator
 using ...Selectors.Tournament: TournamentSelector
 using ...Selectors.FitnessProportionate: FitnessProportionateSelector
 using ...SpeciesCreators.Archive: ArchiveSpeciesCreator
@@ -30,7 +31,7 @@ using ...Performers.Basic: BasicPerformer
 using ...Performers.Cache: CachePerformer
 
 
-Base.@kwdef struct NumbersGameExperimentConfiguration <: Configuration
+Base.@kwdef mutable struct NumbersGameExperimentConfiguration <: Configuration
     id::Int = 1
     evaluator_type::String = "disco"
     domain::String = "COA"
@@ -43,25 +44,144 @@ Base.@kwdef struct NumbersGameExperimentConfiguration <: Configuration
     n_workers::Int = 1
 end
 
+using ....Abstract
+
+Base.@kwdef struct NumbersGameVectorGenotypeCreator{T <: Real} <: GenotypeCreator
+    length::Int = 5
+    init_range::Tuple{T, T} = (0.0, .1)
+end
+
+using ...Genotypes.Vectors: BasicVectorGenotype
+
+function create_genotypes(
+    genotype_creator::NumbersGameVectorGenotypeCreator, n_population::Int, state::State   
+)
+    genotypes = BasicVectorGenotype{Float64}[]
+    for _ in 1:n_population
+        genes = zeros(Float64, genotype_creator.length)
+        init_start = genotype_creator.init_range[1]
+        init_end = genotype_creator.init_range[2]
+        for i in 1:genotype_creator.length
+            genes[i] += rand(state.rng, init_start:0.0001:init_end)
+        end
+        genotype = BasicVectorGenotype(genes)
+        push!(genotypes, genotype)
+    end
+
+    return genotypes
+end
+
+Base.@kwdef struct NumbersGameVectorMutator <: Mutator
+    noise_standard_deviation::Float64 = 0.1
+end
+
+function mutate!(
+    ::NumbersGameVectorMutator, genotype::BasicVectorGenotype{T}, state::State
+) where T
+    #noise_vector = randn(rng, T, length(genotype))
+    indices_to_mutate = sample(1:length(genotype.genes), 2; replace = false)
+    for index in indices_to_mutate
+        genotype.genes[index] += rand(state.rng, -0.1:0.0001:0.1)
+        if genotype.genes[index] < 0.0
+            genotype.genes[index] = 0.0
+        end
+    end
+end
+
+Base.@kwdef struct NumbersGamePhenotypeCreator <: PhenotypeCreator 
+    use_delta::Bool = false
+    delta::Float64 = 0.25
+end
+
+function round_to_nearest_delta(vector::Vector{Float64}, delta::Float64)
+    return [floor(x/delta) * delta for x in vector]
+end
+
+using ...Phenotypes.Vectors: BasicVectorPhenotype
+
+function create_phenotype(
+    phenotype_creator::NumbersGamePhenotypeCreator, id::Int, genotype::BasicVectorGenotype{T}, 
+) where T
+    #println("in_mutate_values_before = ", genotype.genes)
+    if phenotype_creator.use_delta
+        values = round_to_nearest_delta(genotype.genes, phenotype_creator.delta)
+    else
+        values = copy(genotype.genes)
+    end
+    #println("in_mutate_values_after = ", values)
+    return BasicVectorPhenotype(id, values)
+end
+
+struct NumbersGameArchiver <: Archiver end
+
+using Serialization
+
+function archive!(::NumbersGameArchiver, state::State)
+    species = first(state.ecosystem.all_species)
+    println("A_archive_length = ", length(species.archive))
+    s_A = 0.0
+    for individual in species.population
+        s_A += minimum(individual.genotype.genes)
+    end
+    s_A /= length(species.population)
+    s_A = round(s_A, digits=3)
+    species_A_archive_minimums = 0.0
+    for individual in species.archive
+        species_A_archive_minimums += minimum(individual.genotype.genes)
+    end
+    species_A_archive_minimums /= length(species.archive)
+    species_A_archive_minimums = round(species_A_archive_minimums, digits=3)
+
+    species = state.ecosystem.all_species[2]
+    println("B_archive_length = ", length(species.archive))
+    s_B = 0.0
+    for individual in species.population
+        s_B += minimum(individual.genotype.genes)
+    end
+    s_B /= length(species.population)
+    s_B = round(s_B, digits=3)
+    species_B_archive_minimums = 0.0
+    for individual in species.archive
+        species_B_archive_minimums += minimum(individual.genotype.genes)
+    end
+    species_B_archive_minimums /= length(species.archive)
+    species_B_archive_minimums = round(species_B_archive_minimums, digits=3)
+
+    generation = state.generation
+    println("$generation: s_A = $s_A, s_B = $s_B")
+    println("$generation: species_A_archive_minimums = $species_A_archive_minimums, species_B_archive_minimums = $species_B_archive_minimums")
+    if generation % 100 == 0
+        serialize("test/numbers/state.jls", state)
+    end
+end
+
+function create_archivers(::NumbersGameExperimentConfiguration)
+    archivers = [NumbersGameArchiver()]
+    return archivers
+end
+
 function create_reproducer(config::NumbersGameExperimentConfiguration)
+    selector = config.evaluator_type == "roulette" ? 
+        FitnessProportionateSelector(n_parents = 100) : 
+        TournamentSelector(n_parents = 100, tournament_size = 5)
     reproducer = BasicReproducer(
         species_ids = ["A", "B"],
         gene_id_counter = BasicCounter(),
-        genotype_creator = BasicVectorGenotypeCreator([0.0, 0.0, 0.0, 0.0, 0.0]),
+        genotype_creator = NumbersGameVectorGenotypeCreator(),
         recombiner = CloneRecombiner(),
         mutator = NumbersGameVectorMutator(),
-        phenotype_creator = DefaultPhenotypeCreator(),
+        phenotype_creator = NumbersGamePhenotypeCreator(),
         individual_id_counter = BasicCounter(),
         individual_creator = BasicIndividualCreator(),
-        selector = TournamentSelector(n_parents = 100, tournament_size = 5),
+        selector = selector,
         species_creator = ArchiveSpeciesCreator(
-            n_population = 200,
-            n_parents = 100,
-            n_children = 100,
-            n_elites = 100,
-            n_archive = config.archive_type == "none" ? 0 : 5,
+            n_population = 100,
+            n_parents = 50,
+            n_children = 50,
+            n_elites = 50,
+            n_archive = config.archive_type == "none" ? 0 : 10,
             archive_interval = 1,
-            max_archive_length = config.archive_type == "none" ? 0 : 500,
+            max_archive_length = config.archive_type == "none" ? 0 : 10000,
             max_archive_matches = 100,
         ),
         ecosystem_creator = SimpleEcosystemCreator(),
@@ -95,8 +215,16 @@ function create_evaluator(config::NumbersGameExperimentConfiguration)
         return NSGAIIEvaluator(
             maximize = true, 
             perform_disco = true, 
+            include_distinctions = false,
             max_clusters = 5,
             scalar_fitness_evaluator = ScalarFitnessEvaluator(),
+            clusterer = config.clusterer_type,
+            distance_method = config.distance_method
+        )
+    elseif config.evaluator_type == "distinction"
+        return DistinctionEvaluator(
+            maximize = true, 
+            max_clusters = 5,
             clusterer = config.clusterer_type,
             distance_method = config.distance_method
         )
@@ -104,44 +232,6 @@ function create_evaluator(config::NumbersGameExperimentConfiguration)
 
         error("Invalid evaluation method: $(config.evaluator_type)")
     end
-end
-
-Base.@kwdef struct NumbersGameVectorMutator <: Mutator
-    noise_standard_deviation::Float64 = 0.1
-end
-
-function mutate!(
-    ::NumbersGameVectorMutator, genotype::BasicVectorGenotype{T}, state::State
-) where T
-    #noise_vector = randn(rng, T, length(genotype))
-    indices_to_mutate = sample(1:length(genotype.genes), 2; replace = false)
-    for index in indices_to_mutate
-        genotype.genes[index] += rand(state.rng, -0.1:0.0001:0.1)
-    end
-end
-
-struct NumbersGameArchiver <: Archiver end
-
-function archive!(::NumbersGameArchiver, state::State)
-    species = first(state.ecosystem.all_species)
-    println("A_archive_length = ", length(species.archive))
-    s_A = 0.0
-    for individual in species.population
-        s_A += sum(individual.genotype.genes)
-    end
-    species = state.ecosystem.all_species[2]
-    println("B_archive_length = ", length(species.archive))
-    s_B = 0.0
-    for individual in species.population
-        s_B += sum(individual.genotype.genes)
-    end
-    generation = state.generation
-    println("$generation: s_A = $s_A, s_B = $s_B")
-end
-
-function create_archivers(::NumbersGameExperimentConfiguration)
-    archivers = [NumbersGameArchiver()]
-    return archivers
 end
 
 end

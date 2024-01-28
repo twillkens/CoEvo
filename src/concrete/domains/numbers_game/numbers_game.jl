@@ -69,6 +69,18 @@ function measure(::NumbersGameDomain{CompareOnAll}, A::Vector{<:Real}, B::Vector
     return [test_passed, 1 - test_passed]
 end
 
+@kwdef struct CompareOnAllSymmetric <: Metric
+    name::String = "CompareOnAllSymmetric"
+end
+
+function measure(::NumbersGameDomain{CompareOnAllSymmetric}, A::Vector{<:Real}, B::Vector{<:Real})
+    compare_results_A = [v1 >= v2 for (v1, v2) in zip(A, B)]
+    test_passed_A = all(compare_results_A) ? 1.0 : 0.0
+    compare_results_B = [v1 >= v2 for (v1, v2) in zip(B, A)]
+    test_passed_B = all(compare_results_B) ? 1.0 : 0.0
+    return [test_passed_A, test_passed_B]
+end
+
 @kwdef struct CompareOnOne <: Metric
     name::String = "CompareOnOne"
 end
@@ -85,9 +97,9 @@ end
 
 function measure(::NumbersGameDomain{CompareOnOneSymmetric}, A::Vector{<:Real}, B::Vector{<:Real})
     largest_dimension_B = findmax(B)[2]
-    test_passed_A = A[largest_dimension_B] >= B[largest_dimension_B] ? 1.0 : 0.0
+    test_passed_A = A[largest_dimension_B] > B[largest_dimension_B] ? 1.0 : 0.0
     largest_dimension_A = findmax(A)[2]
-    test_passed_B = B[largest_dimension_A] >= A[largest_dimension_A] ? 1.0 : 0.0
+    test_passed_B = B[largest_dimension_A] > A[largest_dimension_A] ? 1.0 : 0.0
     return [test_passed_A, test_passed_B]
 end
 
@@ -99,6 +111,7 @@ function NumbersGameDomain(metric_string::String)
         "Focusing" => Focusing,
         "Relativism" => Relativism,
         "CompareOnAll" => CompareOnAll,
+        "CompareOnAllSymmetric" => CompareOnAllSymmetric,
         "CompareOnOne" => CompareOnOne,
         "CompareOnOneSymmetric" => CompareOnOneSymmetric
     )

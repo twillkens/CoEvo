@@ -1,6 +1,6 @@
 module Vectors
 
-export BasicVectorPhenotype
+export BasicVectorPhenotype, CloneVectorPhenotypeCreator
 
 import ....Interfaces: create_phenotype, act!, reset!
 using ....Abstract
@@ -13,12 +13,14 @@ Base.@kwdef mutable struct BasicVectorPhenotype{T <: Real} <: VectorPhenotype
     values::Vector{T}
 end
 
+struct CloneVectorPhenotypeCreator <: PhenotypeCreator end
+
 function BasicVectorPhenotype(values::Vector{T}) where T
     BasicVectorPhenotype(0, values)
 end
 
 # Extract the vector of genes from a `BasicVectorGenotype` given a certain phenotype configuration.
-function create_phenotype(::PhenotypeCreator, id::Int, genotype::BasicVectorGenotype)
+function create_phenotype(::CloneVectorPhenotypeCreator, id::Int, genotype::BasicVectorGenotype)
     BasicVectorPhenotype(id, genotype.genes)
 end
 

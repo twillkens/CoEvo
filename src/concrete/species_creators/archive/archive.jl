@@ -12,6 +12,7 @@ using StatsBase: sample
 using ...Species.Archive: ArchiveSpecies
 using ...Evaluators.ScalarFitness
 using ...Evaluators.NSGAII
+using ...Evaluators.Distinction: DistinctionEvaluation
 
 Base.@kwdef struct ArchiveSpeciesCreator <: SpeciesCreator
     n_population::Int
@@ -48,52 +49,49 @@ function add_individuals_to_archive!(
     end
 end
 
-function add_individuals_to_archive!(
-    species_creator::ArchiveSpeciesCreator, 
-    species::ArchiveSpecies, 
-    evaluation::NSGAIIEvaluation,
-)
-    best_records = filter(
-        record -> record.rank == 1 && isinf(record.crowding), evaluation.records
-    )
-    best_ids = [record.id for record in best_records]
-    best_individuals = [
-        individual for individual in species.population if individual.id in best_ids
-    ]
-    add_individuals_to_archive!(species_creator, species, best_individuals)
-end
+using StatsBase: sample
 
 function add_individuals_to_archive!(
     species_creator::ArchiveSpeciesCreator, 
     species::ArchiveSpecies, 
-    evaluation::ScalarFitnessEvaluation,
+    evaluation::DistinctionEvaluation,
 )
-    best_records = evaluation.records[1:species_creator.n_archive]
-    best_ids = [record.id for record in best_records]
-    best_individuals = [
-        individual for individual in species.population if individual.id in best_ids
-    ]
+    best_records = evaluation.population_distinction_records[1:species_creator.n_archive]
+    best_individuals = [record.individual for record in best_records]
     add_individuals_to_archive!(species_creator, species, best_individuals)
 end
+
 
 
 function update_active_archive_individuals!(
-    species_creator::ArchiveSpeciesCreator, species::ArchiveSpecies, state::State
+    species_creator::ArchiveSpeciesCreator, 
+    species::ArchiveSpecies, 
+    evaluation::DistinctionEvaluation,
+    state::State
 )
-    if species_creator.max_archive_matches > 0
-        candidates = [
-            individual for individual in species.archive if individual ∉ species.population
-        ]
-        n_archive_matches = min(species_creator.max_archive_matches, length(candidates))
-        new_archive_individuals = sample(state.rng, candidates, n_archive_matches)
-        empty!(species.active_archive_individuals)
-        append!(species.active_archive_individuals, new_archive_individuals)
-        #println(
-        #    "n_archive_matches_$(species.id) = ", n_archive_matches, 
-        #    ", length(new_archive) = ", length(species.archive)
-        #)
+    n_half = species_creator.max_archive_matches ÷ 2
+    n_remove = max(0, length(species.active_archive_individuals) - n_half)
+    to_remove = [
+        record.individual for record in 
+        reverse(evaluation.active_archive_distinction_records)[1:n_remove]
+    ]
+    candidates = [
+        individual for individual in species.archive 
+            if individual ∉ [species.population ; species.active_archive_individuals ]
+    ]
+    filter!(individual -> individual ∉ to_remove, species.active_archive_individuals)
+    n_archive_matches = min(n_half, length(candidates))
+    new_archive_individuals = sample(state.rng, candidates, n_archive_matches; replace = false)
+    empty!(species.active_archive_individuals)
+    append!(species.active_archive_individuals, new_archive_individuals)
+    if length(species.active_archive_individuals) > species_creator.max_archive_matches
+        println("species_creator = $species_creator")
+        println("species = $species")
+        println("evaluation = $evaluation")
+        error("active archive individuals > max_archive_matches")
     end
 end
+
 
 function update_archive!(
     species_creator::ArchiveSpeciesCreator, 
@@ -101,37 +99,37 @@ function update_archive!(
     evaluation::Evaluation,
     state::State
 )
-    using_archive = species_creator.archive_interval > 0
-    is_archive_interval = using_archive && state.generation % species_creator.archive_interval == 0
-    if is_archive_interval
-        add_individuals_to_archive!(species_creator, species, evaluation)
-        update_active_archive_individuals!(species_creator, species, state)
-    end
+    add_individuals_to_archive!(species_creator, species, evaluation)
+    update_active_archive_individuals!(species_creator, species, evaluation, state)
 end
+
+using ...Evaluators.Distinction: DistinctionEvaluation
 
 function update_population!(
     species::ArchiveSpecies, 
     species_creator::ArchiveSpeciesCreator, 
-    evaluation::Evaluation,
+    evaluation::DistinctionEvaluation,
     state::State
 ) 
-    ordered_ids = [record.id for record in evaluation.records]
-    parent_ids = Set(ordered_ids[1:species_creator.n_parents])
-    parent_set = [individual for individual in species.population if individual.id in parent_ids]
-    parents = select(state.reproducer.selector, parent_set, evaluation, state)
-    #println("RNG AFTER SELECT = $(state.rng.state)")
+    parent_records = evaluation.population_outcome_records[1:species_creator.n_parents]
+    parents = [
+        record.individual for record in
+        select(state.reproducer.selector, parent_records, species_creator.n_children, state)
+    ]
     new_children = recombine(state.reproducer.recombiner, parents, state)
-    #println("RNG AFTER RECOMBINE = $(state.rng.state)")
     for child in new_children
         mutate!(state.reproducer.mutator, child, state)
     end
-    #println("RNG AFTER MUTATE = $(state.rng.state)")
     if species_creator.n_elites > 0
-        elite_ids = [record.id for record in evaluation.records[1:species_creator.n_elites]]
-        elites = [individual for individual in species.population if individual.id in elite_ids]
+        elite_records = evaluation.population_outcome_records[1:species_creator.n_elites]
+        elites = [record.individual for record in elite_records]
         new_population = [elites ; new_children]
     else
         new_population = new_children
+    end
+    ids = [individual.id for individual in new_population]
+    if length(ids) != length(Set(ids))
+        error("Duplicate IDs in new population")
     end
     empty!(species.population)
     append!(species.population, new_population)
@@ -145,9 +143,12 @@ function update_species!(
 ) 
     n_population_before = length(species.population)
     update_archive!(species_creator, species, evaluation, state)
-    #println("\nRNG AFTER UPDATE ARCHIVE = $(state.rng.state)")
     update_population!(species, species_creator, evaluation, state)
-    #println("RNG AFTER UPDATE POPULATION = $(state.rng.state)")
+    archive_ids = [individual.id for individual in species.active_archive_individuals]
+    population_ids = [individual.id for individual in species.population]
+    if length(union(archive_ids, population_ids)) != length(archive_ids) + length(population_ids)
+        error("Duplicate IDs in archive and population")
+    end
     n_population_after = length(species.population)
     if n_population_after != n_population_before
         error("Population size changed from $n_population_before to $n_population_after")

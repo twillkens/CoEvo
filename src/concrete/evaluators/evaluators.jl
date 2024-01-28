@@ -11,4 +11,7 @@ using .ScalarFitness: ScalarFitness
 include("nsga-ii/nsga-ii.jl")
 using .NSGAII: NSGAII
 
+include("distinction/distinction.jl")
+using .Distinction: Distinction
+
 end

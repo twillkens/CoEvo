@@ -43,13 +43,6 @@ function run_tournament(rng::AbstractRNG, contenders::Array{<:NSGAIIRecord})
                 return record_2
             else
                 return rand(rng, (record_1, record_2))
-                #if record_1.fitness > record_2.fitness
-                #    return record_1
-                #elseif record_2.fitness > record_1.fitness
-                #    return record_2
-                #else
-                #    return rand(rng, (record_1, record_2))
-                #end
             end
         end
     end
@@ -80,11 +73,31 @@ function select(
     return parents
 end
 
+
 select(
     selector::TournamentSelector,
     new_population::Vector{<:Individual},
     evaluation::Evaluation,
     state::State
 ) = select(selector, state.rng, new_population, evaluation)
+
+
+function select(
+    selector::TournamentSelector, records::Vector{R}, n_select::Int, state::State
+) where {R <: Record}
+    selected = R[]
+    for _ in 1:n_select
+        # Get tournament contenders
+        contenders = sample(
+            state.rng, records, selector.tournament_size, replace = false
+        )
+        # Select a winner from the contenders
+        winner = run_tournament(state.rng, contenders)
+        # Extract the individual associated with the winning record
+        push!(selected, winner)
+    end
+    
+    return selected
+end
 
 end

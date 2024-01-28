@@ -44,6 +44,7 @@ end
 
 function mutate!(mutator::Mutator, individual::BasicIndividual, state::State)
     mutate!(mutator, individual.genotype, state)
+    #println("creating phenotype with $(typeof(state.reproducer.phenotype_creator))")
     individual.phenotype = create_phenotype(
         state.reproducer.phenotype_creator, individual.id, individual.genotype
     )

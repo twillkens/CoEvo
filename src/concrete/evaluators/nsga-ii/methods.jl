@@ -4,8 +4,9 @@ export dominates, fast_non_dominated_sort!, crowding_distance_assignment!
 using ....Abstract
 using ...Criteria: Maximize, Minimize
 
-Base.@kwdef mutable struct NSGAIIRecord
+Base.@kwdef mutable struct NSGAIIRecord{I <: Individual} <: Record
     id::Int = 0
+    individual::I
     fitness::Float64 = 0
     disco_fitness::Float64 = 0
     tests::Vector{Float64} = Float64[]
@@ -83,21 +84,23 @@ function crowding_distance_assignment!(
         let j = j 
             sort!(individuals, by = x -> x.tests[j]) 
         end
+        #TODO check and test this
+        if individuals[1].tests[j] == individuals[end].tests[j]
+            continue
+        end
         individuals[1].crowding = individuals[end].crowding = Inf 
-        if individuals[1].tests[j] != individuals[end].tests[j]
-            for i = 2:length(individuals) - 1
-                greater_neighbor_value = individuals[i + 1].tests[j] 
-                lesser_neighbor_value = individuals[i - 1].tests[j]
-                minimum_value = function_minimums === nothing ? 
-                    individuals[1].tests[j] :
-                    function_minimums[j]
-                maximum_value = function_maximums === nothing ? 
-                    individuals[end].tests[j] :
-                    function_maximums[j]
-                crowding = (greater_neighbor_value - lesser_neighbor_value) / 
-                           (maximum_value - minimum_value)
-                individuals[i].crowding += crowding
-            end
+        for i = 2:length(individuals) - 1
+            greater_neighbor_value = individuals[i + 1].tests[j] 
+            lesser_neighbor_value = individuals[i - 1].tests[j]
+            minimum_value = function_minimums === nothing ? 
+                individuals[1].tests[j] :
+                function_minimums[j]
+            maximum_value = function_maximums === nothing ? 
+                individuals[end].tests[j] :
+                function_maximums[j]
+            crowding = (greater_neighbor_value - lesser_neighbor_value) / 
+                        (maximum_value - minimum_value)
+            individuals[i].crowding += crowding
         end
     end
 end
@@ -130,7 +133,8 @@ function nsga_sort!(
         )
         append!(sorted_indivs, front_indivs)
     end
-    sorted_indivs
+    sorted_indivs = [r for r in sorted_indivs]
+    return sorted_indivs
 end
 
 function nsga_tournament(

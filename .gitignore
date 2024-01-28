@@ -19,6 +19,7 @@ trials/*
 logs/*
 plots/*
 .env
+test/numbers/out.txt
 
 python/gedlibpy/build
 
