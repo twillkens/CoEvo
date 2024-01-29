@@ -32,8 +32,9 @@ function create_species(species_creator::ArchiveSpeciesCreator, id::String, stat
     #TODO: hack for numbers game
     if id == "B"
     #if length(species_creator.max_archive_matches ) > 0
-        archive = create_individuals(individual_creator, species_creator.max_archive_matches, state)
-        active_archive_individuals = copy(archive)
+        archive = create_individuals(individual_creator, 100, state)
+        T = typeof(first(population))
+        active_archive_individuals = T[]
     else
         T = typeof(first(population))
         archive = T[]
@@ -67,7 +68,7 @@ function add_individuals_to_archive!(
     species::ArchiveSpecies, 
     evaluation::DistinctionEvaluation,
 )
-    elite_records = evaluation.population_outcome_records[1:species_creator.n_archive]
+    elite_records = evaluation.population_outcome_records[1:100]
     elites = [record.individual for record in elite_records]
 
     println("adding $(length(elites)) individuals to archive")
@@ -120,44 +121,39 @@ function update_population!(
     evaluation::DistinctionEvaluation,
     state::State
 ) 
-    parent_records = evaluation.population_outcome_records[1:species_creator.n_parents]
     if species.id == "A"
+        parent_records = evaluation.population_outcome_records[1:species_creator.n_parents]
         n_children = 50
-    elseif species.id == "B"
-        n_children = 50
-    else
-        n_children = species_creator.n_children
-    end
-    parents = [
-        record.individual for record in
-        select(state.reproducer.selector, parent_records, n_children, state)
-    ]
-    new_children = recombine(state.reproducer.recombiner, parents, state)
-    for child in new_children
-        mutate!(state.reproducer.mutator, child, state)
-    end
-    if species.id == "A"
-        elite_records = evaluation.population_outcome_records[1:species_creator.n_elites]
-        elites = [record.individual for record in elite_records]
-        new_population = [elites ; new_children]
-    elseif species.id == "B"
-        elite_records = evaluation.population_outcome_records[1:species_creator.n_elites]
-        elites = [record.individual for record in elite_records]
-        new_population = [elites ; new_children]
-        if length(species.archive) > 0
-            candidates = [indiv for indiv in species.archive if indiv ∉ [species.population ; new_population]]
-            n_sample = min(length(candidates), 25)
-            println("sampling $n_sample individuals from archive of length $(length(species.archive)) and adding to population")
-            if n_sample > 0
-                random_individuals = sample(state.rng, candidates, n_sample; replace = false)
-                println("sampled_ids = ", [indiv.id for indiv in random_individuals])
-                new_population[end - n_sample + 1:end] = random_individuals
-
-                #to_remove = reverse(evaluation.population_outcome_records)[1:n_sample]
-                #to_remove_individuals = [record.individual for record in to_remove]
-                #filter!(individual -> individual ∉ to_remove_individuals, species.archive)
-            end
+        parents = [
+            record.individual for record in
+            select(state.reproducer.selector, parent_records, n_children, state)
+        ]
+        new_children = recombine(state.reproducer.recombiner, parents, state)
+        for child in new_children
+            mutate!(state.reproducer.mutator, child, state)
         end
+        elite_records = evaluation.population_outcome_records[1:species_creator.n_elites]
+        elites = [record.individual for record in elite_records]
+        new_population = [elites ; new_children]
+    elseif species.id == "B"
+        elite_records = evaluation.population_outcome_records[1:25]
+        elites = [record.individual for record in elite_records]
+        new_children = recombine(state.reproducer.recombiner, elites, state)
+        for child in new_children
+            mutate!(state.reproducer.mutator, child, state)
+        end
+        new_population = [elites ; new_children]
+        candidates = [indiv for indiv in species.archive if indiv ∉ [species.population ; new_population]]
+        #n_sample = min(length(candidates), 50)
+        n_sample = 25
+        println("sampling $n_sample individuals from candidates of length $(length(candidates)) from archive of length $(length(species.archive)) and adding to population")
+        random_individuals = sample(state.rng, candidates, n_sample; replace = false)
+        println("sampled_ids = ", [indiv.id for indiv in random_individuals])
+        random_children = recombine(state.reproducer.recombiner, random_individuals, state)
+        for child in random_children
+            mutate!(state.reproducer.mutator, child, state)
+        end
+        new_population = [new_population ; random_individuals ; random_children]
     end
     ids = [individual.id for individual in new_population]
     if length(ids) != length(Set(ids))
