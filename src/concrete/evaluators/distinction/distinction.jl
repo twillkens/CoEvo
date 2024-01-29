@@ -212,7 +212,9 @@ function print_records(records::Vector{<:NSGAIIRecord})
         rank = record.rank
         crowding = round(record.crowding, digits = 3)
         tests = round.(record.tests; digits = 3)
-        println("$i: id = $id, rank = $rank, crowd = $crowding, raw_fit = $raw_fitness, fit = $fitness, tests = $tests, geno = $genotype")#, phenotype = $phenotype")
+        # get the index of the maximum value in tests
+        max_index = argmax(individual.genotype.genes)
+        println("$i: id = $id, rank = $rank, crowd = $crowding, raw_fit = $raw_fitness, fit = $fitness, tests = $tests, geno = $genotype, max_index = $max_index")#, phenotype = $phenotype")
     end
 end
 

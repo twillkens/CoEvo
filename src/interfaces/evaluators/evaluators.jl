@@ -80,8 +80,9 @@ function make_outcome_matrix(
     outcome_matrix = SortedDict{Int, Vector{Float64}}()
     for outer_id in outer_ids
         tests = zeros(Float64, length(inner_ids))
-        for inner_id in inner_ids
-            push!(tests, all_outcomes[outer_id][inner_id])
+        for (i, inner_id) in enumerate(inner_ids)
+            tests[i] = all_outcomes[outer_id][inner_id]
+            #push!(tests, all_outcomes[outer_id][inner_id])
         end
         outcome_matrix[outer_id] = tests
     end
@@ -110,7 +111,7 @@ function make_distinction_matrix(
     inner_indivs::Vector{<:Individual},
     results::Vector{<:Result},
 )
-    outcome_matrix = make_outcome_matrix(outer_indivs, inner_indivs, results; rev = true)
+    outcome_matrix = make_outcome_matrix(outer_indivs, inner_indivs, results)
     distinction_matrix = make_distinction_matrix(outcome_matrix)
     return distinction_matrix
 end

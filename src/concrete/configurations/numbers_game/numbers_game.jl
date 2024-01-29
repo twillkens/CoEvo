@@ -81,7 +81,7 @@ function mutate!(
     #noise_vector = randn(rng, T, length(genotype))
     indices_to_mutate = sample(1:length(genotype.genes), 2; replace = false)
     for index in indices_to_mutate
-        genotype.genes[index] += rand(state.rng, -0.1:0.01:0.1)
+        genotype.genes[index] += rand(state.rng, -0.15:0.01:0.1)
         if genotype.genes[index] < 0.0
             genotype.genes[index] = 0.0
         end
@@ -179,10 +179,10 @@ function create_reproducer(config::NumbersGameExperimentConfiguration)
             n_parents = 50,
             n_children = 50,
             n_elites = 50,
-            n_archive = 10,
+            n_archive = 25,
             archive_interval = 1,
             max_archive_length = 10000,
-            max_archive_matches = 100,
+            max_archive_matches = 0,
         ),
         ecosystem_creator = SimpleEcosystemCreator(),
     )

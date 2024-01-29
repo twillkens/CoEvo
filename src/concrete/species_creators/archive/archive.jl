@@ -98,35 +98,6 @@ function update_active_archive_individuals!(
         error("active archive individuals > max_archive_matches")
     end
 end
-#function update_active_archive_individuals!(
-#    species_creator::ArchiveSpeciesCreator, 
-#    species::ArchiveSpecies, 
-#    evaluation::DistinctionEvaluation,
-#    state::State
-#)
-#    n_half = species_creator.max_archive_matches ÷ 2
-#    n_remove = max(0, length(species.active_archive_individuals) - n_half)
-#    to_remove = [
-#        record.individual for record in 
-#        reverse(evaluation.active_archive_distinction_records)[1:n_remove]
-#    ]
-#    candidates = [
-#        individual for individual in species.archive 
-#            if individual ∉ [species.population]
-#    ]
-#    filter!(individual -> individual ∉ to_remove, species.active_archive_individuals)
-#    n_archive_matches = min(n_half, length(candidates))
-#    new_archive_individuals = sample(state.rng, candidates, n_archive_matches; replace = false)
-#    empty!(species.active_archive_individuals)
-#    append!(species.active_archive_individuals, new_archive_individuals)
-#    if length(species.active_archive_individuals) > species_creator.max_archive_matches
-#        println("species_creator = $species_creator")
-#        println("species = $species")
-#        println("evaluation = $evaluation")
-#        error("active archive individuals > max_archive_matches")
-#    end
-#end
-
 
 function update_archive!(
     species_creator::ArchiveSpeciesCreator, 
@@ -137,7 +108,7 @@ function update_archive!(
     if species.id == "B"
     #if species_creator.max_archive_length > 0
         add_individuals_to_archive!(species_creator, species, evaluation)
-        update_active_archive_individuals!(species_creator, species, evaluation, state)
+        #update_active_archive_individuals!(species_creator, species, evaluation, state)
     end
 end
 
@@ -150,30 +121,43 @@ function update_population!(
     state::State
 ) 
     parent_records = evaluation.population_outcome_records[1:species_creator.n_parents]
+    if species.id == "A"
+        n_children = 50
+    elseif species.id == "B"
+        n_children = 50
+    else
+        n_children = species_creator.n_children
+    end
     parents = [
         record.individual for record in
-        select(state.reproducer.selector, parent_records, species_creator.n_children, state)
+        select(state.reproducer.selector, parent_records, n_children, state)
     ]
     new_children = recombine(state.reproducer.recombiner, parents, state)
     for child in new_children
         mutate!(state.reproducer.mutator, child, state)
     end
-    if species_creator.n_elites > 0
+    if species.id == "A"
         elite_records = evaluation.population_outcome_records[1:species_creator.n_elites]
         elites = [record.individual for record in elite_records]
         new_population = [elites ; new_children]
-    else
-        new_population = new_children
-    end
-    if length(species.archive) > 0
-        candidates = [indiv for indiv in species.archive if indiv ∉ [species.population ; species.active_archive_individuals]]
-        n_sample = min(length(candidates), 10)
-        println("sampling $n_sample individuals from archive and adding to population")
-        if n_sample > 0
-            random_individuals = sample(state.rng, candidates, n_sample; replace = false)
-            new_population[end - n_sample + 1:end] = random_individuals
-        end
+    elseif species.id == "B"
+        elite_records = evaluation.population_outcome_records[1:species_creator.n_elites]
+        elites = [record.individual for record in elite_records]
+        new_population = [elites ; new_children]
+        if length(species.archive) > 0
+            candidates = [indiv for indiv in species.archive if indiv ∉ [species.population ; new_population]]
+            n_sample = min(length(candidates), 25)
+            println("sampling $n_sample individuals from archive of length $(length(species.archive)) and adding to population")
+            if n_sample > 0
+                random_individuals = sample(state.rng, candidates, n_sample; replace = false)
+                println("sampled_ids = ", [indiv.id for indiv in random_individuals])
+                new_population[end - n_sample + 1:end] = random_individuals
 
+                #to_remove = reverse(evaluation.population_outcome_records)[1:n_sample]
+                #to_remove_individuals = [record.individual for record in to_remove]
+                #filter!(individual -> individual ∉ to_remove_individuals, species.archive)
+            end
+        end
     end
     ids = [individual.id for individual in new_population]
     if length(ids) != length(Set(ids))

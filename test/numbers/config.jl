@@ -3,7 +3,7 @@ using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
 config = NumbersGameExperimentConfiguration(
-    domain = "CompareOnOneSymmetric", 
+    domain = "CompareOnOne", 
     evaluator_type = "distinction", 
     clusterer_type = "global_kmeans", 
     distance_method = "euclidean", 
