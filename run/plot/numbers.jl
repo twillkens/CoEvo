@@ -82,25 +82,25 @@ function plot_data(data_continuous, data_discrete, title)
 
     title!(p, title)
     xlabel!(p, "Generation")
-    ylabel!(p, "Average Minimum Dimension Size")
+    ylabel!(p, "Average Minimum Dimension Value")
     return p
 end
 
 
+function plot_main()
+    # Aggregating data
+    data_archive_continuous = read_and_aggregate_data("trials/archive_continuous/#.csv")
+    data_archive_discrete = read_and_aggregate_data("trials/archive_discrete/#.csv")
+    data_noarchive_continuous = read_and_aggregate_data("trials/noarchive_continuous/#.csv")
+    data_noarchive_discrete = read_and_aggregate_data("trials/noarchive_discrete/#.csv")
 
+    # Plotting
+    plot1 = plot_data(data_archive_continuous, data_archive_discrete, "DISCO-Archive: All Trials\nLearner Average Minimum Dimension Value")
+    plot2 = plot_data(data_noarchive_continuous, data_noarchive_discrete, "DISCO: All Trials\nLearner Average Minimum Dimension Value")
 
-# Aggregating data
-data_archive_continuous = read_and_aggregate_data("trials/archive_continuous/#.csv")
-data_archive_discrete = read_and_aggregate_data("trials/archive_discrete/#.csv")
-data_noarchive_continuous = read_and_aggregate_data("trials/noarchive_continuous/#.csv")
-data_noarchive_discrete = read_and_aggregate_data("trials/noarchive_discrete/#.csv")
-
-# Plotting
-plot1 = plot_data(data_archive_continuous, data_archive_discrete, "DISCO-Archive\nAverage Minumum Dimension Size")
-plot2 = plot_data(data_noarchive_continuous, data_noarchive_discrete, "DISCO\nAverage Minumum Dimension Size")
-
-savefig(plot1, "trials/archive.png")
-savefig(plot2, "trials/noarchive.png")
+    savefig(plot1, "trials/archive.png")
+    savefig(plot2, "trials/noarchive.png")
+end
 
 
 using Plots: heatmap, cgrad
@@ -143,14 +143,16 @@ function plot_heatmap(data_matrix, title)
 end
 
 
-for mode in ["archive_discrete", "archive_continuous", "noarchive_discrete", "noarchive_continuous"]
-    for trial in 1:N_TRIALS
-        pretty_title = mode in ["archive_discrete", "archive_continuous"] ?
-            "DISCO-Archive: Trial $trial\nEvaluator Maximum Dimension Counts" : 
-            "DISCO: Trial $trial\nEvaluator Maximum Dimension Counts"
-        heatmap_data = read_and_process_data_heatmap("trials/$mode/#.csv", trial)
-        heatmap_plot = plot_heatmap(heatmap_data, pretty_title)
-        savefig(heatmap_plot, "trials/$mode/heatmap_$trial.png")
+function plot_heatmaps()
+    for mode in ["archive_discrete", "archive_continuous", "noarchive_discrete", "noarchive_continuous"]
+        for trial in 1:N_TRIALS
+            pretty_title = mode in ["archive_discrete", "archive_continuous"] ?
+                "DISCO-Archive: Trial $trial\nEvaluator Maximum Dimension Counts" : 
+                "DISCO: Trial $trial\nEvaluator Maximum Dimension Counts"
+            heatmap_data = read_and_process_data_heatmap("trials/$mode/#.csv", trial)
+            heatmap_plot = plot_heatmap(heatmap_data, pretty_title)
+            savefig(heatmap_plot, "trials/$mode/heatmap_$trial.png")
+        end
     end
 end
 
@@ -186,32 +188,25 @@ function plot_avg_values(avg_values, title)
 
     colors = [:red, :green, :blue, :purple, :orange]
     for (i, key) in enumerate(keys(avg_values))
-        plot!(p, avg_values[key], label = "Dimension $i", line = (:solid, 2), color = colors[i])
+        dimension = string(key[end])
+        plot!(p, avg_values[key], label = "Dimension $dimension", line = (:solid, 2), color = colors[i])
     end
     plot!(p, margin = 4mm)
 
     return p
 end
 
-for mode in ["archive_discrete", "archive_continuous", "noarchive_discrete", "noarchive_continuous"]
-    for trial in 1:N_TRIALS
-        for species in ["A"]
-            pretty_title = mode in ["archive_discrete", "archive_continuous"] ?
-                "DISCO-Archive: Trial $trial\nLearner Average Dimension Values" : 
-                "DISCO: Trial $trial\nLearner Average Dimension Values"
-            avg_values = read_and_process_avg_data("trials/$mode/#.csv", trial, species)
-            line_plot = plot_avg_values(avg_values, pretty_title)
-            savefig(line_plot, "trials/$mode/values_$trial.png")
+function plot_avg_values()
+    for mode in ["archive_discrete", "archive_continuous", "noarchive_discrete", "noarchive_continuous"]
+        for trial in 1:N_TRIALS
+            for species in ["A"]
+                pretty_title = mode in ["archive_discrete", "archive_continuous"] ?
+                    "DISCO-Archive: Trial $trial\nLearner Average Dimension Values" : 
+                    "DISCO: Trial $trial\nLearner Average Dimension Values"
+                avg_values = read_and_process_avg_data("trials/$mode/#.csv", trial, species)
+                line_plot = plot_avg_values(avg_values, pretty_title)
+                savefig(line_plot, "trials/$mode/values_$trial.png")
+            end
         end
     end
 end
-
-# Example usage for a specific trial and species
-avg_values = read_and_process_avg_data("trials/archive_continuous/#.csv", 1, "A")
-line_plot = plot_avg_values(avg_values, "Archive Continuous Trial 1 - Species A")
-display(line_plot)
-savefig(line_plot, "trials/lineplot_archive_continuous_trial1_speciesA.png")
-
-# Repeat this process for each configuration, trial, and species as needed
-
-# Repeat the process for each configuration and trial
