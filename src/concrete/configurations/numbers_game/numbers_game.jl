@@ -62,7 +62,7 @@ function create_genotypes(
         init_start = genotype_creator.init_range[1]
         init_end = genotype_creator.init_range[2]
         for i in 1:genotype_creator.length
-            genes[i] += rand(state.rng, init_start:0.0001:init_end)
+            genes[i] = rand(state.rng, init_start:0.01:init_end)
         end
         genotype = BasicVectorGenotype(genes)
         push!(genotypes, genotype)
@@ -81,7 +81,7 @@ function mutate!(
     #noise_vector = randn(rng, T, length(genotype))
     indices_to_mutate = sample(1:length(genotype.genes), 2; replace = false)
     for index in indices_to_mutate
-        genotype.genes[index] += rand(state.rng, -0.1:0.0001:0.1)
+        genotype.genes[index] += rand(state.rng, -0.1:0.01:0.1)
         if genotype.genes[index] < 0.0
             genotype.genes[index] = 0.0
         end
@@ -163,7 +163,7 @@ end
 function create_reproducer(config::NumbersGameExperimentConfiguration)
     selector = config.evaluator_type == "roulette" ? 
         FitnessProportionateSelector(n_parents = 100) : 
-        TournamentSelector(n_parents = 100, tournament_size = 5)
+        TournamentSelector(n_parents = 50, tournament_size = 3)
     reproducer = BasicReproducer(
         species_ids = ["A", "B"],
         gene_id_counter = BasicCounter(),
@@ -179,9 +179,9 @@ function create_reproducer(config::NumbersGameExperimentConfiguration)
             n_parents = 50,
             n_children = 50,
             n_elites = 50,
-            n_archive = config.archive_type == "none" ? 0 : 10,
+            n_archive = 10,
             archive_interval = 1,
-            max_archive_length = config.archive_type == "none" ? 0 : 10000,
+            max_archive_length = 10000,
             max_archive_matches = 100,
         ),
         ecosystem_creator = SimpleEcosystemCreator(),

@@ -20,6 +20,7 @@ logs/*
 plots/*
 .env
 test/numbers/out.txt
+test/numbers/working.txt
 
 python/gedlibpy/build
 

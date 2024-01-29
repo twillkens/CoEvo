@@ -2,21 +2,22 @@ using DataStructures # Assuming this package provides SortedDict
 
 using DataStructures # Assuming this package provides SortedDict
 
-using CoEvo.Concrete.Evaluators.NSGAII
+using CoEvo.Concrete.Evaluators.Distinction
+using CoEvo.Interfaces
 
 
 # Example usage
-evaluators = SortedDict{Int, Vector{Float64}}(
+outcome_matrix = SortedDict{Int, Vector{Float64}}(
     1 => [0, 0, 1],
     2 => [1, 0, 1],
     3 => [0, 1, 0]
 )
-outcome_dict = individual_tests_to_individual_distinctions(evaluators)
-println("outcome_dict = ", outcome_dict)
 
-o = create_outcomes_and_distinctions(evaluators)
+o = make_distinction_matrix(outcome_matrix)
 println("o = ", o)
 
+o = make_outcome_and_distinction_matrix(outcome_matrix)
+println("o = ", o)
 
 
 ## Example usage

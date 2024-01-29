@@ -97,9 +97,9 @@ end
 
 function measure(::NumbersGameDomain{CompareOnOneSymmetric}, A::Vector{<:Real}, B::Vector{<:Real})
     largest_dimension_B = findmax(B)[2]
-    test_passed_A = A[largest_dimension_B] > B[largest_dimension_B] ? 1.0 : 0.0
+    test_passed_A = A[largest_dimension_B] >= B[largest_dimension_B] ? 1.0 : 0.0
     largest_dimension_A = findmax(A)[2]
-    test_passed_B = B[largest_dimension_A] > A[largest_dimension_A] ? 1.0 : 0.0
+    test_passed_B = B[largest_dimension_A] >= A[largest_dimension_A] ? 1.0 : 0.0
     return [test_passed_A, test_passed_B]
 end
 
