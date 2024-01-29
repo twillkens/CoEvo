@@ -100,7 +100,7 @@ function make_matches(
         error("AllVersusAllMatchMaker requires exactly two species")
     end
     matches = make_matches(matchmaker, interaction_id, species[1], species[2])
-    println("number of matches: $(length(matches))")
+    #println("number of matches: $(length(matches))")
     return matches
 end
 

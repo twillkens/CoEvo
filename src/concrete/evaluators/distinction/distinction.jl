@@ -118,7 +118,7 @@ function evaluate(
     if species.id == "A"
         #others = [other_species.population ; other_species.active_archive_individuals]
         others = other_species.population
-        println("n_others = $(length(others))")
+        #println("n_others = $(length(others))")
 
         population_outcome_matrix = make_outcome_matrix(
             species.population, others, results
@@ -145,7 +145,7 @@ function evaluate(
         population_distinction_records, 
         active_archive_distinction_records,
     )
-    print_records(evaluation)
+    #print_records(evaluation)
     #println("rng state after evaluation: ", rng.state)
     return evaluation
 end

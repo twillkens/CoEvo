@@ -42,6 +42,7 @@ Base.@kwdef mutable struct NumbersGameExperimentConfiguration <: Configuration
     checkpoint_interval::Int = 1
     n_generations::Int = 500
     n_workers::Int = 1
+    mode::String = "archive_discrete"
 end
 
 using ....Abstract
@@ -89,7 +90,7 @@ function mutate!(
 end
 
 Base.@kwdef struct NumbersGamePhenotypeCreator <: PhenotypeCreator 
-    use_delta::Bool = false
+    use_delta::Bool = true
     delta::Float64 = 0.25
 end
 
@@ -116,44 +117,91 @@ struct NumbersGameArchiver <: Archiver end
 
 using Serialization
 
-function archive!(::NumbersGameArchiver, state::State)
-    species = first(state.ecosystem.all_species)
-    println("A_archive_length = ", length(species.archive))
-    s_A = 0.0
+function calculate_average_minimum_gene(species)
+    total_minimum_gene = 0.0
     for individual in species.population
-        s_A += minimum(individual.genotype.genes)
+        total_minimum_gene += minimum(individual.genotype.genes)
     end
-    s_A /= length(species.population)
-    s_A = round(s_A, digits=3)
-    species_A_archive_minimums = 0.0
-    for individual in species.archive
-        species_A_archive_minimums += minimum(individual.genotype.genes)
-    end
-    species_A_archive_minimums /= length(species.archive)
-    species_A_archive_minimums = round(species_A_archive_minimums, digits=3)
+    avg_minimum_gene = length(species.population) > 0 ? total_minimum_gene / length(species.population) : 0.0
+    return round(avg_minimum_gene, digits=3)
+end
 
-    species = state.ecosystem.all_species[2]
-    println("B_archive_length = ", length(species.archive))
-    s_B = 0.0
+function calculate_num_max_gene_at_index(species, index)
+    num_max_gene = 0
     for individual in species.population
-        s_B += minimum(individual.genotype.genes)
+        if argmax(individual.genotype.genes) == index
+            num_max_gene += 1
+        end
     end
-    s_B /= length(species.population)
-    s_B = round(s_B, digits=3)
-    species_B_archive_minimums = 0.0
-    for individual in species.archive
-        species_B_archive_minimums += minimum(individual.genotype.genes)
-    end
-    species_B_archive_minimums /= length(species.archive)
-    species_B_archive_minimums = round(species_B_archive_minimums, digits=3)
+    return num_max_gene
+end
 
-    generation = state.generation
-    println("$generation: s_A = $s_A, s_B = $s_B")
-    println("$generation: species_A_archive_minimums = $species_A_archive_minimums, species_B_archive_minimums = $species_B_archive_minimums")
-    if generation % 100 == 0
-        serialize("test/numbers/state.jls", state)
+function calculate_average_gene_value_at_index(species, index)
+    total_gene_value = 0.0
+    for individual in species.population
+        total_gene_value += individual.genotype.genes[index]
+    end
+    avg_gene_value = length(species.population) > 0 ? total_gene_value / length(species.population) : 0.0
+    return round(avg_gene_value, digits=3)
+end
+
+using DataFrames
+using CSV
+using DataFrames
+using CSV
+
+function collect_species_data(species, generation)
+    data_row = DataFrame()
+    data_row[!, :generation] = [generation]
+    data_row[!, :species_id] = [species.id]
+
+    #println("------------")
+    #println("Generation $generation, Species ID $(species.id)")
+    #println("Archive Length: ", length(species.archive))
+
+    for i in 1:5
+        max_index = calculate_num_max_gene_at_index(species, i)
+        avg_value = calculate_average_gene_value_at_index(species, i)
+        data_row[!, Symbol("maxindex_$i")] = [max_index]
+        data_row[!, Symbol("avgvalue_$i")] = [avg_value]
+
+        #println("Max Index $i: $max_index, Avg Value $i: $avg_value")
+    end
+
+    avg_min_gene = calculate_average_minimum_gene(species)
+    data_row[!, :avgmin_gene] = [avg_min_gene]
+
+    #println("Average Minimum Gene: $avg_min_gene")
+    #println("------------")
+
+    return data_row
+end
+
+function append_to_csv(df, csv_path)
+    if isfile(csv_path)
+        existing_df = CSV.read(csv_path, DataFrame)
+        append!(existing_df, df)
+        CSV.write(csv_path, existing_df)
+    else
+        CSV.write(csv_path, df)
     end
 end
+
+function archive!(::NumbersGameArchiver, state::State)
+    all_data = DataFrame()
+    for species in state.ecosystem.all_species
+        species_data = collect_species_data(species, state.generation)
+        append!(all_data, species_data)
+    end
+    mode = state.configuration.mode
+    csv_dir = "trials/$mode"
+    if !isdir(csv_dir)
+        mkpath(csv_dir)
+    end
+    csv_path = "$csv_dir/$(state.id).csv"
+    append_to_csv(all_data, csv_path)
+end
+
 
 function create_archivers(::NumbersGameExperimentConfiguration)
     archivers = [NumbersGameArchiver()]
@@ -164,13 +212,14 @@ function create_reproducer(config::NumbersGameExperimentConfiguration)
     selector = config.evaluator_type == "roulette" ? 
         FitnessProportionateSelector(n_parents = 100) : 
         TournamentSelector(n_parents = 50, tournament_size = 3)
+    use_delta = config.mode in ["archive_discrete", "noarchive_discrete"]
     reproducer = BasicReproducer(
         species_ids = ["A", "B"],
         gene_id_counter = BasicCounter(),
         genotype_creator = NumbersGameVectorGenotypeCreator(),
         recombiner = CloneRecombiner(),
         mutator = NumbersGameVectorMutator(),
-        phenotype_creator = NumbersGamePhenotypeCreator(),
+        phenotype_creator = NumbersGamePhenotypeCreator(use_delta = use_delta),
         individual_id_counter = BasicCounter(),
         individual_creator = BasicIndividualCreator(),
         selector = selector,

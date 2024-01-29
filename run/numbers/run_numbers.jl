@@ -1,59 +1,57 @@
 using Distributed
-using ClusterManagers
-using ArgParse
 
-function parse_cmdline_args()
-    s = ArgParseSettings()
+# Add worker processes for parallel computation
+n_workers = 5 # Set this to the number of parallel tasks you want
+addprocs(n_workers)
+@everywhere begin
+    using Pkg
+    Pkg.activate(".")
+    using CoEvo.Concrete.Configurations.NumbersGame
+    using CoEvo.Concrete.States.Basic
+    using CoEvo.Interfaces
+    # Function to run the evolution process with a given configuration
+    function run_evolution(config_id::Int, mode::String)
+        config = NumbersGameExperimentConfiguration(
+            id = config_id,
+            domain = "CompareOnOne", 
+            evaluator_type = "distinction", 
+            clusterer_type = "global_kmeans", 
+            distance_method = "euclidean", 
+            seed = abs(rand(Int)),
+            archive_type = "basic",
+            n_workers = 1,
+            n_generations = 250,
+            mode = mode
+        )
+        state = BasicEvolutionaryState(config)
+        evolve!(state)
+        return "Evolution $config_id done"
+    end
+end
 
-    @add_arg_table! s begin
-        "--trial"
-            arg_type = Int
-            default = 1
-            required = true
-            help = "Trial ID"
-        "--seed"
-            arg_type = Int
-            required = true
-            default = abs(rand(Int))
-            help = "Seed value for RNG"
-        "--n_workers"
-            arg_type = Int
-            default = 1
-            help = "Number of workers"
-        "--n_generations"
-            arg_type = Int
-            default = 1000
-            help = "Number of generations"
+for mode in ["archive_discrete", "archive_continuous", "noarchive_discrete", "noarchive_continuous"]
+    println("Running evolution in mode $mode")
+    # Running the simulations in parallel
+    results = []
+    for i in 1:n_workers
+        push!(results, @spawn run_evolution(i, mode))
     end
 
-    return parse_args(s)
+    # Collecting the results
+    for res in results
+        println(fetch(res))
+    end
 end
 
-args = parse_cmdline_args()
-
-# Add workers for this trial
-if args["n_workers"] > 1
-    addprocs(args["n_workers"])
-end
-
-@everywhere begin
-    using CoEvo
-    using CoEvo: PredictionGameConfiguration
-    using StableRNGs: StableRNG
-end
-
-configuration = PredictionGameConfiguration(
-    trial = args["trial"],
-    n_population = 50,
-    random_number_generator = StableRNG(args["seed"]),
-    report_type = :verbose_test,
-    reproduction_method = :roulette,
-    cohorts = [:population, :children],
-    #cohorts = [:children],
-    communication_dimension = 1,
-    n_workers = args["n_workers"],
-    episode_length = 16,
-    ecosystem_topology = :two_species_cooperative
-)
-
-run!(configuration; n_generations = args["n_generations"])
+#
+## Running the simulations in parallel
+#results = []
+#for i in 1:n_workers
+#    push!(results, @spawn run_evolution(i))
+#end
+#
+## Collecting the results
+#for res in results
+#    println(fetch(res))
+#end
+#
