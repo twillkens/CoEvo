@@ -17,16 +17,18 @@ const N_BOOTSTRAP_SAMPLES = 1000
 
 const DEFAULT_CONFIDENCE = 0.95
 
-const N_TRIALS = 5
-const N_GENERATIONS = 250
+const N_TRIALS = 20
+const N_GENERATIONS = 10000
 
-function get_bootstrapped_confidence_intervals(values::Vector{Float64})
+function get_bootstrapped_confidence_intervals(
+    values::Vector{Float64}, confidence_level::Float64 = 0.95
+)
     if length(values) == 0
-        return DEFAULT_BOOTSTRAPPED_CONFIDENCE_INTERVALS
+        return Dict("lower_confidence" => 0, "upper_confidence" => 0)
     end
     bootstrap_result = bootstrap(mean, values, BasicSampling(1000))
     _, lower_confidence, upper_confidence = first(bootstrap_confint(
-        bootstrap_result, BasicConfInt(DEFAULT_CONFIDENCE)
+        bootstrap_result, BasicConfInt(confidence_level)
     ))
     confidence_intervals = Dict(
         "lower_confidence" => lower_confidence,
@@ -163,8 +165,7 @@ end
 #savefig(heatmap_plot, "trials/heatmap_archive_continuous.png")
 
 
-function read_and_process_avg_data(path_pattern, trial, species)
-    file_path = replace(path_pattern, "#" => string(trial))
+function read_and_process_avg_data(file_path, species)
     df = CSV.read(file_path, DataFrame)
 
     avg_values = Dict{Symbol, Vector{Float64}}()
@@ -187,10 +188,24 @@ function plot_avg_values(avg_values, title)
     p = plot(title = title, xlabel = "Generation", ylabel = "Average Dimension Value")
 
     colors = [:red, :green, :blue, :purple, :orange]
-    for (i, key) in enumerate(keys(avg_values))
-        dimension = string(key[end])
-        plot!(p, avg_values[key], label = "Dimension $dimension", line = (:solid, 2), color = colors[i])
+    avg_value_keys = keys(avg_values)
+    dimensions = [parse(Int, string(key)[end]) for key in avg_value_keys] # Extract dimension numbers as integers
+    sorted_indices = sortperm(dimensions) # Get sorted indices based on dimensions
+
+    println("--------$title--------")
+    
+    for (index, color) in enumerate(colors)
+        if index > length(sorted_indices) # Ensure we don't go out of bounds
+            break
+        end
+        sorted_index = sorted_indices[index]
+        key = collect(avg_value_keys)[sorted_index] # Use sorted index to get the correct key
+        dimension = dimensions[sorted_index] # Use sorted index to get the correct dimension
+        values = avg_values[key]
+        println("key = $key, dimension = $dimension, color = $color, last_value: $(values[end])")
+        plot!(p, values, label = "Dimension $dimension", line = (:solid, 2), color = color)
     end
+    
     plot!(p, margin = 4mm)
 
     return p
@@ -203,7 +218,7 @@ function plot_avg_values()
                 pretty_title = mode in ["archive_discrete", "archive_continuous"] ?
                     "DISCO-Archive: Trial $trial\nLearner Average Dimension Values" : 
                     "DISCO: Trial $trial\nLearner Average Dimension Values"
-                avg_values = read_and_process_avg_data("trials/$mode/#.csv", trial, species)
+                avg_values = read_and_process_avg_data("trials/$mode/$trial.csv", species)
                 line_plot = plot_avg_values(avg_values, pretty_title)
                 savefig(line_plot, "trials/$mode/values_$trial.png")
             end
