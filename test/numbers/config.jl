@@ -9,9 +9,10 @@ config = NumbersGameExperimentConfiguration(
     clusterer_type = "global_kmeans", 
     distance_method = "euclidean", 
     seed = abs(rand(Int)),
-    archive_type = "basic",
+    archive_type = "none",
     n_workers = 1,
-    n_generations = 5_000
+    n_generations = 10_000,
+    mode = "archive_discrete"
 )
 state = BasicEvolutionaryState(config)
 #println(state)

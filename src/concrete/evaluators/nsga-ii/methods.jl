@@ -7,8 +7,9 @@ using ...Criteria: Maximize, Minimize
 Base.@kwdef mutable struct NSGAIIRecord{I <: Individual} <: Record
     id::Int = 0
     individual::I
-    fitness::Float64 = 0
-    disco_fitness::Float64 = 0
+    fitness::Float64 = 0.0
+    disco_fitness::Float64 = 0.0
+    raw_tests::Vector{Float64} = Float64[]
     tests::Vector{Float64} = Float64[]
     rank::Int = 0
     crowding::Float64 = 0.0

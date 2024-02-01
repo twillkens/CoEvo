@@ -117,18 +117,18 @@ struct NumbersGameArchiver <: Archiver end
 
 using Serialization
 
-function calculate_average_minimum_gene(species)
+function calculate_average_minimum_gene(individuals::Vector{<:Individual})
     total_minimum_gene = 0.0
-    for individual in species.population
+    for individual in individuals
         total_minimum_gene += minimum(individual.genotype.genes)
     end
-    avg_minimum_gene = length(species.population) > 0 ? total_minimum_gene / length(species.population) : 0.0
+    avg_minimum_gene = length(individuals) > 0 ? total_minimum_gene / length(individuals) : 0.0
     return round(avg_minimum_gene, digits=3)
 end
 
-function calculate_num_max_gene_at_index(species, index)
+function calculate_num_max_gene_at_index(individuals::Vector{<:Individual}, index::Int)
     num_max_gene = 0
-    for individual in species.population
+    for individual in individuals
         if argmax(individual.genotype.genes) == index
             num_max_gene += 1
         end
@@ -136,12 +136,12 @@ function calculate_num_max_gene_at_index(species, index)
     return num_max_gene
 end
 
-function calculate_average_gene_value_at_index(species, index)
+function calculate_average_gene_value_at_index(individuals::Vector{<:Individual}, index::Int)
     total_gene_value = 0.0
-    for individual in species.population
+    for individual in individuals
         total_gene_value += individual.genotype.genes[index]
     end
-    avg_gene_value = length(species.population) > 0 ? total_gene_value / length(species.population) : 0.0
+    avg_gene_value = length(individuals) > 0 ? total_gene_value / length(individuals) : 0.0
     return round(avg_gene_value, digits=3)
 end
 
@@ -155,24 +155,34 @@ function collect_species_data(species, generation)
     data_row[!, :generation] = [generation]
     data_row[!, :species_id] = [species.id]
 
-    #println("------------")
-    #println("Generation $generation, Species ID $(species.id)")
-    #println("Archive Length: ", length(species.archive))
+    println("------------")
+    println("Generation $generation, Species ID $(species.id)")
+    println("Archive Length: ", length(species.archive))
 
-    for i in 1:5
-        max_index = calculate_num_max_gene_at_index(species, i)
-        avg_value = calculate_average_gene_value_at_index(species, i)
+    for i in 1:10
+        max_index = calculate_num_max_gene_at_index(species.population, i)
+        avg_value = calculate_average_gene_value_at_index(species.population, i)
         data_row[!, Symbol("maxindex_$i")] = [max_index]
         data_row[!, Symbol("avgvalue_$i")] = [avg_value]
 
-        #println("Max Index $i: $max_index, Avg Value $i: $avg_value")
+        println("Max Index $i: $max_index, Avg Value $i: $avg_value")
+    end
+    if species.id == "B"
+        for i in 1:10
+            max_index = calculate_num_max_gene_at_index(species.archive, i)
+            avg_value = calculate_average_gene_value_at_index(species.archive, i)
+            #data_row[!, Symbol("maxindex_$i")] = [max_index]
+            #data_row[!, Symbol("avgvalue_$i")] = [avg_value]
+
+            println("ARCHIVE Max Index $i: $max_index, Avg Value $i: $avg_value")
+        end
     end
 
-    avg_min_gene = calculate_average_minimum_gene(species)
+    avg_min_gene = calculate_average_minimum_gene(species.population)
     data_row[!, :avgmin_gene] = [avg_min_gene]
 
-    #println("Average Minimum Gene: $avg_min_gene")
-    #println("------------")
+    println("Average Minimum Gene: $avg_min_gene")
+    println("------------")
 
     return data_row
 end
@@ -193,13 +203,13 @@ function archive!(::NumbersGameArchiver, state::State)
         species_data = collect_species_data(species, state.generation)
         append!(all_data, species_data)
     end
-    mode = state.configuration.mode
-    csv_dir = "trials/$mode"
-    if !isdir(csv_dir)
-        mkpath(csv_dir)
-    end
-    csv_path = "$csv_dir/$(state.id).csv"
-    append_to_csv(all_data, csv_path)
+    #mode = state.configuration.mode
+    #csv_dir = "trials/$mode"
+    #if !isdir(csv_dir)
+    #    mkpath(csv_dir)
+    #end
+    #csv_path = "$csv_dir/$(state.id).csv"
+    #append_to_csv(all_data, csv_path)
 end
 
 
@@ -208,6 +218,35 @@ function create_archivers(::NumbersGameExperimentConfiguration)
     return archivers
 end
 
+#function create_reproducer(config::NumbersGameExperimentConfiguration)
+#    selector = config.evaluator_type == "roulette" ? 
+#        FitnessProportionateSelector(n_parents = 100) : 
+#        TournamentSelector(n_parents = 100, tournament_size = 5)
+#    use_delta = config.mode in ["archive_discrete", "noarchive_discrete"]
+#    reproducer = BasicReproducer(
+#        species_ids = ["A", "B"],
+#        gene_id_counter = BasicCounter(),
+#        genotype_creator = NumbersGameVectorGenotypeCreator(length = 3),
+#        recombiner = CloneRecombiner(),
+#        mutator = NumbersGameVectorMutator(),
+#        phenotype_creator = NumbersGamePhenotypeCreator(use_delta = use_delta),
+#        individual_id_counter = BasicCounter(),
+#        individual_creator = BasicIndividualCreator(),
+#        selector = selector,
+#        species_creator = ArchiveSpeciesCreator(
+#            n_population = 200,
+#            n_parents = 100,
+#            n_children = 100,
+#            n_elites = 100,
+#            n_archive = 25,
+#            archive_interval = 1,
+#            max_archive_length = 10000,
+#            max_archive_matches = 0,
+#        ),
+#        ecosystem_creator = SimpleEcosystemCreator(),
+#    )
+#    return reproducer
+#end
 function create_reproducer(config::NumbersGameExperimentConfiguration)
     selector = config.evaluator_type == "roulette" ? 
         FitnessProportionateSelector(n_parents = 100) : 
@@ -216,7 +255,7 @@ function create_reproducer(config::NumbersGameExperimentConfiguration)
     reproducer = BasicReproducer(
         species_ids = ["A", "B"],
         gene_id_counter = BasicCounter(),
-        genotype_creator = NumbersGameVectorGenotypeCreator(),
+        genotype_creator = NumbersGameVectorGenotypeCreator(length = 10),
         recombiner = CloneRecombiner(),
         mutator = NumbersGameVectorMutator(),
         phenotype_creator = NumbersGamePhenotypeCreator(use_delta = use_delta),
@@ -230,7 +269,7 @@ function create_reproducer(config::NumbersGameExperimentConfiguration)
             n_elites = 50,
             n_archive = 25,
             archive_interval = 1,
-            max_archive_length = 10000,
+            max_archive_length = 1000,
             max_archive_matches = 0,
         ),
         ecosystem_creator = SimpleEcosystemCreator(),
@@ -265,7 +304,7 @@ function create_evaluator(config::NumbersGameExperimentConfiguration)
             maximize = true, 
             perform_disco = true, 
             include_distinctions = false,
-            max_clusters = 5,
+            max_clusters = 10,
             scalar_fitness_evaluator = ScalarFitnessEvaluator(),
             clusterer = config.clusterer_type,
             distance_method = config.distance_method
@@ -273,7 +312,7 @@ function create_evaluator(config::NumbersGameExperimentConfiguration)
     elseif config.evaluator_type == "distinction"
         return DistinctionEvaluator(
             maximize = true, 
-            max_clusters = 5,
+            max_clusters = 10,
             clusterer = config.clusterer_type,
             distance_method = config.distance_method
         )

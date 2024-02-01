@@ -147,7 +147,7 @@ function make_outcome_and_distinction_matrix(
 end
 
 function implement_competitive_fitness_sharing(outcome_matrix::SortedDict{Int, Vector{Float64}})
-    n_outcomes = length(outcome_matrix[1])
+    n_outcomes = length(first(outcome_matrix)[2])
     outcome_sums = zeros(Float64, n_outcomes)
     for i in 1:n_outcomes
         for outcomes in values(outcome_matrix)

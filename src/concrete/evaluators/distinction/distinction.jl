@@ -83,23 +83,24 @@ end
 
 function create_records(
     evaluator::DistinctionEvaluator, 
-    tests::SortedDict{Int, Vector{Float64}}, 
+    raw_tests::SortedDict{Int, Vector{Float64}}, 
     species::AbstractSpecies,
     method::String,
     state::State, 
 )
-    if method == "outcomes"
-        fitnesses = calculate_fitnesses(tests)
-        tests = perform_clustering(evaluator, tests, state)
-    elseif method == "distinctions"
-        tests = individual_tests_to_individual_distinctions(tests)
-        fitnesses = calculate_fitnesses(tests)
-        competitive_fitness_sharing!(tests)
+    fitnesses = calculate_fitnesses(raw_tests)
+    if method == "cluster"
+        tests = perform_clustering(evaluator, raw_tests, state)
+    elseif method == "fitness_sharing"
+        tests = implement_competitive_fitness_sharing(raw_tests)
+        tests = condense_outcomes_to_scalar(tests)
+    elseif method == "scalar"
+        tests = condense_outcomes_to_scalar(raw_tests)
     else
         error("Unknown method: $method")
     end
     disco_fitnesses = calculate_fitnesses(tests)
-    records = create_nsgaii_records(tests, fitnesses, disco_fitnesses, evaluator, species)
+    records = create_nsgaii_records(raw_tests, tests, fitnesses, disco_fitnesses, evaluator, species)
     return records
 end
 
@@ -123,18 +124,21 @@ function evaluate(
         population_outcome_matrix = make_outcome_matrix(
             species.population, others, results
         )
+        population_outcome_records = create_records(
+            evaluator, population_outcome_matrix, species, "cluster", state,
+        )
     elseif species.id == "B"
         others = other_species.population
         population_outcome_matrix = make_distinction_matrix(
         #population_outcome_matrix = make_outcome_matrix(
             species.population, others, results
         )
+        population_outcome_records = create_records(
+            evaluator, population_outcome_matrix, species, "fitness_sharing", state,
+        )
     else
         error("Unknown species: $(species.id)")
     end
-    population_outcome_records = create_records(
-        evaluator, population_outcome_matrix, species, "outcomes", state,
-    )
     R = typeof(first(population_outcome_records))
     population_distinction_records = R[]
     active_archive_distinction_records = R[]
@@ -145,61 +149,9 @@ function evaluate(
         population_distinction_records, 
         active_archive_distinction_records,
     )
-    #print_records(evaluation)
-    #println("rng state after evaluation: ", rng.state)
+    print_records(evaluation)
     return evaluation
 end
-#function evaluate(
-#    evaluator::DistinctionEvaluator,
-#    species::ArchiveSpecies,
-#    ecosystem::Ecosystem,
-#    results::Vector{<:Result},
-#    state::State
-#)
-#    # first we evaluate the population individuals in terms of their outcomes
-#    # against members of both the other populations and other active archives 
-#    # using the DISCO algorithm. This will be used for selecting members of the next 
-#    # generation for the population
-#    population_outcomes = get_individual_outcomes(results)
-#    population_outcome_tests = make_individual_tests(species.population, population_outcomes)
-#    population_outcome_records = create_records(
-#        evaluator, population_outcome_tests, species, "outcomes", state,
-#    )
-#    # TODO: HAck for only two species
-#    other_species = first(filter(s -> s.id != species.id, ecosystem.all_species))
-#    # we want to only count the distinctiveness relative to interactions with 
-#    # members of the learner population of the other species
-#    to_exclude = Int[individual.id for individual in other_species.active_archive_individuals]
-#    # we also want to get the results of the active archive individuals against
-#    # our evaluator. this is the reason for the rev = true argument
-#    distinctions = get_individual_outcomes(results; rev = true, to_exclude = to_exclude)
-#    distinction_tests = make_individual_tests(
-#        [species.population ; species.active_archive_individuals], distinctions
-#    )
-#    distinction_records = create_records(
-#        evaluator, distinction_tests, species, "distinctions", state
-#    )
-#    R = typeof(first(population_outcome_records))
-#    population_distinction_records = R[]
-#    active_archive_distinction_records = R[]
-#    for record in distinction_records
-#        if record.individual ∈ species.population
-#            push!(population_distinction_records, record)
-#        else
-#            push!(active_archive_distinction_records, record)
-#        end
-#    end
-#
-#    evaluation = DistinctionEvaluation(
-#        species.id, 
-#        population_outcome_records, 
-#        population_distinction_records, 
-#        active_archive_distinction_records,
-#    )
-#    print_records(evaluation)
-#    #println("rng state after evaluation: ", rng.state)
-#    return evaluation
-#end
 
 function print_records(records::Vector{<:NSGAIIRecord})
     for (i, record) in enumerate(records)
@@ -214,7 +166,7 @@ function print_records(records::Vector{<:NSGAIIRecord})
         tests = round.(record.tests; digits = 3)
         # get the index of the maximum value in tests
         max_index = argmax(individual.genotype.genes)
-        println("$i: id = $id, rank = $rank, crowd = $crowding, raw_fit = $raw_fitness, fit = $fitness, tests = $tests, geno = $genotype, max_index = $max_index")#, phenotype = $phenotype")
+        println("$i: r = $rank, crwd = $crowding, f = $raw_fitness, f_a = $fitness, t = $tests, g = $genotype, m_i = $max_index")#, phenotype = $phenotype")
     end
 end
 
@@ -232,55 +184,3 @@ end
 
 
 end
-
-#function evaluate(
-#    evaluator::DistinctionEvaluator,
-#    species::ArchiveSpecies,
-#    ecosystem::Ecosystem,
-#    results::Vector{<:Result},
-#    state::State
-#)
-#    # first we evaluate the population individuals in terms of their outcomes
-#    # against members of both the other populations and other active archives 
-#    # using the DISCO algorithm. This will be used for selecting members of the next 
-#    # generation for the population
-#    population_outcomes = get_individual_outcomes(results)
-#    population_outcome_tests = make_individual_tests(species.population, population_outcomes)
-#    population_outcome_records = create_records(
-#        evaluator, population_outcome_tests, species, "outcomes", state,
-#    )
-#    # TODO: HAck for only two species
-#    other_species = first(filter(s -> s.id != species.id, ecosystem.all_species))
-#    # we want to only count the distinctiveness relative to interactions with 
-#    # members of the learner population of the other species
-#    to_exclude = Int[individual.id for individual in other_species.active_archive_individuals]
-#    # we also want to get the results of the active archive individuals against
-#    # our evaluator. this is the reason for the rev = true argument
-#    population_distinctions = get_individual_outcomes(results; rev = true, to_exclude = to_exclude)
-#    population_distinction_tests = make_individual_tests(species.population, population_distinctions)
-#    population_distinction_records = create_records(
-#        evaluator, population_distinction_tests, species, "distinctions", state
-#    )
-#    active_archive_distinctions = get_individual_outcomes(results; rev = true)
-#    active_archive_distinction_tests = make_individual_tests(
-#        species.active_archive_individuals, active_archive_distinctions
-#    )
-#    if length(active_archive_distinction_tests) == 0
-#        R = typeof(first(population_distinction_records))
-#        active_archive_distinction_records = R[]
-#    else
-#        active_archive_distinction_records = create_records(
-#            evaluator, active_archive_distinction_tests, species, "distinctions", state
-#        )
-#    end
-#
-#    evaluation = DistinctionEvaluation(
-#        species.id, 
-#        population_outcome_records, 
-#        population_distinction_records, 
-#        active_archive_distinction_records,
-#    )
-#    print_records(evaluation)
-#    #println("rng state after evaluation: ", rng.state)
-#    return evaluation
-#end

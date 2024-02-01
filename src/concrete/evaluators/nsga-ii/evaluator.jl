@@ -32,6 +32,7 @@ end
 
 
 function create_records(
+    raw_tests::SortedDict{Int, Vector{Float64}},
     individual_tests::SortedDict{Int, Vector{Float64}},
     fitnesses::Vector{Float64},
     disco_fitnesses::Vector{Float64},
@@ -46,6 +47,7 @@ function create_records(
             individual = species[id],
             fitness = fitnesses[index], 
             disco_fitness = disco_fitnesses[index],
+            raw_tests = raw_tests[id],
             tests = tests
         )
         push!(records, record)
@@ -65,7 +67,6 @@ function evaluate(
     outcomes::Dict{Int, Dict{Int, Float64}},
     state::State
 )
-    
     individuals = get_individuals_to_evaluate(species)
     individual_ids = [individual.id for individual in individuals]
     outcomes = Dict(filter(pair -> first(pair) in individual_ids, collect(outcomes)))
