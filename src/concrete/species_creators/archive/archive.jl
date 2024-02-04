@@ -25,19 +25,30 @@ Base.@kwdef struct ArchiveSpeciesCreator <: SpeciesCreator
     max_archive_matches::Int
 end
 
-function create_archive_weights(length_archive::Int; rev::Bool = false)
-    # Generate weights: higher for earlier indices, lower for later indices
-    weights = collect(1:length_archive)
+function create_archive_weights(length_archive::Int; ratio::Float64 = 4.0, rev::Bool = false)
+    # Ensure ratio is positive and greater than 1
+    if ratio < 1.0
+        error("Ratio must be greater than or equal to 1.0")
+    end
+
+    # Calculate the step to achieve the desired ratio at the ends of the vector
+    step = (ratio - 1.0) / (length_archive - 1)
+
+    # Generate weights with a gradient that achieves the desired ratio
+    weights = [1.0 + i * step for i in 0:(length_archive - 1)]
+
+    # Reverse the weights if rev is true (so the last element has the highest weight)
     if rev
         weights = reverse(weights)
     end
-    
+
     # Normalize weights to ensure their sum equals 1
     total_weight = sum(weights)
     normalized_weights = weights / total_weight
-    
+
     return normalized_weights
 end
+
 
 function create_species(species_creator::ArchiveSpeciesCreator, id::String, state::State)
     n_population = species_creator.n_population
@@ -74,11 +85,17 @@ function add_individuals_to_archive!(
         delete_index = sample(1:length(species.archive), Weights(weights))
         # remove with uniform probability
         #delete_index = rand(1:length(species.archive))
+        #delete_index = 1
         deleteat!(species.archive, delete_index)
     end
 end
 
 using StatsBase: sample
+
+function all_records_same(records::Vector{R}) where R <: Record
+    s = Set([record.raw_tests for record in records])
+    return length(s) == 1
+end
 
 function filter_unique_records(records::Vector{R}) where R <: Record
     grouped = Dict{Vector{Float64}, Vector{R}}()
@@ -99,7 +116,12 @@ function add_individuals_to_archive!(
     species::ArchiveSpecies, 
     evaluation::DistinctionEvaluation,
 )
-    elite_records = filter_unique_records(evaluation.population_outcome_records)
+    if all_records_same(evaluation.population_outcome_records)
+        elite_records = evaluation.population_outcome_records
+    else
+        elite_records = filter_unique_records(evaluation.population_outcome_records)
+    end
+
     elites = [record.individual for record in elite_records]
 
     #println("adding $(length(elites)) individuals to archive")
@@ -184,33 +206,50 @@ function update_population!(
         do_archive = state.configuration.mode in ["archive_discrete", "archive_continuous"]
         no_archive = state.configuration.mode in ["noarchive_discrete", "noarchive_continuous"]
         if do_archive
-            elite_records = evaluation.population_outcome_records[1:50]
-            elites = [record.individual for record in elite_records]
-            new_children = recombine(state.reproducer.recombiner, elites, state)
-            n_mutations = 1
-            for child in new_children
-                for _ in 1:n_mutations
-                    mutate!(state.reproducer.mutator, child, state)
+            I = typeof(first(species.population))
+            elites = I[]
+            new_children = I[]
+            random_individuals = I[]
+            random_children = I[]
+            elite_records = filter_unique_records(evaluation.population_outcome_records)
+            n_elites = length(elite_records)
+            n_elites = 0
+            if n_elites > 0
+                #elite_records = evaluation.population_outcome_records[1:n_elites]
+
+                for record in elite_records
+                    push!(elites, record.individual)
                 end
-                #mutate!(state.reproducer.mutator, child, state)
-            end
-            #new_population = [elites ; new_children]
-            new_population = new_children
-            candidates = [indiv for indiv in species.archive if indiv ∉ [species.population ; new_population]]
-            #n_sample = min(length(candidates), 50)
-            n_sample = 25
-            #println("sampling $n_sample individuals from candidates of length $(length(candidates)) from archive of length $(length(species.archive)) and adding to population")
-            weights = create_archive_weights(length(candidates), rev = true)
-            random_individuals = sample(state.rng, candidates, Weights(weights), n_sample; replace = false)
-            #println("sampled_ids = ", [indiv.id for indiv in random_individuals])
-            random_children = recombine(state.reproducer.recombiner, random_individuals, state)
-            n_mutations = 1# get_n_mutations(0.25, 10, state)
-            for child in random_children
-                for _ in 1:n_mutations
-                    mutate!(state.reproducer.mutator, child, state)
+                new_children = recombine(state.reproducer.recombiner, elites, state)
+                n_mutations = 1
+                for child in new_children
+                    for _ in 1:n_mutations
+                        mutate!(state.reproducer.mutator, child, state)
+                    end
+                    #mutate!(state.reproducer.mutator, child, state)
                 end
             end
-            new_population = [new_population ; random_individuals ; random_children]
+            n_sample = (length(species.population) - ((length(elites) + length(new_children)))) ÷ 2
+            if length(n_sample) > 0
+                candidates = [indiv for indiv in species.archive if indiv ∉ [species.population ; elites ; new_children]]
+                #n_sample = 40
+
+                #println("sampling $n_sample individuals from candidates of length $(length(candidates)) from archive of length $(length(species.archive)) and adding to population")
+                weights = create_archive_weights(length(candidates), rev = true)
+                #weights = ones(length(candidates))
+                random_individuals = sample(state.rng, candidates, Weights(weights), n_sample; replace = false)
+                #println("sampled_ids = ", [indiv.id for indiv in random_individuals])
+                random_children = recombine(state.reproducer.recombiner, random_individuals, state)
+                n_mutations = 1# get_n_mutations(0.25, 10, state)
+                for child in random_children
+                    for _ in 1:n_mutations
+                        mutate!(state.reproducer.mutator, child, state)
+                    end
+                end
+            end
+            #new_population = [new_population ; random_individuals ; random_children]
+            #new_population = [random_individuals ; random_children]
+            new_population = [elites ; new_children ; random_individuals ; random_children]
         elseif no_archive
             parent_records = evaluation.population_outcome_records[1:species_creator.n_parents]
             #n_children = 50
