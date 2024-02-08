@@ -7,10 +7,7 @@ using ....Abstract
 using ....Interfaces
 
 Base.@kwdef struct BasicSimulator{
-    I <: Interaction,
-    M <: MatchMaker,
-    J <: JobCreator,
-    P <: Performer,
+    I <: Interaction, M <: MatchMaker, J <: JobCreator, P <: Performer,
 } <: Simulator
     interactions::Vector{I}
     matchmaker::M

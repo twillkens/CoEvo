@@ -2,30 +2,34 @@ module Basic
 
 export BasicReproducer
 
+import ....Interfaces: create_species
 using ....Abstract
+using Base: @kwdef
 
 @kwdef mutable struct BasicReproducer{
     G <: GenotypeCreator,
-    C <: Counter,
     P <: PhenotypeCreator,
     I <: IndividualCreator,
+    E <: Evaluator,
     R <: Recombiner,
     M <: Mutator,
     S1 <: Selector,
     S2 <: SpeciesCreator,
-    E <: EcosystemCreator
 } <: Reproducer
-    species_ids::Vector{String}
-    gene_id_counter::C
+    id::String
     genotype_creator::G
+    phenotype_creator::P
+    individual_creator::I
+    species_creator::S2
+    evaluator::E
+    selector::S1
     recombiner::R
     mutator::M
-    phenotype_creator::P
-    individual_id_counter::C
-    individual_creator::I
-    selector::S1
-    species_creator::S2
-    ecosystem_creator::E
+end
+
+function create_species(reproducer::BasicReproducer, state::State)
+    species = create_species(reproducer.species_creator, reproducer, state)
+    return species
 end
 
 end

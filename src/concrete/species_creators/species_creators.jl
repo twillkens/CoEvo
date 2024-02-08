@@ -1,6 +1,6 @@
 module SpeciesCreators
 
-export Basic, Archive #, AdaptiveArchive# , Modes
+export Basic, Archive, Redisco #, AdaptiveArchive# , Modes
 
 include("basic/basic.jl")
 using .Basic: Basic
@@ -8,8 +8,8 @@ using .Basic: Basic
 include("archive/archive.jl")
 using .Archive: Archive
 
-include("distinguisher/distinguisher.jl")
-using .Distinguisher: Distinguisher
+include("redisco/redisco.jl")
+using .Redisco: Redisco
 
 #include("adaptive_archive/adaptive_archive.jl")
 #using .AdaptiveArchive: AdaptiveArchive

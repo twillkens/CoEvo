@@ -4,9 +4,8 @@ export dominates, fast_non_dominated_sort!, crowding_distance_assignment!
 using ....Abstract
 using ...Criteria: Maximize, Minimize
 
-Base.@kwdef mutable struct NSGAIIRecord{I <: Individual} <: Record
+Base.@kwdef mutable struct NSGAIIRecord <: Record
     id::Int = 0
-    individual::I
     fitness::Float64 = 0.0
     disco_fitness::Float64 = 0.0
     raw_tests::Vector{Float64} = Float64[]

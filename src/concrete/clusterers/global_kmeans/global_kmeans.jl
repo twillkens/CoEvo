@@ -6,10 +6,12 @@ export compute_bic, compute_b_values, compute_b_value
 export squared_euclidean_distance, euclidean_distance
 export is_power2, build_tree!, generate_power2_keys, generate_non_power2_keys
 export get_kmeans_clustering_result
+
 using DataStructures: SortedDict
 using StatsBase: mean
 using LinearAlgebra: dot
 using Random: AbstractRNG, rand
+using ...Matrices.Outcome: OutcomeMatrix
 
 
 function vector_transpose(vectors::Vector{Vector{Float64}})
@@ -399,6 +401,17 @@ function get_fast_global_clustering_result(
     return current_result
 end
 
+function get_fast_global_clustering_result(rng::AbstractRNG, samples::Matrix{Float64}; kwargs...)
+    samples = [collect(row) for row in eachrow(samples)]
+    result = get_fast_global_clustering_result(rng, samples; kwargs...)
+    return result
+end
+
+using Random
+function get_fast_global_clustering_result(samples::Matrix{Float64}; kwargs...)
+    return get_fast_global_clustering_result(Random.GLOBAL_RNG, samples; kwargs...)
+end
+
 function get_derived_tests(
     rng::AbstractRNG, 
     indiv_tests::SortedDict{Int, Vector{Float64}},
@@ -445,5 +458,6 @@ function get_derived_tests(
         rng, indiv_tests, max_clusters, DISTANCE_METHODS[distance_method]
     )
 end
+
 
 end

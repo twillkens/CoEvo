@@ -4,6 +4,10 @@ include("counters/counters.jl")
 using .Counters: Counters
 println("loaded counters")
 
+include("matrices/matrices.jl")
+using .Matrices: Matrices
+println("loaded matrices")
+
 include("genotypes/genotypes.jl")
 using .Genotypes: Genotypes
 println("loaded genotypes")

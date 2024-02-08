@@ -4,12 +4,16 @@ export convert_to_dict, create_from_dict
 using ..Abstract
 
 function create_individuals(
-    individual_creator::IndividualCreator, n_individuals::Int, state::State
+    individual_creator::IndividualCreator, 
+    n_individuals::Int, 
+    reproducer::Reproducer, 
+    state::State
 )
     individual_creator = typeof(individual_creator)
     n_individuals = typeof(n_individuals)
+    reproducer = typeof(reproducer)
     state = typeof(state)
-    error("create_individuals not implemented for $individual_creator, $state")
+    error("create_individuals not implemented for $individual_creator, $reproducer, $state")
 end
 
 function convert_to_dict(individual::Individual)

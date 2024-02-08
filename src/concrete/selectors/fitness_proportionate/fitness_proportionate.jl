@@ -3,53 +3,70 @@ module FitnessProportionate
 export FitnessProportionateSelector, roulette
 
 import ....Interfaces: select
-
-using DataStructures: OrderedDict
 using ....Abstract
+using ...Selectors.Selections: BasicSelection
+using Random
+using DataStructures: OrderedDict
 
 Base.@kwdef struct FitnessProportionateSelector <: Selector
-    n_parents::Int
+    n_selections::Int
+    n_selection_set::Int
 end
 
-function roulette(
-    rng::AbstractRNG, n_parents::Int, fitnesses::Vector{<:Real}
-)
+function roulette(rng::AbstractRNG, n_spins::Int, fitnesses::Vector{<:Real})
     if any(fitnesses .<= 0)
         throw(ArgumentError("Fitness values must be strictly positive for FitnessProportionateSelector."))
     end
     probabilities = fitnesses ./ sum(fitnesses)
     cumulative_probabilities = cumsum(probabilities)
-    parents = Array{Int}(undef, n_parents)
-    spins = rand(rng, n_parents)
-    for (n_parent, spin) in enumerate(spins)
+    winner_indices = Array{Int}(undef, n_spins)
+    spins = rand(rng, n_spins)
+    for (i, spin) in enumerate(spins)
         candidate_index = 1
         while cumulative_probabilities[candidate_index] < spin
             candidate_index += 1
         end
-        parents[n_parent] = candidate_index
+        winner_indices[i] = candidate_index
     end
-    return parents
+    return winner_indices
 end
 
 function select(
-    selector::FitnessProportionateSelector,
-    rng::AbstractRNG, 
-    new_population::Vector{<:Individual},
-    evaluation::Evaluation
+    ::FitnessProportionateSelector, 
+    records::Vector{<:Record};
+    n_selection_set::Int,
+    rng::AbstractRNG = Random.GLOBAL_RNG
 )
-    ids = [individual.id for individual in new_population]
-    records_dict = Dict(record.id => record for record in evaluation.records)
-    fitnesses = [records_dict[id].fitness for id in ids]
-    parent_indices = roulette(rng, selector.n_parents, fitnesses)
-    parents = [new_population[i] for i in parent_indices]
-    return parents  
+    fitnesses = [record.fitness for record in records]
+    winner_indices = roulette(rng, n_selection_set, fitnesses)
+    selection_set = [records[i] for i in winner_indices]
+    selection = BasicSelection(selection_set)
+    return selection
 end
 
-select(
-    selector::FitnessProportionateSelector,
-    new_population::Vector{<:Individual},
-    evaluation::Evaluation,
-    state::State
-) = select(selector, state.rng, new_population, evaluation)
+function select(
+    selector::FitnessProportionateSelector, 
+    records::Vector{<:Record};
+    n_selections::Int,
+    kwargs...
+)
+    selections = BasicSelection[]
+    for _ in 1:n_selections
+        selection = select(selector, records; kwargs...)
+        push!(selections, selection)
+    end
+    return selections
+end
+
+function select(selector::FitnessProportionateSelector, evaluation::Evaluation, state::State) 
+    selections = select(
+        selector, 
+        evaluation.records; 
+        n_selections = selector.n_selections,
+        n_selection_set = selector.n_selection_set,
+        rng = state.rng
+    )
+    return selections
+end
 
 end

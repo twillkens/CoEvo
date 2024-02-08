@@ -10,40 +10,7 @@ using ...Matches.Basic: BasicMatch
 
 Base.@kwdef struct AllVersusAllMatchMaker <: MatchMaker end
 
-function make_matches(
-    ::AllVersusAllMatchMaker, 
-    interaction_id::String,
-    species_1::AbstractSpecies,
-    species_2::AbstractSpecies
-)
-    ids_1 = [individual.id for individual in get_individuals_to_perform(species_1)]
-    ids_2 = [individual.id for individual in get_individuals_to_perform(species_2)]
-    ids_1 = collect(Set(ids_1))
-    ids_2 = collect(Set(ids_2))
-    for id in ids_1
-        if id in ids_2
-            println("ids_1 = $ids_1")
-            println("ids_2 = $ids_2")
-            error("individual with id $id is in both species")
-        end
-    end
-    match_ids = vec(collect(Iterators.product(ids_1, ids_2)))
-    matches = [
-        BasicMatch(interaction_id, (id_1, id_2), (species_1.id, species_2.id)) 
-        for (id_1, id_2) in match_ids
-    ]
-    #println("n_matches = $(length(matches))")
-    return matches
-end
-
-function make_matches(
-    matchmaker::AllVersusAllMatchMaker, 
-    interaction_id::String, 
-    species_id_1::String,
-    species_id_2::String,
-    ids_1::Vector{Int},
-    ids_2::Vector{Int},
-)
+function validate_ids(ids_1::Vector{Int}, ids_2::Vector{Int})
     if length(ids_1) != length(Set(ids_1))
         error("ids_1 contains duplicates")
     end
@@ -57,36 +24,50 @@ function make_matches(
             error("individual with id $id is in both species")
         end
     end
+end
+
+function make_matches(
+    ::AllVersusAllMatchMaker, 
+    interaction_id::String,
+    ids_1::Vector{Int},
+    ids_2::Vector{Int},
+    species_id_1::String = "A",
+    species_id_2::String = "B",
+)
+    validate_ids(ids_1, ids_2)
     match_ids = vec(collect(Iterators.product(ids_1, ids_2)))
     matches = [
         BasicMatch(interaction_id, (id_1, id_2), (species_id_1, species_id_2)) 
         for (id_1, id_2) in match_ids
     ]
-    #println("n_matches = $(length(matches))")
     return matches
 end
-using ...Species.Archive: ArchiveSpecies
 
 function make_matches(
     matchmaker::AllVersusAllMatchMaker, 
     interaction_id::String,
-    species_1::ArchiveSpecies,
-    species_2::ArchiveSpecies
+    individuals_1::Vector{<:Individual},
+    individuals_2::Vector{<:Individual},
+    species_id_1::String = "A",
+    species_id_2::String = "B",
 )
-    pop_ids_1 = [individual.id for individual in species_1.population]
-    pop_ids_2 = [individual.id for individual in species_2.population]
-    archive_ids_1 = [individual.id for individual in species_1.active_archive_individuals]
-    archive_ids_2 = [individual.id for individual in species_2.active_archive_individuals]
-    pop_matches = make_matches(
-        matchmaker, interaction_id, species_1.id, species_2.id, pop_ids_1, pop_ids_2
+    ids_1 = [individual.id for individual in individuals_1]
+    ids_2 = [individual.id for individual in individuals_2]
+    matches = make_matches(
+        matchmaker, interaction_id, ids_1, ids_2, species_id_1, species_id_2
     )
-    learner_evaluator_matches_1 = make_matches(
-        matchmaker, interaction_id, species_1.id, species_2.id, pop_ids_1, archive_ids_2
-    )
-    learner_evaluator_matches_2 = make_matches(
-        matchmaker, interaction_id, species_1.id, species_2.id, archive_ids_1, pop_ids_2
-    )
-    matches = [pop_matches ; learner_evaluator_matches_1 ; learner_evaluator_matches_2]
+    return matches
+end
+
+function make_matches(
+    matchmaker::AllVersusAllMatchMaker, 
+    interaction_id::String,
+    species_1::AbstractSpecies,
+    species_2::AbstractSpecies
+)
+    individuals_1 = species_1.population
+    individuals_2 = species_2.population
+    matches = make_matches(matchmaker, interaction_id, individuals_1, individuals_2)
     return matches
 end
 

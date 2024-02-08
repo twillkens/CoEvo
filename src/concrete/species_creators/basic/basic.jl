@@ -16,11 +16,13 @@ Base.@kwdef struct BasicSpeciesCreator <: SpeciesCreator
     n_elites::Int
 end
 
-function create_species(species_creator::BasicSpeciesCreator, id::String, state::State)
+function create_species(
+    species_creator::BasicSpeciesCreator, reproducer::Reproducer, state::State
+)
     population = create_individuals(
-        state.reproducer.individual_creator, species_creator.n_population, state
+        reproducer.individual_creator, species_creator.n_population, reproducer, state
     )
-    species = BasicSpecies(id, population)
+    species = BasicSpecies(reproducer.id, population)
     return species
 end
 

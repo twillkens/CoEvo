@@ -16,6 +16,8 @@ include("species/species.jl")
 
 include("criteria/criteria.jl")
 
+include("clusterers/clusterers.jl")
+
 include("evaluators/evaluators.jl")
 
 include("replacers/replacers.jl")

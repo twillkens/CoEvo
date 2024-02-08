@@ -1,6 +1,6 @@
 module Evaluators
 
-export Null, ScalarFitness, NSGAII#, AdaptiveArchive
+export Null, ScalarFitness, NSGAII, Disco, Redisco#, AdaptiveArchive
 
 include("null/null.jl")
 using .Null: Null
@@ -13,5 +13,11 @@ using .NSGAII: NSGAII
 
 include("distinction/distinction.jl")
 using .Distinction: Distinction
+
+include("disco/disco.jl")
+using .Disco: Disco
+
+include("redisco/redisco.jl")
+using .Redisco: Redisco
 
 end

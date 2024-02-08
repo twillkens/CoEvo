@@ -2,6 +2,9 @@ module Selectors
 
 export Identity, FitnessProportionate, Tournament
 
+include("selections/selections.jl")
+using .Selections: Selections
+
 include("identity/identity.jl")
 using .Identity: Identity
 

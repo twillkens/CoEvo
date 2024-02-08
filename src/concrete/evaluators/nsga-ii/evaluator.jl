@@ -37,14 +37,12 @@ function create_records(
     fitnesses::Vector{Float64},
     disco_fitnesses::Vector{Float64},
     evaluator::Evaluator,
-    species::AbstractSpecies
 )
     records = []
     for (index, id_tests) in enumerate(individual_tests)
         id, tests = id_tests
         record = NSGAIIRecord(
             id = id, 
-            individual = species[id],
             fitness = fitnesses[index], 
             disco_fitness = disco_fitnesses[index],
             raw_tests = raw_tests[id],

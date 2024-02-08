@@ -15,24 +15,27 @@ mutable struct Timers
 end
 
 @kwdef mutable struct BasicEvolutionaryState{
-    C <: Configuration,
+    C1 <: Configuration,
+    C2 <: Counter,
+    E1 <: EcosystemCreator,
     R1 <: Reproducer,
-    S <: Simulator,
-    E1 <: Evaluator,
-    R2 <: Result,
     E2 <: Ecosystem,
+    S <: Simulator,
+    R2 <: Result,
     E3 <: Evaluation,
     A <: Archiver
 } <: State
     id::Int
-    configuration::C
+    configuration::C1
     generation::Int
     rng::AbstractRNG
+    gene_id_counter::C2
+    individual_id_counter::C2
     rng_state_after_reproduction::String
-    reproducer::R1
-    simulator::S
-    evaluator::E1
+    ecosystem_creator::E1
+    reproducers::Vector{R1}
     ecosystem::E2
+    simulator::S
     results::Vector{R2}
     evaluations::Vector{E3}
     archivers::Vector{A}
@@ -40,33 +43,43 @@ end
     timers::Timers
 end
 
-function update_ecosystem!(state::BasicEvolutionaryState)
+using ...Ecosystems.Simple: SimpleEcosystem, SimpleEcosystemCreator
+
+function update_ecosystem!(
+    ecosystem::SimpleEcosystem, ::SimpleEcosystemCreator, state::BasicEvolutionaryState
+)
     reproduction_time_start = time()
-    update_ecosystem!(
-        state.ecosystem, state.reproducer.ecosystem_creator, state.evaluations, state
-    )
+    for species in ecosystem.all_species
+        reproducer = first(filter(r -> r.species_id == species.id, state.reproducers))
+        evaluation = first(filter(e -> e.id == species.id, state.evaluations))
+        update_species!(species, reproducer, evaluation, state)
+    end
     state.rng_state_after_reproduction = string(state.rng.state)
     reproduction_time = time() - reproduction_time_start
     state.timers.reproduction_time = round(reproduction_time; digits = 3)
 end
 
 function perform_simulation!(state::BasicEvolutionaryState)
+    empty!(state.results)
     new_results, simulation_time = simulate_with_time(
         state.simulator, state.ecosystem, state
     )
-    empty!(state.results)
     append!(state.results, new_results)
     state.timers.simulation_time = simulation_time
 end
 
 
+
 function perform_evaluation!(state::BasicEvolutionaryState)
-    evaluations, evaluation_time = evaluate_with_time(
-        state.evaluator, state.ecosystem, state.results, state
-    )
-    state.timers.evaluation_time = evaluation_time
+    evaluation_time_start = time()
     empty!(state.evaluations)
-    append!(state.evaluations, evaluations)
+    for species in state.ecosystem.all_species
+        reproducer = first(filter(r -> r.species_id == species.id, state.reproducers))
+        evaluation = evaluate(reproducer.evaluator, species, state.results, state)
+        push!(state.evaluations, evaluation)
+    end
+    evaluation_time = round(time() - evaluation_time_start; digits = 3)
+    state.timers.evaluation_time = evaluation_time
 end
 
 function archive!(state::BasicEvolutionaryState)
@@ -80,7 +93,10 @@ function archive!(state::BasicEvolutionaryState)
 end
 
 function check_if_individuals_are_unique(state::State)
-    species_ids = [[individual.id for individual in species.population] for species in state.ecosystem.all_species]
+    species_ids = [
+        [individual.id for individual in species.population] 
+        for species in state.ecosystem.all_species
+    ]
     all_ids = vcat(species_ids...)
     unique_ids = Set(all_ids)
     if length(all_ids) != length(unique_ids)
