@@ -2,11 +2,11 @@ export create_species, update_species!, create_from_dict
 
 using ..Abstract
 
-function create_species(species_creator::SpeciesCreator, id::String, state::State)
+function create_species(species_creator::SpeciesCreator, reproducer::Reproducer, state::State)
     species_creator = typeof(species_creator)
-    id = typeof(id)
+    reproducer = typeof(reproducer)
     state = typeof(state)
-    error("`create_species` not implemented for $species_creator, $id, $state")
+    error("`create_species` not implemented for $species_creator, $reproducer, $state")
 end
 
 function update_species!(

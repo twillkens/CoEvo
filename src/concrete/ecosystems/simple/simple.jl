@@ -19,7 +19,11 @@ Base.@kwdef struct SimpleEcosystemCreator <: EcosystemCreator
 end
 
 Base.getindex(ecosystem::SimpleEcosystem, species_id::String) = begin
-    return first(filter(species -> species.id == species_id, ecosystem.all_species))
+    species = filter(species -> species.id == species_id, ecosystem.all_species)
+    if length(species) == 0
+        error("Species with id $species_id not found in ecosystem")
+    end
+    return first(species)
 end
 
 function create_ecosystem(

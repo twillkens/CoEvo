@@ -1,5 +1,7 @@
 export create_reproducers, make_species_creator, make_selector, create_reproducer
 
+import ....Interfaces: create_reproducers, create_reproducer
+
 function make_species_creator(config::ReproducerConfiguration)
     if config.species_type == "basic"
         species_creator = BasicSpeciesCreator(
@@ -61,8 +63,8 @@ end
 
 function create_reproducers(config::NumbersGameExperimentConfiguration)
     reproducers = [
-        BasicReproducer(config.learner_reproducer_config),
-        BasicReproducer(config.distinguisher_reproducer_config)
+        create_reproducer(config.learner_reproducer_config),
+        create_reproducer(config.distinguisher_reproducer_config)
     ]
     return reproducers
 end

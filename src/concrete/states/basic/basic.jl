@@ -31,9 +31,9 @@ end
     configuration::C1
     generation::Int
     rng::AbstractRNG
+    rng_state_after_reproduction::String
     gene_id_counter::C2
     individual_id_counter::C2
-    rng_state_after_reproduction::String
     ecosystem_creator::E1
     ecosystem::E2
     reproducers::Vector{R1}
@@ -53,6 +53,10 @@ function update_ecosystem!(
     )
     state.rng_state_after_reproduction = string(state.rng.state)
     state.timers.reproduction_time = reproduction_time
+end
+
+function update_ecosystem!(state::BasicEvolutionaryState)
+    update_ecosystem!(state.ecosystem, state.ecosystem_creator, state)
 end
 
 function perform_simulation!(state::BasicEvolutionaryState)
@@ -135,11 +139,14 @@ function BasicEvolutionaryState(config::Configuration)
         generation = 1,
         rng = state.rng,
         rng_state_after_reproduction = rng_state_after_reproduction,
+        gene_id_counter = state.gene_id_counter,
+        individual_id_counter = state.individual_id_counter,
         ecosystem_creator = state.ecosystem_creator,
-        reproducers = state.reproducers,
         ecosystem = ecosystem,
+        reproducers = state.reproducers,
         simulator = state.simulator,
         results = results,
+        evaluators = state.evaluators,
         evaluations = evaluations,
         archivers = archivers,
         timers = timers

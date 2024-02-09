@@ -58,7 +58,7 @@ function select(
     rng::AbstractRNG,
 )
     contenders = sample(rng, records, tournament_size, replace = false)
-    winner = run_tournament(rng, contenders)
+    winner = run_tournament(contenders, rng)
     return winner
 end
 
@@ -94,13 +94,21 @@ function select(
     return selections
 end
 
-select(selector::TournamentSelector, evaluation::Evaluation, state::State) = select(
-    selector, 
-    evaluation.records,
-    n_selections = selector.n_selections, 
-    n_selection_set = selector.n_selection_set, 
-    tournament_size = selector.tournament_size,
-    rng = state.rng
+function select(
+    selector::TournamentSelector,
+    records::Vector{<:Record},
+    state::State
 )
+    selections = select(
+        selector, 
+        records,
+        selector.n_selections, 
+        selector.n_selection_set, 
+        selector.tournament_size,
+        state.rng
+    )
+    return selections
+end
+
 
 end

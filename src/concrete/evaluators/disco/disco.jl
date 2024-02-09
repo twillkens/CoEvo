@@ -12,6 +12,7 @@ using ...Matrices.Outcome
 using ...Evaluators.NSGAII
 
 Base.@kwdef struct DiscoEvaluator <: Evaluator 
+    id::String = "A"
     maximize::Bool = true
     objective::String = "performance"
     max_clusters::Int = 5
@@ -81,7 +82,7 @@ function get_derived_matrix(
     max_clusters::Int = 5,
     distance_method::String = "euclidean"
 )
-    indiv_tests = SortedDict(id => float.(matrix[id, :]) for id in matrix.row_ids)
+    indiv_tests = SortedDict{Int, Vector{Float64}}(id => float.(matrix[id, :]) for id in matrix.row_ids)
     derived_tests = get_derived_tests(rng, indiv_tests, max_clusters, distance_method)
     n_derived_tests = length(first(collect(values(derived_tests))))
     derived_data = zeros(Float64, length(matrix.row_ids), n_derived_tests)
@@ -117,11 +118,11 @@ function evaluate(
     state::State
 )
     if evaluator.objective == "performance"
-        raw_matrix = OutcomeMatrix(species, results)
-    elseif evaluator.objective == "distinction"
-        raw_matrix = make_distinction_matrix(species, results)
+        raw_matrix = OutcomeMatrix(species.population, results)
+    elseif evaluator.objective == "distinctions"
+        raw_matrix = make_distinction_matrix(species.population, results)
     else
-        error("Objective must be either 'performance' or 'distinction'")
+        error("Objective must be either 'performance' or 'distinctions'")
     end
     evaluation = evaluate(evaluator, species, raw_matrix, state)
     return evaluation

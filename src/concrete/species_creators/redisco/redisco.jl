@@ -1,15 +1,19 @@
 module Redisco
 
 export get_individuals
+export RediscoSpecies, RediscoSpeciesCreator, create_species, update_species!
+export archive_hillclimbers!, promote_explorers!, recombine_and_mutate!
+export trim_archive!, increment_mutations!
+export get_all_individuals, convert_to_dict
 
 import ....Interfaces: get_individuals, get_individuals_to_evaluate, get_individuals_to_perform
-import ....Interfaces: convert_to_dict
+import ....Interfaces: convert_to_dict, create_species, update_species!
 using ....Abstract
 using ....Interfaces
 using ....Utilities: find_by_id
+using ...Recombiners.Clone: CloneRecombiner
 using DataStructures
 using StatsBase
-using ...Recombiners.Clone: CloneRecombiner
 
 Base.@kwdef mutable struct RediscoSpecies{I <: Individual} <: AbstractSpecies
     id::String
@@ -39,15 +43,7 @@ function create_species(
     n_population = species_creator.n_population
     individual_creator = reproducer.individual_creator 
     population = create_individuals(individual_creator, n_population, reproducer, state)
-    archive = copy(population)
-    I = typeof(first(population))
-
-    species = RediscoSpecies(
-        id = species_creator.id, 
-        population = population, 
-        hillclimbers = I[],
-        archive = archive, 
-    )
+    species = RediscoSpecies(species_creator.id, population)
     return species
 end
 
@@ -75,26 +71,19 @@ function promote_explorers!(species::RediscoSpecies, evaluation::Evaluation)
 end
 
 function recombine_and_mutate!(
-    species::RediscoSpecies, recombiner::Recombiner, parents::Vector{<:Individual}, state::State
+    species::RediscoSpecies, parents::Vector{<:Individual}, reproducer::Reproducer, state::State
 )
-    children = recombine(recombiner, parents, state)
-    for child in children
-        temperature_dict = species.temperature_dict[child.parent_id]
-        for _ in 1:temperature_dict
-            mutate!(state.reproducer.mutator, child, state)
+    children = recombine(reproducer.recombiner, parents, state)
+    for (parent, child) in zip(parents, children)
+        temperature = species.temperature_dict[parent.id]
+        for _ in 1:temperature
+            mutate!(reproducer.mutator, child, reproducer, state)
         end
     end
     return children
 end
 
-
-function enforce_population_size!(species, species_creator)
-    if length(species.population) != species_creator.n_population
-        error("Population size is $(length(species.population)), but should be $(species_creator.n_population)")
-    end
-end
-
-function trim_archive!(species, species_creator)
+function trim_archive!(species::RediscoSpecies, species_creator::RediscoSpeciesCreator)
     while length(species.archive) > species_creator.max_archive_size
         id = species.archive[1].id
         delete!(species.temperature_dict, id)
@@ -102,10 +91,16 @@ function trim_archive!(species, species_creator)
     end
 end
 
-function increment_mutations!(species, species_creator)
+function increment_mutations!(species::RediscoSpecies, species_creator::RediscoSpeciesCreator)
     for (id, n_mutation) in species.temperature_dict
         n_mutation = min(n_mutation + 1, species_creator.max_mutations)
         species.temperature_dict[id] = n_mutation
+    end
+end
+
+function validate_species(species::RediscoSpecies, species_creator::RediscoSpeciesCreator)
+    if length(species.population) != species_creator.n_population
+        error("Population size is $(length(species.population)), but should be $(species_creator.n_population)")
     end
 end
 
@@ -113,28 +108,20 @@ function update_species!(
     species::RediscoSpecies, 
     species_creator::RediscoSpeciesCreator, 
     evaluation::Evaluation, 
+    reproducer::Reproducer,
     state::State
 )
     archive_hillclimbers!(species, evaluation)
     promote_explorers!(species, evaluation)
     
-    if length(species.hillclimbers) > 0
-        hillclimber_children = recombine_and_mutate!(
-            species, CloneRecombiner(), state, species.hillclimbers
-        )
-    else
-        I = typeof(first(species.archive))
-        hillclimber_children = I[]
-    end
-    
     n_archive_samples = (species_creator.n_population - length(species.hillclimbers) * 2) ÷ 2
     active_archive = sample(state.rng, species.archive, n_archive_samples, replace = false)
-    archive_children = recombine_and_mutate!(species, CloneRecombiner(), active_archive, state)
-
-    species.population = [species.hillclimbers; active_archive; hillclimber_children; archive_children]
-    enforce_population_size!(species, species_creator)
+    parents = [species.hillclimbers ; active_archive]
+    children = recombine_and_mutate!(species, parents, reproducer, state)
+    species.population = [parents ; children]
     trim_archive!(species, species_creator)
     increment_mutations!(species, species_creator)
+    validate_species(species, species_creator)
 end
 
 get_all_individuals(species::RediscoSpecies) = unique(

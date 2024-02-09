@@ -1,3 +1,4 @@
+import ....Interfaces: create_simulator
 
 function create_simulator(config::NumbersGameExperimentConfiguration) 
     simulator = BasicSimulator(
@@ -7,7 +8,7 @@ function create_simulator(config::NumbersGameExperimentConfiguration)
                 environment_creator = StatelessEnvironmentCreator(
                     domain = NumbersGameDomain(config.domain)
                 ),
-                species_ids = ["A", "B"],
+                species_ids = ["L", "D"],
             )
         ],
         matchmaker = AllVersusAllMatchMaker(),

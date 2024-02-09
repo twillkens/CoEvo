@@ -14,7 +14,7 @@ Base.@kwdef struct CloneRecombiner <: Recombiner end
 
 function recombine(::CloneRecombiner, individual::Individual, state::State)
     child = deepcopy(individual)
-    child.id = step!(state.reproducer.individual_id_counter)
+    child.id = step!(state.individual_id_counter)
     child.parent_id = individual.id
     child.phenotype.id = child.id
     return child

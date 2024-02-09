@@ -1,8 +1,9 @@
 module Basic
 
-export BasicSpeciesCreator
+export BasicSpeciesCreator, create_species, update_species!, create_children
+export get_elites, get_parent_records, validate_population
 
-import ....Interfaces: get_individuals, create_species
+import ....Interfaces: get_individuals, create_species, update_species!
 
 using Random: AbstractRNG
 using ....Abstract
@@ -55,12 +56,13 @@ function create_children(
     selector::Selector,
     recombiner::Recombiner,
     mutator::Mutator,
+    reproducer::Reproducer,
     state::State
 )
     parent_records = get_parent_records(species_creator, evaluation)
-    selections = select(selector, parent_records, evaluation, state)
+    selections = select(selector, parent_records, state)
     children = recombine(recombiner, selections, state)
-    mutate!(mutator, children, state)
+    mutate!(mutator, children, reproducer, state)
     return children
 end
 
@@ -71,7 +73,7 @@ create_children(
     state::State
 ) = create_children(
     species_creator, evaluation, reproducer.selector, reproducer.recombiner, reproducer.mutator, 
-    state
+    reproducer, state
 )
 
 function update_species!(

@@ -1,5 +1,6 @@
 export NumbersGameExperimentConfiguration, EvaluatorConfiguration, ReproducerConfiguration
 
+import ....Interfaces: get_ecosystem_creator
 using ....Abstract
 using ...Reproducers.Basic: BasicReproducer
 using ...SpeciesCreators.Basic: BasicSpeciesCreator
@@ -7,8 +8,11 @@ using ...SpeciesCreators.Redisco: RediscoSpeciesCreator
 using ...Selectors.Identity: IdentitySelector
 using ...Evaluators.Disco: DiscoEvaluator
 using ...Evaluators.Redisco: RediscoEvaluator
+using ...Ecosystems.Simple: SimpleEcosystemCreator
+
 
 Base.@kwdef mutable struct EvaluatorConfiguration
+    id::String = "L"
     evaluator_type::String = "disco"
     objective::String = "outcomes"
     clusterer_type::String = "global_kmeans"
@@ -45,3 +49,4 @@ Base.@kwdef mutable struct NumbersGameExperimentConfiguration <: Configuration
     n_workers::Int = 1
 end
 
+get_ecosystem_creator(config::NumbersGameExperimentConfiguration) = SimpleEcosystemCreator(config.id)

@@ -5,7 +5,7 @@ using ..Abstract
 function evaluate(
     evaluator::Evaluator, 
     species::AbstractSpecies,
-    results::Vector{Result},
+    results::Vector{<:Result},
     state::State
 )
     evaluator = typeof(evaluator)
@@ -16,7 +16,7 @@ function evaluate(
 end
 
 function evaluate(
-    ecosystem::Ecosystem, evaluators::Vector{Evaluator}, results::Vector{Result}, state::State
+    ecosystem::Ecosystem, evaluators::Vector{<:Evaluator}, results::Vector{<:Result}, state::State
 )
     ecosystem = typeof(ecosystem)
     evaluators = typeof(evaluators)
@@ -27,7 +27,7 @@ end
 
 function evaluate_with_time(
     ecosystem::Ecosystem, 
-    evaluators::Vector{Evaluator},
+    evaluators::Vector{<:Evaluator},
     results::Vector{<:Result}, 
     state::State
 )

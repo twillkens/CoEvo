@@ -31,8 +31,8 @@ function make_matches(
     interaction_id::String,
     ids_1::Vector{Int},
     ids_2::Vector{Int},
-    species_id_1::String = "A",
-    species_id_2::String = "B",
+    species_id_1::String,
+    species_id_2::String,
 )
     validate_ids(ids_1, ids_2)
     match_ids = vec(collect(Iterators.product(ids_1, ids_2)))
@@ -48,8 +48,8 @@ function make_matches(
     interaction_id::String,
     individuals_1::Vector{<:Individual},
     individuals_2::Vector{<:Individual},
-    species_id_1::String = "A",
-    species_id_2::String = "B",
+    species_id_1::String,
+    species_id_2::String,
 )
     ids_1 = [individual.id for individual in individuals_1]
     ids_2 = [individual.id for individual in individuals_2]
@@ -67,7 +67,9 @@ function make_matches(
 )
     individuals_1 = species_1.population
     individuals_2 = species_2.population
-    matches = make_matches(matchmaker, interaction_id, individuals_1, individuals_2)
+    matches = make_matches(
+        matchmaker, interaction_id, individuals_1, individuals_2, species_1.id, species_2.id
+    )
     return matches
 end
 

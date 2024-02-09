@@ -11,10 +11,12 @@ using ....Interfaces
 using ...Criteria
 
 Base.@kwdef struct RediscoEvaluator <: Evaluator
-    max_clusters::Int
+    id::String = "A"
+    max_clusters::Int = 5
 end
 
 Base.@kwdef struct RediscoEvaluation <: Evaluation
+    id::String
     hillclimber_ids::Vector{Int}
     matrix::OutcomeMatrix
     clustering_result::KMeansClusteringResult
@@ -47,6 +49,8 @@ function get_hillclimber_id(
     return hillclimber_id, records
 end
 
+using Serialization
+
 function evaluate(
     evaluator::RediscoEvaluator, 
     hillclimber_ids::Vector{Int},
@@ -55,24 +59,34 @@ function evaluate(
 )
     matrix = filter_zero_rows(matrix)
     new_hillclimber_ids = Int[]
+    clustering_result = KMeansClusteringResult()
     cluster_records = Vector{Vector{NSGAIIRecord}}()
 
     # if no distinctions have been found then continue
-    if length(matrix.row_ids) > 0
-        clustering_result = get_fast_global_clustering_result(
-            state.rng, matrix.data, max_clusters = evaluator.max_clusters
-        )
-        all_cluster_ids = get_cluster_ids(clustering_result, matrix)
-
-        for cluster_ids in all_cluster_ids
-            hillclimber_id, records = get_hillclimber_id(
-                cluster_ids, hillclimber_ids, matrix, state
+    if length(matrix.row_ids) == 1
+        push!(new_hillclimber_ids, first(matrix.row_ids))
+    elseif length(matrix.row_ids) > 0
+        try
+            clustering_result = get_fast_global_clustering_result(
+                state.rng, matrix.data, max_clusters = evaluator.max_clusters
             )
-            push!(new_hillclimber_ids, hillclimber_id)
-            push!(cluster_records, records)
+            all_cluster_ids = get_cluster_ids(clustering_result, matrix)
+
+            for cluster_ids in all_cluster_ids
+                hillclimber_id, records = get_hillclimber_id(
+                    cluster_ids, hillclimber_ids, matrix, state
+                )
+                push!(new_hillclimber_ids, hillclimber_id)
+                push!(cluster_records, records)
+            end
+        catch e
+            println("matrix = $matrix")
+            serialize("test/redisco/matrix.jls", matrix)
+            throw(e)
         end
     end
     evaluation = RediscoEvaluation(
+        id = evaluator.id,
         hillclimber_ids = new_hillclimber_ids,
         matrix = matrix,
         clustering_result = clustering_result,

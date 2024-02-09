@@ -4,7 +4,7 @@ export create_ecosystem_with_time, update_ecosystem_with_time!
 using ..Abstract
 
 function create_ecosystem(
-    ecosystem_creator::EcosystemCreator, reproducers::Vector{Reproducer}, state::State
+    ecosystem_creator::EcosystemCreator, reproducers::Vector{<:Reproducer}, state::State
 )
     ecosystem_creator = typeof(ecosystem_creator)
     reproducers = typeof(reproducers)
@@ -13,7 +13,7 @@ function create_ecosystem(
 end
 
 function create_ecosystem_with_time(
-    ecosystem_creator::EcosystemCreator, reproducers::Vector{Reproducer}, state::State
+    ecosystem_creator::EcosystemCreator, reproducers::Vector{<:Reproducer}, state::State
 )
     reproduction_time_start = time()
     ecosystem = create_ecosystem(ecosystem_creator, reproducers, state)
@@ -24,8 +24,8 @@ end
 function update_ecosystem!(
     ecosystem::Ecosystem, 
     ecosystem_creator::EcosystemCreator, 
-    evaluations::Vector{Evaluation},
-    reproducers::Vector{Reproducer},
+    evaluations::Vector{<:Evaluation},
+    reproducers::Vector{<:Reproducer},
     state::State
 )
     ecosystem = typeof(ecosystem)
@@ -39,8 +39,8 @@ end
 function update_ecosystem_with_time!(
     ecosystem::Ecosystem, 
     ecosystem_creator::EcosystemCreator, 
-    evaluations::Vector{Evaluation},
-    reproducers::Vector{Reproducer},
+    evaluations::Vector{<:Evaluation},
+    reproducers::Vector{<:Reproducer},
     state::State
 )
     reproduction_time_start = time()

@@ -45,9 +45,8 @@ function collect_species_data(species, generation)
 
     println("------------")
     println("Generation $generation, Species ID $(species.id)")
-    println("Archive Length: ", length(species.archive))
 
-    for i in 1:10
+    for i in 1:5
         max_index = calculate_num_max_gene_at_index(species.population, i)
         avg_value = calculate_average_gene_value_at_index(species.population, i)
         data_row[!, Symbol("maxindex_$i")] = [max_index]

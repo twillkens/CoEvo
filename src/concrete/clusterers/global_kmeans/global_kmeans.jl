@@ -88,6 +88,16 @@ struct KMeansClusteringResult
     bic::Float64
 end
 
+function KMeansClusteringResult()
+    return KMeansClusteringResult(
+        0.0, 
+        Vector{Float64}[], 
+        Vector{Int}[], 
+        Vector{Vector{Float64}}[], 
+        0.0
+    )
+end
+
 # Ensure the input parameters are valid
 function validate_parameters(
     samples::Vector{Vector{Float64}}, cluster_count::Int, tolerance::Float64
@@ -365,16 +375,14 @@ compute_b_values(
 function get_fast_global_clustering_result(
     rng::AbstractRNG,
     samples::Vector{Vector{Float64}};
-    max_clusters::Int = -1,
+    max_clusters::Int = 5,
     kwargs...
 )
-    max_clusters = max_clusters == -1 ? length(samples) : max_clusters
+    #max_clusters = max_clusters == -1 ? length(samples) : max_clusters
+    max_clusters = min(max_clusters, length(samples))
     fg = FastGlobal(max_clusters, length(samples[1]))
     initial_centroids = [rand(rng, samples)]
-    current_result = get_kmeans_clustering_result(
-        rng, samples, 1, initial_centroids; kwargs...
-    )
-
+    current_result = get_kmeans_clustering_result(rng, samples, 1, initial_centroids; kwargs...)
     build_tree!(fg, samples)
 
     bucket_keys = is_power2(fg.bucket_count) ? 

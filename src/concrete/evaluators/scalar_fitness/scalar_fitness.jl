@@ -32,6 +32,7 @@ struct ScalarFitnessEvaluation{R <: ScalarFitnessRecord, M <: OutcomeMatrix} <: 
 end
 
 Base.@kwdef struct ScalarFitnessEvaluator <: Evaluator 
+    id::String = "A"
     objective::String = "performance"
     maximize::Bool = true
     maximum_fitness::Union{Nothing, Float64} = nothing

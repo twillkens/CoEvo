@@ -10,6 +10,14 @@ function mutate!(mutator::Mutator, individual::Individual, reproducer::Reproduce
     error("mutate! not implemented for $mutator, $individual, $reproducer, $state")
 end
 
+function mutate!(
+    mutator::Mutator, individuals::Vector{<:Individual}, reproducer::Reproducer, state::State
+)
+    for individual in individuals
+        mutate!(mutator, individual, reproducer, state)
+    end
+end
+
 function mutate!(mutator::Mutator, genotype::Genotype, state::State)
     mutator = typeof(mutator)
     genotype = typeof(genotype)
@@ -28,4 +36,5 @@ function mutate(mutator::Mutator, genotype::Genotype, state::State)
     mutate!(mutator, new_genotype, state)
     return new_genotype
 end
+
 
