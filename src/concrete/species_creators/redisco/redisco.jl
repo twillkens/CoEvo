@@ -109,7 +109,7 @@ function increment_mutations!(species, species_creator)
     end
 end
 
-function update_population!(
+function update_species!(
     species::RediscoSpecies, 
     species_creator::RediscoSpeciesCreator, 
     evaluation::Evaluation, 

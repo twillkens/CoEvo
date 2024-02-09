@@ -1,3 +1,5 @@
+export NumbersGameVectorGenotypeCreator, create_genotypes
+
 using ...Genotypes.Vectors: BasicVectorGenotype
 
 Base.@kwdef struct NumbersGameVectorGenotypeCreator{T <: Real} <: GenotypeCreator

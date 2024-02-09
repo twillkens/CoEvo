@@ -10,6 +10,7 @@ using ....Interfaces
 using ...Species.Basic: BasicSpecies
 
 Base.@kwdef struct BasicSpeciesCreator <: SpeciesCreator
+    id::String
     n_population::Int
     n_parents::Int
     n_children::Int
@@ -22,45 +23,70 @@ function create_species(
     population = create_individuals(
         reproducer.individual_creator, species_creator.n_population, reproducer, state
     )
-    species = BasicSpecies(reproducer.id, population)
+    species = BasicSpecies(species_creator.id, population)
     return species
 end
 
-function update_population!(
-    species_creator::BasicSpeciesCreator, 
-    species::BasicSpecies, 
-    evaluation::Evaluation,
-    state::State
-) 
-    ordered_ids = [record.id for record in evaluation.records]
-    parent_ids = Set(ordered_ids[1:species_creator.n_parents])
-    parent_set = [individual for individual in species.population if individual.id in parent_ids]
-    parents = select(state.selector, parent_set, evaluation, state)
-    new_children = recombine(state.recombiner, parents, state)
-    mutate!(state.mutator, new_children, state)
-    if species_creator.n_elites > 0
-        elite_ids = [record.id for record in evaluation.records[1:species_creator.n_elites]]
-        elites = [individual for individual in species.population if individual.id in elite_ids]
-        new_population = [elites ; new_children]
-    else
-        new_population = new_children
-    end
-    empty!(species.population)
-    append!(species.population, new_population)
+function get_elites(species_creator::BasicSpeciesCreator, evaluation::Evaluation,)
+    I = typeof(evaluation.records[1].individual)
+    elite_records = evaluation.records[1:species_creator.n_elites]
+    elites = I[record.individual for record in elite_records]
+    return elites
 end
 
-function update_species!(
-    species_creator::BasicSpeciesCreator, 
-    species::BasicSpecies, 
+function get_parent_records(species_creator::BasicSpeciesCreator, evaluation::Evaluation)
+    parent_records = evaluation.records[1:species_creator.n_parents]
+    return parent_records
+end
+
+function validate_population(
+    population::Vector{<:Individual}, species_creator::BasicSpeciesCreator
+)
+    if length(population) != species_creator.n_population
+        n_population = species_creator.n_population
+        expected = species_creator.n_population
+        error("population length = $n_population, expected = $expected")
+    end
+end
+
+function create_children(
+    species_creator::BasicSpeciesCreator,
     evaluation::Evaluation,
+    selector::Selector,
+    recombiner::Recombiner,
+    mutator::Mutator,
+    state::State
+)
+    parent_records = get_parent_records(species_creator, evaluation)
+    selections = select(selector, parent_records, evaluation, state)
+    children = recombine(recombiner, selections, state)
+    mutate!(mutator, children, state)
+    return children
+end
+
+create_children(
+    species_creator::BasicSpeciesCreator, 
+    evaluation::Evaluation, 
+    reproducer::Reproducer, 
+    state::State
+) = create_children(
+    species_creator, evaluation, reproducer.selector, reproducer.recombiner, reproducer.mutator, 
+    state
+)
+
+function update_species!(
+    species::BasicSpecies, 
+    species_creator::BasicSpeciesCreator,
+    evaluation::Evaluation,
+    reproducer::Reproducer,
     state::State
 ) 
-    n_population_before = length(species.population)
-    update_population!(species_creator, species, evaluation, state)
-    n_population_after = length(species.population)
-    if n_population_after != n_population_before
-        error("Population size changed from $n_population_before to $n_population_after")
-    end
+    elites = get_elites(species_creator, evaluation)
+    children = create_children(species_creator, evaluation, reproducer, state)
+    new_population = [elites; children]
+    validate_population(new_population, species_creator)
+    empty!(species.population)
+    append!(species.population, new_population)
 end
 
 end

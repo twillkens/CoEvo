@@ -1,12 +1,12 @@
 module SpeciesCreators
 
-export Basic, Archive, Redisco #, AdaptiveArchive# , Modes
+export Basic, Redisco #, AdaptiveArchive# , Modes
 
 include("basic/basic.jl")
 using .Basic: Basic
 
-include("archive/archive.jl")
-using .Archive: Archive
+#include("archive/archive.jl")
+#using .Archive: Archive
 
 include("redisco/redisco.jl")
 using .Redisco: Redisco

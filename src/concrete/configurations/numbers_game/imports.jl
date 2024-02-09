@@ -1,12 +1,12 @@
 
-import ....Interfaces: create_reproducer, create_simulator, create_evaluator, create_archivers
+import ....Interfaces: create_reproducers, create_simulator, create_evaluator, create_archivers
 import ....Interfaces: mutate!, archive!, create_phenotype, create_genotypes
 using Random: AbstractRNG, randn
 using StatsBase: sample
 using ....Abstract
 using ....Interfaces
 using ...Evaluators.ScalarFitness: ScalarFitnessEvaluator
-using ...Evaluators.Distinction: DistinctionEvaluator
+#using ...Evaluators.Distinction: DistinctionEvaluator
 using ...Selectors.Tournament: TournamentSelector
 using ...Selectors.FitnessProportionate: FitnessProportionateSelector
 using ...Genotypes.Vectors: BasicVectorGenotypeCreator, BasicVectorGenotype

@@ -1,3 +1,5 @@
+export NumbersGamePhenotypeCreator, create_phenotype, round_to_nearest_delta
+
 using ...Phenotypes.Vectors: BasicVectorPhenotype
 
 Base.@kwdef struct NumbersGamePhenotypeCreator <: PhenotypeCreator 

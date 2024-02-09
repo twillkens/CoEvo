@@ -1,65 +1,126 @@
 module Abstract
 
 export AbstractRNG
+export Counter
+export Gene, Genotype, GenotypeCreator
+export Phenotype, PhenotypeCreator
+export Individual, IndividualCreator
+export AbstractSpecies
+export Criterion
+export Clusterer
+export Evaluator, Evaluation, Record
+export Replacer
+export Selector, Selection
+export Recombiner
+export Mutator
+export SpeciesCreator
+export Metric, Measurement, Aggregator
+export Domain
+export Match
+export MatchMaker
+export Observation, Observer, PhenotypeObserver
+export Result
+export Environment, EnvironmentCreator
+export Interaction
+export Job, JobCreator
+export Performer
+export Ecosystem, EcosystemCreator
+export Archiver
+export Reproducer
+export Simulator
+export State, StateCreator
+export Configuration
 
 using Random: AbstractRNG
 
-include("counters/counters.jl")
+abstract type Counter end
 
-include("genotypes/genotypes.jl")
+abstract type Gene end
 
-include("phenotypes/phenotypes.jl")
+abstract type Genotype end
 
-include("individuals/individuals.jl")
+abstract type GenotypeCreator end
 
-include("species/species.jl")
+abstract type Phenotype end
 
-include("criteria/criteria.jl")
+abstract type PhenotypeCreator end
 
-include("clusterers/clusterers.jl")
+abstract type PhenotypeState end
 
-include("evaluators/evaluators.jl")
+abstract type Individual end
 
-include("replacers/replacers.jl")
+abstract type IndividualCreator end
 
-include("selectors/selectors.jl")
+abstract type AbstractSpecies end
 
-include("recombiners/recombiners.jl")
+abstract type Criterion end
 
-include("mutators/mutators.jl")
+abstract type Clusterer end
 
-include("species_creators/species_creators.jl")
+abstract type Evaluation end
 
-include("metrics/metrics.jl")
+abstract type Evaluator end
 
-include("domains/domains.jl")
+abstract type Record end
 
-include("matches/matches.jl")
+abstract type Replacer end
 
-include("matchmakers/matchmakers.jl")
+abstract type Selector end
 
-include("observers/observers.jl")
+abstract type Selection end
 
-include("results/results.jl")
+abstract type Recombiner end
 
-include("environments/environments.jl")
+abstract type Mutator end
 
-include("interactions/interactions.jl")
+abstract type SpeciesCreator end
 
-include("jobs/jobs.jl")
+abstract type Metric end
 
-include("performers/performers.jl")
+abstract type Measurement end
 
-include("ecosystems/ecosystems.jl")
+abstract type Aggregator end
 
-include("archivers/archivers.jl")
+abstract type Domain{M <: Metric} end
 
-include("reproducers/reproducers.jl")
+abstract type Match end
 
-include("simulators/simulators.jl")
+abstract type MatchMaker end
 
-include("states/states.jl")
+abstract type Observation end
 
-include("configurations/configurations.jl")
+abstract type Observer end
+
+abstract type PhenotypeObserver <: Observer end
+
+abstract type Result end
+
+abstract type Environment{D <: Domain} end
+
+abstract type EnvironmentCreator{D <: Domain} end
+
+abstract type Interaction end
+
+abstract type Job end
+
+abstract type JobCreator end 
+
+abstract type Performer end
+
+abstract type Ecosystem end
+
+abstract type EcosystemCreator end
+
+abstract type Archiver end
+
+abstract type Reproducer end
+
+abstract type Simulator end
+
+abstract type State end
+
+abstract type StateCreator end
+
+abstract type Configuration end
 
 end

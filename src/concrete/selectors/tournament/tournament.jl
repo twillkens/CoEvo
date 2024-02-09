@@ -12,7 +12,6 @@ using StatsBase: sample
 using Random
 
 Base.@kwdef struct TournamentSelector <: Selector
-    n_parents::Int # number of parents to select
     n_selections::Int # number of selections to make
     n_selection_set::Int # number of individuals to select in each selection
     tournament_size::Int # tournament size
@@ -55,8 +54,8 @@ end
 function select(
     ::TournamentSelector,
     records::Vector{<:Record},
-    tournament_size::Int = 3,
-    rng::AbstractRNG = Random.GLOBAL_RNG,
+    tournament_size::Int,
+    rng::AbstractRNG,
 )
     contenders = sample(rng, records, tournament_size, replace = false)
     winner = run_tournament(rng, contenders)
@@ -65,10 +64,10 @@ end
 
 function select(
     selector::TournamentSelector,
-    records::Vector{R};
-    n_selection_set::Int = 1,
-    tournament_size::Int = 3,
-    rng::AbstractRNG = Random.GLOBAL_RNG,
+    records::Vector{R},
+    n_selection_set::Int,
+    tournament_size::Int,
+    rng::AbstractRNG 
 ) where {R <: Record}
     selection_set = R[]
     for _ in 1:n_selection_set
@@ -81,13 +80,15 @@ end
 
 function select(
     selector::TournamentSelector,
-    records::Vector{<:Record};
+    records::Vector{<:Record},
     n_selections::Int,
-    kwargs...
+    n_selection_set::Int,
+    tournament_size::Int,
+    rng::AbstractRNG,
 )
     selections = BasicSelection[]
     for _ in 1:n_selections
-        selection = select(selector, records; kwargs...)
+        selection = select(selector, records, n_selection_set, tournament_size, rng)
         push!(selections, selection)
     end
     return selections
@@ -95,7 +96,7 @@ end
 
 select(selector::TournamentSelector, evaluation::Evaluation, state::State) = select(
     selector, 
-    evaluation.records;
+    evaluation.records,
     n_selections = selector.n_selections, 
     n_selection_set = selector.n_selection_set, 
     tournament_size = selector.tournament_size,

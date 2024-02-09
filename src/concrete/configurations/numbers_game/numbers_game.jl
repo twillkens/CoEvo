@@ -8,8 +8,14 @@ include("phenotype.jl")
 
 include("mutate.jl")
 
-include("archive.jl")
-
 include("configuration.jl")
+
+include("reproducers.jl")
+
+include("simulator.jl")
+
+include("evaluators.jl")
+
+include("archive.jl")
 
 end

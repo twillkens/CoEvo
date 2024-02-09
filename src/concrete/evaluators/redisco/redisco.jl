@@ -10,7 +10,7 @@ using ....Abstract
 using ....Interfaces
 using ...Criteria
 
-struct RediscoEvaluator <: Evaluator
+Base.@kwdef struct RediscoEvaluator <: Evaluator
     max_clusters::Int
 end
 

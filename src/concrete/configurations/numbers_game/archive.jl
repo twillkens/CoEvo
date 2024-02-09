@@ -1,3 +1,5 @@
+export create_archivers, NumbersGameArchiver, archive!, collect_species_data, append_to_csv
+export calculate_average_minimum_gene, calculate_num_max_gene_at_index, calculate_average_gene_value_at_index
 
 struct NumbersGameArchiver <: Archiver end
 

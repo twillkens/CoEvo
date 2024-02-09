@@ -33,7 +33,7 @@ end
 
 function select(
     ::FitnessProportionateSelector, 
-    records::Vector{<:Record};
+    records::Vector{<:Record},
     n_selection_set::Int,
     rng::AbstractRNG = Random.GLOBAL_RNG
 )
@@ -46,13 +46,14 @@ end
 
 function select(
     selector::FitnessProportionateSelector, 
-    records::Vector{<:Record};
+    records::Vector{<:Record},
     n_selections::Int,
-    kwargs...
+    n_selection_set::Int,
+    rng::AbstractRNG = Random.GLOBAL_RNG;
 )
     selections = BasicSelection[]
     for _ in 1:n_selections
-        selection = select(selector, records; kwargs...)
+        selection = select(selector, records, n_selection_set, rng)
         push!(selections, selection)
     end
     return selections
@@ -61,10 +62,10 @@ end
 function select(selector::FitnessProportionateSelector, evaluation::Evaluation, state::State) 
     selections = select(
         selector, 
-        evaluation.records; 
-        n_selections = selector.n_selections,
-        n_selection_set = selector.n_selection_set,
-        rng = state.rng
+        evaluation.records,
+        selector.n_selections,
+        selector.n_selection_set,
+        state.rng
     )
     return selections
 end

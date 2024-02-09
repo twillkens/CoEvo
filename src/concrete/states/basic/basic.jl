@@ -3,10 +3,11 @@ module Basic
 export BasicEvolutionaryState, Timers 
 
 import ....Interfaces: update_ecosystem!, evolve!, create_ecosystem, archive!
-using StableRNGs: StableRNG
 using ....Abstract
 using ....Interfaces
 using ...States.Primer: PrimerState
+using ...Ecosystems.Simple: SimpleEcosystem, SimpleEcosystemCreator
+using StableRNGs: StableRNG
 
 mutable struct Timers
     reproduction_time::Float64
@@ -18,11 +19,12 @@ end
     C1 <: Configuration,
     C2 <: Counter,
     E1 <: EcosystemCreator,
-    R1 <: Reproducer,
     E2 <: Ecosystem,
+    R1 <: Reproducer,
     S <: Simulator,
     R2 <: Result,
-    E3 <: Evaluation,
+    E3 <: Evaluator,
+    E4 <: Evaluation,
     A <: Archiver
 } <: State
     id::Int
@@ -33,30 +35,24 @@ end
     individual_id_counter::C2
     rng_state_after_reproduction::String
     ecosystem_creator::E1
-    reproducers::Vector{R1}
     ecosystem::E2
+    reproducers::Vector{R1}
     simulator::S
     results::Vector{R2}
-    evaluations::Vector{E3}
+    evaluators::Vector{E3}
+    evaluations::Vector{E4}
     archivers::Vector{A}
-    checkpoint_interval::Int
     timers::Timers
 end
-
-using ...Ecosystems.Simple: SimpleEcosystem, SimpleEcosystemCreator
 
 function update_ecosystem!(
     ecosystem::SimpleEcosystem, ::SimpleEcosystemCreator, state::BasicEvolutionaryState
 )
-    reproduction_time_start = time()
-    for species in ecosystem.all_species
-        reproducer = first(filter(r -> r.species_id == species.id, state.reproducers))
-        evaluation = first(filter(e -> e.id == species.id, state.evaluations))
-        update_species!(species, reproducer, evaluation, state)
-    end
+    reproduction_time = update_ecosystem_with_time!(
+        ecosystem, state.ecosystem_creator, state.evaluations, state.reproducers, state
+    )
     state.rng_state_after_reproduction = string(state.rng.state)
-    reproduction_time = time() - reproduction_time_start
-    state.timers.reproduction_time = round(reproduction_time; digits = 3)
+    state.timers.reproduction_time = reproduction_time
 end
 
 function perform_simulation!(state::BasicEvolutionaryState)
@@ -68,34 +64,25 @@ function perform_simulation!(state::BasicEvolutionaryState)
     state.timers.simulation_time = simulation_time
 end
 
-
-
-function perform_evaluation!(state::BasicEvolutionaryState)
-    evaluation_time_start = time()
+function perform_evaluations!(state::BasicEvolutionaryState)
     empty!(state.evaluations)
-    for species in state.ecosystem.all_species
-        reproducer = first(filter(r -> r.species_id == species.id, state.reproducers))
-        evaluation = evaluate(reproducer.evaluator, species, state.results, state)
-        push!(state.evaluations, evaluation)
-    end
-    evaluation_time = round(time() - evaluation_time_start; digits = 3)
+    evaluations, evaluation_time = evaluate_with_time(
+        state.ecosystem, state.evaluators, state.results, state
+    )
+    append!(state.evaluations, evaluations)
     state.timers.evaluation_time = evaluation_time
 end
 
 function archive!(state::BasicEvolutionaryState)
-    using_archivers = state.checkpoint_interval > 0 
-    is_checkpoint = using_archivers && state.generation % state.checkpoint_interval == 0
-    if is_checkpoint
-        for archiver in state.archivers
-            archive!(archiver, state)
-        end
+    for archiver in state.archivers
+        archive!(archiver, state)
     end
 end
 
 function check_if_individuals_are_unique(state::State)
+    all_species = state.ecosystem.all_species
     species_ids = [
-        [individual.id for individual in species.population] 
-        for species in state.ecosystem.all_species
+        [individual.id for individual in species.population] for species in all_species
     ]
     all_ids = vcat(species_ids...)
     unique_ids = Set(all_ids)
@@ -108,12 +95,8 @@ end
 function next_generation!(state::BasicEvolutionaryState)
     state.generation += 1
     update_ecosystem!(state)
-    #println("----generation = $(state.generation)----")
-    #println("rng_state_after_reproduction = $(state.rng.state)")
     perform_simulation!(state)
-    #println("rng_state_after_simulation = $(state.rng.state)")
-    perform_evaluation!(state)
-    #println("rng_state_after_evaluation = $(state.rng.state)")
+    perform_evaluations!(state)
     archive!(state)
 end
 
@@ -137,15 +120,14 @@ end
 
 function BasicEvolutionaryState(config::Configuration)
     state = PrimerState(config)
-    ecosystem, reproduction_time = create_ecosystem_with_time(state)
-    #sort!(ecosystem.all_species, by = x -> x.id)
+    ecosystem, reproduction_time = create_ecosystem_with_time(
+        state.ecosystem_creator, state.reproducers, state
+    )
     rng_state_after_reproduction = string(state.rng.state)
-    #println("rng_state_after_reproduction = $rng_state_after_reproduction")
     results, simulation_time = simulate_with_time(state.simulator, ecosystem, state)
-    evaluations, evaluation_time = evaluate_with_time(state.evaluator, ecosystem, results, state)
-    #println("rng_state_after_evaluation = $(state.rng.state)")
+    evaluations, eval_time = evaluate_with_time(ecosystem, state.evaluators, results, state)
     archivers = create_archivers(config)
-    timers = Timers(reproduction_time, simulation_time, evaluation_time)
+    timers = Timers(reproduction_time, simulation_time, eval_time)
 
     state = BasicEvolutionaryState(
         id = config.id,
@@ -153,19 +135,16 @@ function BasicEvolutionaryState(config::Configuration)
         generation = 1,
         rng = state.rng,
         rng_state_after_reproduction = rng_state_after_reproduction,
-        reproducer = state.reproducer,
-        simulator = state.simulator,
-        evaluator = state.evaluator,
+        ecosystem_creator = state.ecosystem_creator,
+        reproducers = state.reproducers,
         ecosystem = ecosystem,
+        simulator = state.simulator,
         results = results,
         evaluations = evaluations,
         archivers = archivers,
-        checkpoint_interval = config.checkpoint_interval,
         timers = timers
     )
-    for archiver in state.archivers
-        archive!(archiver, state)
-    end
+    archive!(state)
     return state
 end
 

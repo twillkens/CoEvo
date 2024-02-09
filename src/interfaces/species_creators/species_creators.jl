@@ -13,13 +13,18 @@ function update_species!(
     species::AbstractSpecies, 
     species_creator::SpeciesCreator, 
     evaluation::Evaluation,
+    reproducer::Reproducer,
     state::State
 )
     species = typeof(species)
     species_creator = typeof(species_creator)
     evaluation = typeof(evaluation)
+    reproducer = typeof(reproducer)
     state = typeof(state)
-    error("`update_species!` not implemented for $species, $species_creator, $evaluation, $state")
+    error(
+        "`update_species!` not implemented for $species, $species_creator, $evaluation, " * 
+        "$reproducer, $state"
+    )
 end
 
 function create_from_dict(species_creator::SpeciesCreator, dict::Dict, state::State)

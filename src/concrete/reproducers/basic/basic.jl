@@ -10,7 +10,6 @@ using Base: @kwdef
     G <: GenotypeCreator,
     P <: PhenotypeCreator,
     I <: IndividualCreator,
-    E <: Evaluator,
     R <: Recombiner,
     M <: Mutator,
     S1 <: Selector,
@@ -21,7 +20,6 @@ using Base: @kwdef
     phenotype_creator::P
     individual_creator::I
     species_creator::S2
-    evaluator::E
     selector::S1
     recombiner::R
     mutator::M
