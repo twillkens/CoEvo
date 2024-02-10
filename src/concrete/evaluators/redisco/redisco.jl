@@ -41,7 +41,7 @@ function get_hillclimber_id(
 )
     records = [NSGAIIRecord(id = id, outcomes = matrix[id, :]) for id in cluster_ids]
     nsga_sort!(records, Maximize())
-    # the criteria for usurping a hillclimber is if an explorer/child in the cluster strictly 
+    # the criteria for usurping a hillclimber is if an explorer in the cluster strictly 
     # dominates the hillclimber with respect to distinctions
     rank_one_ids = [record.id for record in records if record.rank == 1]
     rank_one_hillclimber_ids = intersect(rank_one_ids, hillclimber_ids)

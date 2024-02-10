@@ -16,6 +16,7 @@ function make_species_creator(config::ReproducerConfiguration)
             id = config.id,
             n_population = config.n_population,
             max_archive_size = config.max_archive_size,
+            max_archive_age = config.max_archive_age,
             max_mutations = config.max_mutations,
         )
     else

@@ -30,6 +30,7 @@ Base.@kwdef mutable struct ReproducerConfiguration
     selection_type::String = "tournament"
     tournament_size::Int = 3
     max_archive_size::Int = 100
+    max_archive_age::Int = 500
     n_dimensions::Int = 5
     initialization_range::Tuple{Float64, Float64} = (0.0, 0.1)
     discretize_phenotypes::Bool = true

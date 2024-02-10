@@ -24,26 +24,29 @@ Base.@kwdef mutable struct RediscoSpecies{I <: Individual} <: AbstractSpecies
     hillclimbers::Vector{I}
     archive::Vector{I}
     temperature_dict::Dict{Int, Int}
+    age_dict::Dict{Int, Int}
     phylogenetic_graph::PhylogeneticGraph
 end
 
 function RediscoSpecies(id::String, archive::Vector{I}, population::Vector{I}) where I
     temperature_dict = Dict(individual.id => 1 for individual in archive)
+    age_dict = Dict(individual.id => 0 for individual in archive)
     graph = PhylogeneticGraph{Int}()
     for individual in archive
         add_node!(graph, individual.id)
     end
-    for individual in population
-        add_node!(graph, individual.parent_id, individual.id)
-    end
-    species = RediscoSpecies(id, population, I[], archive, temperature_dict, graph)
+    #for individual in population
+    #    add_node!(graph, individual.parent_id, individual.id)
+    #end
+    species = RediscoSpecies(id, population, I[], archive, temperature_dict, age_dict, graph)
     return species
 end
 
 Base.@kwdef mutable struct RediscoSpeciesCreator <: SpeciesCreator
     id::String
     n_population::Int = 100
-    max_archive_size::Int = 500
+    max_archive_size::Int = 100
+    max_archive_age::Int = 500
     max_mutations::Int = 100
 end
 
@@ -61,14 +64,17 @@ end
 
 function update_hillclimbers!(species::RediscoSpecies, evaluation::Evaluation)
     println("new_hillclimber_ids = $(evaluation.new_hillclimber_ids)")
-    empty!(species.hillclimbers)
     new_hillclimbers = [
         individual for individual in get_all_individuals(species) 
             if individual.id in evaluation.new_hillclimber_ids
     ]
+    current_hillclimber_ids = [individual.id for individual in species.hillclimbers]
+    empty!(species.hillclimbers)
     for individual in new_hillclimbers
         push!(species.hillclimbers, individual)
-        species.temperature_dict[individual.id] = 0
+        if individual.id ∉ current_hillclimber_ids
+            species.temperature_dict[individual.id] = 0
+        end
     end
     if length(species.hillclimbers) != length(evaluation.new_hillclimber_ids)
         println("new_hillclimber_ids = ", evaluation.new_hillclimber_ids)
@@ -85,22 +91,23 @@ function update_archive!(
             if individual.id in evaluation.retired_hillclimber_ids
     ]
     for individual in retired_hillclimbers
+        species.temperature_dict[individual.id] = 1
+        species.age_dict[individual.id] = 0
         if length(species.archive) == species_creator.max_archive_size
-            if individual.parent_id in keys(species.phylogenetic_graph.child_mapping)
-                to_delete_id = get_oldest_ancestor(species.phylogenetic_graph, individual.parent_id)
-            else
-                println("parent $(individual.parent_id) not found in graph for individual $(individual.id)")
-                to_delete_id = first(species.archive).id
+            parent = [
+                archiv_indiv for archiv_indiv in species.archive 
+                    if archiv_indiv.id == individual.parent_id
+            ]
+            if length(parent) != 0
+                to_delete = first(parent)
+                filter!(ind -> ind.id != to_delete.id, species.archive)
+                delete!(species.temperature_dict, to_delete.id)
+                delete!(species.age_dict, to_delete.id)
+                push!(species.archive, individual) 
             end
-            delete_node!(species.phylogenetic_graph, to_delete_id)
-            filter!(ind -> ind.id != to_delete_id, species.archive)
-            if individual.parent_id in keys(species.phylogenetic_graph.child_mapping)
-                add_node!(species.phylogenetic_graph, individual.parent_id, individual.id)
-            else
-                add_node!(species.phylogenetic_graph, individual.id)
-            end
+        else
+            push!(species.archive, individual) 
         end
-        push!(species.archive, individual) 
     end
 end
 
@@ -119,14 +126,21 @@ end
 
 
 function increment_mutations!(species::RediscoSpecies, species_creator::RediscoSpeciesCreator)
-    archive_ids = [individual.id for individual in species.archive]
     for (id, n_mutation) in species.temperature_dict
         n_mutation = min(n_mutation + 1, species_creator.max_mutations)
         species.temperature_dict[id] = n_mutation
-        if id in archive_ids && n_mutation == species_creator.max_mutations
-            delete_node!(species.phylogenetic_graph, id)
+    end
+end
+
+function increment_ages!(species::RediscoSpecies, species_creator::RediscoSpeciesCreator)
+    for (id, age) in species.age_dict
+        age += 1
+        if age >= species_creator.max_archive_age
             filter!(ind -> ind.id != id, species.archive)
+            delete!(species.temperature_dict, id)
+            delete!(species.age_dict, id)
         end
+        species.age_dict[id] = age 
     end
 end
 
@@ -143,6 +157,7 @@ function update_species!(
     reproducer::Reproducer,
     state::State
 )
+    increment_ages!(species, species_creator)
     update_hillclimbers!(species, evaluation)
     update_archive!(species, species_creator, evaluation)
     
@@ -159,12 +174,15 @@ function update_species!(
     #    genotype = round.(individual.genotype.genes; digits = 3)
     #    println("Hillclimber $(individual.id): $(genotype)")
     #end
-    temperatures = Int[]
+    info = []
     for individual in species.archive
         temp = species.temperature_dict[individual.id]
-        push!(temperatures, temp)
+        age = species.age_dict[individual.id]
+        max_dimension = argmax(individual.genotype.genes)
+        i = (temp, age, max_dimension)
+        push!(info, i)
     end
-    println("temps = $temperatures")
+    println("info = ", info)
 end
 
 get_all_individuals(species::RediscoSpecies) = unique(
@@ -192,3 +210,45 @@ function convert_to_dict(species::RediscoSpecies)
 end
 
 end
+
+#function update_archive!(
+#    species::RediscoSpecies, species_creator::RediscoSpeciesCreator, evaluation::Evaluation
+#)
+#    retired_hillclimbers = [
+#        individual for individual in species.population
+#            if individual.id in evaluation.retired_hillclimber_ids
+#    ]
+#    for individual in retired_hillclimbers
+#        species.temperature_dict[individual.id] = 1
+#        species.age_dict[individual.id] = 0
+#        if length(species.archive) == species_creator.max_archive_size
+#            if individual.parent_id in keys(species.phylogenetic_graph.child_mapping)
+#                to_delete_id = get_oldest_ancestor(species.phylogenetic_graph, individual.parent_id)
+#                delete_node!(species.phylogenetic_graph, to_delete_id)
+#                filter!(ind -> ind.id != to_delete_id, species.archive)
+#                if to_delete_id == individual.parent_id
+#                    add_node!(species.phylogenetic_graph, individual.id)
+#                else
+#                    add_node!(species.phylogenetic_graph, individual.parent_id, individual.id)
+#                end
+#                push!(species.archive, individual) 
+#            else
+#                to_delete_id = first([
+#                    relative.id for relative in species.archive 
+#                    if relative.parent_id == individual.parent_id
+#                ])
+#                delete_node!(species.phylogenetic_graph, to_delete_id)
+#                filter!(ind -> ind.id != to_delete_id, species.archive)
+#                add_node!(species.phylogenetic_graph, individual.id)
+#                push!(species.archive, individual) 
+#            end
+#        else
+#            if individual.parent_id in keys(species.phylogenetic_graph.child_mapping)
+#                add_node!(species.phylogenetic_graph, individual.parent_id, individual.id)
+#            else
+#                add_node!(species.phylogenetic_graph, individual.id)
+#            end
+#            push!(species.archive, individual) 
+#        end
+#    end
+#end
