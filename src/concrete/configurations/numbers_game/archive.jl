@@ -1,9 +1,11 @@
 export create_archivers, NumbersGameArchiver, archive!, collect_species_data, append_to_csv
 export calculate_average_minimum_gene, calculate_num_max_gene_at_index, calculate_average_gene_value_at_index
 
-struct NumbersGameArchiver <: Archiver end
-
+using DataFrames
+using CSV
 using Serialization
+
+struct NumbersGameArchiver <: Archiver end
 
 function calculate_average_minimum_gene(individuals::Vector{<:Individual})
     total_minimum_gene = 0.0
@@ -33,11 +35,6 @@ function calculate_average_gene_value_at_index(individuals::Vector{<:Individual}
     return round(avg_gene_value, digits=3)
 end
 
-using DataFrames
-using CSV
-using DataFrames
-using CSV
-
 function collect_species_data(species, generation)
     data_row = DataFrame()
     data_row[!, :generation] = [generation]
@@ -45,8 +42,9 @@ function collect_species_data(species, generation)
 
     println("------------")
     println("Generation $generation, Species ID $(species.id)")
+    length_genotype = length(species.population[1].genotype.genes)
 
-    for i in 1:5
+    for i in 1:length_genotype
         max_index = calculate_num_max_gene_at_index(species.population, i)
         avg_value = calculate_average_gene_value_at_index(species.population, i)
         data_row[!, Symbol("maxindex_$i")] = [max_index]

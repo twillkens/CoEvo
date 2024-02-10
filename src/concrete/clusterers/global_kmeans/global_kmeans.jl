@@ -378,6 +378,9 @@ function get_fast_global_clustering_result(
     max_clusters::Int = 5,
     kwargs...
 )
+    if length(samples) == 0
+        return KMeansClusteringResult()
+    end
     #max_clusters = max_clusters == -1 ? length(samples) : max_clusters
     max_clusters = min(max_clusters, length(samples))
     fg = FastGlobal(max_clusters, length(samples[1]))

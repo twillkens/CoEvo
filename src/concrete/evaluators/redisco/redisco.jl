@@ -17,7 +17,8 @@ end
 
 Base.@kwdef struct RediscoEvaluation <: Evaluation
     id::String
-    hillclimber_ids::Vector{Int}
+    new_hillclimber_ids::Vector{Int}
+    retired_hillclimber_ids::Vector{Int}
     matrix::OutcomeMatrix
     clustering_result::KMeansClusteringResult
     cluster_records::Vector{Vector{NSGAIIRecord}}
@@ -46,6 +47,7 @@ function get_hillclimber_id(
     rank_one_hillclimber_ids = intersect(rank_one_ids, hillclimber_ids)
     hillclimber_id = length(rank_one_hillclimber_ids) > 0 ? 
         rand(state.rng, rank_one_hillclimber_ids) : rand(state.rng, rank_one_ids)
+
     return hillclimber_id, records
 end
 
@@ -53,41 +55,33 @@ using Serialization
 
 function evaluate(
     evaluator::RediscoEvaluator, 
+    species::AbstractSpecies,
     hillclimber_ids::Vector{Int},
     matrix::OutcomeMatrix,
     state::State
 )
     matrix = filter_zero_rows(matrix)
     new_hillclimber_ids = Int[]
-    clustering_result = KMeansClusteringResult()
     cluster_records = Vector{Vector{NSGAIIRecord}}()
 
     # if no distinctions have been found then continue
-    if length(matrix.row_ids) == 1
-        push!(new_hillclimber_ids, first(matrix.row_ids))
-    elseif length(matrix.row_ids) > 0
-        try
-            clustering_result = get_fast_global_clustering_result(
-                state.rng, matrix.data, max_clusters = evaluator.max_clusters
-            )
-            all_cluster_ids = get_cluster_ids(clustering_result, matrix)
+    clustering_result = get_fast_global_clustering_result(
+        state.rng, matrix.data, max_clusters = evaluator.max_clusters
+    )
+    all_cluster_ids = get_cluster_ids(clustering_result, matrix)
 
-            for cluster_ids in all_cluster_ids
-                hillclimber_id, records = get_hillclimber_id(
-                    cluster_ids, hillclimber_ids, matrix, state
-                )
-                push!(new_hillclimber_ids, hillclimber_id)
-                push!(cluster_records, records)
-            end
-        catch e
-            println("matrix = $matrix")
-            serialize("test/redisco/matrix.jls", matrix)
-            throw(e)
-        end
+    for cluster_ids in all_cluster_ids
+        hillclimber_id, records = get_hillclimber_id(
+            cluster_ids, hillclimber_ids, matrix, state
+        )
+        push!(new_hillclimber_ids, hillclimber_id)
+        push!(cluster_records, records)
     end
+
     evaluation = RediscoEvaluation(
         id = evaluator.id,
-        hillclimber_ids = new_hillclimber_ids,
+        new_hillclimber_ids = new_hillclimber_ids,
+        retired_hillclimber_ids = setdiff(hillclimber_ids, new_hillclimber_ids),
         matrix = matrix,
         clustering_result = clustering_result,
         cluster_records = cluster_records
@@ -103,8 +97,57 @@ function evaluate(
 )
     matrix = make_distinction_matrix(species.population, results)
     hillclimber_ids = [individual.id for individual in species.hillclimbers]
-    evaluation = evaluate(evaluator, hillclimber_ids, matrix, state)
+    evaluation = evaluate(evaluator, species, hillclimber_ids, matrix, state)
     return evaluation
 end
 
 end
+#function evaluate(
+#    evaluator::RediscoEvaluator, 
+#    species::AbstractSpecies,
+#    hillclimber_ids::Vector{Int},
+#    matrix::OutcomeMatrix,
+#    state::State
+#)
+#    matrix = filter_zero_rows(matrix)
+#    new_hillclimber_ids = Int[]
+#    to_remove_from_archive_ids = Int[]
+#    clustering_result = KMeansClusteringResult()
+#    cluster_records = Vector{Vector{NSGAIIRecord}}()
+#
+#    # if no distinctions have been found then continue
+#    if length(matrix.row_ids) == 1
+#        push!(new_hillclimber_ids, first(matrix.row_ids))
+#    elseif length(matrix.row_ids) > 0
+#        try
+#            clustering_result = get_fast_global_clustering_result(
+#                state.rng, matrix.data, max_clusters = evaluator.max_clusters
+#            )
+#            all_cluster_ids = get_cluster_ids(clustering_result, matrix)
+#
+#            for cluster_ids in all_cluster_ids
+#                hillclimber_id, records = get_hillclimber_id(
+#                    cluster_ids, hillclimber_ids, matrix, state
+#                )
+#                push!(new_hillclimber_ids, hillclimber_id)
+#                push!(cluster_records, records)
+#                update_ids_to_remove_from_archive!(
+#                    to_remove_from_archive_ids, records, hillclimber_id, species, state
+#                )
+#            end
+#        catch e
+#            println("matrix = $matrix")
+#            serialize("test/redisco/matrix.jls", matrix)
+#            throw(e)
+#        end
+#    end
+#    evaluation = RediscoEvaluation(
+#        id = evaluator.id,
+#        hillclimber_ids = new_hillclimber_ids,
+#        to_remove_from_archive_ids = to_remove_from_archive_ids,
+#        matrix = matrix,
+#        clustering_result = clustering_result,
+#        cluster_records = cluster_records
+#    )
+#    return evaluation
+#end
