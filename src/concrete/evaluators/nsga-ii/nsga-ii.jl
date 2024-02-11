@@ -20,6 +20,15 @@ Base.@kwdef mutable struct NSGAIIRecord <: Record
     dom_list::Vector{Int} = Int[]
 end
 
+function dominates(::Maximize, a::Vector{<:Real}, b::Vector{<:Real})
+    res = false
+    for i in eachindex(a)
+        @inbounds a[i] < b[i] && return false
+        @inbounds a[i] > b[i] && (res = true)
+    end
+    res
+end
+
 function dominates(::Maximize, a::Record, b::Record)
     res = false
     for i in eachindex(a.outcomes)

@@ -1,6 +1,6 @@
 module Evaluators
 
-export Null, ScalarFitness, NSGAII, Disco, Redisco#, AdaptiveArchive
+export Null, ScalarFitness, NSGAII, Disco, Redisco, HillClimber#, AdaptiveArchive
 
 include("null/null.jl")
 using .Null: Null
@@ -19,5 +19,8 @@ using .Disco: Disco
 
 include("redisco/redisco.jl")
 using .Redisco: Redisco
+
+include("hillclimber/hillclimber.jl")
+using .HillClimber: HillClimber
 
 end

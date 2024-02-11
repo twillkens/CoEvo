@@ -54,10 +54,16 @@ end
     name::String = "Relativism"
 end
 
+#function measure(::NumbersGameDomain{Relativism}, A::Vector{<:Real}, B::Vector{<:Real})
+#    idx = findmin(abs.(A - B))[2]
+#    return outcome_decision(A[idx] > B[idx])
+#end
 function measure(::NumbersGameDomain{Relativism}, A::Vector{<:Real}, B::Vector{<:Real})
-    idx = findmin(abs.(A - B))[2]
+    diff = abs.(A .- B)
+    idx = argmin(diff)
     return outcome_decision(A[idx] > B[idx])
 end
+
 
 @kwdef struct CompareOnAll <: Metric
     name::String = "CompareOnAll"

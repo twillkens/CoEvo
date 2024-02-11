@@ -61,6 +61,7 @@ function evaluate(
     state::State
 )
     matrix = filter_zero_rows(matrix)
+    matrix = filter_identical_columns(matrix)
     new_hillclimber_ids = Int[]
     cluster_records = Vector{Vector{NSGAIIRecord}}()
 

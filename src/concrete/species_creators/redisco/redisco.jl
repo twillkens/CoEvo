@@ -82,32 +82,56 @@ function update_hillclimbers!(species::RediscoSpecies, evaluation::Evaluation)
         error("Hillclimbers not found.")
     end
 end
+using Serialization
+
+function archive_hillclimber!(
+    species::RediscoSpecies, species_creator::RediscoSpeciesCreator, individual::Individual, 
+)
+    species.temperature_dict[individual.id] = 1
+    species.age_dict[individual.id] = 0
+    if length(species.archive) == species_creator.max_archive_size
+        parent = [
+            archiv_indiv for archiv_indiv in species.archive 
+                if archiv_indiv.id == individual.parent_id
+        ]
+        if length(parent) != 0
+            to_delete = first(parent)
+            filter!(ind -> ind.id != to_delete.id, species.archive)
+            delete!(species.temperature_dict, to_delete.id)
+            delete!(species.age_dict, to_delete.id)
+            push!(species.archive, individual) 
+        else
+            #println("individual = ", individual.id)
+            #serialize("test/redisco/species.jls", species)
+            #error("Parent not found in archive.")
+            #to_delete = first(species.archive)
+            #filter!(ind -> ind.id != to_delete.id, species.archive)
+            #delete!(species.temperature_dict, to_delete.id)
+            #delete!(species.age_dict, to_delete.id)
+            #push!(species.archive, individual) 
+        end
+    else
+        push!(species.archive, individual) 
+    end
+end
 
 function update_archive!(
     species::RediscoSpecies, species_creator::RediscoSpeciesCreator, evaluation::Evaluation
 )
     retired_hillclimbers = [
-        individual for individual in species.population
+        individual for individual in species.hillclimbers
             if individual.id in evaluation.retired_hillclimber_ids
     ]
     for individual in retired_hillclimbers
-        species.temperature_dict[individual.id] = 1
-        species.age_dict[individual.id] = 0
-        if length(species.archive) == species_creator.max_archive_size
-            parent = [
-                archiv_indiv for archiv_indiv in species.archive 
-                    if archiv_indiv.id == individual.parent_id
-            ]
-            if length(parent) != 0
-                to_delete = first(parent)
-                filter!(ind -> ind.id != to_delete.id, species.archive)
-                delete!(species.temperature_dict, to_delete.id)
-                delete!(species.age_dict, to_delete.id)
-                push!(species.archive, individual) 
-            end
-        else
-            push!(species.archive, individual) 
-        end
+        archive_hillclimber!(species, species_creator, individual)
+    end
+    retired_children = [
+        individual for individual in species.population
+            if individual.id in evaluation.retired_hillclimber_ids &&
+                individual.id ∉ [ind.id for ind in species.hillclimbers]
+    ]
+    for individual in retired_children
+        archive_hillclimber!(species, species_creator, individual)
     end
 end
 
@@ -162,11 +186,18 @@ function update_species!(
     update_archive!(species, species_creator, evaluation)
     
     n_archive_samples = (species_creator.n_population - length(species.hillclimbers) * 2) ÷ 2
+    n_archive_samples = min(n_archive_samples, length(species.archive))
     active_archive = sample(state.rng, species.archive, n_archive_samples, replace = false)
     archive_clones = recombine(reproducer.recombiner, active_archive, state)
     parents = [species.hillclimbers ; active_archive]
     children = recombine_and_mutate!(species, parents, reproducer, state)
     species.population = [species.hillclimbers ; archive_clones ; children]
+    n_extra_mutants = species_creator.n_population - length(species.population)
+    extra_parents = sample(state.rng, species.archive, n_extra_mutants, replace = true)
+    extra_mutants = recombine_and_mutate!(species, extra_parents, reproducer, state)
+    append!(species.population, extra_mutants)
+    
+    
     #trim_archive!(species, species_creator, evaluation, state.rng)
     increment_mutations!(species, species_creator)
     validate_species(species, species_creator)

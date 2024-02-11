@@ -1,6 +1,7 @@
 export create_evaluators, create_evaluator
 
 import ....Interfaces: create_evaluator, create_evaluators
+using ...Evaluators.HillClimber: HillClimberEvaluator
 
 function create_evaluator(config::EvaluatorConfiguration)
     if config.evaluator_type == "scalar_fitness"
@@ -22,6 +23,11 @@ function create_evaluator(config::EvaluatorConfiguration)
         evaluator = RediscoEvaluator(
             id = config.id,
             max_clusters = config.max_clusters,
+        )
+    elseif config.evaluator_type == "hillclimber"
+        evaluator = HillClimberEvaluator(
+            id = config.id,
+            max_clusters = config.max_clusters
         )
     else
         error("Invalid evaluator type: $(config.evaluator_type)")

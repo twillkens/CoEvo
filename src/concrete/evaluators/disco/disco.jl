@@ -101,6 +101,7 @@ function evaluate(
     raw_matrix::OutcomeMatrix,
     state::State
 )
+    raw_matrix = filter_identical_columns(raw_matrix)
     matrix = get_derived_matrix(
         state.rng, raw_matrix, evaluator.max_clusters, evaluator.distance_method
     )

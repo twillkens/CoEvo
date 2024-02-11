@@ -1,7 +1,7 @@
 module Outcome
 
 export OutcomeMatrix, make_distinction_matrix, filter_zero_rows, get_sorted_dict
-export generate_unique_tuples
+export generate_unique_tuples, filter_identical_columns
 
 import Base: getindex
 using DataStructures
@@ -176,6 +176,40 @@ function get_sorted_dict(matrix::OutcomeMatrix)
     end
     return sorted_dict
 end
+
+function filter_identical_columns(matrix::OutcomeMatrix)
+    n = size(matrix.data, 2)  # Number of columns
+    unique_col_indices = Bool[true for _ in 1:n]  # Initialize a boolean array to mark unique columns
+
+    # Use a dictionary to track unique columns by their hash values
+    col_hashes = Dict{UInt, Int}()
+
+    for i in 1:n
+        col_hash = hash(matrix.data[:, i])
+        if haskey(col_hashes, col_hash)
+            # If hash is found, compare to confirm they are identical
+            j = col_hashes[col_hash]
+            if all(matrix.data[:, i] .== matrix.data[:, j])
+                unique_col_indices[i] = false  # Mark as not unique
+            else
+                # Handle hash collision: different columns with the same hash
+                col_hashes[col_hash] = i  # Update to the new column (optional based on use case)
+            end
+        else
+            col_hashes[col_hash] = i  # Add new unique column hash
+        end
+    end
+    
+    # Filter based on unique_col_indices
+    unique_indices = findall(unique_col_indices)
+    data = matrix.data[:, unique_indices]
+    column_ids = matrix.column_ids[unique_indices]
+    matrix = OutcomeMatrix(matrix.id, matrix.row_ids, column_ids, data)
+    return matrix
+end
+
+
+
 
 end
 #function implement_competitive_fitness_sharing(outcome_matrix::SortedDict{Int, Vector{Float64}})

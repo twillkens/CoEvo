@@ -1,6 +1,6 @@
 module SpeciesCreators
 
-export Basic, Redisco #, AdaptiveArchive# , Modes
+export Basic, Redisco, HillClimber #, AdaptiveArchive# , Modes
 
 include("basic/basic.jl")
 using .Basic: Basic
@@ -10,6 +10,9 @@ using .Basic: Basic
 
 include("redisco/redisco.jl")
 using .Redisco: Redisco
+
+include("hillclimber/hillclimber.jl")
+using .HillClimber: HillClimber
 
 #include("adaptive_archive/adaptive_archive.jl")
 #using .AdaptiveArchive: AdaptiveArchive

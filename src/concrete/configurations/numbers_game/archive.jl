@@ -52,16 +52,6 @@ function collect_species_data(species, generation)
 
         println("Max Index $i: $max_index, Avg Value $i: $avg_value")
     end
-    if species.id == "B"
-        for i in 1:10
-            max_index = calculate_num_max_gene_at_index(species.archive, i)
-            avg_value = calculate_average_gene_value_at_index(species.archive, i)
-            #data_row[!, Symbol("maxindex_$i")] = [max_index]
-            #data_row[!, Symbol("avgvalue_$i")] = [avg_value]
-
-            println("ARCHIVE Max Index $i: $max_index, Avg Value $i: $avg_value")
-        end
-    end
 
     avg_min_gene = calculate_average_minimum_gene(species.population)
     data_row[!, :avgmin_gene] = [avg_min_gene]
@@ -83,10 +73,10 @@ function append_to_csv(df, csv_path)
 end
 
 function archive!(::NumbersGameArchiver, state::State)
-    all_data = DataFrame()
+    #all_data = DataFrame()
     for species in state.ecosystem.all_species
         species_data = collect_species_data(species, state.generation)
-        append!(all_data, species_data)
+        #append!(all_data, species_data)
     end
     #mode = state.configuration.mode
     #csv_dir = "trials/$mode"
