@@ -51,7 +51,7 @@ function make_selector(config::ReproducerConfiguration)
 end
 
 function create_reproducer(config::ReproducerConfiguration)
-    bias_vector = [ones(config.n_dimensions ÷ 2) ; zeros(config.n_dimensions ÷ 2)]
+    bias_vector = [fill(2, config.n_dimensions ÷ 2) ; zeros(config.n_dimensions ÷ 2)]
     reproducer = BasicReproducer(
         id = config.id,
         #genotype_creator = NumbersGameVectorGenotypeCreator(

@@ -22,6 +22,7 @@ Base.@kwdef mutable struct HillClimberSpecies{I <: Individual} <: AbstractSpecie
     children::Vector{I}
     population::Vector{I}
     temperature_dict::Dict{Int, Int}
+    preferred::Vector{Int}
 end
 
 function recombine_and_mutate!(
@@ -55,10 +56,9 @@ function create_species(
     temperature_dict = Dict(individual.id => 1 for individual in parents)
     children = recombine_and_mutate!(temperature_dict, parents, reproducer, state)
     population = [parents ; children]
-    species = HillClimberSpecies(species_creator.id, parents, children, population, temperature_dict)
-    println("-----------------YO----------------")
-    println("species_id = ", species.id)
-    println("pop_ids = ", [individual.id for individual in species.population])
+    species = HillClimberSpecies(
+        species_creator.id, parents, children, population, temperature_dict, Int[]
+    )
     return species
 end
 
@@ -73,6 +73,12 @@ function validate_species(species::HillClimberSpecies, species_creator::HillClim
     if length(species.population) != species_creator.n_population
         error("Population size is $(length(species.population)), but should be $(species_creator.n_population)")
     end
+    parent_ids = [parent.id for parent in species.parents]
+    for child in species.children
+        if !(child.parent_id in parent_ids)
+            error("Child parent_id $(child.parent_id) not in parent_ids: $(parent_ids)")
+        end
+    end
 end
 
 function update_species!(
@@ -82,33 +88,86 @@ function update_species!(
     reproducer::Reproducer,
     state::State
 ) where I <: Individual
-    parents = I[]
-    for (parent, child, winner_id) in zip(species.parents, species.children, evaluation.winner_ids)
-        if winner_id == child.id
-            species.temperature_dict[child.id] = 0
-            delete!(species.temperature_dict, parent.id)
-            winner = child
-        else 
-            winner = parent
-        end
-        push!(parents, winner)
+    setdiff!(species.preferred, evaluation.to_defer_ids)
+    for to_promote_id in evaluation.to_promote_ids
+        individual = species[to_promote_id]
+        species.temperature_dict[to_promote_id] = 0
+        delete!(species.temperature_dict, individual.parent_id)
+        filter!(ind -> ind.id != individual.parent_id, species.parents)
+        push!(species.parents, individual)
+        push!(species.preferred, to_promote_id)
     end
     increment_mutations!(species, species_creator)
-    children = recombine_and_mutate!(species.temperature_dict, parents, reproducer, state)
-    species.parents = parents
-    species.children = children
-    species.population = [parents ; children]
+
+    species.children = recombine_and_mutate!(species.temperature_dict, species.parents, reproducer, state)
+    for (i, parent) in enumerate(species.parents)
+        if species.temperature_dict[parent.id] == species_creator.max_mutations
+            new_parent = species.children[i]
+            species.temperature_dict[new_parent.id] = 1
+            new_child = recombine_and_mutate!(species.temperature_dict, [new_parent], reproducer, state)[1]
+            species.parents[i] = new_parent
+            species.children[i] = new_child
+            delete!(species.temperature_dict, parent.id)
+
+        end
+    end
+    species.population = [species.parents ; species.children]
     
     validate_species(species, species_creator)
     info = []
     for individual in species.parents
         temp = species.temperature_dict[individual.id]
         max_dimension = argmax(individual.genotype.genes)
-        i = (temp, max_dimension)
+        v = round(individual.genotype.genes[max_dimension], digits=2)
+        i = (temp, max_dimension, v)
+        push!(info, i)
+    end
+    println("info = ", info)
+    info = []
+    for individual in species.children
+        #temp = species.temperature_dict[individual.id]
+        max_dimension = argmax(individual.genotype.genes)
+        v = round(individual.genotype.genes[max_dimension], digits=2)
+        i = (max_dimension, v)
         push!(info, i)
     end
     println("info = ", info)
 end
+
+#function update_species!(
+#    species::HillClimberSpecies{I}, 
+#    species_creator::HillClimberSpeciesCreator, 
+#    evaluation::Evaluation, 
+#    reproducer::Reproducer,
+#    state::State
+#) where I <: Individual
+#    parents = I[]
+#    for (parent, child, winner_id) in zip(species.parents, species.children, evaluation.winner_ids)
+#        if winner_id == child.id
+#            species.temperature_dict[child.id] = 0
+#            delete!(species.temperature_dict, parent.id)
+#            winner = child
+#        else 
+#            winner = parent
+#        end
+#        push!(parents, winner)
+#    end
+#    increment_mutations!(species, species_creator)
+#    children = recombine_and_mutate!(species.temperature_dict, parents, reproducer, state)
+#    species.parents = parents
+#    species.children = children
+#    species.population = [parents ; children]
+#    
+#    validate_species(species, species_creator)
+#    info = []
+#    for individual in species.parents
+#        temp = species.temperature_dict[individual.id]
+#        max_dimension = argmax(individual.genotype.genes)
+#        i = (temp, max_dimension)
+#        push!(info, i)
+#    end
+#    println("info = ", info)
+#end
 
 get_all_individuals(species::HillClimberSpecies) = unique(
     species.population 
