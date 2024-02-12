@@ -80,6 +80,7 @@ function evaluate(
             for child_id in child_ids
                 if child_id != chosen_id
                     push!(to_defer_ids, species[child_id].parent_id)
+                    push!(to_defer_ids, child_id)
                 end
             end
         end

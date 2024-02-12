@@ -23,6 +23,7 @@ Base.@kwdef mutable struct HillClimberSpecies{I <: Individual} <: AbstractSpecie
     population::Vector{I}
     temperature_dict::Dict{Int, Int}
     preferred::Vector{Int}
+    lazy_time::Dict{Int, Int}
 end
 
 function recombine_and_mutate!(
@@ -54,10 +55,11 @@ function create_species(
     individual_creator = reproducer.individual_creator 
     parents = create_individuals(individual_creator, n_parents, reproducer, state)
     temperature_dict = Dict(individual.id => 1 for individual in parents)
+    lazy_time = Dict(individual.id => 0 for individual in parents)
     children = recombine_and_mutate!(temperature_dict, parents, reproducer, state)
     population = [parents ; children]
     species = HillClimberSpecies(
-        species_creator.id, parents, children, population, temperature_dict, Int[]
+        species_creator.id, parents, children, population, temperature_dict, Int[], lazy_time
     )
     return species
 end
@@ -88,10 +90,11 @@ function update_species!(
     reproducer::Reproducer,
     state::State
 ) where I <: Individual
-    setdiff!(species.preferred, evaluation.to_defer_ids)
+    #setdiff!(species.preferred, evaluation.to_defer_ids)
     for to_promote_id in evaluation.to_promote_ids
         individual = species[to_promote_id]
         species.temperature_dict[to_promote_id] = 0
+        species.lazy_time[to_promote_id] = 0
         delete!(species.temperature_dict, individual.parent_id)
         filter!(ind -> ind.id != individual.parent_id, species.parents)
         push!(species.parents, individual)
@@ -101,13 +104,22 @@ function update_species!(
 
     species.children = recombine_and_mutate!(species.temperature_dict, species.parents, reproducer, state)
     for (i, parent) in enumerate(species.parents)
-        if species.temperature_dict[parent.id] == species_creator.max_mutations
+        if !(parent.id in evaluation.matrix.row_ids && parent.id in species.preferred)
+            species.lazy_time[parent.id] += 1
+        else
+            species.lazy_time[parent.id] = 0
+        end
+
+        if species.lazy_time[parent.id] == species_creator.max_mutations
+            continue
             new_parent = species.children[i]
             species.temperature_dict[new_parent.id] = 1
+            species.lazy_time[new_parent.id] = 0
             new_child = recombine_and_mutate!(species.temperature_dict, [new_parent], reproducer, state)[1]
             species.parents[i] = new_parent
             species.children[i] = new_child
             delete!(species.temperature_dict, parent.id)
+            delete!(species.lazy_time, parent.id)
 
         end
     end
@@ -116,21 +128,31 @@ function update_species!(
     validate_species(species, species_creator)
     info = []
     for individual in species.parents
+        if !(individual.id in species.preferred)
+            continue
+        end
         temp = species.temperature_dict[individual.id]
         max_dimension = argmax(individual.genotype.genes)
         v = round(individual.genotype.genes[max_dimension], digits=2)
-        i = (temp, max_dimension, v)
+        age = species.lazy_time[individual.id]
+        i = (age, temp, max_dimension, v)
         push!(info, i)
     end
+    sort!(info, by = x -> x[3])
     println("info = ", info)
     info = []
     for individual in species.children
+        if !(individual.parent_id in species.preferred)
+            continue
+        end
         #temp = species.temperature_dict[individual.id]
         max_dimension = argmax(individual.genotype.genes)
         v = round(individual.genotype.genes[max_dimension], digits=2)
         i = (max_dimension, v)
+
         push!(info, i)
     end
+    sort!(info, by = x -> x[1])
     println("info = ", info)
 end
 
