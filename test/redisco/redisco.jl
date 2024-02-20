@@ -3,7 +3,7 @@ using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
 N_DIMENSIONS = 20
-DISCRETIZE_PHENOTYPES = true
+DISCRETIZE_PHENOTYPES = false
 MAX_CLUSTERS = 10
 
 
@@ -37,7 +37,7 @@ distinguisher_reproducer_config = ReproducerConfiguration(
     species_type = "hillclimber",
     n_population = 100,
     max_archive_size = 100,
-    max_mutations = 1000,
+    max_mutations = 10,
     max_archive_age = 10000,
     n_dimensions = N_DIMENSIONS,
     initialization_range = (0.0, 0.1),

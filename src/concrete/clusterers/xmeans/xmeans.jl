@@ -5,6 +5,7 @@ export KMeansClusteringResult, DiscoBinary, DiscoAverage, find_distance
 export Euclidean, squared_euclidean_distance, disco_binary_distance, disco_average_distance
 export vector_transpose, is_power2, bayesian_information_criterion, split_cluster, split_and_evaluate_clusters
 export kmeans_plus_plus_init, get_derived_tests, DISTANCE_METHODS
+export akaike_information_criterion
 
 using LinearAlgebra
 using Random
@@ -87,6 +88,7 @@ is_power2(num::Int) = (num & (num - 1)) == 0 && num != 0
 
 struct KMeansClusteringResult
     error::Float64
+    samples::Vector{Vector{Float64}}
     centroids::Vector{Vector{Float64}}
     cluster_indices::Vector{Vector{Int}}
     clusters::Vector{Vector{Vector{Float64}}}
@@ -180,46 +182,223 @@ function compute_clustering_error(
 end
 
 
+#function bayesian_information_criterion(
+#    samples::Vector{Vector{Float64}}, 
+#    centroids::Vector{Vector{Float64}}, 
+#    clusters::Vector{Vector{Int}}
+#)
+#    K = length(centroids)  # Number of clusters
+#    N = sum(length(cluster) for cluster in clusters)  # Total number of data points
+#    dimension = length(samples[1])  # Dimensionality of data points
+#
+#    sigma_sqrt = 0.0  # Estimation of the noise variance
+#
+#    # Calculate the sum of squared distances from each point to its cluster centroid
+#    for (index_cluster, cluster) in enumerate(clusters)
+#        centroid = centroids[index_cluster]
+#        for index_point in cluster
+#            point = samples[index_point]
+#            sigma_sqrt += sum((point[i] - centroid[i])^2 for i in 1:dimension)
+#        end
+#    end
+#
+#    # Avoid division by zero
+#    if N > K
+#        sigma_sqrt /= (N - K)
+#        p = (K - 1) + dimension * K + 1  # Number of free parameters
+#        # Calculate BIC for each cluster and sum them
+#        scores = Float64[]
+#        for cluster in clusters
+#            n = length(cluster)
+#            sigma_multiplier = sigma_sqrt <= 0.0 ? -Inf : dimension * 0.5 * log(sigma_sqrt)
+#            L = n * log(n / N) - n * 0.5 * log(2 * π) - n * sigma_multiplier - (n - K) * 0.5
+#
+#            #L = n * log(n / N) - n * dimension * 0.5 * log(2 * π) - n * dimension * 0.5 * log(sigma_sqrt) - (n - K) * 0.5
+#            push!(scores, L - p * 0.5 * log(N))
+#        end
+#
+#        return sum(scores)
+#    else
+#        return -Inf
+#    end
+#end
+#
 function bayesian_information_criterion(
     samples::Vector{Vector{Float64}}, 
     centroids::Vector{Vector{Float64}}, 
     clusters::Vector{Vector{Int}}
 )
-    K = length(centroids)  # Number of clusters
+    R = length(samples)
+    K = length(centroids)
+    M = length(samples[1])
+    
+    # Calculate variance estimate (σ^2)
+    σ²_sum = 0.0
+    for k in 1:K
+        for i in clusters[k]
+            σ²_sum += sum((samples[i][m] - centroids[k][m])^2 for m in 1:M)
+        end
+    end
+    σ² = σ²_sum / (R - K)
+    
+    # Calculate log-likelihood (l̂)
+    l̂ = 0.0
+    for k in 1:K
+        R_k = length(clusters[k])
+        for i in clusters[k]
+            distance² = sum((samples[i][m] - centroids[k][m])^2 for m in 1:M)
+            l̂ += - (M / 2) * log(2 * π * σ²) - (distance² / (2 * σ²))
+        end
+        l̂ += R_k * log(R_k / R) # Add log of the cluster proportion
+    end
+    
+    # Calculate number of parameters (p)
+    p = K * M + 1 # K centroids with M dimensions each, plus one variance
+    
+    # Calculate BIC
+    BIC = l̂ - (p / 2) * log(R)
+    return BIC
+end
+
+function calculate_variance(samples::Vector{Vector{Float64}}, centers::Vector{Vector{Float64}}, clusters::Vector{Vector{Int}})
+    sigma_sqrt = 0.0
+    N = sum(length(cluster) for cluster in clusters)
+    K = length(centers)
+    
+    # Avoid division by zero by setting a default small variance if N - K <= 0
+    if N - K <= 0
+        return 1e-4  # Return a small positive number to avoid division by zero
+    end
+    
+    for index_cluster in 1:length(clusters)
+        cluster = clusters[index_cluster]
+        center = centers[index_cluster]
+        for index_object in cluster
+            sigma_sqrt += norm(samples[index_object] - center)^2
+        end
+    end
+    
+    sigma_sqrt /= (N - K)
+    return sigma_sqrt
+end
+
+
+function calculate_log_likelihood(n::Int, N::Int, sigma_sqrt::Float64, dimension::Int)
+    if sigma_sqrt <= 0.0
+        return -Inf  # Handling the case where variance is zero or negative.
+    end
+    
+    sigma_multiplier = dimension * 0.5 * log(sigma_sqrt)
+    L = n * log(n) - n * log(N) - n * 0.5 * log(2.0 * π) - n * sigma_multiplier - (n - dimension) * 0.5
+    
+    return L
+end
+
+function calculate_bic(
+    samples::Vector{Vector{Float64}}, 
+    centers::Vector{Vector{Float64}}, 
+    clusters::Vector{Vector{Int}}
+)
+    dimension = length(samples[1])
+    K = length(centers)
+    N = sum(length(cluster) for cluster in clusters)
+    sigma_sqrt = calculate_variance(samples, centers, clusters)
+    p = (K - 1) + dimension * K + 1  # Number of parameters
+    
+    scores = Float64[]
+    for cluster in clusters
+        n = length(cluster)
+        L = calculate_log_likelihood(n, N, sigma_sqrt, dimension)
+        score = L - p * 0.5 * log(N)
+        push!(scores, score)
+    end
+    
+    return -sum(scores)
+end
+
+
+function calculate_mdl(
+           samples::Vector{Vector{Float64}},
+           centers::Vector{Vector{Float64}},
+           clusters::Vector{Vector{Int}},
+           alpha::Float64 = 0.9,
+           beta::Float64 = 0.9
+       )
+    W = 0.0
+    K = length(clusters)
+    N = sum(length(cluster) for cluster in clusters)
+
+    sigma_square = 0.0
+    alpha_square = alpha * alpha
+
+    # Calculate the total within-cluster sum of squares and sigma_square
+    for index_cluster in 1:length(clusters)
+        Ni = length(clusters[index_cluster])
+        if Ni == 0
+            return Inf  # Return infinity if any cluster is empty
+        end
+
+        Wi = 0.0
+        for index_object in clusters[index_cluster]
+            Wi += norm(samples[index_object] - centers[index_cluster])^2
+        end
+
+        sigma_square += Wi
+        W += Wi / Ni
+    end
+
+    if N - K > 0
+        sigma_square /= (N - K)
+        sigma = sqrt(sigma_square)
+
+        Kw = (1.0 - K / N) * sigma_square
+        Ksa = (2.0 * alpha * sigma / sqrt(N)) * sqrt(alpha_square * sigma_square / N + W - Kw / 2.0)
+        UQa = W - Kw + 2.0 * alpha_square * sigma_square / N + Ksa
+
+        score = sigma_square * K / N + UQa + sigma_square * beta * sqrt(2.0 * K) / N
+    else
+        score = Inf  # Handle division by zero or other invalid cases
+    end
+
+    return score  # Return negative MDL score to align with convention that lower is better
+end
+
+
+
+function akaike_information_criterion(
+    samples::Vector{Vector{Float64}}, 
+    centroids::Vector{Vector{Float64}}, 
+    clusters::Vector{Vector{Int}},
+    use_corrected::Bool = true  # Add an option to use the corrected AIC
+)::Float64
     N = sum(length(cluster) for cluster in clusters)  # Total number of data points
     dimension = length(samples[1])  # Dimensionality of data points
+    K = length(centroids)  # Number of clusters
+    k = K * dimension  # Number of parameters
 
-    sigma_sqrt = 0.0  # Estimation of the noise variance
-
-    # Calculate the sum of squared distances from each point to its cluster centroid
-    for (index_cluster, cluster) in enumerate(clusters)
-        centroid = centroids[index_cluster]
-        for index_point in cluster
+    # Approximate the negative log likelihood
+    negative_log_likelihood = 0.0
+    for cluster_index in 1:length(clusters)
+        centroid = centroids[cluster_index]  # Correctly match centroid to cluster
+        for index_point in clusters[cluster_index]
             point = samples[index_point]
-            sigma_sqrt += sum((point[i] - centroid[i])^2 for i in 1:dimension)
+            negative_log_likelihood += sum((point[i] - centroid[i])^2 for i in 1:dimension)
         end
     end
+    
+    negative_log_likelihood /= 2  # Adjusting according to the conventional formula
 
-    # Avoid division by zero
-    if N > K
-        sigma_sqrt /= (N - K)
-        p = (K - 1) + dimension * K + 1  # Number of free parameters
-        # Calculate BIC for each cluster and sum them
-        scores = Float64[]
-        for cluster in clusters
-            n = length(cluster)
-            sigma_multiplier = sigma_sqrt <= 0.0 ? -Inf : dimension * 0.5 * log(sigma_sqrt)
-            L = n * log(n / N) - n * 0.5 * log(2 * π) - n * sigma_multiplier - (n - K) * 0.5
+    # Calculate AIC
+    AIC = 2k + 2 * negative_log_likelihood
 
-            #L = n * log(n / N) - n * dimension * 0.5 * log(2 * π) - n * dimension * 0.5 * log(sigma_sqrt) - (n - K) * 0.5
-            push!(scores, L - p * 0.5 * log(N))
-        end
-
-        return sum(scores)
-    else
-        return -Inf
+    # Calculate AICc if requested and applicable
+    if use_corrected && N > k + 1
+        AIC += (2k * (k + 1)) / (N - k - 1)
     end
+
+    return AIC
 end
+
 
 function get_kmeans_clustering_result(
     rng::AbstractRNG,
@@ -228,6 +407,7 @@ function get_kmeans_clustering_result(
     centroids::Vector{Vector{Float64}},
     distance_method::DistanceMethod = Euclidean(),
     solution_averages::Vector{Float64} = Float64[];
+    info_criterion::String = "BIC",
     tolerance::Float64 = 0.001, 
     maximum_iterations::Int = 500,
     args...
@@ -255,9 +435,19 @@ function get_kmeans_clustering_result(
     end
 
     error = round(current_error, sigdigits=4)
-    bic = bayesian_information_criterion(samples, centroids, cluster_indices)
+    if info_criterion == "BIC"
+        #bic = bayesian_information_criterion(samples, centroids, cluster_indices)
+        bic = calculate_bic(samples, centroids, cluster_indices)
+    elseif info_criterion == "AIC"
+        bic = akaike_information_criterion(samples, centroids, cluster_indices)
+    elseif info_criterion == "MDL"
+        bic = calculate_mdl(samples, centroids, cluster_indices)
+    else
+        throw(ArgumentError("Invalid information criterion"))
+    end
     
-    return KMeansClusteringResult(error, centroids, cluster_indices, partition, bic)
+    result = KMeansClusteringResult(error, samples, centroids, cluster_indices, partition, bic)
+    return result
 end
 
 
@@ -282,8 +472,8 @@ function kmeans_plus_plus_init(
 
         for sample in samples
             # Find the shortest distance from this sample to any existing centroid
-            s = round.(sample; digits=3)
-            c = [round.(centroid; digits=3) for centroid in centroids]
+            #s = round.(sample; digits=3)
+            #c = [round.(centroid; digits=3) for centroid in centroids]
             #println("sample = $s")
             #println("centroids = $c")
             sample_distances = [
@@ -327,7 +517,16 @@ function kmeans_plus_plus_init(
 
     return centroids
 end
+using Random
+export do_kmeans, split_cluster, split_and_evaluate_clusters, get_derived_tests
 
+function do_kmeans(
+    samples::Vector{Vector{Float64}}, cluster_count::Int, rng::AbstractRNG = Random.GLOBAL_RNG; 
+    args...
+)
+    centroids = kmeans_plus_plus_init(rng, samples, cluster_count)
+    return get_kmeans_clustering_result(rng, samples, cluster_count, centroids; args...)
+end
 
 function split_cluster(
     rng::AbstractRNG, cluster_samples::Vector{Vector{Float64}},
@@ -359,9 +558,10 @@ function split_and_evaluate_clusters(
         end
 
         #println("cluster_samples = ", cluster_samples)
-        orig_bic = bayesian_information_criterion(
-            cluster_samples, [centroid], [[1 for _ in cluster_samples]]
+        orig_result = get_kmeans_clustering_result(
+            rng, cluster_samples, 1, [centroid], distance_method, solution_averages; args...
         )
+        orig_bic = orig_result.bic
         #println("orig_centroid = ", centroid)
         #println("orig_bic = ", orig_bic)
         initial_split_centroids = split_cluster(rng, cluster_samples)
@@ -370,11 +570,10 @@ function split_and_evaluate_clusters(
             rng, cluster_samples, 2, initial_split_centroids,
             distance_method, solution_averages; args...
         )
-        children_bic = children_result.bic
         children_centroids = children_result.centroids
         #println("children_centroids = ", children_centroids)
         #println("children_bic = ", children_bic)
-        if children_result.bic < orig_bic || n_free_centroids == 0
+        if children_result.bic >= orig_bic || n_free_centroids == 0
             push!(new_centroids, centroid)
         else 
             n_free_centroids -= 1
@@ -408,8 +607,10 @@ function x_means_clustering(
     ) 
         
     best_bic = best_result.bic
+    println("best_bic_1 = ", best_bic)
+    println("best_centroids = ", centroids)
 
-    for _ in (min_cluster_count+1):max_cluster_count
+    for i in (min_cluster_count+1):max_cluster_count
         #println("\n\n--------------num_clusters = ", num_clusters)
         # Attempt to split each cluster and evaluate
         new_centroids = split_and_evaluate_clusters(
@@ -420,19 +621,74 @@ function x_means_clustering(
         new_result = get_kmeans_clustering_result(
             rng, samples, length(new_centroids), new_centroids; args...)
         new_bic = new_result.bic
+        #println("new_bic_$i = ", new_bic)
 
-        #println("best_centroids = ", centroids)
-        #println("best_bic = ", best_bic)
-        #println("new_centroids = ", new_centroids)
-        #println("new_bic = ", new_bic)
+        println("-----$i-----")
+        println("best_centroids = ", centroids)
+        println("best_bic = ", best_bic)
+        println("new_centroids = ", new_centroids)
+        println("new_bic = ", new_bic)
 
         # Update best result if BIC is improved
-        if new_bic > best_bic
+        if new_bic < best_bic
             best_bic = new_bic
             best_result = new_result
             centroids = new_result.centroids # Update centroids for the next iteration
         else
             break # No improvement, stop iterating
+        end
+    end
+
+    return best_result
+end
+
+export x_means_nosplits
+
+function x_means_nosplits(
+    rng::AbstractRNG,
+    samples::Vector{Vector{Float64}}, 
+    min_cluster_count::Int, 
+    max_cluster_count::Int,
+    distance_method::DistanceMethod = Euclidean();
+    args...
+)::KMeansClusteringResult
+    # Initialize with min_cluster_count
+    solution_averages = [mean(solution_scores) for solution_scores in vector_transpose(samples)]
+    centroids = kmeans_plus_plus_init(
+        rng, samples, min_cluster_count, distance_method, solution_averages
+    )
+    best_result = get_kmeans_clustering_result(
+        rng, samples, min_cluster_count, centroids, distance_method, solution_averages; args...
+    ) 
+        
+    best_bic = best_result.bic
+    println("best_bic_1 = ", best_bic)
+    println("best_centroids = ", centroids)
+
+    for i in (min_cluster_count+1):max_cluster_count
+        #println("\n\n--------------num_clusters = ", num_clusters)
+        # Attempt to split each cluster and evaluate
+        new_centroids = kmeans_plus_plus_init(
+            rng, samples, i, distance_method
+        ) 
+        
+        # Evaluate new clustering
+        new_result = get_kmeans_clustering_result(
+            rng, samples, length(new_centroids), new_centroids; args...)
+        new_bic = new_result.bic
+        #println("new_bic_$i = ", new_bic)
+
+        println("-----$i-----")
+        println("best_centroids = ", centroids)
+        println("best_bic = ", best_bic)
+        println("new_centroids = ", new_centroids)
+        println("new_bic = ", new_bic)
+
+        # Update best result if BIC is improved
+        if new_bic < best_bic
+            best_bic = new_bic
+            best_result = new_result
+            centroids = new_result.centroids # Update centroids for the next iteration
         end
     end
 
@@ -459,7 +715,7 @@ function multiple_xmeans(
         )
         new_bic = new_result.bic
 
-        if new_bic > best_bic
+        if new_bic < best_bic
             best_bic = new_bic
             best_result = new_result
         end

@@ -1,6 +1,7 @@
 module HillClimber
 
 export HillClimberEvaluator, HillClimberEvaluation, evaluate
+export get_cluster_ids, child_dominates_parent
 
 import ....Interfaces: evaluate
 using ...Clusterers.GlobalKMeans
@@ -18,7 +19,7 @@ end
 Base.@kwdef struct HillClimberEvaluation <: Evaluation
     id::String
     to_promote_ids::Vector{Int}
-    to_defer_ids::Vector{Int}
+    preferred::Vector{Int}
     matrix::OutcomeMatrix
 end
 
@@ -60,9 +61,10 @@ function evaluate(
         state.rng, matrix.data, max_clusters = evaluator.max_clusters
     )
     all_cluster_ids = get_cluster_ids(clustering_result, matrix)
+    all_parent_ids = [parent.id for parent in species.parents]
     all_child_ids = [child.id for child in species.children]
     to_promote_ids = Int[]
-    to_defer_ids = Int[]
+    preferred = Int[]
 
     for cluster_ids in all_cluster_ids
         child_ids = [id for id in cluster_ids if id in all_child_ids]
@@ -71,25 +73,33 @@ function evaluate(
             child for child in children if child_dominates_parent(child, matrix)
         ]
         if length(dominant_children) > 0
-            preferred_ids = [child.id for child in dominant_children if child.id in species.preferred]
+            preferred_ids = [
+                child.id for child in dominant_children if child.parent_id in species.preferred
+            ]
             nonpreferred_ids = setdiff(child_ids, preferred_ids)
             chosen_id = length(preferred_ids) > 0 ? 
                 rand(state.rng, preferred_ids) : rand(state.rng, nonpreferred_ids)
             push!(to_promote_ids, chosen_id)
-            push!(to_defer_ids, species[chosen_id].parent_id)
-            for child_id in child_ids
-                if child_id != chosen_id
-                    push!(to_defer_ids, species[child_id].parent_id)
-                    push!(to_defer_ids, child_id)
-                end
-            end
+            push!(preferred, chosen_id)
+        else
+            cluster_parents = [
+                individual for individual in species.parents if individual.id in cluster_ids
+            ]
+            preferred_ids = [
+                indiv.id for indiv in cluster_parents 
+                if indiv.id in species.preferred 
+            ]
+            nonpreferred_ids = setdiff(cluster_ids, preferred_ids)
+            chosen_id = length(preferred_ids) > 0 ? 
+                rand(state.rng, preferred_ids) : rand(state.rng, nonpreferred_ids)
+            push!(preferred, chosen_id)
         end
     end
 
     evaluation = HillClimberEvaluation(
         id = evaluator.id, 
         to_promote_ids = to_promote_ids, 
-        to_defer_ids = to_defer_ids, 
+        preferred = preferred,
         matrix = matrix,
     )
     return evaluation

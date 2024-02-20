@@ -1,7 +1,7 @@
 
 using Test
 
-using CoEvo.Clusterers.XMeans
+using CoEvo.Concrete.Clusterers.XMeans
 using LinearAlgebra
 using Random
 using StableRNGs: StableRNG

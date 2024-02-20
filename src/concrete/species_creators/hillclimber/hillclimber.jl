@@ -91,6 +91,7 @@ function update_species!(
     state::State
 ) where I <: Individual
     #setdiff!(species.preferred, evaluation.to_defer_ids)
+    species.preferred = copy(evaluation.preferred)
     for to_promote_id in evaluation.to_promote_ids
         individual = species[to_promote_id]
         species.temperature_dict[to_promote_id] = 0
@@ -98,7 +99,6 @@ function update_species!(
         delete!(species.temperature_dict, individual.parent_id)
         filter!(ind -> ind.id != individual.parent_id, species.parents)
         push!(species.parents, individual)
-        push!(species.preferred, to_promote_id)
     end
     increment_mutations!(species, species_creator)
 
@@ -110,18 +110,18 @@ function update_species!(
             species.lazy_time[parent.id] = 0
         end
 
-        if species.lazy_time[parent.id] == species_creator.max_mutations
-            continue
-            new_parent = species.children[i]
-            species.temperature_dict[new_parent.id] = 1
-            species.lazy_time[new_parent.id] = 0
-            new_child = recombine_and_mutate!(species.temperature_dict, [new_parent], reproducer, state)[1]
-            species.parents[i] = new_parent
-            species.children[i] = new_child
-            delete!(species.temperature_dict, parent.id)
-            delete!(species.lazy_time, parent.id)
+        #if species.lazy_time[parent.id] == species_creator.max_mutations
+        #    continue
+        #    new_parent = species.children[i]
+        #    species.temperature_dict[new_parent.id] = 1
+        #    species.lazy_time[new_parent.id] = 0
+        #    new_child = recombine_and_mutate!(species.temperature_dict, [new_parent], reproducer, state)[1]
+        #    species.parents[i] = new_parent
+        #    species.children[i] = new_child
+        #    delete!(species.temperature_dict, parent.id)
+        #    delete!(species.lazy_time, parent.id)
 
-        end
+        #end
     end
     species.population = [species.parents ; species.children]
     

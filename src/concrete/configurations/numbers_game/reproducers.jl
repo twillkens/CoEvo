@@ -54,12 +54,12 @@ function create_reproducer(config::ReproducerConfiguration)
     bias_vector = [fill(2, config.n_dimensions ÷ 2) ; zeros(config.n_dimensions ÷ 2)]
     reproducer = BasicReproducer(
         id = config.id,
-        #genotype_creator = NumbersGameVectorGenotypeCreator(
-        #    length = config.n_dimensions, init_range = config.initialization_range
-        #),
-        genotype_creator = BiasedNumbersGameVectorGenotypeCreator(
-            length = config.n_dimensions, init_range = config.initialization_range, bias = bias_vector
+        genotype_creator = NumbersGameVectorGenotypeCreator(
+            length = config.n_dimensions, init_range = config.initialization_range
         ),
+        #genotype_creator = BiasedNumbersGameVectorGenotypeCreator(
+        #    length = config.n_dimensions, init_range = config.initialization_range, bias = bias_vector
+        #),
         phenotype_creator = NumbersGamePhenotypeCreator(
             use_delta = config.discretize_phenotypes, delta = config.discretization_delta
         ),

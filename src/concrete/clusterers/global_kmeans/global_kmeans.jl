@@ -9,7 +9,7 @@ export get_kmeans_clustering_result
 
 using DataStructures: SortedDict
 using StatsBase: mean
-using LinearAlgebra: dot
+using LinearAlgebra: dot, norm
 using Random: AbstractRNG, rand
 using ...Matrices.Outcome: OutcomeMatrix
 
@@ -82,6 +82,7 @@ is_power2(num::Int) = (num & (num - 1)) == 0 && num != 0
 
 struct KMeansClusteringResult
     error::Float64
+    samples::Vector{Vector{Float64}}
     centroids::Vector{Vector{Float64}}
     cluster_indices::Vector{Vector{Int}}
     clusters::Vector{Vector{Vector{Float64}}}
@@ -91,6 +92,7 @@ end
 function KMeansClusteringResult()
     return KMeansClusteringResult(
         0.0, 
+        Vector{Float64}[],
         Vector{Float64}[], 
         Vector{Int}[], 
         Vector{Vector{Float64}}[], 
@@ -206,8 +208,97 @@ function compute_clustering_error(
 end
 
 
+function calculate_variance(samples::Vector{Vector{Float64}}, centers::Vector{Vector{Float64}}, clusters::Vector{Vector{Int}})
+    sigma_sqrt = 0.0
+    N = sum(length(cluster) for cluster in clusters)
+    K = length(centers)
+    
+    # Avoid division by zero by setting a default small variance if N - K <= 0
+    if N - K <= 0
+        return 1e-4  # Return a small positive number to avoid division by zero
+    end
+    
+    for index_cluster in 1:length(clusters)
+        cluster = clusters[index_cluster]
+        center = centers[index_cluster]
+        for index_object in cluster
+            sigma_sqrt += norm(samples[index_object] - center)^2
+        end
+    end
+    
+    sigma_sqrt /= (N - K)
+    return sigma_sqrt
+end
+
+
+function calculate_log_likelihood(n::Int, N::Int, sigma_sqrt::Float64, dimension::Int)
+    if sigma_sqrt <= 0.0
+        return -Inf  # Handling the case where variance is zero or negative.
+    end
+    
+    sigma_multiplier = dimension * 0.5 * log(sigma_sqrt)
+    L = n * log(n) - n * log(N) - n * 0.5 * log(2.0 * π) - n * sigma_multiplier - (n - dimension) * 0.5
+    
+    return L
+end
+
+function calculate_bic(
+    samples::Vector{Vector{Float64}}, 
+    centers::Vector{Vector{Float64}}, 
+    clusters::Vector{Vector{Int}}
+)
+    dimension = length(samples[1])
+    K = length(centers)
+    N = sum(length(cluster) for cluster in clusters)
+    sigma_sqrt = calculate_variance(samples, centers, clusters)
+    p = (K - 1) + dimension * K + 1  # Number of parameters
+    
+    scores = Float64[]
+    for cluster in clusters
+        n = length(cluster)
+        L = calculate_log_likelihood(n, N, sigma_sqrt, dimension)
+        score = L - p * 0.5 * log(N)
+        push!(scores, score)
+    end
+    
+    return -sum(scores)
+end
 function compute_bic(log_likelihood::Float64, k::Int, n::Int)
     return -2 * log_likelihood + k * log(n)
+end
+
+function akaike_information_criterion(
+    samples::Vector{Vector{Float64}}, 
+    centroids::Vector{Vector{Float64}}, 
+    clusters::Vector{Vector{Int}},
+    use_corrected::Bool = true  # Add an option to use the corrected AIC
+)::Float64
+    N = sum(length(cluster) for cluster in clusters)  # Total number of data points
+    dimension = length(samples[1])  # Dimensionality of data points
+    K = length(centroids)  # Number of clusters
+    k = K * dimension  # Number of parameters
+
+    # Approximate the negative log likelihood
+    negative_log_likelihood = 0.0
+    for cluster_index in 1:length(clusters)
+        centroid = centroids[cluster_index]  # Correctly match centroid to cluster
+        for index_point in clusters[cluster_index]
+            point = samples[index_point]
+            negative_log_likelihood += sum((point[i] - centroid[i])^2 for i in 1:dimension)
+        end
+    end
+    
+    negative_log_likelihood /= 2  # Adjusting according to the conventional formula
+
+    # Calculate AIC
+    AIC = 2k + 2 * negative_log_likelihood
+
+    # Calculate AICc if requested and applicable
+    if use_corrected && N > k + 1
+        AIC += (2k * (k + 1)) / (N - k - 1)
+    end
+
+    return AIC
 end
 
 function get_kmeans_clustering_result(
@@ -239,10 +330,12 @@ function get_kmeans_clustering_result(
     end
 
     error = round(current_error, sigdigits=4)
-    log_likelihood = -0.5 * error
-    bic = compute_bic(log_likelihood, cluster_count, length(samples))
+    bic = akaike_information_criterion(samples, centroids, cluster_indices)
+    #bic = calculate_bic(samples, centroids, cluster_indices)
+    #log_likelihood = -0.5 * error
+    #bic = compute_bic(log_likelihood, cluster_count, length(samples))
     
-    return KMeansClusteringResult(error, centroids, cluster_indices, partition, bic)
+    return KMeansClusteringResult(error, samples, centroids, cluster_indices, partition, bic)
 end
 
 struct KDNode
