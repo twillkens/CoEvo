@@ -75,13 +75,53 @@ function generate_complex_dataset(num_clusters::Int, points_per_cluster::Int, se
 
     return samples
 end
+function vecvec_to_matrix(x)
+    X = zeros(length(first(x)), length(x))
+    for (i, y) in enumerate(x)
+        X[:, i] = y
+    end
+    return X
+end
 
 using Random
+using Clustering
 
-samples = generate_cluster_pairs(10)
-result = x_means_nosplits(Random.GLOBAL_RNG, samples, 1, 20; info_criterion = "AIC")
-result = x_means_clustering(Random.GLOBAL_RNG, samples, 1, 20; info_criterion = "BIC")
+function perform_kmeans_search(matrix::OutcomeMatrix, max_clusters::Int)
+    if length(matrix.row_ids) == 0
+        return []
+    elseif length(matrix.row_ids) == 1
+        return [[first(matrix.row_ids)]]
+    elseif length(matrix.row_ids) == 2
+        id_1, id_2 = matrix.row_ids
+        if matrix[id_1, :] == matrix[id_2, :]
+            return [[id_1, id_2]]
+        else
+            return [[id_1], [id_2]]
+        end
+    else
+        max_clusters = min(max_clusters, length(matrix.row_ids) - 1)
+        X = transpose(matrix.data)
+        clusterings = kmeans.(Ref(X), 2:max_clusters)
+        qualities = clustering_quality.(Ref(X), clusterings, quality_index=:silhouettes)
+        best_clustering_index = argmax(qualities)
+        best_clustering = clusterings[best_clustering_index]
+        clustering_dict = Dict{Int, Vector{Int}}()
+        for (row_index, assignment) in enumerate(best_clustering.assignments)
+            if haskey(clustering_dict, assignment)
+                push!(clustering_dict[assignment], matrix.row_ids[row_index])
+            else
+                clustering_dict[assignment] = [matrix.row_ids[row_index]]
+            end
+        end
+        cluster_ids = collect(values(clustering_dict))
+        return cluster_ids
+    end
+end
+
+samples = OutcomeMatrix(generate_cluster_pairs(10))
+#result = x_means_nosplits(Random.GLOBAL_RNG, samples, 1, 20; info_criterion = "AIC")
+#result = x_means_clustering(Random.GLOBAL_RNG, samples, 1, 20; info_criterion = "AIC")
 #result = multiple_xmeans(Random.GLOBAL_RNG, samples, 1, 20, 10; info_criterion = "AIC")
 #result = get_fast_global_clustering_result(Random.GLOBAL_RNG, samples; max_clusters = 20)
-plot_kmeans_result(result)
+#plot_kmeans_result(result)
 #plot_kmeans_result(do_kmeans(samples, 10); )

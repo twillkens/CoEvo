@@ -118,6 +118,22 @@ function OutcomeMatrix(
     return matrix
 end
 
+function vecvec_to_matrix(x)
+    X = zeros(length(first(x)), length(x))
+    for (i, y) in enumerate(x)
+        X[:, i] = y
+    end
+    return X
+end
+function OutcomeMatrix(samples::Vector{Vector{Float64}}; do_transpose::Bool = false)
+    data = vecvec_to_matrix(samples)
+    if do_transpose
+        data = collect(transpose(data))
+    end
+    matrix = OutcomeMatrix(data)
+    return matrix
+end
+
 function generate_unique_tuples(ids::Vector{T}) where T
     n = length(ids)
     unique_tuples = [(ids[i], ids[j]) for i in 1:n for j in (i+1):n]

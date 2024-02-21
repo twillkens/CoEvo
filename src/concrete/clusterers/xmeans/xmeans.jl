@@ -49,14 +49,14 @@ end
 function disco_binary_distance(sample::Vector{Float64}, centroid::Vector{Float64})::Float64
     @assert length(sample) == length(centroid)
     distance = 0.0
-    println("sample = ", sample)
-    println("centroid = ", centroid)
+    #println("sample = ", sample)
+    #println("centroid = ", centroid)
     for i in 1:length(sample)
         binarized_value = centroid[i] < 0.5 ? 0.0 : 1.0
-        println("binarized_value = ", binarized_value)
-        println("sample[i] = ", sample[i])
+        #println("binarized_value = ", binarized_value)
+        #println("sample[i] = ", sample[i])
         d = (sample[i] - binarized_value)^2
-        println("d = ", d)
+        #println("d = ", d)
         distance += d
     end
     return distance
@@ -369,7 +369,7 @@ function akaike_information_criterion(
     samples::Vector{Vector{Float64}}, 
     centroids::Vector{Vector{Float64}}, 
     clusters::Vector{Vector{Int}},
-    use_corrected::Bool = true  # Add an option to use the corrected AIC
+    use_corrected::Bool = false  # Add an option to use the corrected AIC
 )::Float64
     N = sum(length(cluster) for cluster in clusters)  # Total number of data points
     dimension = length(samples[1])  # Dimensionality of data points
@@ -407,7 +407,7 @@ function get_kmeans_clustering_result(
     centroids::Vector{Vector{Float64}},
     distance_method::DistanceMethod = Euclidean(),
     solution_averages::Vector{Float64} = Float64[];
-    info_criterion::String = "BIC",
+    info_criterion::String = "AIC",
     tolerance::Float64 = 0.001, 
     maximum_iterations::Int = 500,
     args...
@@ -528,6 +528,16 @@ function do_kmeans(
     return get_kmeans_clustering_result(rng, samples, cluster_count, centroids; args...)
 end
 
+function do_kmeans(
+    samples::Matrix{Float64}, cluster_count::Int, rng::AbstractRNG = Random.GLOBAL_RNG; 
+    args...
+)
+    samples = [collect(row) for row in eachrow(samples)]
+    return do_kmeans(samples, cluster_count, rng; args...)
+end
+
+
+
 function split_cluster(
     rng::AbstractRNG, cluster_samples::Vector{Vector{Float64}},
     distance_method::DistanceMethod = Euclidean(),
@@ -607,8 +617,8 @@ function x_means_clustering(
     ) 
         
     best_bic = best_result.bic
-    println("best_bic_1 = ", best_bic)
-    println("best_centroids = ", centroids)
+    #println("best_bic_1 = ", best_bic)
+    #println("best_centroids = ", centroids)
 
     for i in (min_cluster_count+1):max_cluster_count
         #println("\n\n--------------num_clusters = ", num_clusters)
@@ -623,11 +633,11 @@ function x_means_clustering(
         new_bic = new_result.bic
         #println("new_bic_$i = ", new_bic)
 
-        println("-----$i-----")
-        println("best_centroids = ", centroids)
-        println("best_bic = ", best_bic)
-        println("new_centroids = ", new_centroids)
-        println("new_bic = ", new_bic)
+        #println("-----$i-----")
+        #println("best_centroids = ", centroids)
+        #println("best_bic = ", best_bic)
+        #println("new_centroids = ", new_centroids)
+        #println("new_bic = ", new_bic)
 
         # Update best result if BIC is improved
         if new_bic < best_bic
@@ -662,8 +672,10 @@ function x_means_nosplits(
     ) 
         
     best_bic = best_result.bic
-    println("best_bic_1 = ", best_bic)
-    println("best_centroids = ", centroids)
+    #println("best_bic_1 = ", best_bic)
+    #println("best_centroids = ", centroids)
+    max_cluster_count = min(max_cluster_count, length(samples))
+    all_bics = [best_bic]
 
     for i in (min_cluster_count+1):max_cluster_count
         #println("\n\n--------------num_clusters = ", num_clusters)
@@ -678,11 +690,11 @@ function x_means_nosplits(
         new_bic = new_result.bic
         #println("new_bic_$i = ", new_bic)
 
-        println("-----$i-----")
-        println("best_centroids = ", centroids)
-        println("best_bic = ", best_bic)
-        println("new_centroids = ", new_centroids)
-        println("new_bic = ", new_bic)
+        #println("-----$i-----")
+        #println("best_centroids = ", centroids)
+        #println("best_bic = ", best_bic)
+        #println("new_centroids = ", new_centroids)
+        #println("new_bic = ", new_bic)
 
         # Update best result if BIC is improved
         if new_bic < best_bic
@@ -694,13 +706,23 @@ function x_means_nosplits(
 
     return best_result
 end
+function x_means_nosplits(
+    rng::AbstractRNG, samples::Matrix{Float64}, min_cluster_count::Int, max_cluster_count::Int,
+    distance_method::DistanceMethod = Euclidean(); 
+    kwargs...
+)
+    samples = [collect(row) for row in eachrow(samples)]
+    result = x_means_nosplits(rng, samples, min_cluster_count, max_cluster_count, distance_method; kwargs...)
+    return result
+end
+
 
 function multiple_xmeans(
     rng::AbstractRNG,
     samples::Vector{Vector{Float64}}, 
     min_cluster_count::Int, 
     max_cluster_count::Int, 
-    num_runs::Int,
+    n_runs::Int,
     distance_method::DistanceMethod = Euclidean(); 
     args...
 )::KMeansClusteringResult
@@ -709,7 +731,7 @@ function multiple_xmeans(
     )
     best_bic = best_result.bic
 
-    for _ in 2:num_runs
+    for _ in 2:n_runs
         new_result = x_means_clustering(
             rng, samples, min_cluster_count, max_cluster_count, distance_method; args...
         )
@@ -724,6 +746,25 @@ function multiple_xmeans(
     return best_result
 end
 
+function multiple_xmeans(
+    rng::AbstractRNG, samples::Matrix{Float64}, min_cluster_count::Int, max_cluster_count::Int,
+    n_runs::Int; 
+    kwargs...
+)
+    samples = [collect(row) for row in eachrow(samples)]
+    result = multiple_xmeans(rng, samples, min_cluster_count, max_cluster_count, n_runs; kwargs...)
+    return result
+end
+
+using Random
+function multiple_xmeans(
+    samples::Matrix{Float64}, min_cluster_count::Int, max_cluster_count::Int, n_runs::Int; 
+    kwargs...
+)
+    return multiple_xmeans(
+        Random.GLOBAL_RNG, samples, min_cluster_count, max_cluster_count, n_runs; kwargs...
+    )
+end
 function get_derived_tests(
     rng::AbstractRNG, 
     indiv_tests::SortedDict{Int, Vector{Float64}},

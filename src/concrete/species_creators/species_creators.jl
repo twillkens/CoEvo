@@ -14,6 +14,9 @@ using .Redisco: Redisco
 include("hillclimber/hillclimber.jl")
 using .HillClimber: HillClimber
 
+include("dodo/dodo.jl")
+using .Dodo: Dodo
+
 #include("adaptive_archive/adaptive_archive.jl")
 #using .AdaptiveArchive: AdaptiveArchive
 

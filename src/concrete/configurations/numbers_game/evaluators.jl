@@ -2,6 +2,7 @@ export create_evaluators, create_evaluator
 
 import ....Interfaces: create_evaluator, create_evaluators
 using ...Evaluators.HillClimber: HillClimberEvaluator
+using ...Evaluators.Dodo: DodoEvaluator
 
 function create_evaluator(config::EvaluatorConfiguration)
     if config.evaluator_type == "scalar_fitness"
@@ -26,6 +27,11 @@ function create_evaluator(config::EvaluatorConfiguration)
         )
     elseif config.evaluator_type == "hillclimber"
         evaluator = HillClimberEvaluator(
+            id = config.id,
+            max_clusters = config.max_clusters
+        )
+    elseif config.evaluator_type == "dodo"
+        evaluator = DodoEvaluator(
             id = config.id,
             max_clusters = config.max_clusters
         )

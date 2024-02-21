@@ -23,4 +23,7 @@ using .Redisco: Redisco
 include("hillclimber/hillclimber.jl")
 using .HillClimber: HillClimber
 
+include("dodo/dodo.jl")
+using .Dodo: Dodo
+
 end

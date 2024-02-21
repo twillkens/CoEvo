@@ -2,6 +2,7 @@ export create_reproducers, make_species_creator, make_selector, create_reproduce
 
 import ....Interfaces: create_reproducers, create_reproducer
 using ...SpeciesCreators.HillClimber: HillClimberSpeciesCreator
+using ...SpeciesCreators.Dodo: DodoSpeciesCreator
 
 function make_species_creator(config::ReproducerConfiguration)
     if config.species_type == "basic"
@@ -22,6 +23,12 @@ function make_species_creator(config::ReproducerConfiguration)
         )
     elseif config.species_type == "hillclimber"
         species_creator = HillClimberSpeciesCreator(
+            id = config.id,
+            n_population = config.n_population,
+            max_mutations = config.max_mutations,
+        )
+    elseif config.species_type == "dodo"
+        species_creator = DodoSpeciesCreator(
             id = config.id,
             n_population = config.n_population,
             max_mutations = config.max_mutations,
@@ -54,12 +61,12 @@ function create_reproducer(config::ReproducerConfiguration)
     bias_vector = [fill(2, config.n_dimensions ÷ 2) ; zeros(config.n_dimensions ÷ 2)]
     reproducer = BasicReproducer(
         id = config.id,
-        genotype_creator = NumbersGameVectorGenotypeCreator(
-            length = config.n_dimensions, init_range = config.initialization_range
-        ),
-        #genotype_creator = BiasedNumbersGameVectorGenotypeCreator(
-        #    length = config.n_dimensions, init_range = config.initialization_range, bias = bias_vector
+        #genotype_creator = NumbersGameVectorGenotypeCreator(
+        #    length = config.n_dimensions, init_range = config.initialization_range
         #),
+        genotype_creator = BiasedNumbersGameVectorGenotypeCreator(
+            length = config.n_dimensions, init_range = config.initialization_range, bias = bias_vector
+        ),
         phenotype_creator = NumbersGamePhenotypeCreator(
             use_delta = config.discretize_phenotypes, delta = config.discretization_delta
         ),
