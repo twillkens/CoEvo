@@ -70,9 +70,13 @@ function increment_mutations!(species::DodoSpecies, species_creator::DodoSpecies
     end
 end
 
-function age_individuals!(species::DodoSpecies)
+function age_individuals!(species::DodoSpecies, evaluation::Evaluation)
     for (id, age) in species.age_dict
-        species.age_dict[id] = age + 1
+        if id in evaluation.matrix.row_ids
+            species.age_dict[id] = age + 1
+        else
+            species.age_dict[id] = age + 1
+        end
     end
 end
 
@@ -118,6 +122,8 @@ function promote_children!(species::DodoSpecies, evaluation::Evaluation)
     end
 end
 
+const MAX_AGE = 1000
+
 function demote_hillclimbers!(species::DodoSpecies, evaluation::Evaluation)
     for id in evaluation.hillclimbers_to_demote_ids
         individual = species[id]
@@ -127,7 +133,7 @@ function demote_hillclimbers!(species::DodoSpecies, evaluation::Evaluation)
         push!(species.explorers, individual)
     end
     for (id, age) in species.age_dict
-        if age >= 1000
+        if age >= MAX_AGE
             individual = species[id]
             species.temperature_dict[id] = 0
             delete!(species.age_dict, id)
@@ -143,7 +149,9 @@ function print_info(species::DodoSpecies)
         temp = species.temperature_dict[individual.id]
         max_dimension = argmax(individual.genotype.genes)
         v = round(individual.genotype.genes[max_dimension], digits=2)
-        i = (max_dimension, v, temp)
+        age = round(species.age_dict[individual.id] / MAX_AGE, digits=2)
+        #i = (max_dimension, v, temp)
+        i = (max_dimension, v, age)
         push!(info, i)
     end
     sort!(info, by = x -> x[1])
@@ -177,18 +185,26 @@ function update_species!(
         delete!(species.temperature_dict, explorer.parent_id)
     end
     guaranteed = [species.hillclimbers ; species.children]
-    n_explorers_to_sample = species_creator.n_population - length(guaranteed)
+    n_explorers_to_sample = max(0, species_creator.n_population - length(guaranteed))
     current_explorers = sample(state.rng, species.explorers, n_explorers_to_sample, replace=false)
-    species.population = [guaranteed ; current_explorers]
+    donors = filter(x -> rand() > 100, current_explorers)
+    if length(donors) > 0 && length(species.hillclimbers) > 0
+        filter!(ind -> !(ind in donors), current_explorers)
+        extra_parents = sample(state.rng, species.hillclimbers, length(donors), replace=true)
+        extra_children = recombine_and_mutate!(species.temperature_dict, extra_parents, reproducer, state)
+        species.population = [guaranteed ; current_explorers ; extra_children]
+    else
+        species.population = [guaranteed ; current_explorers]
+    end
     increment_mutations!(species, species_creator)
-    age_individuals!(species)
+    age_individuals!(species, evaluation)
     validate_species(species, species_creator)
     print_info(species)
 end
 
 
 get_all_individuals(species::DodoSpecies) = unique(
-    [species.children ; species.hillclimbers ; species.explorers]
+    [species.children ; species.hillclimbers ; species.explorers ; species.population]
 )
 
 Base.getindex(species::DodoSpecies, id::Int) = begin

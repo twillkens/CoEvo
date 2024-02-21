@@ -39,11 +39,12 @@ function child_dominates_parent(child::Individual, matrix::OutcomeMatrix)
     parent_outcomes = matrix[child.parent_id, :]
     child_outcomes = matrix[child.id, :]
     child_dominates_parent = dominates(Maximize(), child_outcomes, parent_outcomes)
+    #child_dominates_parent = is_nondominated(child_outcomes, parent_outcomes)
     return child_dominates_parent
 end
 
-function get_dominant_children(species, matrix, cluster_ids)
-    all_child_ids = [child.id for child in species.children]
+function get_dominant_children(species, matrix, cluster_ids, claimed_parents)
+    all_child_ids = [child.id for child in species.children if !(child.parent_id in claimed_parents)]
     child_ids = [id for id in cluster_ids if id in all_child_ids]
     children = [child for child in species.children if child.id in child_ids]
     dominant_children = [
@@ -65,6 +66,10 @@ function perform_kmeans_search(matrix::OutcomeMatrix, max_clusters::Int)
             return [[id_1], [id_2]]
         end
     else
+        all_rows_same = all(all(matrix.data[1, :] .== matrix.data[i, :]) for i in 2:size(matrix.data, 1))
+        if all_rows_same
+            return [matrix.row_ids]
+        end
         max_clusters = min(max_clusters, length(matrix.row_ids) - 1)
         X = transpose(matrix.data)
         clusterings = kmeans.(Ref(X), 2:max_clusters)
@@ -91,6 +96,7 @@ function perform_kmeans_search(matrix::OutcomeMatrix, max_clusters::Int)
         return cluster_ids
     end
 end
+
 function evaluate(
     evaluator::DodoEvaluator, 
     species::AbstractSpecies,
@@ -121,6 +127,7 @@ function evaluate(
     hillclimbers_to_demote_ids = Int[]
     println("N_CLUSTERS = ", length(all_cluster_ids))
     println("all_cluster_ids = ", all_cluster_ids)
+    claimed_parents = Set{Int}()
 
     for cluster_ids in all_cluster_ids
         info = []
@@ -139,9 +146,10 @@ function evaluate(
             println("all_are_explorers = ", cluster_ids)
             push!(explorer_to_promote_ids, rand(state.rng, cluster_ids))
         else
-            dominant_children = get_dominant_children(species, matrix, cluster_ids)
+            dominant_children = get_dominant_children(species, matrix, cluster_ids, claimed_parents)
             if length(dominant_children) > 0
                 child_to_promote = rand(state.rng, dominant_children)
+                push!(claimed_parents, child_to_promote.parent_id)
                 push!(children_to_promote_ids, child_to_promote.id)
                 other_hillclimber_ids = [
                     id for id in all_parent_ids 

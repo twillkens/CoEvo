@@ -2,6 +2,7 @@ module NSGAII
 
 export NSGAIIRecord, nsga_sort!, nsga_tournament
 export dominates, fast_non_dominated_sort!, crowding_distance_assignment!
+export is_nondominated
 
 using ....Abstract
 using ...Criteria: Maximize, Minimize
@@ -18,6 +19,13 @@ Base.@kwdef mutable struct NSGAIIRecord <: Record
     crowding::Float64 = 0.0
     dom_count::Int = 0
     dom_list::Vector{Int} = Int[]
+end
+
+function is_nondominated(a::Vector{<:Real}, b::Vector{<:Real})
+    for i in eachindex(a)
+        @inbounds a[i] > b[i] && return true
+    end
+    return false
 end
 
 function dominates(::Maximize, a::Vector{<:Real}, b::Vector{<:Real})

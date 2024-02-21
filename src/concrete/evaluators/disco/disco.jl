@@ -75,6 +75,8 @@ end
 
 using DataStructures
 using ...Clusterers.GlobalKMeans: get_derived_tests
+using Clustering
+
 
 function get_derived_matrix(
     rng::AbstractRNG,
@@ -92,7 +94,46 @@ function get_derived_matrix(
     derived_matrix = OutcomeMatrix(
         "derived", matrix.row_ids, collect(1:n_derived_tests), derived_data
     )
+    println("N_DERIVED_TESTS = ", n_derived_tests)
     return derived_matrix
+end
+
+function get_derived_matrix(matrix::OutcomeMatrix, max_clusters::Int)
+    all_columns_same = all(all(matrix.data[:, 1] .== matrix.data[:, j]) for j in 2:size(matrix.data, 2))
+    all_rows_same = all(all(matrix.data[1, :] .== matrix.data[i, :]) for i in 2:size(matrix.data, 1))
+    max_clusters = min(max_clusters, length(matrix.column_ids) - 1)
+    
+    if all_columns_same || all_rows_same || max_clusters == 1
+        println("ALL_COLUMNS_SAME = ", all_columns_same)
+        println("ALL_ROWS_SAME = ", all_rows_same)
+        println("LENGTH_MAX_CLUSTERS = ", length(max_clusters))
+        # If all columns are the same, return a matrix with a single column where each row is the sum of a single column
+        summed_column = sum(matrix.data[:, 1]) # Sum of the values in the first (and identical) column
+        derived_data = fill(summed_column, (size(matrix.data, 1), 1)) # Fill a matrix with the sum
+        # Update to create a new OutcomeMatrix with a single "derived" column
+        println("NOTHING")
+        return OutcomeMatrix("derived", matrix.row_ids, ["derived_sum"], derived_data)
+    end
+    println("MAX CLUSTERS: ", max_clusters)
+    X = matrix.data
+    clusterings = kmeans.(Ref(X), 2:max_clusters)
+    qualities = Float64[]
+    for clustering in clusterings
+        try 
+            push!(qualities, clustering_quality(X, clustering, quality_index=:silhouettes))
+        catch e
+            println("clustering = ", clustering)
+            throw(e)
+        end
+    end
+    best_clustering_index = argmax(qualities)
+    best_clustering = clusterings[best_clustering_index]
+    centroids = best_clustering.centers
+    matrix = OutcomeMatrix(
+        "derived", matrix.row_ids, ["derived_$i" for i in eachindex(centroids)], centroids
+    )
+    println("N_DERIVED_TESTS = ", length(centroids))
+    return matrix
 end
 
 function evaluate(
@@ -101,10 +142,11 @@ function evaluate(
     raw_matrix::OutcomeMatrix,
     state::State
 )
-    raw_matrix = filter_identical_columns(raw_matrix)
-    matrix = get_derived_matrix(
-        state.rng, raw_matrix, evaluator.max_clusters, evaluator.distance_method
-    )
+    #raw_matrix = filter_identical_columns(raw_matrix)
+    #matrix = get_derived_matrix(
+    #    state.rng, raw_matrix, evaluator.max_clusters, evaluator.distance_method
+    #)
+    matrix = get_derived_matrix(raw_matrix, evaluator.max_clusters)
     records = create_records(evaluator, species, raw_matrix, matrix)
     evaluation = DiscoEvaluation(
         id = species.id, records = records, raw_matrix = matrix, matrix = matrix

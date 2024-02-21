@@ -1,5 +1,6 @@
 using CoEvo.Concrete.Clusterers.XMeans
 #using CoEvo.Concrete.Clusterers.GlobalKMeans
+using CoEvo.Concrete.Matrices.Outcome
 using Plots
 
 function generate_cluster_pairs(num_clusters::Int)
@@ -49,32 +50,6 @@ function plot_kmeans_result(result::KMeansClusteringResult)
     ylabel!("Dimension 2")
 end
 
-function generate_complex_dataset(num_clusters::Int, points_per_cluster::Int, seed::Int = 123)
-    Random.seed!(seed) # Ensure reproducibility
-    samples = Vector{Vector{Float64}}()
-
-    for i in 1:num_clusters
-        # Define the center of each cluster
-        center = rand(1:50, 2) * i
-
-        # Different variance for each cluster
-        #variance = rand(1:3) * i
-        variance = 1.0
-
-        # Generate points for each cluster
-        for _ in 1:points_per_cluster
-            point = center + randn(2) * variance
-            push!(samples, point)
-        end
-    end
-
-    # Add noise
-    #for _ in 1:num_clusters * points_per_cluster * 0.1 # 10% noise
-    #    push!(samples, rand(1:500, 2))
-    #end
-
-    return samples
-end
 function vecvec_to_matrix(x)
     X = zeros(length(first(x)), length(x))
     for (i, y) in enumerate(x)
@@ -82,6 +57,30 @@ function vecvec_to_matrix(x)
     end
     return X
 end
+
+function generate_complex_dataset(
+    num_clusters::Int, points_per_cluster::Int, n_dimensions::Int, seed::Int = 123
+)
+    Random.seed!(seed) # Ensure reproducibility
+    samples = Vector{Vector{Float64}}()
+
+    for i in 1:num_clusters
+        # Define the center of each cluster
+        center = rand(1:50, n_dimensions) * i
+
+        # Different variance for each cluster
+        #variance = rand(1:3) * i
+        variance = 1.0
+
+        # Generate points for each cluster
+        for _ in 1:points_per_cluster
+            point = center + randn(n_dimensions) * variance
+            push!(samples, point)
+        end
+    end
+    return OutcomeMatrix(samples)
+end
+
 
 using Random
 using Clustering
@@ -116,6 +115,31 @@ function perform_kmeans_search(matrix::OutcomeMatrix, max_clusters::Int)
         cluster_ids = collect(values(clustering_dict))
         return cluster_ids
     end
+end
+function get_derived_matrix(matrix::OutcomeMatrix, max_clusters::Int)
+    #all_rows_same = all(all(matrix.data[1, :] .== matrix.data[i, :]) for i in 2:size(matrix.data, 1))
+    #if all_rows_same
+    #    return [matrix.row_ids]
+    #end
+    max_clusters = min(max_clusters, length(matrix.column_ids) - 1)
+    X = matrix.data
+    clusterings = kmeans.(Ref(X), 2:max_clusters)
+    qualities = Float64[]
+    for clustering in clusterings
+        try 
+            push!(qualities, clustering_quality(X, clustering, quality_index=:silhouettes))
+        catch e
+            println("clustering = ", clustering)
+            throw(e)
+        end
+    end
+    best_clustering_index = argmax(qualities)
+    best_clustering = clusterings[best_clustering_index]
+    centroids = best_clustering.centers
+    matrix = OutcomeMatrix(
+        "derived", matrix.row_ids, ["derived_$i" for i in eachindex(centroids)], centroids
+    )
+    return matrix
 end
 
 samples = OutcomeMatrix(generate_cluster_pairs(10))

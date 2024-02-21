@@ -224,6 +224,22 @@ function filter_identical_columns(matrix::OutcomeMatrix)
     return matrix
 end
 
+import Base: transpose
+
+
+function transpose(matrix::OutcomeMatrix{T, U, V}) where {T, U, V}
+    # Transpose the data matrix
+    transposed_data = collect(transpose(matrix.data))
+    
+    # Swap row_ids and column_ids to reflect the transposition
+    new_row_ids = matrix.column_ids
+    new_column_ids = matrix.row_ids
+    
+    # Return a new OutcomeMatrix with the transposed data and swapped IDs
+    # Assuming the 'id' field should remain unchanged during transpose
+    return OutcomeMatrix(matrix.id, new_row_ids, new_column_ids, transposed_data)
+end
+
 
 
 
