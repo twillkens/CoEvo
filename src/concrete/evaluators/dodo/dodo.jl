@@ -121,6 +121,8 @@ function evaluate(
     #all_cluster_ids = get_cluster_ids(clustering_result, matrix)
     all_cluster_ids = perform_kmeans_search(matrix, n_clusters)
     all_explorer_ids = [explorer.id for explorer in species.explorers]
+    all_retiree_ids = [retiree.id for retiree in species.retirees]
+    append!(all_explorer_ids, all_retiree_ids)
     all_parent_ids = [parent.id for parent in species.hillclimbers]
     explorer_to_promote_ids = Int[]
     children_to_promote_ids = Int[] 

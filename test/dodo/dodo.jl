@@ -3,8 +3,9 @@ using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
 N_DIMENSIONS = 20
-DISCRETIZE_PHENOTYPES = false
+DISCRETIZE_PHENOTYPES = true
 MAX_CLUSTERS = 5
+MAX_MUTATIONS = 50
 
 
 learner_reproducer_config = ReproducerConfiguration(
@@ -37,7 +38,7 @@ distinguisher_reproducer_config = ReproducerConfiguration(
     species_type = "dodo",
     n_population = 100,
     max_archive_size = 100,
-    max_mutations = 1,
+    max_mutations = MAX_MUTATIONS,
     max_archive_age = 10000,
     n_dimensions = N_DIMENSIONS,
     initialization_range = (0.0, 0.1),

@@ -21,6 +21,7 @@ Base.@kwdef mutable struct DodoSpecies{I <: Individual} <: AbstractSpecies
     explorers::Vector{I}
     hillclimbers::Vector{I}
     children::Vector{I}
+    retirees::Vector{I}
     population::Vector{I}
     temperature_dict::Dict{Int, Int}
     age_dict::Dict{Int, Int}
@@ -59,7 +60,9 @@ function create_species(
     #lazy_time = Dict(individual.id => 0 for individual in parents)
     I = typeof(explorers[1])
     population = copy(explorers)
-    species = DodoSpecies(species_creator.id, explorers, I[], I[], population, temperature_dict, age_dict)
+    species = DodoSpecies(
+        species_creator.id, explorers, I[], I[], I[], population, temperature_dict, age_dict
+    )
     return species
 end
 
@@ -81,9 +84,9 @@ function age_individuals!(species::DodoSpecies, evaluation::Evaluation)
 end
 
 function validate_species(species::DodoSpecies, species_creator::DodoSpeciesCreator)
-    if length(species.population) != species_creator.n_population
-        error("Population size is $(length(species.population)), but should be $(species_creator.n_population)")
-    end
+    #if length(species.population) != species_creator.n_population
+    #    error("Population size is $(length(species.population)), but should be $(species_creator.n_population)")
+    #end
     parent_ids = [parent.id for parent in species.hillclimbers]
     for child in species.children
         if !(child.parent_id in parent_ids)
@@ -105,6 +108,7 @@ function promote_explorers!(species::DodoSpecies, evaluation::Evaluation)
         species.temperature_dict[id] = 1
         species.age_dict[id] = 0
         filter!(ind -> ind.id != id, species.explorers)
+        filter!(ind -> ind.id != id, species.retirees)
         push!(species.hillclimbers, individual)
     end
 end
@@ -135,10 +139,14 @@ function demote_hillclimbers!(species::DodoSpecies, evaluation::Evaluation)
     for (id, age) in species.age_dict
         if age >= MAX_AGE
             individual = species[id]
-            species.temperature_dict[id] = 0
+            #species.temperature_dict[id] = 0
+            delete!(species.temperature_dict, id)
             delete!(species.age_dict, id)
             filter!(ind -> ind.id != id, species.hillclimbers)
-            push!(species.explorers, individual)
+            push!(species.retirees, individual)
+            if length(species.retirees) > 100
+                popfirst!(species.retirees)
+            end
         end
     end
 end
@@ -185,8 +193,9 @@ function update_species!(
         delete!(species.temperature_dict, explorer.parent_id)
     end
     guaranteed = [species.hillclimbers ; species.children]
-    n_explorers_to_sample = max(0, species_creator.n_population - length(guaranteed))
-    current_explorers = sample(state.rng, species.explorers, n_explorers_to_sample, replace=false)
+    #n_explorers_to_sample = max(0, species_creator.n_population - length(guaranteed))
+    #current_explorers = sample(state.rng, species.explorers, n_explorers_to_sample, replace=false)
+    current_explorers = copy(species.explorers)
     donors = filter(x -> rand() > 100, current_explorers)
     if length(donors) > 0 && length(species.hillclimbers) > 0
         filter!(ind -> !(ind in donors), current_explorers)
@@ -196,6 +205,9 @@ function update_species!(
     else
         species.population = [guaranteed ; current_explorers]
     end
+    n_retirees_to_sample = min(length(species.retirees), 50)
+    retirees = sample(state.rng, species.retirees, n_retirees_to_sample, replace=false)
+    species.population = [species.population ; retirees]
     increment_mutations!(species, species_creator)
     age_individuals!(species, evaluation)
     validate_species(species, species_creator)

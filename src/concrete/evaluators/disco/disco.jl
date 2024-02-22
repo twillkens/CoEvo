@@ -130,9 +130,9 @@ function get_derived_matrix(matrix::OutcomeMatrix, max_clusters::Int)
     best_clustering = clusterings[best_clustering_index]
     centroids = best_clustering.centers
     matrix = OutcomeMatrix(
-        "derived", matrix.row_ids, ["derived_$i" for i in eachindex(centroids)], centroids
+        "derived", matrix.row_ids, ["derived_$i" for i in 1:size(centroids)[2]], centroids
     )
-    println("N_DERIVED_TESTS = ", length(centroids))
+    println("N_DERIVED_TESTS = ", length(matrix.column_ids))
     return matrix
 end
 
