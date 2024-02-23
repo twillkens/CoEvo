@@ -10,7 +10,7 @@ function mutate!(
     #noise_vector = randn(rng, T, length(genotype))
     indices_to_mutate = sample(1:length(genotype.genes), 2; replace = false)
     for index in indices_to_mutate
-        genotype.genes[index] += rand(state.rng, -0.15:0.01:0.1)
+        genotype.genes[index] += rand(state.rng, -0.10:0.01:0.1)
         if genotype.genes[index] < 0.0
             genotype.genes[index] = 0.0
         end

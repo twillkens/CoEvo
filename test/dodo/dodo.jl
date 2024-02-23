@@ -2,21 +2,37 @@ using CoEvo.Concrete.Configurations.NumbersGame
 using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
-N_DIMENSIONS = 20
-DISCRETIZE_PHENOTYPES = true
+N_DIMENSIONS = 5
+DISCRETIZE_PHENOTYPES = false
 MAX_CLUSTERS = 5
-MAX_MUTATIONS = 50
+MAX_MUTATIONS = 1
 
+
+#learner_reproducer_config = ReproducerConfiguration(
+#    id = "L",
+#    species_type = "basic",
+#    n_population = 100,
+#    n_elites = 50,
+#    n_parents = 50,
+#    n_children = 50,
+#    selection_type = "tournament",
+#    tournament_size = 3,
+#    max_archive_size = 100,
+#    n_dimensions = N_DIMENSIONS,
+#    initialization_range = (0.0, 0.1),
+#    discretize_phenotypes = DISCRETIZE_PHENOTYPES,
+#    discretization_delta = 0.25,
+#)
 
 learner_reproducer_config = ReproducerConfiguration(
     id = "L",
     species_type = "basic",
-    n_population = 100,
-    n_elites = 50,
-    n_parents = 50,
-    n_children = 50,
+    n_population = 200,
+    n_elites = 100,
+    n_parents = 100,
+    n_children = 100,
     selection_type = "tournament",
-    tournament_size = 3,
+    tournament_size = 5,
     max_archive_size = 100,
     n_dimensions = N_DIMENSIONS,
     initialization_range = (0.0, 0.1),
@@ -33,13 +49,29 @@ learner_evaluator_config = EvaluatorConfiguration(
     max_clusters = MAX_CLUSTERS,
 )
 
+#distinguisher_reproducer_config = ReproducerConfiguration(
+#    id = "D",
+#    #species_type = "dodo",
+#    species_type = "basic",
+#    n_population = 100,
+#    max_archive_size = 100,
+#    max_mutations = MAX_MUTATIONS,
+#    max_archive_age = 10000,
+#    n_dimensions = N_DIMENSIONS,
+#    initialization_range = (0.0, 0.1),
+#    discretize_phenotypes = DISCRETIZE_PHENOTYPES,
+#    discretization_delta = 0.25,
+#)
 distinguisher_reproducer_config = ReproducerConfiguration(
     id = "D",
-    species_type = "dodo",
-    n_population = 100,
-    max_archive_size = 100,
+    #species_type = "dodo",
+    species_type = "basic",
+    n_population = 200,
+    n_elites = 100,
+    n_parents = 100,
+    n_children = 100,
+    selection_type = "uniform_random",
     max_mutations = MAX_MUTATIONS,
-    max_archive_age = 10000,
     n_dimensions = N_DIMENSIONS,
     initialization_range = (0.0, 0.1),
     discretize_phenotypes = DISCRETIZE_PHENOTYPES,
@@ -48,7 +80,9 @@ distinguisher_reproducer_config = ReproducerConfiguration(
 
 distinguisher_evaluator_config = EvaluatorConfiguration(
     id = "D",
-    evaluator_type = "dodo",
+    #evaluator_type = "dodo",
+    evaluator_type = "scalar_fitness",
+    objective = "distinctions",
     max_clusters = MAX_CLUSTERS,
 )
 

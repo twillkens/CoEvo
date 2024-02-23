@@ -36,7 +36,7 @@ function recombine_and_mutate!(
 )
     children = recombine(reproducer.recombiner, parents, state)
     for child in children
-        temperature = temperature_dict[child.parent_id]
+        temperature = max(temperature_dict[child.parent_id] ÷ 5, 1)
         for _ in 1:temperature
             mutate!(reproducer.mutator, child, reproducer, state)
         end
@@ -126,7 +126,7 @@ function promote_children!(species::DodoSpecies, evaluation::Evaluation)
     end
 end
 
-const MAX_AGE = 1000
+const MAX_AGE = 100
 
 function demote_hillclimbers!(species::DodoSpecies, evaluation::Evaluation)
     for id in evaluation.hillclimbers_to_demote_ids
@@ -160,20 +160,31 @@ function print_info(species::DodoSpecies)
         age = round(species.age_dict[individual.id] / MAX_AGE, digits=2)
         #i = (max_dimension, v, temp)
         i = (max_dimension, v, age)
+        i = round(mean(individual.genotype.genes); digits=2)
         push!(info, i)
     end
     sort!(info, by = x -> x[1])
-    println("info = ", info)
+    println("hc_info = ", info)
     info = []
     for individual in species.children
         max_dimension = argmax(individual.genotype.genes)
         v = round(individual.genotype.genes[max_dimension], digits=2)
         i = (max_dimension, v)
-
+        i = round(mean(individual.genotype.genes); digits=2)
         push!(info, i)
     end
     sort!(info, by = x -> x[1])
-    println("info = ", info)
+    println("children_info = ", info)
+    info = []
+    for individual in species.explorers
+        max_dimension = argmax(individual.genotype.genes)
+        v = round(individual.genotype.genes[max_dimension], digits=2)
+        i = (max_dimension, v)
+        i = round(mean(individual.genotype.genes); digits=2)
+        push!(info, i)
+    end
+    sort!(info, by = x -> x[1])
+    println("explorer_info = ", info)
 end
 
 function update_species!(

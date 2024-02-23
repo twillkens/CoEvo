@@ -38,6 +38,7 @@ function child_dominates_parent(child::Individual, matrix::OutcomeMatrix)
     end
     parent_outcomes = matrix[child.parent_id, :]
     child_outcomes = matrix[child.id, :]
+    #return sum(child_outcomes) > sum(parent_outcomes)
     child_dominates_parent = dominates(Maximize(), child_outcomes, parent_outcomes)
     #child_dominates_parent = is_nondominated(child_outcomes, parent_outcomes)
     return child_dominates_parent
@@ -104,6 +105,7 @@ function evaluate(
     state::State
 )
     matrix = make_distinction_matrix(species.population, results)
+    orig_matrix = deepcopy(matrix)
     matrix = filter_zero_rows(matrix)
     matrix = filter_identical_columns(matrix)
     if length(matrix.row_ids) == 0
@@ -128,7 +130,7 @@ function evaluate(
     children_to_promote_ids = Int[] 
     hillclimbers_to_demote_ids = Int[]
     println("N_CLUSTERS = ", length(all_cluster_ids))
-    println("all_cluster_ids = ", all_cluster_ids)
+    #println("all_cluster_ids = ", all_cluster_ids)
     claimed_parents = Set{Int}()
 
     for cluster_ids in all_cluster_ids
@@ -142,10 +144,10 @@ function evaluate(
             push!(info, i)
         end
         sort!(info, by = x -> x[1])
-        println("cluster_info = ", info)
+        #println("cluster_info = ", info)
         all_are_explorers = all(id -> id in all_explorer_ids, cluster_ids)
         if all_are_explorers
-            println("all_are_explorers = ", cluster_ids)
+            println("ALL_ARE_EXPLORERS = ", cluster_ids)
             push!(explorer_to_promote_ids, rand(state.rng, cluster_ids))
         else
             dominant_children = get_dominant_children(species, matrix, cluster_ids, claimed_parents)
@@ -158,11 +160,18 @@ function evaluate(
                         if id in cluster_ids && id != child_to_promote.parent_id
                 ]
                 #append!(hillclimbers_to_demote_ids, other_hillclimber_ids)
-                println("child_to_promote = ", child_to_promote.id)
-                println("to_demote = ", other_hillclimber_ids)
+                println("CHILD_TO_PROMOTE = ", child_to_promote.id)
             end
         end
     end
+
+    outcomes = []
+    for (hc, child) in zip(species.hillclimbers, species.children)
+        n_hc_outcomes = sum(orig_matrix[hc.id, :])
+        n_child_outcomes = sum(orig_matrix[child.id, :])
+        push!(outcomes, (n_hc_outcomes, n_child_outcomes))
+    end
+    println("n_outcomes = ", outcomes)
 
     evaluation = DodoEvaluation(
         id = evaluator.id, 

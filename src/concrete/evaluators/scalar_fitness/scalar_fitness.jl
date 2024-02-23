@@ -63,7 +63,7 @@ function evaluate(
 )
     raw_fitnesses = [sum(row) for row in eachrow(matrix.data)]
     maximum_fitness = evaluator.maximum_fitness === nothing ? 
-        length(matrix.column_ids) : evaluator.maximum_fitness
+        float(length(matrix.column_ids)) : evaluator.maximum_fitness
 
     scaled_fitnesses = get_scaled_fitnesses(
         raw_fitnesses; 

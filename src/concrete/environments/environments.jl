@@ -1,6 +1,7 @@
 module Environments
 
 export Stateless, LinguisticPredictionGame, CollisionGame, ContinuousPredictionGame
+export ElementaryCellularAutomata
 
 include("stateless/stateless.jl")
 using .Stateless: Stateless
@@ -13,5 +14,8 @@ using .CollisionGame: CollisionGame
 
 include("continuous_prediction_game/continuous_prediction_game.jl")
 using  .ContinuousPredictionGame: ContinuousPredictionGame
+
+include("elementary_cellular_automata/elementary_cellular_automata.jl")
+using .ElementaryCellularAutomata: ElementaryCellularAutomata
 
 end

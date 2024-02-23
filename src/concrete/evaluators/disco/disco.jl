@@ -142,6 +142,15 @@ function evaluate(
     raw_matrix::OutcomeMatrix,
     state::State
 )
+    if state.generation > 1
+        other_species = state.ecosystem.all_species[2]
+        hillclimber_ids = [individual.id for individual in other_species.hillclimbers]
+        children_ids = [individual.id for individual in other_species.children]
+        ids = [hillclimber_ids ; children_ids]
+        if length(hillclimber_ids) > 0
+            raw_matrix = filter_columns(raw_matrix, ids)
+        end
+    end
     #raw_matrix = filter_identical_columns(raw_matrix)
     #matrix = get_derived_matrix(
     #    state.rng, raw_matrix, evaluator.max_clusters, evaluator.distance_method

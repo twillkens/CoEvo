@@ -2,6 +2,7 @@ module Outcome
 
 export OutcomeMatrix, make_distinction_matrix, filter_zero_rows, get_sorted_dict
 export generate_unique_tuples, filter_identical_columns
+export filter_rows, filter_columns
 
 import Base: getindex
 using DataStructures
@@ -239,6 +240,32 @@ function transpose(matrix::OutcomeMatrix{T, U, V}) where {T, U, V}
     # Assuming the 'id' field should remain unchanged during transpose
     return OutcomeMatrix(matrix.id, new_row_ids, new_column_ids, transposed_data)
 end
+
+function filter_rows(matrix::OutcomeMatrix, ids::Vector)
+    row_indices = findall(id -> id in ids, matrix.row_ids)
+    if isempty(row_indices)
+        throw(ArgumentError("None of the specified row IDs found"))
+    end
+    new_data = matrix.data[row_indices, :]
+    new_row_ids = matrix.row_ids[row_indices]
+    # Return a new OutcomeMatrix with the filtered rows
+    return OutcomeMatrix(matrix.id, new_row_ids, matrix.column_ids, new_data)
+end
+
+function filter_columns(matrix::OutcomeMatrix, ids::Vector)
+    column_indices = findall(id -> id in ids, matrix.column_ids)
+    if isempty(column_indices)
+        println("matrix = ", matrix)
+        println("ids = ", ids)
+        throw(ArgumentError("None of the specified column IDs found"))
+    end
+    new_data = matrix.data[:, column_indices]
+    new_column_ids = matrix.column_ids[column_indices]
+    # Return a new OutcomeMatrix with the filtered columns
+    return OutcomeMatrix(matrix.id, matrix.row_ids, new_column_ids, new_data)
+end
+
+
 
 
 
