@@ -1,7 +1,7 @@
 module Dodo
 
 export DodoEvaluator, DodoEvaluation, evaluate
-export get_cluster_ids, child_dominates_parent
+export child_dominates_parent
 
 import ....Interfaces: evaluate
 #using ...Clusterers.XMeans: multiple_xmeans, KMeansClusteringResult, x_means_nosplits, do_kmeans
@@ -12,6 +12,8 @@ using ...Evaluators.NSGAII
 using ....Abstract
 using ....Interfaces
 using ...Criteria
+
+include("matrix.jl")
 
 Base.@kwdef struct DodoEvaluator <: Evaluator
     id::String = "A"
@@ -54,49 +56,6 @@ function get_dominant_children(species, matrix, cluster_ids, claimed_parents)
     return dominant_children
 end
 
-function perform_kmeans_search(matrix::OutcomeMatrix, max_clusters::Int)
-    if length(matrix.row_ids) == 0
-        return []
-    elseif length(matrix.row_ids) == 1
-        return [[first(matrix.row_ids)]]
-    elseif length(matrix.row_ids) == 2
-        id_1, id_2 = matrix.row_ids
-        if matrix[id_1, :] == matrix[id_2, :]
-            return [[id_1, id_2]]
-        else
-            return [[id_1], [id_2]]
-        end
-    else
-        all_rows_same = all(all(matrix.data[1, :] .== matrix.data[i, :]) for i in 2:size(matrix.data, 1))
-        if all_rows_same
-            return [matrix.row_ids]
-        end
-        max_clusters = min(max_clusters, length(matrix.row_ids) - 1)
-        X = transpose(matrix.data)
-        clusterings = kmeans.(Ref(X), 2:max_clusters)
-        qualities = Float64[]
-        for clustering in clusterings
-            try 
-                push!(qualities, clustering_quality(X, clustering, quality_index=:silhouettes))
-            catch e
-                println("clustering = ", clustering)
-                throw(e)
-            end
-        end
-        best_clustering_index = argmax(qualities)
-        best_clustering = clusterings[best_clustering_index]
-        clustering_dict = Dict{Int, Vector{Int}}()
-        for (row_index, assignment) in enumerate(best_clustering.assignments)
-            if haskey(clustering_dict, assignment)
-                push!(clustering_dict[assignment], matrix.row_ids[row_index])
-            else
-                clustering_dict[assignment] = [matrix.row_ids[row_index]]
-            end
-        end
-        cluster_ids = collect(values(clustering_dict))
-        return cluster_ids
-    end
-end
 
 function evaluate(
     evaluator::DodoEvaluator, 
@@ -121,7 +80,8 @@ function evaluate(
     #clustering_result = do_kmeans(matrix.data, n_clusters, state.rng)
 
     #all_cluster_ids = get_cluster_ids(clustering_result, matrix)
-    all_cluster_ids = perform_kmeans_search(matrix, n_clusters)
+    #all_cluster_ids = perform_kmeans_search(matrix, n_clusters)
+    matrix, all_cluster_ids = perform_kmeans_and_get_derived_matrix(matrix, n_clusters)
     all_explorer_ids = [explorer.id for explorer in species.explorers]
     all_retiree_ids = [retiree.id for retiree in species.retirees]
     append!(all_explorer_ids, all_retiree_ids)

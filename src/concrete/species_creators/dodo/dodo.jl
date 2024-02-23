@@ -55,13 +55,14 @@ function create_species(
 )
     individual_creator = reproducer.individual_creator 
     explorers = create_individuals(individual_creator, species_creator.n_population, reproducer, state)
+    retirees = create_individuals(individual_creator, species_creator.n_population, reproducer, state)
     temperature_dict = Dict(individual.id => 1 for individual in explorers)
     age_dict = Dict{Int, Int}()
     #lazy_time = Dict(individual.id => 0 for individual in parents)
     I = typeof(explorers[1])
     population = copy(explorers)
     species = DodoSpecies(
-        species_creator.id, explorers, I[], I[], I[], population, temperature_dict, age_dict
+        species_creator.id, explorers, I[], I[], retirees, population, temperature_dict, age_dict
     )
     return species
 end
@@ -121,6 +122,7 @@ function promote_children!(species::DodoSpecies, evaluation::Evaluation)
         filter!(ind -> ind.id != id, species.children)
         delete!(species.temperature_dict, individual.parent_id)
         delete!(species.age_dict, individual.parent_id)
+        push!(species.retirees, species[individual.parent_id])
         filter!(ind -> ind.id != individual.parent_id, species.hillclimbers)
         push!(species.hillclimbers, individual)
     end

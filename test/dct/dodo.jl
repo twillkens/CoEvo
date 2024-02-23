@@ -3,16 +3,16 @@ using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
 MAX_CLUSTERS = 10
-MAX_MUTATIONS = 100
+MAX_MUTATIONS = 10
 
 
 learner_reproducer_config = ReproducerConfiguration(
     id = "R",
     species_type = "basic",
     n_population = 100,
-    n_elites = 10,
+    n_elites = 50,
     n_parents = 50,
-    n_children = 90,
+    n_children = 50,
     selection_type = "tournament",
     tournament_size = 3,
     recombiner = "n_point_crossover",

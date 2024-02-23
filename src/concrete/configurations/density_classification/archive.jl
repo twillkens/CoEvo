@@ -82,7 +82,7 @@ function archive!(::DensityClassificationArchiver, state::State)
         evaluation = state.evaluations[1]
         elite_record = reduce((x, y) -> x.fitness > y.fitness ? x : y, filter(r -> r.rank == 1, evaluation.records))
         elite_rule = elite_record.individual.genotype.genes
-        ics = generate_unbiased_ICs(149, 100)
+        ics = generate_unbiased_ICs(149, 1000)
         results = [covered(elite_rule, ic, 320) for ic in ics]
         println("generation $(state.generation): ", mean(results))
         fitnesses = round.([mean(record.raw_outcomes) for record in evaluation.records]; digits=2)
