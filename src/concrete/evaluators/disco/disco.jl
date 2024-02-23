@@ -142,20 +142,23 @@ function evaluate(
     raw_matrix::OutcomeMatrix,
     state::State
 )
-    #if state.generation > 1
-    #    other_species = state.ecosystem.all_species[2]
-    #    hillclimber_ids = [individual.id for individual in other_species.hillclimbers]
-    #    children_ids = [individual.id for individual in other_species.children]
-    #    ids = [hillclimber_ids ; children_ids]
-    #    if length(hillclimber_ids) > 0
-    #        raw_matrix = filter_columns(raw_matrix, ids)
-    #    end
-    #end
+    if state.generation > 1
+        other_species = state.ecosystem.all_species[2]
+        hillclimber_ids = [individual.id for individual in other_species.hillclimbers]
+        #children_ids = [individual.id for individual in other_species.children]
+        retiree_ids = [individual.id for individual in other_species.retirees]
+        #ids = [hillclimber_ids ; children_ids ; retiree_ids]
+        ids = [hillclimber_ids ; retiree_ids]
+        if length(hillclimber_ids) > 0
+            raw_matrix = filter_columns(raw_matrix, ids)
+        end
+    end
     #raw_matrix = filter_identical_columns(raw_matrix)
     #matrix = get_derived_matrix(
     #    state.rng, raw_matrix, evaluator.max_clusters, evaluator.distance_method
     #)
     matrix = get_derived_matrix(raw_matrix, evaluator.max_clusters)
+    #println("N_OTHERS =", length(matrix.row_ids))
     records = create_records(evaluator, species, raw_matrix, matrix)
     evaluation = DiscoEvaluation(
         id = species.id, records = records, raw_matrix = matrix, matrix = matrix

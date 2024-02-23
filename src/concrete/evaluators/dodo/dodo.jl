@@ -63,6 +63,11 @@ function evaluate(
     results::Vector{<:Result},
     state::State
 )
+    if state.generation > 1
+	    elite_records = state.evaluations[1].records[1:50]
+	    elite_ids = [record.id for record in elite_records]
+	    results = [result for result in results if first(result.match.individual_ids) in elite_ids]
+    end
     matrix = make_distinction_matrix(species.population, results)
     orig_matrix = deepcopy(matrix)
     matrix = filter_zero_rows(matrix)
@@ -84,7 +89,7 @@ function evaluate(
     matrix, all_cluster_ids = perform_kmeans_and_get_derived_matrix(matrix, n_clusters)
     all_explorer_ids = [explorer.id for explorer in species.explorers]
     all_retiree_ids = [retiree.id for retiree in species.retirees]
-    append!(all_explorer_ids, all_retiree_ids)
+    #append!(all_explorer_ids, all_retiree_ids)
     all_parent_ids = [parent.id for parent in species.hillclimbers]
     explorer_to_promote_ids = Int[]
     children_to_promote_ids = Int[] 
@@ -105,10 +110,15 @@ function evaluate(
         end
         sort!(info, by = x -> x[1])
         #println("cluster_info = ", info)
-        all_are_explorers = all(id -> id in all_explorer_ids, cluster_ids)
+	all_are_explorers = all(id -> id in [all_explorer_ids ; all_retiree_ids], cluster_ids)
         if all_are_explorers
-            println("ALL_ARE_EXPLORERS = ", cluster_ids)
-            push!(explorer_to_promote_ids, rand(state.rng, cluster_ids))
+	    id = rand(state.rng, cluster_ids)
+	    if id in all_explorer_ids
+		    println("PROMOTING EXPLORER")
+	    else
+		    println("PROMOTING RETIREE")
+	    end
+            push!(explorer_to_promote_ids, id)
         else
             dominant_children = get_dominant_children(species, matrix, cluster_ids, claimed_parents)
             if length(dominant_children) > 0

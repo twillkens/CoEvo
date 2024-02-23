@@ -38,30 +38,10 @@ end
 
 Base.@kwdef mutable struct DensityClassificationExperimentConfiguration <: Configuration
     id::Int = 1
-    learner_reproducer_config::ReproducerConfiguration = ReproducerConfiguration(
-        id = "R",
-        species_type = "basic",
-        n_population = 100,
-        n_elites = 50,
-        n_parents = 50,
-        n_children = 50,
-        selection_type = "tournament",
-        tournament_size = 3,
-        recombiner = "n_point_crossover",
-        n_dimensions = 128,
-        max_mutations = 1
-    )
-    distinguisher_reproducer_config::ReproducerConfiguration = ReproducerConfiguration(
-        id = "IC",
-        species_type = "dodo",
-        recombiner = "clone",
-        n_population = 100,
-        n_dimensions = 149,
-        max_mutations = 1,
-        max_archive_size = 100,
-    )
-    learner_evaluator_config::EvaluatorConfiguration = EvaluatorConfiguration()
-    distinguisher_evaluator_config::EvaluatorConfiguration = EvaluatorConfiguration()
+    learner_reproducer_config::ReproducerConfiguration
+    distinguisher_reproducer_config::ReproducerConfiguration
+    learner_evaluator_config::EvaluatorConfiguration
+    distinguisher_evaluator_config::EvaluatorConfiguration
     seed::Int = abs(rand(Int))
     n_generations::Int = 5000
     n_workers::Int = 1

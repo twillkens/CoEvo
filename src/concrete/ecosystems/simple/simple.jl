@@ -95,7 +95,13 @@ function evaluate(
     evaluations = map(ecosystem.all_species) do species
         evaluator = find_by_id(evaluators, species.id)
         evaluation = evaluate(evaluator, species, results, state)
+	if state.generation > 1
+		push!(state.evaluations, evaluation)
+	end
         return evaluation
+    end
+    if state.generation > 1
+	    empty!(state.evaluations)
     end
     return evaluations
 end

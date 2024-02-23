@@ -114,6 +114,8 @@ function promote_explorers!(species::DodoSpecies, evaluation::Evaluation)
     end
 end
 
+MAX_RETIREE_SIZE = 1000
+
 function promote_children!(species::DodoSpecies, evaluation::Evaluation)
     for id in evaluation.children_to_promote_ids
         individual = species[id]
@@ -123,12 +125,15 @@ function promote_children!(species::DodoSpecies, evaluation::Evaluation)
         delete!(species.temperature_dict, individual.parent_id)
         delete!(species.age_dict, individual.parent_id)
         push!(species.retirees, species[individual.parent_id])
+            if length(species.retirees) > MAX_RETIREE_SIZE
+                popfirst!(species.retirees)
+            end
         filter!(ind -> ind.id != individual.parent_id, species.hillclimbers)
         push!(species.hillclimbers, individual)
     end
 end
 
-const MAX_AGE = 100
+const MAX_AGE = 25
 
 function demote_hillclimbers!(species::DodoSpecies, evaluation::Evaluation)
     for id in evaluation.hillclimbers_to_demote_ids
@@ -146,7 +151,7 @@ function demote_hillclimbers!(species::DodoSpecies, evaluation::Evaluation)
             delete!(species.age_dict, id)
             filter!(ind -> ind.id != id, species.hillclimbers)
             push!(species.retirees, individual)
-            if length(species.retirees) > 100
+            if length(species.retirees) > MAX_RETIREE_SIZE
                 popfirst!(species.retirees)
             end
         end
@@ -187,6 +192,7 @@ function print_info(species::DodoSpecies)
     end
     sort!(info, by = x -> x[1])
     println("explorer_info = ", info)
+    println("LENGTH_RETIREES =", length(species.retirees))
 end
 
 function update_species!(
@@ -218,7 +224,7 @@ function update_species!(
     else
         species.population = [guaranteed ; current_explorers]
     end
-    n_retirees_to_sample = min(length(species.retirees), 50)
+    n_retirees_to_sample = min(length(species.retirees), 100)
     retirees = sample(state.rng, species.retirees, n_retirees_to_sample, replace=false)
     species.population = [species.population ; retirees]
     increment_mutations!(species, species_creator)

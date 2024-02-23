@@ -39,7 +39,7 @@ end
 
 function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
     genes = genotype.genes
-    if rand(state.rng) < 0.1
+    if rand(state.rng) < 1.0
         # 10% chance to perform bit flips
         for i in eachindex(genes)
             if rand(state.rng) < mutator.flip_chance

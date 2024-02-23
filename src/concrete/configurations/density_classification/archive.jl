@@ -80,7 +80,8 @@ function archive!(::DensityClassificationArchiver, state::State)
     #all_data = DataFrame()
     if state.generation > 1 && state.generation % 1 == 0
         evaluation = state.evaluations[1]
-        elite_record = reduce((x, y) -> x.fitness > y.fitness ? x : y, filter(r -> r.rank == 1, evaluation.records))
+        #elite_record = reduce((x, y) -> x.fitness > y.fitness ? x : y, filter(r -> r.rank == 1, evaluation.records))
+        elite_record = reduce((x, y) -> x.fitness > y.fitness ? x : y, evaluation.records)
         elite_rule = elite_record.individual.genotype.genes
         ics = generate_unbiased_ICs(149, 1000)
         results = [covered(elite_rule, ic, 320) for ic in ics]

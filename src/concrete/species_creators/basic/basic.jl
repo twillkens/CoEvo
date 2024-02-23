@@ -43,6 +43,7 @@ end
 function validate_population(
     population::Vector{<:Individual}, species_creator::BasicSpeciesCreator
 )
+println("N_POPULATION_EXPECTED = ", species_creator.n_population)
     if length(population) != species_creator.n_population
         n_population = species_creator.n_population
         expected = species_creator.n_population

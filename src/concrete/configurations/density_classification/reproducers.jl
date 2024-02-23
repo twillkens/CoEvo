@@ -90,6 +90,7 @@ end
 
 
 function create_reproducers(config::DensityClassificationExperimentConfiguration)
+	println("HUH=",config.learner_reproducer_config )
     reproducers = [
         create_reproducer(config.learner_reproducer_config),
         create_reproducer(config.distinguisher_reproducer_config)
