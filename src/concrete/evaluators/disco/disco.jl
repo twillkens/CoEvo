@@ -136,6 +136,9 @@ function get_derived_matrix(matrix::OutcomeMatrix, max_clusters::Int)
     return matrix
 end
 
+const USE_NSGAII = false
+using Random
+
 function evaluate(
     evaluator::DiscoEvaluator,
     species::AbstractSpecies,
@@ -159,7 +162,44 @@ function evaluate(
     #)
     matrix = get_derived_matrix(raw_matrix, evaluator.max_clusters)
     #println("N_OTHERS =", length(matrix.row_ids))
-    records = create_records(evaluator, species, raw_matrix, matrix)
+    if USE_NSGAII
+        records = create_records(evaluator, species, raw_matrix, matrix)
+    else
+        all_ids = sort([individual.id for individual in species.population])
+        parent_ids = all_ids[1:50]
+        child_ids = all_ids[51:end]
+        shuffle!(state.rng, parent_ids)
+        shuffle!(state.rng, child_ids)
+        parents_to_replace = Set{Int}()
+        children_to_promote = Set{Int}()
+        time_start = time()
+        for child_id in child_ids
+            for parent_id in parent_ids
+                if parent_id in parents_to_replace
+                    continue
+                end
+                child_outcomes = matrix[child_id, :]
+                parent_outcomes = matrix[parent_id, :]
+                child_dominates_parent = dominates(Maximize(), child_outcomes, parent_outcomes)
+                if child_dominates_parent
+                    push!(parents_to_replace, parent_id)
+                    push!(children_to_promote, child_id)
+                    break
+                end
+            end
+        end
+        time_end = time()
+        println("TIME = ", time_end - time_start)
+        new_parent_ids = [id for id in parent_ids if !(id in parents_to_replace) ]
+        population_ids = [new_parent_ids ; collect(children_to_promote)]
+        if length(population_ids) != length(parent_ids)
+            error("Population size is $(length(population_ids)), but should be $(length(parent_ids))")
+        end
+        raw_matrix = filter_rows(raw_matrix, population_ids)
+        matrix = filter_rows(matrix, population_ids)
+        records = create_records(evaluator, species, raw_matrix, matrix)
+        println("NUMBER_NEW_LEARNERS = ", length(children_to_promote))
+    end
     evaluation = DiscoEvaluation(
         id = species.id, records = records, raw_matrix = matrix, matrix = matrix
     )

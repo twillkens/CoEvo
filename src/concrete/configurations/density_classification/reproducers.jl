@@ -4,6 +4,7 @@ import ....Interfaces: create_reproducers, create_reproducer
 using ...SpeciesCreators.HillClimber: HillClimberSpeciesCreator
 using ...SpeciesCreators.Dodo: DodoSpeciesCreator
 using ...Selectors.UniformRandom: UniformRandomSelector
+using ...Selectors.Identity: IdentitySelector
 using ...Phenotypes.Vectors: CloneVectorPhenotypeCreator
 using ...Recombiners.NPointCrossover: NPointCrossoverRecombiner
 
@@ -46,6 +47,8 @@ function make_selector(config::ReproducerConfiguration)
             n_selections = config.n_children,
             n_selection_set = n_selection_set
         )
+    elseif config.selection_type == "identity"
+        selector = IdentitySelector()
     else
         error("Invalid selection type: $(config.selection_type)")
     end

@@ -9,13 +9,13 @@ MAX_MUTATIONS = 10
 learner_reproducer_config = ReproducerConfiguration(
     id = "R",
     species_type = "basic",
-    n_population = 200,
-    n_elites = 100,
-    n_parents = 100,
-    n_children = 100,
-    selection_type = "tournament",
+    n_population = 100,
+    n_elites = 50,
+    n_parents = 50,
+    n_children = 50,
+    selection_type = "identity",
     tournament_size = 3,
-    recombiner = "n_point_crossover",
+    recombiner = "clone",
     n_dimensions = 128,
     flip_chance = 0.02,
 )
@@ -56,7 +56,7 @@ config = DensityClassificationExperimentConfiguration(
     distinguisher_evaluator_config = distinguisher_evaluator_config,
     seed = abs(rand(Int)),
     n_generations = 5000,
-    n_workers = 20,
+    n_workers = 8,
 )
 
 state = BasicEvolutionaryState(config)

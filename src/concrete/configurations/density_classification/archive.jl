@@ -78,6 +78,7 @@ using Random
 using StatsBase
 function archive!(::DensityClassificationArchiver, state::State)
     #all_data = DataFrame()
+    println("\n\n------------GENERATION $(state.generation)------------")
     if state.generation > 1 && state.generation % 1 == 0
         evaluation = state.evaluations[1]
         #elite_record = reduce((x, y) -> x.fitness > y.fitness ? x : y, filter(r -> r.rank == 1, evaluation.records))
