@@ -166,8 +166,8 @@ function evaluate(
         records = create_records(evaluator, species, raw_matrix, matrix)
     else
         all_ids = sort([individual.id for individual in species.population])
-        parent_ids = all_ids[1:100]
-        child_ids = all_ids[101:end]
+        parent_ids = all_ids[1:50]
+        child_ids = all_ids[51:end]
         shuffle!(state.rng, parent_ids)
         shuffle!(state.rng, child_ids)
         parents_to_replace = Set{Int}()

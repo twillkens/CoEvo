@@ -55,7 +55,7 @@ function create_species(
 )
     individual_creator = reproducer.individual_creator 
     explorers = create_individuals(individual_creator, species_creator.n_population, reproducer, state)
-    retirees = create_individuals(individual_creator, species_creator.n_population, reproducer, state)
+    retirees = create_individuals(individual_creator, species_creator.n_population * 2, reproducer, state)
     temperature_dict = Dict(individual.id => 1 for individual in explorers)
     age_dict = Dict{Int, Int}()
     #lazy_time = Dict(individual.id => 0 for individual in parents)
@@ -114,7 +114,7 @@ function promote_explorers!(species::DodoSpecies, evaluation::Evaluation)
     end
 end
 
-MAX_RETIREE_SIZE = 1000
+MAX_RETIREE_SIZE = 10000
 
 function promote_children!(species::DodoSpecies, evaluation::Evaluation)
     for id in evaluation.children_to_promote_ids
@@ -133,7 +133,7 @@ function promote_children!(species::DodoSpecies, evaluation::Evaluation)
     end
 end
 
-const MAX_AGE = 25
+const MAX_AGE = 50
 
 function demote_hillclimbers!(species::DodoSpecies, evaluation::Evaluation)
     for id in evaluation.hillclimbers_to_demote_ids
@@ -206,6 +206,14 @@ function update_species!(
     promote_children!(species, evaluation)
     demote_hillclimbers!(species, evaluation)
     species.children = recombine_and_mutate!(species.temperature_dict, species.hillclimbers, reproducer, state)
+    n_add = 100 - length(species.explorers)
+    individual_creator = reproducer.individual_creator 
+    extra_explorers = create_individuals(individual_creator, n_add, reproducer, state)
+    for explorer in extra_explorers
+	    species.temperature_dict[explorer.id] = 1
+	    push!(species.explorers, explorer)
+    end
+
     species.explorers = recombine_and_mutate!(species.temperature_dict, species.explorers, reproducer, state)
     for explorer in species.explorers
         species.temperature_dict[explorer.id] = species.temperature_dict[explorer.parent_id]

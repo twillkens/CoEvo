@@ -2,17 +2,16 @@ using CoEvo.Concrete.Configurations.DensityClassification
 using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
-MAX_CLUSTERS = 10
+MAX_CLUSTERS = 5
 MAX_MUTATIONS = 10
-
 
 learner_reproducer_config = ReproducerConfiguration(
     id = "R",
     species_type = "basic",
-    n_population = 200,
-    n_elites = 100,
-    n_parents = 100,
-    n_children = 100,
+    n_population = 100,
+    n_elites = 50,
+    n_parents = 50,
+    n_children = 50,
     selection_type = "uniform_random",
     tournament_size = 3,
     recombiner = "n_point_crossover",
@@ -55,7 +54,7 @@ config = DensityClassificationExperimentConfiguration(
     learner_evaluator_config = learner_evaluator_config,
     distinguisher_evaluator_config = distinguisher_evaluator_config,
     seed = abs(rand(Int)),
-    n_generations = 5000,
+    n_generations = 30000,
     n_workers = 20,
 )
 

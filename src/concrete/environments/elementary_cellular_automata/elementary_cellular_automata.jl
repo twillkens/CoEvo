@@ -64,6 +64,14 @@ function create_environment(
 end
 
 function is_active(environment::ElementaryCellularAutomataEnvironment)
+    #ct = environment.current_timestep
+    #if ct > 1
+    #    is_relaxed = all(x -> x == 0, environment.states[ct, :]) || all(x -> x == 1, environment.states[ct, :])
+    #    last_two_the_same = environment.states[ct, :] == environment.states[ct - 1, :]
+    #    if is_relaxed && last_two_the_same
+    #        return false
+    #    end
+    #end
     return environment.current_timestep < environment.n_timesteps
 end
 
