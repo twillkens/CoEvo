@@ -145,17 +145,17 @@ function evaluate(
     raw_matrix::OutcomeMatrix,
     state::State
 )
-    #if state.generation > 1
-    #    other_species = state.ecosystem.all_species[2]
-    #    hillclimber_ids = [individual.id for individual in other_species.hillclimbers]
-    #    #children_ids = [individual.id for individual in other_species.children]
-    #    retiree_ids = [individual.id for individual in other_species.retirees]
-    #    #ids = [hillclimber_ids ; children_ids ; retiree_ids]
-    #    ids = [hillclimber_ids ; retiree_ids]
-    #    if length(hillclimber_ids) > 0
-    #        raw_matrix = filter_columns(raw_matrix, ids)
-    #    end
-    #end
+    if state.generation > 1
+        other_species = state.ecosystem.all_species[2]
+        hillclimber_ids = [individual.id for individual in other_species.hillclimbers]
+        #children_ids = [individual.id for individual in other_species.children]
+        retiree_ids = [individual.id for individual in other_species.retirees]
+        #ids = [hillclimber_ids ; children_ids ; retiree_ids]
+        ids = [hillclimber_ids ; retiree_ids]
+        if length(hillclimber_ids) > 0
+            raw_matrix = filter_columns(raw_matrix, ids)
+        end
+    end
     #raw_matrix = filter_identical_columns(raw_matrix)
     #matrix = get_derived_matrix(
     #    state.rng, raw_matrix, evaluator.max_clusters, evaluator.distance_method
@@ -166,8 +166,8 @@ function evaluate(
         records = create_records(evaluator, species, raw_matrix, matrix)
     else
         all_ids = sort([individual.id for individual in species.population])
-        parent_ids = all_ids[1:50]
-        child_ids = all_ids[51:end]
+        parent_ids = all_ids[1:100]
+        child_ids = all_ids[101:end]
         shuffle!(state.rng, parent_ids)
         shuffle!(state.rng, child_ids)
         parents_to_replace = Set{Int}()

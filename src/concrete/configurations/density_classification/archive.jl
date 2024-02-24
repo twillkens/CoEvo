@@ -87,9 +87,10 @@ function archive!(::DensityClassificationArchiver, state::State)
         ics = generate_unbiased_ICs(149, 1000)
         results = [covered(elite_rule, ic, 320) for ic in ics]
         println("generation $(state.generation): ", mean(results))
+	println("rule =", elite_rule)
         fitnesses = round.([mean(record.raw_outcomes) for record in evaluation.records]; digits=2)
         println("fitnesses: ", fitnesses)
-
+	flush(stdout)
     end
 end
 

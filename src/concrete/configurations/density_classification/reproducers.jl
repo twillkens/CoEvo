@@ -70,7 +70,7 @@ function make_recombiner(config::ReproducerConfiguration)
     if config.recombiner == "clone"
         recombiner = CloneRecombiner()
     elseif config.recombiner == "n_point_crossover"
-        recombiner = NPointCrossoverRecombiner()
+        recombiner = NPointCrossoverRecombiner(n_points = 1)
     else
         error("Invalid recombiner: $(config.recombiner)")
     end
