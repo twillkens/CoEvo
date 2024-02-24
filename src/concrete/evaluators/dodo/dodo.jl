@@ -63,11 +63,11 @@ function evaluate(
     results::Vector{<:Result},
     state::State
 )
-    if state.generation > 1
-	    elite_records = state.evaluations[1].records[1:50]
-	    elite_ids = [record.id for record in elite_records]
-	    results = [result for result in results if first(result.match.individual_ids) in elite_ids]
-    end
+    #if state.generation > 1
+	   # elite_records = state.evaluations[1].records[1:50]
+	   # elite_ids = [record.id for record in elite_records]
+	   # results = [result for result in results if first(result.match.individual_ids) in elite_ids]
+    #end
     matrix = make_distinction_matrix(species.population, results)
     orig_matrix = deepcopy(matrix)
     matrix = filter_zero_rows(matrix)
