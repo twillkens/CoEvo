@@ -51,6 +51,28 @@ function run_tournament(contenders::Array{<:DiscoRecord}, rng::AbstractRNG)
     return winner
 end
 
+using ...Evaluators.DodoLearner: DodoLearnerRecord
+
+function run_tournament(contenders::Array{<:DodoLearnerRecord}, rng::AbstractRNG) 
+    function get_winner(record_1::DodoLearnerRecord, record_2::DodoLearnerRecord)
+        if record_1.rank < record_2.rank
+            return record_1
+        elseif record_2.rank < record_1.rank
+            return record_2
+        else
+            if record_1.crowding > record_2.crowding
+                return record_1
+            elseif record_2.crowding > record_1.crowding
+                return record_2
+            else
+                return rand(rng, (record_1, record_2))
+            end
+        end
+    end
+    winner = reduce(get_winner, contenders)
+    return winner
+end
+
 function select(
     ::TournamentSelector,
     records::Vector{<:Record},

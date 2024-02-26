@@ -17,6 +17,7 @@ Base.@kwdef mutable struct DodoTestRecord{I <: Individual} <: Record
     id::Int = 0
     individual::I
     raw_outcomes::Vector{Float64} = Float64[]
+    filtered_outcomes::Vector{Float64} = Float64[]
     outcomes::Vector{Float64} = Float64[]
     rank::Int = 0
     crowding::Float64 = 0.0
@@ -26,7 +27,7 @@ end
 
 function getproperty(record::DodoTestRecord, name::Symbol)
     if name == :fitness
-        return sum(record.raw_outcomes)
+        return sum(record.outcomes)
     end
     return getfield(record, name)
 end
@@ -38,11 +39,14 @@ Base.@kwdef struct DodoPromotions
     hillclimber_to_retire_ids::Vector{Int} = Int[]
 end
 
-Base.@kwdef struct DodoTestEvaluation{R <: DodoTestRecord} <: Evaluation
+Base.@kwdef struct DodoTestEvaluation{
+    R <: DodoTestRecord, M1 <: OutcomeMatrix, M2 <: OutcomeMatrix, M3 <: OutcomeMatrix
+} <: Evaluation
     id::String
     promotions::DodoPromotions
-    raw_matrix::OutcomeMatrix
-    matrix::OutcomeMatrix
+    raw_matrix::M1
+    filtered_matrix::M2
+    matrix::M3
     records::Vector{R}
 end
 

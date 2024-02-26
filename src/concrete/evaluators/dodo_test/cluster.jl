@@ -122,12 +122,22 @@ end
 function perform_clustering(evaluator::DodoTestEvaluator, raw_matrix::OutcomeMatrix)
     filtered_matrix = create_informative_matrix(raw_matrix)
     if length(filtered_matrix.row_ids) == 0
-        return deepcopy(raw_matrix), [[id for id in raw_matrix.row_ids]]
+        return deepcopy(raw_matrix), deepcopy(raw_matrix), [[id for id in raw_matrix.row_ids]]
     end
     n_clusters = min(evaluator.max_clusters, length(filtered_matrix.row_ids))
     derived_matrix, all_cluster_ids = perform_kmeans_and_get_derived_matrix(filtered_matrix, n_clusters)
     println("N_TEST_CLUSTERS = ", length(all_cluster_ids))
     # now create a new outcome matrix that add back the zero rows and ids with n_columns matching the derived_matrix
+    filtered_data = zeros(Float64, length(raw_matrix.row_ids), length(filtered_matrix.column_ids))
+    for (row_index, id) in enumerate(raw_matrix.row_ids)
+        if id in filtered_matrix.row_ids
+            filtered_data[row_index, :] = filtered_matrix[id, :]
+        end
+    end
+    filtered_matrix = OutcomeMatrix(
+        raw_matrix.id, raw_matrix.row_ids, filtered_matrix.column_ids, filtered_data
+    )
+
     data = zeros(Float64, length(raw_matrix.row_ids), length(derived_matrix.column_ids))
     for (row_index, id) in enumerate(raw_matrix.row_ids)
         if id in derived_matrix.row_ids
@@ -136,5 +146,5 @@ function perform_clustering(evaluator::DodoTestEvaluator, raw_matrix::OutcomeMat
     end
     matrix = OutcomeMatrix(raw_matrix.id, raw_matrix.row_ids, derived_matrix.column_ids, data)
 
-    return matrix, all_cluster_ids
+    return filtered_matrix, matrix, all_cluster_ids
 end

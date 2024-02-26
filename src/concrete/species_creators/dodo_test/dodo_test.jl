@@ -33,8 +33,8 @@ Base.@kwdef mutable struct DodoTestSpeciesCreator <: SpeciesCreator
     explorer_temperature_increment_frequency::Int = 5
     max_explorer_samples::Int = 100
     max_hillclimbers::Int = 20
-    max_hillclimber_age::Int = 100
-    max_hillclimber_temperature::Int = 20
+    max_hillclimber_age::Int = 25
+    max_hillclimber_temperature::Int = 2
     hillclimber_temperature_increment_frequency::Int = 10
     n_hillclimber_children::Int = 10
     max_retirees::Int = 1000

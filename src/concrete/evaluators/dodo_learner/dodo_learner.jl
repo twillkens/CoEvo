@@ -23,6 +23,7 @@ Base.@kwdef mutable struct DodoLearnerRecord{I <: Individual} <: Record
     id::Int = 0
     individual::I
     raw_outcomes::Vector{Float64} = Float64[]
+    filtered_outcomes::Vector{Float64} = Float64[]
     outcomes::Vector{Float64} = Float64[]
     rank::Int = 0
     crowding::Float64 = 0.0
@@ -38,20 +39,22 @@ function getproperty(record::DodoLearnerRecord, name::Symbol)
 end
 
 Base.@kwdef struct DodoLearnerEvaluation{
-    R <: DodoLearnerRecord, M1 <: OutcomeMatrix, M2 <: OutcomeMatrix
+    R <: DodoLearnerRecord, M1 <: OutcomeMatrix, M3 <: OutcomeMatrix, M2 <: OutcomeMatrix
 } <: Evaluation
     id::String
     parents_to_retire::Vector{Int}
     children_to_promote::Vector{Int}
     records::Vector{R}
     raw_matrix::M1
-    matrix::M2
+    filtered_matrix::M2
+    matrix::M3
 end
 
 function create_records(
     evaluator::DodoLearnerEvaluator,
     species::AbstractSpecies,
     raw_matrix::OutcomeMatrix,
+    filtered_matrix::OutcomeMatrix,
     matrix::OutcomeMatrix
 )
     I = typeof(species.population[1])
@@ -61,6 +64,7 @@ function create_records(
             id = id, 
             individual = species[id],
             raw_outcomes = raw_matrix[id, :], 
+            filtered_outcomes = filtered_matrix[id, :],
             outcomes = matrix[id, :]
         )
         push!(records, record)
@@ -168,10 +172,11 @@ function evaluate(
     evaluator::DodoLearnerEvaluator,
     species::AbstractSpecies,
     raw_matrix::OutcomeMatrix,
+    filtered_matrix::OutcomeMatrix,
     matrix::OutcomeMatrix,
     state::State
 )
-    records = create_records(evaluator, species, raw_matrix, matrix)
+    records = create_records(evaluator, species, raw_matrix, filtered_matrix, matrix)
     parents_to_retire, children_to_promote = get_new_children(species, records)
     println("NUMBER_NEW_LEARNERS = ", length(children_to_promote))
     evaluation = DodoLearnerEvaluation(
@@ -180,6 +185,7 @@ function evaluate(
         children_to_promote = collect(children_to_promote),
         records = records, 
         raw_matrix = matrix, 
+        filtered_matrix = filtered_matrix,
         matrix = matrix
     )
     return evaluation
@@ -197,7 +203,7 @@ function evaluate(
     println("SIZE_LEARNER_RAW_MATRIX = ", size(raw_matrix.data))
     println("SIZE_LEARNER_FILTERED_MATRIX = ", size(filtered_matrix.data))
     println("SIZE_LEARNER_MATRIX = ", size(matrix.data))
-    evaluation = evaluate(evaluator, species, raw_matrix, matrix, state)
+    evaluation = evaluate(evaluator, species, raw_matrix, filtered_matrix, matrix, state)
     return evaluation
 end
 

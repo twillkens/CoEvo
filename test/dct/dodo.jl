@@ -10,10 +10,10 @@ learner_reproducer_config = ReproducerConfiguration(
     id = "R",
     species_type = "dodo_learner",
     n_parents = 50,
-    selection_type = "uniform_random",
+    selection_type = "tournament",
     recombiner = "n_point_crossover",
     n_dimensions = 128,
-    flip_chance = 0.01,
+    flip_chance = 0.02,
 )
 
 
@@ -30,7 +30,7 @@ test_reproducer_config = ReproducerConfiguration(
     max_archive_size = 1000,
     recombiner = "clone",
     n_dimensions = 149,
-    flip_chance = 0.01
+    flip_chance = 0.05
 )
 
 test_evaluator_config = EvaluatorConfiguration(
