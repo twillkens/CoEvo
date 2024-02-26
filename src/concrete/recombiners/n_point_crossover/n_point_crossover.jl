@@ -75,19 +75,19 @@ function recombine(
     return child
 end
 
-function recombine(
-    recombiner::NPointCrossoverRecombiner, selection::Selection, state::State
-)
-    parents = [record.individual for record in selection.records]
-    return recombine(recombiner, parents, state)
-end
-
-function recombine(
-    recombiner::NPointCrossoverRecombiner, selections::Vector{<:Selection}, state::State
-)
-    children = [recombine(recombiner, selection, state) for selection in selections]
-    return children
-end
+#function recombine(
+#    recombiner::NPointCrossoverRecombiner, selection::Selection, state::State
+#)
+#    parents = [record.individual for record in selection.records]
+#    return recombine(recombiner, parents, state)
+#end
+#
+#function recombine(
+#    recombiner::NPointCrossoverRecombiner, selections::Vector{<:Selection}, state::State
+#)
+#    children = [recombine(recombiner, selection, state) for selection in selections]
+#    return children
+#end
 
 function recombine(
     recombiner::NPointCrossoverRecombiner, mutator::Mutator, selection::Selection, state::State

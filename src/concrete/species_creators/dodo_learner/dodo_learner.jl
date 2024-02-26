@@ -34,7 +34,7 @@ end
 Base.@kwdef struct DodoLearnerSpeciesCreator <: SpeciesCreator
     id::String
     n_parents::Int
-    temperature_increment_frequency::Int = 10
+    temperature_increment_frequency::Int = 20
     maximum_temperature::Int = 20
 end
 

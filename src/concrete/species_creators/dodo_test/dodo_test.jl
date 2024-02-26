@@ -118,6 +118,7 @@ function perform_promotions!(
 )
     promote_explorers!(species, evaluation)
     promote_children!(species, evaluation)
+    promote_retirees!(species, evaluation)
     retire_hillclimbers!(species, species_creator, evaluation)
 end
 

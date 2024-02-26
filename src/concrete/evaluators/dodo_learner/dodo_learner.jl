@@ -194,6 +194,9 @@ function evaluate(
     raw_matrix = OutcomeMatrix(species.population, results)
     filtered_matrix = filter_raw_matrix(state, raw_matrix)
     matrix = get_derived_matrix(filtered_matrix, evaluator.max_clusters)
+    println("SIZE_LEARNER_RAW_MATRIX = ", size(raw_matrix.data))
+    println("SIZE_LEARNER_FILTERED_MATRIX = ", size(filtered_matrix.data))
+    println("SIZE_LEARNER_MATRIX = ", size(matrix.data))
     evaluation = evaluate(evaluator, species, raw_matrix, matrix, state)
     return evaluation
 end
