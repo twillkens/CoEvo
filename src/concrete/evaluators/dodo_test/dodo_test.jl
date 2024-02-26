@@ -1,6 +1,7 @@
 module DodoTest
 
 export DodoTestEvaluator, DodoTestEvaluation, evaluate
+export DodoTestEvaluator, DodoTestRecord, DodoPromotions, DodoTestEvaluation
 export child_dominates_parent
 
 import ....Interfaces: evaluate
@@ -12,8 +13,6 @@ using ....Interfaces
 using ...Criteria
 
 include("structs.jl")
-
-include("matrix.jl")
 
 include("dominance.jl")
 

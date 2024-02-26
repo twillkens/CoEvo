@@ -77,7 +77,8 @@ function create_children(
 ) where I <: Individual
     all_children = I[]
     for _ in 1:n_children_per_parent
-        children = recombine(reproducer.recombiner, reproducer.mutator, parents, state)
+        parent_vecs = [[parent] for parent in parents]
+        children = recombine(reproducer.recombiner, reproducer.mutator, parent_vecs, state)
         append!(all_children, children)
     end
     return all_children

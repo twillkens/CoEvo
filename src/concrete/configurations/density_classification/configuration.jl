@@ -18,6 +18,7 @@ Base.@kwdef mutable struct EvaluatorConfiguration
     clusterer_type::String = "global_kmeans"
     distance_method::String = "euclidean"
     max_clusters::Int = 10
+    n_runs::Int = 10
 end
 
 Base.@kwdef mutable struct ReproducerConfiguration

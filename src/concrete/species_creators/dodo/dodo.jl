@@ -192,7 +192,7 @@ function print_info(species::DodoSpecies)
     end
     sort!(info, by = x -> x[1])
     println("explorer_info = ", info)
-    println("LENGTH_RETIREES =", length(species.retirees))
+    println("LENGTH_RETIREES = ", length(species.retirees))
 end
 
 function update_species!(

@@ -11,15 +11,19 @@ function handle_small_matrix_cases(matrix::OutcomeMatrix)
     elseif row_count == 1
         # A single row forms a cluster by itself
         return (matrix, [[first(matrix.row_ids)]])
-    else  # row_count == 2
+    elseif row_count == 2
         id_1, id_2 = matrix.row_ids
-        if all(matrix.data[1, :] .== matrix.data[2, :])
+        if matrix.data[1, :] == matrix.data[2, :]
             # Rows are identical, group together
+            println("SMALL ROWS IDENTICAL")
             return (matrix, [[id_1, id_2]])
         else
+            println("SMALL ROWS DIFFER")
             # Rows differ, separate clusters
             return (matrix, [[id_1], [id_2]])
         end
+    else
+        error("Unexpected number of rows in matrix: $row_count")
     end
 end
 
@@ -96,19 +100,22 @@ function perform_kmeans_and_get_derived_matrix(matrix::OutcomeMatrix, max_cluste
     if length(matrix.row_ids) != n_rows_expected || length(matrix.column_ids) != n_columns_expected
         throw(ArgumentError("Derived matrix and cluster IDs have inconsistent dimensions"))
     end
+    #println("CLUSTER_IDS = ", cluster_ids)
 
     return (matrix, cluster_ids)
 end
 
 function create_informative_matrix(matrix::OutcomeMatrix)
     non_zero_row_indices = get_nonzero_row_indices(matrix.data)
-    unique_col_indices = get_unique_column_indices(matrix)
+    unique_col_indices = get_unique_column_indices(matrix.data)
     matrix = OutcomeMatrix(
         matrix.id, 
         matrix.row_ids[non_zero_row_indices], 
         matrix.column_ids[unique_col_indices], 
         matrix.data[non_zero_row_indices, unique_col_indices]
     )
+    #println("ROW_IDS = ", matrix.row_ids)
+    #println("COLUMN_IDS = ", matrix.column_ids)
     return matrix
 end
 
@@ -119,9 +126,9 @@ function perform_clustering(evaluator::DodoTestEvaluator, raw_matrix::OutcomeMat
     end
     n_clusters = min(evaluator.max_clusters, length(filtered_matrix.row_ids))
     derived_matrix, all_cluster_ids = perform_kmeans_and_get_derived_matrix(filtered_matrix, n_clusters)
-    println("N_CLUSTERS = ", length(all_cluster_ids))
+    println("N_TEST_CLUSTERS = ", length(all_cluster_ids))
     # now create a new outcome matrix that add back the zero rows and ids with n_columns matching the derived_matrix
-    data = zeros(Int, length(raw_matrix.row_ids), length(derived_matrix.column_ids))
+    data = zeros(Float64, length(raw_matrix.row_ids), length(derived_matrix.column_ids))
     for (row_index, id) in enumerate(raw_matrix.row_ids)
         if id in derived_matrix.row_ids
             data[row_index, :] = derived_matrix[id, :]

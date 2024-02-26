@@ -3,6 +3,8 @@ export create_evaluators, create_evaluator
 import ....Interfaces: create_evaluator, create_evaluators
 using ...Evaluators.HillClimber: HillClimberEvaluator
 using ...Evaluators.Dodo: DodoEvaluator
+using ...Evaluators.DodoLearner: DodoLearnerEvaluator
+using ...Evaluators.DodoTest: DodoTestEvaluator
 
 function create_evaluator(config::EvaluatorConfiguration)
     if config.evaluator_type == "scalar_fitness"
@@ -20,10 +22,16 @@ function create_evaluator(config::EvaluatorConfiguration)
             clusterer = config.clusterer_type,
             distance_method = config.distance_method
         )
-    elseif config.evaluator_type == "dodo"
-        evaluator = DodoEvaluator(
+    elseif config.evaluator_type == "dodo_learner"
+        evaluator = DodoLearnerEvaluator(
             id = config.id,
             max_clusters = config.max_clusters
+        )
+    elseif config.evaluator_type == "dodo_test"
+        evaluator = DodoTestEvaluator(
+            id = config.id,
+            max_clusters = config.max_clusters,
+            n_runs = config.n_runs
         )
     else
         error("Invalid evaluator type: $(config.evaluator_type)")

@@ -35,7 +35,7 @@ function promote_child!(species::DodoTestSpecies, id::Int)
 end
 
 function promote_children!(species::DodoTestSpecies, evaluation::Evaluation)
-    for id in evaluation.children_to_promote_ids
+    for id in evaluation.child_to_promote_ids
         promote_child!(species, id)
     end
 end
@@ -64,7 +64,7 @@ end
 
 function retire_hillclimbers!(
     species::DodoTestSpecies, species_creator::DodoTestSpeciesCreator, evaluation::Evaluation)
-    for id in evaluation.hillclimbers_to_demote_ids
+    for id in evaluation.hillclimber_to_retire_ids
         retire_hillclimber!(species, species_creator, id)
     end
     for hillclimber in species.hillclimbers

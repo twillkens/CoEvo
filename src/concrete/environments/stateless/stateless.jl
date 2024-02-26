@@ -7,6 +7,7 @@ import ....Interfaces: create_environment, is_active, get_phenotypes, get_outcom
 using ....Abstract: Environment, EnvironmentCreator, Domain, Phenotype
 using ...Domains.NumbersGame: NumbersGameDomain
 using ...Domains.SymbolicRegression: SymbolicRegressionDomain
+using ...Domains.DensityClassification: DensityClassificationDomain, covered_improved
 using ....Interfaces: measure, act!, reset!
 
 struct StatelessEnvironment{D, P1 <: Phenotype, P2 <: Phenotype} <: Environment{D}
@@ -63,6 +64,20 @@ function create_environment(environment_creator::StatelessEnvironmentCreator, v1
     phenotype_2 = BasicVectorPhenotype(2, v2)
     environment = create_environment(environment_creator, phenotype_1, phenotype_2)
     return environment
+end
+
+function get_outcome_set(
+    environment::StatelessEnvironment{D, P1, P2}
+) where {D <: DensityClassificationDomain, P1 <: Phenotype, P2 <: Phenotype}
+    # Assuming the phenotype's `act!` method returns a tuple of (initial configuration, rule)
+    rule = act!(environment.entity_1)
+    ic = act!(environment.entity_2)
+    is_covered = covered_improved(rule, ic, environment.domain.max_timesteps)
+    if is_covered
+        return [1.0, 0.0]
+    else
+        return [0.0, 1.0]
+    end
 end
 
 end

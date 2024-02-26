@@ -17,6 +17,14 @@ Base.@kwdef mutable struct DodoIndividual{G <: Genotype, P <: Phenotype} <: Indi
     phenotype::P
 end
 
+function Base.getproperty(individual::DodoIndividual, property::Symbol)
+    if property == :parent_id
+        return first(individual.parent_ids)
+    else
+        return getfield(individual, property)
+    end
+end
+
 
 function DodoIndividual(id::Int, genotype::Genotype)
     phenotype = create_phenotype(DefaultPhenotypeCreator(), id, genotype)

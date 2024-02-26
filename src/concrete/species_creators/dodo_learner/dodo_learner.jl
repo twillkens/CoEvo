@@ -11,12 +11,25 @@ using ...Individuals.Dodo: DodoIndividual
 using Random
 using StatsBase
 
-struct DodoLearnerSpecies{I <: DodoIndividual} <: AbstractSpecies
+Base.@kwdef mutable struct DodoLearnerSpecies{I <: DodoIndividual} <: AbstractSpecies
     id::String
     population::Vector{I}
     parents::Vector{I}
     children::Vector{I}
 end
+
+function get_all_individuals(species::DodoLearnerSpecies)
+    return species.population
+end
+
+function Base.getindex(species::DodoLearnerSpecies, i::Int)
+    index = findfirst(individual -> individual.id == i, species.population)
+    if index === nothing
+        error("individual with id = $i not found")
+    end
+    return species.population[index]
+end
+
 
 Base.@kwdef struct DodoLearnerSpeciesCreator <: SpeciesCreator
     id::String
@@ -76,7 +89,7 @@ using ...Evaluators.DodoLearner: DodoLearnerEvaluation
 function get_new_parents(species::DodoLearnerSpecies, evaluation::DodoLearnerEvaluation)
     filtered_parents = [
         individual for individual in species.parents 
-            if !(parent.id in evaluation.parents_to_retire)
+            if !(individual.id in evaluation.parents_to_retire)
     ]
     promoted_children = [
         individual for individual in species.children 
@@ -92,7 +105,10 @@ function age_parents!(species::DodoLearnerSpecies)
     end
 end
 
-function increase_parent_temperature!(species::DodoLearnerSpecies, species_creator::DodoLearnerSpeciesCreator)
+function increase_parent_temperature!(
+    species::DodoLearnerSpecies, 
+    species_creator::DodoLearnerSpeciesCreator
+)
     for individual in species.parents
         is_max_temp = individual.temperature >= species_creator.maximum_temperature
         is_time_to_increase = individual.age % species_creator.temperature_increment_frequency == 0

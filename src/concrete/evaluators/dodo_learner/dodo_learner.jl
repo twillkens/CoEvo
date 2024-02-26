@@ -14,7 +14,6 @@ using ...Evaluators.NSGAII
 Base.@kwdef struct DodoLearnerEvaluator <: Evaluator 
     id::String = "A"
     maximize::Bool = true
-    objective::String = "distinctions"
     max_clusters::Int = 5
     function_minimums::Union{Vector{Float64}, Nothing} = nothing
     function_maximums::Union{Vector{Float64}, Nothing} = nothing
@@ -157,6 +156,10 @@ function get_new_children(species::AbstractSpecies, records::Vector{<:DodoLearne
     child_records = reverse(
         [record for record in records if record.individual in species.children]
     )
+    parent_outcome_sums = [sum(record.outcomes) for record in parent_records]
+    child_outcome_sums = [sum(record.outcomes) for record in child_records]
+    #println("PARENT_OUTCOME_SUMS = ", parent_outcome_sums)
+    #println("CHILD_OUTCOME_SUMS = ", child_outcome_sums)
     parents_to_retire, children_to_promote = get_new_children(parent_records, child_records)
     return parents_to_retire, children_to_promote
 end
@@ -165,10 +168,9 @@ function evaluate(
     evaluator::DodoLearnerEvaluator,
     species::AbstractSpecies,
     raw_matrix::OutcomeMatrix,
+    matrix::OutcomeMatrix,
     state::State
 )
-    filtered_matrix = filter_raw_matrix(state, raw_matrix)
-    matrix = get_derived_matrix(filtered_matrix, evaluator.max_clusters)
     records = create_records(evaluator, species, raw_matrix, matrix)
     parents_to_retire, children_to_promote = get_new_children(species, records)
     println("NUMBER_NEW_LEARNERS = ", length(children_to_promote))
@@ -189,14 +191,10 @@ function evaluate(
     results::Vector{<:Result},
     state::State
 )
-    if evaluator.objective == "performance"
-        raw_matrix = OutcomeMatrix(species.population, results)
-    elseif evaluator.objective == "distinctions"
-        raw_matrix = make_distinction_matrix(species.population, results)
-    else
-        error("Objective must be either 'performance' or 'distinctions'")
-    end
-    evaluation = evaluate(evaluator, species, raw_matrix, state)
+    raw_matrix = OutcomeMatrix(species.population, results)
+    filtered_matrix = filter_raw_matrix(state, raw_matrix)
+    matrix = get_derived_matrix(filtered_matrix, evaluator.max_clusters)
+    evaluation = evaluate(evaluator, species, raw_matrix, matrix, state)
     return evaluation
 end
 

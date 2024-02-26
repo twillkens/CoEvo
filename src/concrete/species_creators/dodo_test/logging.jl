@@ -32,7 +32,7 @@ function print_info(species::DodoTestSpecies)
     end
     sort!(info, by = x -> x[1])
     println("EXPLORER_INFO = ", info)
-    println("LENGTH_RETIREES =", length(species.retirees))
+    println("LENGTH_RETIREES = ", length(species.retirees))
     info = []
     for individual in species.retirees
         #max_dimension = argmax(individual.genotype.genes)

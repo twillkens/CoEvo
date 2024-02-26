@@ -33,13 +33,17 @@ function evaluate(
     results::Vector{<:Result},
     state::State
 )
-    #if state.generation > 1
-	   # elite_records = state.evaluations[1].records[1:50]
-	   # elite_ids = [record.id for record in elite_records]
-	   # results = [result for result in results if first(result.match.individual_ids) in elite_ids]
-    #end
+    if state.generation > 1
+        other_species = state.ecosystem.all_species[1]
+        parent_ids = [individual.id for individual in other_species.parents]
+	    results = [result for result in results if first(result.match.individual_ids) in parent_ids]
+    end
     raw_matrix = make_distinction_matrix(species.population, results)
     matrix, all_cluster_ids = perform_clustering(evaluator, raw_matrix)
+    println("SIZE_RAW_MATRIX = ", size(raw_matrix.data))
+    println("SIZE_MATRIX = ", size(matrix.data))
+    #println("all_cluster_ids = ", all_cluster_ids)
+    println("length_clusters = ", [length(cluster) for cluster in all_cluster_ids])
     records = create_records(evaluator, species, raw_matrix, matrix)
     promotions = DodoPromotions(species, records, all_cluster_ids)
 

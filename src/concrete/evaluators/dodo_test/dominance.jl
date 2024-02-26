@@ -30,14 +30,19 @@ function get_dominant_children(
 ) where R <: DodoTestRecord
     dominant_children = R[]
     for child_record in child_records
-        parent_record = findfirst(r -> r.id == child_record.individual.parent_id, records)
-        if parent_record === nothing
+        parent_index = findfirst(r -> r.id == child_record.individual.parent_id, records)
+        if parent_index === nothing
             error("Parent record not found for child record")
-        elseif parent_record.id in promotions.hillclimber_to_retire_ids
+        end
+        parent_record = records[parent_index]
+        if parent_record.id in promotions.hillclimber_to_retire_ids
             continue
         end
         child_outcomes = child_record.outcomes
         parent_outcomes = parent_record.outcomes
+        n_distinctions_child = sum(child_record.raw_outcomes)
+        n_distinction_parent = sum(parent_record.raw_outcomes)
+        #println("outcomes_$(child_record.id)_$(parent_record.id) = ", child_outcomes, parent_outcomes, n_distinctions_child, n_distinction_parent)
         child_dominates_parent = dominates(Maximize(), child_outcomes, parent_outcomes)
         if child_dominates_parent
             push!(dominant_children, child_record)

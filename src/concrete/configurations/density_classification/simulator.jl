@@ -7,8 +7,8 @@ function create_simulator(config::DensityClassificationExperimentConfiguration)
         interactions = [
             BasicInteraction(
                 id = "numbers_game",
-                environment_creator = ElementaryCellularAutomataEnvironmentCreator(
-                    domain = DensityClassificationDomain("Covers")
+                environment_creator = StatelessEnvironmentCreator(
+                    domain = DensityClassificationDomain()
                 ),
                 species_ids = ["R", "IC"],
             )

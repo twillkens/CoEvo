@@ -15,8 +15,9 @@ get_cluster_records(
 function check_if_all_are_explorers_or_retirees(
     records::Vector{<:DodoTestRecord}, species::AbstractSpecies
 )
-    to_check = [species.explorers, species.retirees]
-    all_are_explorers_or_retirees = all(record -> record.individual in to_check, records)
+    all_are_explorers_or_retirees = all(
+        record -> record.individual in [species.explorers ; species.retirees] , records
+    )
     return all_are_explorers_or_retirees
 end
 
@@ -43,9 +44,16 @@ function update_promotions!(
     cluster_ids::Vector{Int},
 )
     cluster_records = get_cluster_records(species, records, cluster_ids)
+    if length(cluster_records) == 0
+        return
+    end
     all_are_explorers_or_retirees = check_if_all_are_explorers_or_retirees(cluster_records, species)
+    #println("-----")
+    #println("CLUSTER_IDS = ", cluster_ids)
+    #println("all_are_explorers_or_retirees = ", all_are_explorers_or_retirees)
     if all_are_explorers_or_retirees
         record = first(cluster_records)
+        #println("record = ", record)
         promote_explorer_or_retiree!(promotions, record, species)
     else
         cluster_records = [record for record in cluster_records if record.individual in species.children]
@@ -67,6 +75,11 @@ function DodoPromotions(
     all_cluster_ids::Vector{Vector{Int}},
 )
     promotions = DodoPromotions()
+    println("--------")
+    #println("HILLCLIMBER_IDS = ", sort([record.individual.id for record in records if record.individual in species.hillclimbers]))
+    #println("CHILD_IDS = ", sort([record.individual.id for record in records if record.individual in species.children]))
+    #println("EXPLORER_IDS = ", sort([record.individual.id for record in records if record.individual in species.explorers]))
+    #println("RETIREES_IDS = ", sort([record.individual.id for record in records if record.individual in species.retirees]))
     for cluster_ids in all_cluster_ids
         update_promotions!(promotions, species, records, cluster_ids)
     end
