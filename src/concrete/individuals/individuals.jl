@@ -14,4 +14,7 @@ using .Basic: Basic
 include("modes/modes.jl")
 using .Modes: Modes
 
+include("dodo/dodo.jl")
+using .Dodo: Dodo
+
 end

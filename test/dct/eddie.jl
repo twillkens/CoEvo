@@ -2,7 +2,7 @@ using CoEvo.Concrete.Configurations.DensityClassification
 using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
-MAX_CLUSTERS = 10
+MAX_CLUSTERS = 5
 MAX_MUTATIONS = 10
 
 
@@ -56,7 +56,7 @@ config = DensityClassificationExperimentConfiguration(
     distinguisher_evaluator_config = distinguisher_evaluator_config,
     seed = abs(rand(Int)),
     n_generations = 5000,
-    n_workers = 20,
+    n_workers = 8,
 )
 
 state = BasicEvolutionaryState(config)

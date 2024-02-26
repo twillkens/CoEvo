@@ -6,14 +6,14 @@ import ....Interfaces: recombine
 
 using Random: AbstractRNG
 using ....Abstract
-using ....Interfaces: step!
+using ....Interfaces
 using ...Individuals.Basic: BasicIndividual
 using ...Individuals.Modes: ModesIndividual
 
 Base.@kwdef struct CloneRecombiner <: Recombiner end
 
-function recombine(::CloneRecombiner, individual::Individual, state::State)
-    child = deepcopy(individual)
+function recombine(::CloneRecombiner, individual::Individual, state::State; do_copy::Bool=true)
+    child = do_copy ? deepcopy(individual) : individual
     child.id = step!(state.individual_id_counter)
     child.parent_id = individual.id
     child.phenotype.id = child.id
@@ -31,6 +31,31 @@ function recombine(recombiner::CloneRecombiner, selections::Vector{<:Selection},
     end
     parents = [first(selection.records).individual for selection in selections]
     children = recombine(recombiner, parents, state)
+    return children
+end
+
+function recombine(
+    recombiner::CloneRecombiner, mutator::Mutator, selection::Selection, state::State
+)
+    if length(selection.records) != 1
+        error("CloneRecombiner requires exactly one parent per selection")
+    end
+    parent = deepcopy(first(selection.records).individual)
+    n_mutations = rand(state.rng, 1:parent.temperature)
+    for _ in 1:n_mutations
+        mutate!(mutator, parent, state)
+    end
+    child = recombine(recombiner, parent, state; do_copy = false)
+    return child
+end
+
+function recombine(
+    recombiner::CloneRecombiner, 
+    mutator::Mutator, 
+    selections::Vector{<:Selection}, 
+    state::State
+)
+    children = [recombine(recombiner, mutator, selection, state) for selection in selections]
     return children
 end
 

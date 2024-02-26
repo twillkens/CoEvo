@@ -1,11 +1,12 @@
 module Outcome
 
-export OutcomeMatrix, make_distinction_matrix, filter_zero_rows, get_sorted_dict
+export OutcomeMatrix, make_distinction_matrix, filter_zero_rows
 export generate_unique_tuples, filter_identical_columns
-export filter_rows, filter_columns
+export filter_rows, filter_columns, get_nonzero_row_indices, get_unique_column_indices
 
 import Base: getindex
 using DataStructures
+using LinearAlgebra
 using ....Abstract
 
 struct OutcomeMatrix{T, U, V}
@@ -178,50 +179,35 @@ function make_distinction_matrix(individuals::Vector{<:Individual}, results::Vec
     return distinction_matrix
 end
 
+get_nonzero_row_indices(matrix::Matrix) = findall(row -> norm(row) != 0, eachrow(matrix))
+
+# Filter out rows that contain all zeros
 function filter_zero_rows(matrix::OutcomeMatrix)
-    zero_rows = findall(==(0.0), sum(matrix.data, dims=2))
-    data = matrix.data[setdiff(1:end, [i[1] for i in zero_rows]), :]
-    row_ids = matrix.row_ids[setdiff(1:end, [i[1] for i in zero_rows])]
-    matrix = OutcomeMatrix(matrix.id, row_ids, matrix.column_ids, data)
+    non_zero_row_indices = get_nonzero_row_indices(matrix.data)
+    matrix = OutcomeMatrix(
+        matrix.id, 
+        matrix.row_ids[non_zero_row_indices], 
+        matrix.column_ids, 
+        matrix.data[non_zero_row_indices, :]
+    )
     return matrix
 end
 
-function get_sorted_dict(matrix::OutcomeMatrix)
-    sorted_dict = SortedDict{Int, Vector{Float64}}()
-    for (i, row_id) in enumerate(matrix.row_ids)
-        sorted_dict[row_id] = matrix[row_id]
-    end
-    return sorted_dict
+function get_unique_column_indices(matrix::Matrix)
+    unique_cols = unique(eachcol(matrix), dims=2)
+    unique_col_indices = unique([findfirst(isequal(col), eachcol(matrix)) for col in unique_cols])
+    return unique_col_indices
 end
 
+# Filter out columns that are identical across all rows
 function filter_identical_columns(matrix::OutcomeMatrix)
-    n = size(matrix.data, 2)  # Number of columns
-    unique_col_indices = Bool[true for _ in 1:n]  # Initialize a boolean array to mark unique columns
-
-    # Use a dictionary to track unique columns by their hash values
-    col_hashes = Dict{UInt, Int}()
-
-    for i in 1:n
-        col_hash = hash(matrix.data[:, i])
-        if haskey(col_hashes, col_hash)
-            # If hash is found, compare to confirm they are identical
-            j = col_hashes[col_hash]
-            if all(matrix.data[:, i] .== matrix.data[:, j])
-                unique_col_indices[i] = false  # Mark as not unique
-            else
-                # Handle hash collision: different columns with the same hash
-                col_hashes[col_hash] = i  # Update to the new column (optional based on use case)
-            end
-        else
-            col_hashes[col_hash] = i  # Add new unique column hash
-        end
-    end
-    
-    # Filter based on unique_col_indices
-    unique_indices = findall(unique_col_indices)
-    data = matrix.data[:, unique_indices]
-    column_ids = matrix.column_ids[unique_indices]
-    matrix = OutcomeMatrix(matrix.id, matrix.row_ids, column_ids, data)
+    unique_col_indices = get_unique_column_indices(matrix.data)
+    matrix = OutcomeMatrix(
+        matrix.id, 
+        matrix.row_ids, 
+        matrix.column_ids[unique_col_indices], 
+        matrix.data[:, unique_col_indices]
+    )
     return matrix
 end
 

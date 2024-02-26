@@ -1,27 +1,18 @@
-module ElementaryCellularAutomataOptimized
+module ECAOptimized
 
 using Distributions
+import ....Interfaces: create_environment, is_active, get_phenotypes, get_outcome_set, step!
 
-# BasicVectorPhenotype placeholder definition (to be replaced with actual implementation)
-struct BasicVectorPhenotype <: AbstractVector{Int}
-    id::Int
-    values::Vector{Int}
-end
+using ....Abstract: Environment, EnvironmentCreator, Domain, Phenotype
+using ...Domains.DensityClassification: DensityClassificationDomain
+using ...Phenotypes.Vectors: BasicVectorPhenotype
+using ....Interfaces: measure, act!, reset!
+using Distributions
 
-# Domain and Metric placeholder definitions
-abstract type Domain end
-abstract type Metric end
 
-# Environment and EnvironmentCreator placeholder abstract types
-abstract type Environment{D} where D<:Domain end
-abstract type EnvironmentCreator{D} where D<:Domain end
-
-# Placeholder for DensityClassificationDomain (to be replaced with actual implementation)
-struct DensityClassificationDomain <: Domain
-    name::String
-end
-
-mutable struct ElementaryCellularAutomataEnvironment{D, R <: BasicVectorPhenotype, IC <: BasicVectorPhenotype} <: Environment{D}
+mutable struct ElementaryCellularAutomataEnvironment{
+    D, R <: BasicVectorPhenotype, IC <: BasicVectorPhenotype
+} <: Environment{D}
     domain::D
     rule::R
     r::Int
@@ -57,7 +48,7 @@ function create_environment(
         rule,
         r,
         initial_condition,
-        initial_condition.values,  # Current state initialized to initial condition
+        copy(initial_condition.values),  # Current state initialized to initial condition
         similar(initial_condition.values),  # Next state initialized as a similar structure
         n_timesteps,
         1,
@@ -80,36 +71,46 @@ function step!(environment::ElementaryCellularAutomataEnvironment)
             neighbor_index = mod(i + j - 1, length(environment.current_state)) + 1
             index = (index << 1) + environment.current_state[neighbor_index]
         end
-        environment.next_state[i] = rule[end - index + 1]
+        # Directly map index to rule vector, adjusting for 1-based indexing
+        rule_index = index + 1
+        if rule_index < 1 || rule_index > length(rule)
+            throw(BoundsError(rule, rule_index))
+        end
+        environment.next_state[i] = rule[rule_index]
     end
 
-    if all(x -> x == environment.next_state[1], environment.next_state)
-        if environment.last_uniform_state == environment.next_state[1] || environment.current_timestep == 1
-            environment.n_timesteps = environment.current_timestep
-        end
-        environment.last_uniform_state = environment.next_state[1]
-    else
-        environment.last_uniform_state = -1
-    end
+    #if all(x -> x == environment.next_state[1], environment.next_state)
+    #    if environment.last_uniform_state == environment.next_state[1] || environment.current_timestep == 1
+    #        environment.n_timesteps = environment.current_timestep
+    #    end
+    #    environment.last_uniform_state = environment.next_state[1]
+    #else
+    #    environment.last_uniform_state = -1
+    #end
 
     environment.current_state, environment.next_state = environment.next_state, environment.current_state
     environment.current_timestep += 1
 end
 
+
 function get_phenotypes(environment::ElementaryCellularAutomataEnvironment)
     return [environment.rule, environment.initial_condition]
 end
 
-function get_outcome_set(environment::ElementaryCellularAutomataEnvironment)
-    # Placeholder implementation for measure function
-    function measure(domain::DensityClassificationDomain, state::Vector{Int})
-        # This should be replaced with the actual logic to measure the outcome based on the domain's criteria
-        return sum(state) > length(state) / 2 ? [1.0, 0.0] : [0.0, 1.0]
-    end
+function get_majority_value(values::Vector{Int})
+    sum(values) > length(values) / 2 ? 1 : 0
+end
 
+function get_outcome_set(environment::ElementaryCellularAutomataEnvironment)
+    initial_condition = environment.initial_condition.values
     final_state = environment.current_state
-    outcome_set = measure(environment.domain, final_state)
-    return outcome_set
+    maj_value = get_majority_value(initial_condition)
+    # Check if the final state has "relaxed" to a uniform state matching the majority value
+    if all(x -> x == maj_value, final_state)
+        return [1.0, 0.0]  # The system has relaxed to the expected majority state
+    else
+        return [0.0, 1.0]  # The system has not relaxed to the expected majority state
+    end
 end
 
 end  # End of module

@@ -39,16 +39,10 @@ function interact(
     reset_phenotypes!(phenotypes)
     environment_creator = interaction.environment_creator
     environment = create_environment(environment_creator, phenotypes...)
-    try 
-        outcome_set, observation = interact(environment, interaction.observer)
-        result = BasicResult(match, outcome_set, observation)
-        reset_phenotypes!(phenotypes)
-        return result
-    catch e
-        println("environment = $environment")
-        println("phenotypes = $phenotypes")
-        throw(e)
-    end
+    outcome_set, observation = interact(environment, interaction.observer)
+    result = BasicResult(match, outcome_set, observation)
+    reset_phenotypes!(phenotypes)
+    return result
 end
 
 end

@@ -56,4 +56,13 @@ function get_outcome_set(
     return outcome_set
 end
 
+using ...Phenotypes.Vectors: BasicVectorPhenotype
+
+function create_environment(environment_creator::StatelessEnvironmentCreator, v1::Vector, v2::Vector)
+    phenotype_1 = BasicVectorPhenotype(1, v1)
+    phenotype_2 = BasicVectorPhenotype(2, v2)
+    environment = create_environment(environment_creator, phenotype_1, phenotype_2)
+    return environment
+end
+
 end

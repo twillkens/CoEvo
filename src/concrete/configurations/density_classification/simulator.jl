@@ -1,5 +1,6 @@
 import ....Interfaces: create_simulator
 using ...Environments.ElementaryCellularAutomata: ElementaryCellularAutomataEnvironmentCreator
+#using ...Environments.ECAOptimized: ElementaryCellularAutomataEnvironmentCreator
 
 function create_simulator(config::DensityClassificationExperimentConfiguration) 
     simulator = BasicSimulator(
