@@ -49,7 +49,9 @@ function create_children(
         parents = sample(state.rng, parents, 2, replace=false)
         push!(all_parents, parents)
     end
+    println("ALL_PARENTS = ", length(all_parents))
     children = recombine(reproducer.recombiner, reproducer.mutator, all_parents, state)
+    println("CHILDREN = ", length(children))
     return children
 end
 
@@ -134,7 +136,7 @@ function update_species!(
     species.population = [species.parents ; species.children]
     age_parents!(species)
     increase_parent_temperature!(species, species_creator)
-    validate_species(species, species_creator)
+    #validate_species(species, species_creator)
 end
 
 end

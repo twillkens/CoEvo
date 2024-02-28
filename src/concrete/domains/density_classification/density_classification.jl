@@ -21,33 +21,39 @@ function get_majority_value(values::Vector{Int})
 end
 
 function evolve_until_relaxed(initial_state::Vector{Int}, rule::Vector{Int}, max_generations::Int)
-    width = length(initial_state)
-    states = zeros(Int, max_generations, width)
-    states[1, :] = initial_state
-    rule_length = length(rule)
-    r = Int((log2(rule_length) - 1) / 2)
+    try
+        width = length(initial_state)
+        states = zeros(Int, max_generations, width)
+        states[1, :] = initial_state
+        rule_length = length(rule)
+        r = Int((log2(rule_length) - 1) / 2)
 
-    for gen in 2:max_generations
-        is_uniform = true
-        previous_state_uniform = states[gen - 1, 1]
+        for gen in 2:max_generations
+            is_uniform = true
+            previous_state_uniform = states[gen - 1, 1]
 
-        for i in 1:width
-            index = 0
-            for j = -r:r
-                neighbor_index = mod(i + j - 1, width) + 1
-                index = (index << 1) + states[gen - 1, neighbor_index]
+            for i in 1:width
+                index = 0
+                for j = -r:r
+                    neighbor_index = mod(i + j - 1, width) + 1
+                    index = (index << 1) + states[gen - 1, neighbor_index]
+                end
+                states[gen, i] = rule[rule_length - index]
+                if states[gen, i] != previous_state_uniform
+                    is_uniform = false
+                end
             end
-            states[gen, i] = rule[rule_length - index]
-            if states[gen, i] != previous_state_uniform
-                is_uniform = false
+
+            if is_uniform
+                return states[1:gen, :], true
             end
         end
-
-        if is_uniform
-            return states[1:gen, :], true
-        end
+        return states, false
+    catch e
+        println("initial_state = ", initial_state)
+        println("rule = ", rule)
+        throw(e)
     end
-    return states, false
 end
 
 function covered_improved(R::Vector{Int}, IC::Vector{Int}, M::Int)
