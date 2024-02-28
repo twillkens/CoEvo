@@ -65,6 +65,31 @@ function update_promotions!(
     end
 end
 
+function update_promotions_lax!(
+    promotions::DodoPromotions, 
+    species::AbstractSpecies, 
+    records::Vector{<:DodoTestRecord}, 
+    cluster_ids::Vector{Int},
+)
+    cluster_records = get_cluster_records(species, records, cluster_ids)
+    if length(cluster_records) == 0
+        return
+    end
+    top_rank = first(cluster_records).rank
+    nondominated = [record for record in cluster_records if record.rank == top_rank]
+    hillclimber_nondominated = [record for record in nondominated if record.individual in species.hillclimbers]
+    if length(hillclimber_nondominated) > 0
+        new_hillclimber = first(hillclimber_nondominated)
+        push!(promotions.new_hillclimber_ids, new_hillclimber.individual.id)
+        other_hillclimber_ids = [record.individual.id for record in hillclimber_nondominated[2:end]]
+        append!(promotions.hillclimber_to_retire_ids, other_hillclimber_ids)
+        return
+    end
+    others_nondominated = [record for record in nondominated if !(record.individual in species.hillclimbers)]
+    new_hillclimber = rand(others_nondominated)
+    push!(promotions.new_hillclimber_ids, new_hillclimber.individual.id)
+end
+
 get_hillclimber_records(species::AbstractSpecies, records::Vector{<:DodoTestRecord}) = [
     record for record in records if record.individual in species.hillclimbers
 ]
@@ -82,7 +107,28 @@ function DodoPromotions(
     #println("RETIREES_IDS = ", sort([record.individual.id for record in records if record.individual in species.retirees]))
     for cluster_ids in all_cluster_ids
         update_promotions!(promotions, species, records, cluster_ids)
+        #update_promotions_lax!(promotions, species, records, cluster_ids)
     end
+    #for explorer in species.explorers
+    #    if explorer.id in promotions.new_hillclimber_ids
+    #        push!(promotions.explorer_to_promote_ids, explorer.id)
+    #    end
+    #end
+    #for retiree in species.retirees
+    #    if retiree.id in promotions.new_hillclimber_ids
+    #        push!(promotions.retiree_to_promote_ids, retiree.id)
+    #    end
+    #end
+    ##for hillclimber in species.hillclimbers
+    ##    if !(hillclimber.id in promotions.new_hillclimber_ids)
+    ##        push!(promotions.hillclimber_to_retire_ids, hillclimber.id)
+    ##    end
+    ##end
+    #for child in species.children
+    #    if child.id in promotions.new_hillclimber_ids
+    #        push!(promotions.child_to_promote_ids, child.id)
+    #    end
+    #end
     println("N_PROMOTED_EXPLORERS = ", length(promotions.explorer_to_promote_ids))
     println("N_PROMOTED_CHILDREN = ", length(promotions.child_to_promote_ids))
     println("N_PROMOTED_RETIREES = ", length(promotions.retiree_to_promote_ids))

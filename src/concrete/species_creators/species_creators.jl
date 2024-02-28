@@ -1,6 +1,6 @@
 module SpeciesCreators
 
-export Basic, Redisco, HillClimber, DodoLearner, DodoTest #, AdaptiveArchive# , Modes
+export Basic, Redisco, HillClimber, DodoLearner, DodoTest, SpreadDodo #, AdaptiveArchive# , Modes
 
 include("basic/basic.jl")
 using .Basic: Basic
@@ -22,6 +22,9 @@ using .DodoLearner: DodoLearner
 
 include("dodo_test/dodo_test.jl")
 using .DodoTest: DodoTest
+
+include("spread_dodo/spread_dodo.jl")
+using .SpreadDodo: SpreadDodo
 
 #include("adaptive_archive/adaptive_archive.jl")
 #using .AdaptiveArchive: AdaptiveArchive

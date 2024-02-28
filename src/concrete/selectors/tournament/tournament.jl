@@ -8,11 +8,14 @@ using ...Evaluators.ScalarFitness: ScalarFitnessRecord
 using ...Evaluators.NSGAII: NSGAIIRecord
 using ...Evaluators.Disco: DiscoRecord
 using ...Selectors.Selections: BasicSelection
+using ...Evaluators.SpreadDodo: SpreadDodoRecord
+using ...Evaluators.DodoLearner: DodoLearnerRecord
+
 using StatsBase: sample
 using Random
 
 Base.@kwdef struct TournamentSelector <: Selector
-    n_selections::Int # number of selections to make
+    n_selections::Int # number of selections to perform
     n_selection_set::Int # number of individuals to select in each selection
     tournament_size::Int # tournament size
 end
@@ -51,10 +54,28 @@ function run_tournament(contenders::Array{<:DiscoRecord}, rng::AbstractRNG)
     return winner
 end
 
-using ...Evaluators.DodoLearner: DodoLearnerRecord
-
 function run_tournament(contenders::Array{<:DodoLearnerRecord}, rng::AbstractRNG) 
     function get_winner(record_1::DodoLearnerRecord, record_2::DodoLearnerRecord)
+        if record_1.rank < record_2.rank
+            return record_1
+        elseif record_2.rank < record_1.rank
+            return record_2
+        else
+            if record_1.crowding > record_2.crowding
+                return record_1
+            elseif record_2.crowding > record_1.crowding
+                return record_2
+            else
+                return rand(rng, (record_1, record_2))
+            end
+        end
+    end
+    winner = reduce(get_winner, contenders)
+    return winner
+end
+
+function run_tournament(contenders::Array{<:SpreadDodoRecord}, rng::AbstractRNG) 
+    function get_winner(record_1::SpreadDodoRecord, record_2::SpreadDodoRecord)
         if record_1.rank < record_2.rank
             return record_1
         elseif record_2.rank < record_1.rank
@@ -124,13 +145,12 @@ function select(
     selections = select(
         selector, 
         records,
-        selector.n_selections, 
+        selector.n_selections,
         selector.n_selection_set, 
         selector.tournament_size,
         state.rng
     )
     return selections
 end
-
 
 end

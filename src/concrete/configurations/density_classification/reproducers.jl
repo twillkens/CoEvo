@@ -10,6 +10,7 @@ using ...Selectors.Identity: IdentitySelector
 using ...Phenotypes.Vectors: CloneVectorPhenotypeCreator
 using ...Recombiners.NPointCrossover: NPointCrossoverRecombiner
 using ...Individuals.Dodo: DodoIndividualCreator
+using ...SpeciesCreators.SpreadDodo: SpreadDodoSpeciesCreator
 
 function make_species_creator(config::ReproducerConfiguration)
     if config.species_type == "basic"
@@ -36,6 +37,10 @@ function make_species_creator(config::ReproducerConfiguration)
             id = config.id,
             n_explorers = config.n_parents,
         )
+    elseif config.species_type == "spread_dodo"
+        species_creator = SpreadDodoSpeciesCreator(
+            id = config.id,
+        )
     else
         error("Invalid species_type: $(config.species_type)")
     end
@@ -44,20 +49,21 @@ end
 
 function make_selector(config::ReproducerConfiguration)
     n_selection_set = config.recombiner == "clone" ? 1 : 2
+    n_selections = config.n_children ÷ n_selection_set
     if config.selection_type == "fitness_proportionate"
         selector = FitnessProportionateSelector(
-            n_selections = config.n_children,
+            n_selections = n_selections,
             n_selection_set = n_selection_set
         ) 
     elseif config.selection_type == "tournament"
         selector = TournamentSelector(
-            n_selections = config.n_children, 
+            n_selections = n_selections,
             n_selection_set = n_selection_set,
             tournament_size = config.tournament_size
         )
     elseif config.selection_type == "uniform_random"
         selector = UniformRandomSelector(
-            n_selections = config.n_children,
+            n_selections = n_selections,
             n_selection_set = n_selection_set
         )
     elseif config.selection_type == "identity"

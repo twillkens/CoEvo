@@ -129,12 +129,16 @@ function filter_raw_matrix(state::State, raw_matrix::OutcomeMatrix)
     end
     return raw_matrix
 end
+using Random
+using StatsBase
 
 function get_new_children(
     parent_records::Vector{<:DodoLearnerRecord}, child_records::Vector{<:DodoLearnerRecord}
 )
     parents_to_retire = Set{Int}()
     children_to_promote = Set{Int}()
+    shuffle!(child_records)
+    shuffle!(parent_records)
     for child_record in child_records
         child_outcomes = child_record.outcomes
         for parent_record in parent_records
@@ -162,7 +166,12 @@ function get_new_children(species::AbstractSpecies, records::Vector{<:DodoLearne
     child_outcome_sums = [sum(record.outcomes) for record in child_records]
     #println("PARENT_OUTCOME_SUMS = ", parent_outcome_sums)
     #println("CHILD_OUTCOME_SUMS = ", child_outcome_sums)
-    parents_to_retire, children_to_promote = get_new_children(parent_records, child_records)
+    #TODO: hack, experimenting with SpreadDodo but this uses DodoTest by default
+    #parents_to_retire, children_to_promote = get_new_children(parent_records, child_records)
+    half_point = length(records) ÷ 2
+    elite_records = records[1:half_point]
+    parents_to_retire = [record.id for record in parent_records if !(record in elite_records)]
+    children_to_promote = [record.id for record in child_records if record in elite_records]
     return parents_to_retire, children_to_promote
 end
 

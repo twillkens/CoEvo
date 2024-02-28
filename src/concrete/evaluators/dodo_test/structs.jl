@@ -37,6 +37,7 @@ Base.@kwdef struct DodoPromotions
     retiree_to_promote_ids::Vector{Int} = Int[]
     child_to_promote_ids::Vector{Int} = Int[]
     hillclimber_to_retire_ids::Vector{Int} = Int[]
+    new_hillclimber_ids::Vector{Int} = Int[]
 end
 
 Base.@kwdef struct DodoTestEvaluation{

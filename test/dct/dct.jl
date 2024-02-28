@@ -76,17 +76,13 @@ end
 
 using Plots
 
-function majority(values::Vector{Int})
-    sum(values) > length(values) / 2 ? 1 : 0
-end
-
-function covered(R::Vector{Int}, IC::Vector{Int}, M::Int)
+function covered(R::Vector{Int}, IC::Vector{Int}, M::Int; use_inverse::Bool=false)
     # Evolve the IC for M steps using the previously defined evolve function
     # Ensure the evolve function is defined in your environment and returns a Matrix{Int}
     states = evolve(IC, R, M)
     
     # Determine the majority value in the IC
-    maj_value = majority(IC)
+    maj_value = use_inverse ? inverse_majority(IC) : majority(IC)
     
     # Check the final state (last row of the states matrix)
     final_state = states[end, :]
@@ -104,6 +100,15 @@ using StatsBase
 
 using Random
 using StatsBase
+
+function majority(values::Vector{Int})
+    sum(values) > length(values) / 2 ? 1 : 0
+end
+
+function inverse_majority(values::Vector{Int})
+    sum(values) > length(values) / 2 ? 0 : 1
+end
+
 
 function evolve_until_relaxed(initial_state::Vector{Int}, rule::Vector{Int}, max_generations::Int)
     width = length(initial_state)
@@ -123,6 +128,7 @@ function evolve_until_relaxed(initial_state::Vector{Int}, rule::Vector{Int}, max
                 index = (index << 1) + states[gen - 1, neighbor_index]
             end
             states[gen, i] = rule[rule_length - index]
+            states[gen, i] = rule[index + 1]
             if states[gen, i] != previous_state_uniform
                 is_uniform = false
             end
@@ -135,11 +141,11 @@ function evolve_until_relaxed(initial_state::Vector{Int}, rule::Vector{Int}, max
     return states, false
 end
 
-function covered_improved(R::Vector{Int}, IC::Vector{Int}, M::Int)
+function covered_improved(R::Vector{Int}, IC::Vector{Int}, M::Int; use_inverse::Bool=false)
     states, is_uniform = evolve_until_relaxed(IC, R, M)
     if is_uniform
         final_state = states[end, :]
-        maj_value = majority(IC)
+        maj_value = use_inverse ? inverse_majority(IC) : majority(IC)
         return all(x -> x == maj_value, final_state) ? true : false
     else
         return false
@@ -151,29 +157,42 @@ c2 = "00000000010111111111111101011111"
 c1 = [parse(Int, c) for c in c1]
 c2 = [parse(Int, c) for c in c2]
 GKL = collect(reverse([c1 ; c1 ; c2 ; c2]))
+GKL = [c1 ; c1 ; c2 ; c2]
+GKL_INVERSE = [1 - x for x in GKL]
+GKL_REVERSE = collect(reverse(GKL))
+GKL_INVERSE_REVERSE = collect(reverse(GKL_INVERSE))
 COEVO = [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0]
 ics = generate_unbiased_ICs(149, 10000)
 
-function run_test()
-ics = generate_unbiased_ICs(149, 10000)
-t = time()
-scores = [covered(GKL, ic, 320) for ic in ics]
-println("mean GKL score: ", mean(scores), " time: ", time() - t)
-t = time()
-scores = [covered(COEVO, ic, 320) for ic in ics]
-println("mean COEVO score: ", mean(scores), " time: ", time() - t)
+function run_test(use_inverse::Bool=false)
+    ics = generate_unbiased_ICs(149, 10000)
+    t = time()
+    if use_inverse
+        println("USING INVERSE MAJORITY")
+    else
+        println("USING MAJORITY")
+    end
 
+    # Example usage
+    t = time()
+    scores_gkl = [covered_improved(GKL, ic, 320; use_inverse = use_inverse) for ic in ics]
+    mean_score_gkl = mean(scores_gkl)
+    println("Improved mean GKL score: ", mean_score_gkl, " time: ", time() - t)
+    t = time()
 
-# Example usage
-t = time()
-scores_gkl = [covered_improved(GKL, ic, 320) for ic in ics]
-mean_score_gkl = mean(scores_gkl)
-println("Improved mean GKL score: ", mean_score_gkl, " time: ", time() - t)
-t = time()
-scores_coevo = [covered_improved(COEVO, ic, 320) for ic in ics]
-mean_score_coevo = mean(scores_coevo)
+    t = time()
+    scores_gkl_inverse = [covered_improved(GKL_INVERSE, ic, 320; use_inverse = use_inverse) for ic in ics]
+    mean_score_gkl_inverse = mean(scores_gkl_inverse)
+    println("Improved mean GKL_INVERSE score: ", mean_score_gkl_inverse, " time: ", time() - t)
+    t = time()
+    scores_gkl_reverse = [covered_improved(GKL_REVERSE, ic, 320; use_inverse = use_inverse) for ic in ics]
+    mean_score_gkl_reverse = mean(scores_gkl_reverse)
+    println("Improved mean GKL_REVERSE score: ", mean_score_gkl_reverse, " time: ", time() - t)
 
-println("Improved mean COEVO score: ", mean_score_coevo, " time: ", time() - t)
+    t = time()
+    scores_gkl_inverse_reverse = [covered_improved(GKL_INVERSE_REVERSE, ic, 320; use_inverse = use_inverse) for ic in ics]
+    mean_score_gkl_inverse_reverse = mean(scores_gkl_inverse_reverse)
+    println("Improved mean GKL_INVERSE_REVERSE score: ", mean_score_gkl_inverse_reverse, " time: ", time() - t)
 end
 
 
@@ -208,11 +227,41 @@ function get_outcome_set(
     return outcome_set
 end
 
-environment_creator = StatelessEnvironmentCreator(ElementaryCellularAutomataDomain())
-environment = create_environment(environment_creator, GKL, ics[1])
-outcome = get_outcome_set(environment)
-environments = [create_environment(environment_creator, GKL, ic) for ic in ics]
-t = time()
-outcomes = [first(get_outcome_set(env)) for env in environments]
-println("mean GKL score: ", mean(outcomes))
-println("time: ", time() - t)
+#run_test()
+
+function run_test_2()
+    println("----------")
+    environment_creator = StatelessEnvironmentCreator(ElementaryCellularAutomataDomain())
+    environment = create_environment(environment_creator, GKL, ics[1])
+    outcome = get_outcome_set(environment)
+    environments = [create_environment(environment_creator, GKL, ic) for ic in ics]
+    t = time()
+    outcomes = [first(get_outcome_set(env)) for env in environments]
+    println("mean GKL_ENV score: ", mean(outcomes))
+    println("time: ", time() - t)
+
+    environment_creator = StatelessEnvironmentCreator(ElementaryCellularAutomataDomain())
+    environment = create_environment(environment_creator, GKL_INVERSE, ics[1])
+    outcome = get_outcome_set(environment)
+    environments = [create_environment(environment_creator, GKL_INVERSE, ic) for ic in ics]
+    t = time()
+    outcomes = [first(get_outcome_set(env)) for env in environments]
+    println("mean GKL_INVERSE score: ", mean(outcomes))
+    println("time: ", time() - t)
+
+    environment_creator = StatelessEnvironmentCreator(ElementaryCellularAutomataDomain())
+    environments = [create_environment(environment_creator, GKL_REVERSE, ic) for ic in ics]
+    t = time()
+    outcomes = [first(get_outcome_set(env)) for env in environments]
+    println("mean GKL_REVERSE score: ", mean(outcomes))
+    println("time: ", time() - t)
+
+    get_neighbor_index(
+        state_index::Int, neighborhood_index::Int, state_width::Int
+    ) = mod(state_index + neighborhood_index - 1, state_width) + 1
+
+    TEST_TUPLES = [
+        (state_index, neighborhood_index, get_neighbor_index(state_index, neighborhood_index, 10)) 
+        for state_index in 1:10 for neighborhood_index in -3:3
+    ]
+end

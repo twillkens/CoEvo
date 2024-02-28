@@ -5,6 +5,7 @@ using ...Evaluators.HillClimber: HillClimberEvaluator
 using ...Evaluators.Dodo: DodoEvaluator
 using ...Evaluators.DodoLearner: DodoLearnerEvaluator
 using ...Evaluators.DodoTest: DodoTestEvaluator
+using ...Evaluators.SpreadDodo: SpreadDodoEvaluator
 
 function create_evaluator(config::EvaluatorConfiguration)
     if config.evaluator_type == "scalar_fitness"
@@ -32,6 +33,11 @@ function create_evaluator(config::EvaluatorConfiguration)
             id = config.id,
             max_clusters = config.max_clusters,
             n_runs = config.n_runs
+        )
+    elseif config.evaluator_type == "spread_dodo"
+        evaluator = SpreadDodoEvaluator(
+            id = config.id,
+            max_clusters = config.max_clusters
         )
     else
         error("Invalid evaluator type: $(config.evaluator_type)")

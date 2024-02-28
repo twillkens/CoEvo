@@ -52,7 +52,8 @@ function perform_crossover(genes1::Vector, genes2::Vector, points::Vector{Int})
         length(genes1) != length(child_genes4)
         error("Child genes must be of equal length for N-point crossover")
     end
-    return [child_genes1, child_genes2, child_genes3, child_genes4]
+    #return [child_genes1, child_genes2, child_genes3, child_genes4]
+    return [child_genes1, child_genes2]
 end
 
 function create_child(child_genes::Vector, parents::Vector{<:DodoIndividual}, state::State)
@@ -93,13 +94,16 @@ function recombine(
     recombiner::NPointCrossoverRecombiner, mutator::Mutator, selection::Selection, state::State
 )
     parents = [deepcopy(record.individual) for record in selection.records]
-    for parent in parents
-        n_mutations = rand(state.rng, 1:parent.temperature)
-        for _ in 1:n_mutations
-            mutate!(mutator, parent.genotype, state)
-        end
-    end
+    #for parent in parents
+    #    n_mutations = rand(state.rng, 1:parent.temperature)
+    #    for _ in 1:n_mutations
+    #        mutate!(mutator, parent.genotype, state)
+    #    end
+    #end
     children = recombine(recombiner, parents, state)
+    for child in children
+        mutate!(mutator, child.genotype, state)
+    end
     return children
 end
 

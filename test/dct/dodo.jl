@@ -14,7 +14,7 @@ learner_reproducer_config = ReproducerConfiguration(
     selection_type = "tournament",
     recombiner = "n_point_crossover",
     n_dimensions = 128,
-    flip_chance = 0.01,
+    flip_chance = 0.02,
 )
 
 
@@ -26,17 +26,17 @@ learner_evaluator_config = EvaluatorConfiguration(
 
 test_reproducer_config = ReproducerConfiguration(
     id = "IC",
-    species_type = "dodo_test",
+    species_type = "spread_dodo",
     n_population = 50,
     max_archive_size = 1000,
-    recombiner = "permutation",
+    recombiner = "n_point_crossover",
     n_dimensions = 149,
-    flip_chance = 0.05
+    flip_chance = 0.02
 )
 
 test_evaluator_config = EvaluatorConfiguration(
     id = "IC",
-    evaluator_type = "dodo_test",
+    evaluator_type = "spread_dodo",
     max_clusters = MAX_CLUSTERS,
 )
 

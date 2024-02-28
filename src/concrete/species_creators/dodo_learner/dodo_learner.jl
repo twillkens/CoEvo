@@ -46,12 +46,10 @@ function create_children(
 ) where I <: DodoIndividual
     all_parents = Vector{Vector{I}}()
     for _ in 1:species_creator.n_parents
-        parents = sample(state.rng, parents, 2, replace=false)
-        push!(all_parents, parents)
+        selected_parents = sample(state.rng, parents, 2, replace=false)
+        push!(all_parents, selected_parents)
     end
-    println("ALL_PARENTS = ", length(all_parents))
     children = recombine(reproducer.recombiner, reproducer.mutator, all_parents, state)
-    println("CHILDREN = ", length(children))
     return children
 end
 
