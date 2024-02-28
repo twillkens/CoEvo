@@ -2,7 +2,7 @@ using CoEvo.Concrete.Configurations.DensityClassification
 using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
-MAX_CLUSTERS = 5
+MAX_CLUSTERS = 10
 MAX_MUTATIONS = 10
 
 
@@ -13,7 +13,7 @@ learner_reproducer_config = ReproducerConfiguration(
     selection_type = "tournament",
     recombiner = "n_point_crossover",
     n_dimensions = 128,
-    flip_chance = 0.02,
+    flip_chance = 0.01,
 )
 
 
@@ -28,7 +28,7 @@ test_reproducer_config = ReproducerConfiguration(
     species_type = "dodo_test",
     n_population = 50,
     max_archive_size = 1000,
-    recombiner = "clone",
+    recombiner = "permutation",
     n_dimensions = 149,
     flip_chance = 0.05
 )
@@ -53,3 +53,5 @@ config = DensityClassificationExperimentConfiguration(
 state = BasicEvolutionaryState(config)
 evolve!(state)
 println("done")
+
+#rule =[1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0]

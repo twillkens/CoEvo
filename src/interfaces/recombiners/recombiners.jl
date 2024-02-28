@@ -34,3 +34,16 @@ function recombine(
     state = typeof(state)
     error("recombine not implemented for $recombiner, $mutator, $individuals, $state")
 end
+
+function recombine(
+    recombiner::Recombiner, 
+    individuals::Vector{Individual}, 
+    reproducer::Reproducer,
+    ::State
+)
+    recombiner = typeof(recombiner)
+    mutator = typeof(mutator)
+    individuals = typeof(individuals)
+    reproducer = typeof(reproducer)
+    error("recombine not implemented for $recombiner, $mutator, $individuals, $reproducer")
+end

@@ -154,12 +154,10 @@ function get_new_children(
 end
 
 function get_new_children(species::AbstractSpecies, records::Vector{<:DodoLearnerRecord})
-    parent_records = reverse(
+    parent_records = 
         [record for record in records if record.individual in species.parents]
-    )
-    child_records = reverse(
+    child_records = 
         [record for record in records if record.individual in species.children]
-    )
     parent_outcome_sums = [sum(record.outcomes) for record in parent_records]
     child_outcome_sums = [sum(record.outcomes) for record in child_records]
     #println("PARENT_OUTCOME_SUMS = ", parent_outcome_sums)
@@ -198,7 +196,8 @@ function evaluate(
     state::State
 )
     raw_matrix = OutcomeMatrix(species.population, results)
-    filtered_matrix = filter_raw_matrix(state, raw_matrix)
+    #filtered_matrix = filter_raw_matrix(state, raw_matrix)
+    filtered_matrix = deepcopy(raw_matrix)
     matrix = get_derived_matrix(filtered_matrix, evaluator.max_clusters)
     println("SIZE_LEARNER_RAW_MATRIX = ", size(raw_matrix.data))
     println("SIZE_LEARNER_FILTERED_MATRIX = ", size(filtered_matrix.data))

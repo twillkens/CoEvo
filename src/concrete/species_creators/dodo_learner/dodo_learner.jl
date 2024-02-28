@@ -34,8 +34,8 @@ end
 Base.@kwdef struct DodoLearnerSpeciesCreator <: SpeciesCreator
     id::String
     n_parents::Int
-    temperature_increment_frequency::Int = 20
-    maximum_temperature::Int = 1
+    temperature_increment_frequency::Int = 5
+    maximum_temperature::Int = 10
 end
 
 function create_children(
@@ -125,6 +125,7 @@ function update_species!(
     reproducer::Reproducer,
     state::State
 ) 
+    println("LEARNER_AGES = ", [hc.age for hc in species.parents])
     species.parents = get_new_parents(species, evaluation)
     parent_records = [record for record in evaluation.records if record.individual in species.parents]
     selections = select(reproducer.selector, parent_records, state)

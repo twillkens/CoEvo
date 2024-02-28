@@ -251,11 +251,6 @@ function filter_columns(matrix::OutcomeMatrix, ids::Vector)
     return OutcomeMatrix(matrix.id, matrix.row_ids, new_column_ids, new_data)
 end
 
-
-
-
-
-
 end
 #function implement_competitive_fitness_sharing(outcome_matrix::SortedDict{Int, Vector{Float64}})
 #    n_outcomes = length(first(outcome_matrix)[2])

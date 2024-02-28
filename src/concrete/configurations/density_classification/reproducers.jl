@@ -81,10 +81,11 @@ end
 
 function make_recombiner(config::ReproducerConfiguration)
     if config.recombiner == "clone"
-        #recombiner = CloneRecombiner()
         recombiner = NPointCrossoverRecombiner(n_points = 1)
     elseif config.recombiner == "n_point_crossover"
         recombiner = NPointCrossoverRecombiner(n_points = 1)
+    elseif config.recombiner == "permutation"
+        recombiner = PermutationRecombiner()
     else
         error("Invalid recombiner: $(config.recombiner)")
     end

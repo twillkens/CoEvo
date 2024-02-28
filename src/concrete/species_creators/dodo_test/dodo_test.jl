@@ -78,7 +78,7 @@ function create_children(
     all_children = I[]
     for _ in 1:n_children_per_parent
         parent_vecs = [[parent] for parent in parents]
-        children = recombine(reproducer.recombiner, reproducer.mutator, parent_vecs, state)
+        children = recombine(reproducer.recombiner, parent_vecs, state)
         append!(all_children, children)
     end
     return all_children
@@ -140,8 +140,9 @@ function update_species!(
     reproducer::Reproducer,
     state::State
 ) where I <: Individual
+    println("HILLCLIMBER_AGES = ", [hc.age for hc in species.hillclimbers])
     perform_promotions!(species, species_creator, evaluation)
-    species.children = create_hillclimber_children(species_creator, species, reproducer, state)
+    species.children = recombine(reproducer.recombiner, species.hillclimbers, reproducer, state)
     species.explorers = create_next_explorers(species_creator, species, reproducer, state)
     n_retirees_to_sample = min(length(species.retirees), species_creator.max_retiree_samples)
     active_retirees = sample(state.rng, species.retirees, n_retirees_to_sample, replace=false)
