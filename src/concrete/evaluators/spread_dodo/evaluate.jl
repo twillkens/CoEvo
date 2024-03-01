@@ -51,7 +51,14 @@ function evaluate(
     cluster_leaders = Int[]
     for cluster_ids in all_cluster_ids
         cluster_records = [record for record in records if record.id in cluster_ids]
-        chosen_record = first(cluster_records)
+        highest_rank = first(cluster_records).rank
+        high_rank_records = [record for record in cluster_records if record.rank == highest_rank]
+        high_rank_parent_records = [record for record in high_rank_records if record.individual in species.parents]
+        if length(high_rank_parent_records) > 0
+            chosen_record = first(high_rank_parent_records)
+        else
+            chosen_record = first(cluster_records)
+        end
         push!(cluster_leaders, chosen_record.id)
     end
 

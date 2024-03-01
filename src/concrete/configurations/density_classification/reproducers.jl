@@ -11,6 +11,7 @@ using ...Phenotypes.Vectors: CloneVectorPhenotypeCreator
 using ...Recombiners.NPointCrossover: NPointCrossoverRecombiner
 using ...Individuals.Dodo: DodoIndividualCreator
 using ...SpeciesCreators.SpreadDodo: SpreadDodoSpeciesCreator
+using ...SpeciesCreators.NewDodo: NewDodoSpeciesCreator
 
 function make_species_creator(config::ReproducerConfiguration)
     if config.species_type == "basic"
@@ -40,6 +41,15 @@ function make_species_creator(config::ReproducerConfiguration)
     elseif config.species_type == "spread_dodo"
         species_creator = SpreadDodoSpeciesCreator(
             id = config.id,
+        )
+    elseif config.species_type == "new_dodo"
+        species_creator = NewDodoSpeciesCreator(
+            id = config.id,
+            n_parents = config.n_parents,
+            n_children = config.n_children,
+            n_explorers = config.n_explorers,
+            max_retirees = config.max_retirees,
+            max_retiree_samples = config.max_retiree_samples
         )
     else
         error("Invalid species_type: $(config.species_type)")
@@ -87,6 +97,7 @@ end
 
 function make_recombiner(config::ReproducerConfiguration)
     if config.recombiner == "clone"
+        error("Clone recombiner not implemented")
         recombiner = NPointCrossoverRecombiner(n_points = 1)
     elseif config.recombiner == "n_point_crossover"
         recombiner = NPointCrossoverRecombiner(n_points = 1)
@@ -103,7 +114,6 @@ function create_reproducer(config::ReproducerConfiguration)
         id = config.id,
         genotype_creator = make_genotype_creator(config),
         phenotype_creator = CloneVectorPhenotypeCreator(),
-        #individual_creator = BasicIndividualCreator(),
         individual_creator = DodoIndividualCreator(),
         species_creator = make_species_creator(config),
         selector = make_selector(config),

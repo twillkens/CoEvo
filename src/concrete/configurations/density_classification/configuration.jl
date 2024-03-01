@@ -13,21 +13,19 @@ using ...Ecosystems.Simple: SimpleEcosystemCreator
 
 Base.@kwdef mutable struct EvaluatorConfiguration
     id::String = "L"
-    evaluator_type::String = "disco"
-    objective::String = "outcomes"
-    clusterer_type::String = "global_kmeans"
-    distance_method::String = "euclidean"
+    evaluator_type::String = "new_dodo"
+    objective::String = "performance"
     max_clusters::Int = 10
-    n_runs::Int = 10
 end
 
 Base.@kwdef mutable struct ReproducerConfiguration
     id::String = "L"
     species_type::String = "basic"
     n_population::Int = 100
-    n_elites::Int = 50
+    n_elites::Int = 0
     n_parents::Int = 50
     n_children::Int = 50
+    n_explorers::Int = 25
     selection_type::String = "tournament"
     tournament_size::Int = 3
     recombiner::String = "clone"
@@ -35,6 +33,8 @@ Base.@kwdef mutable struct ReproducerConfiguration
     n_dimensions::Int = 5
     max_mutations::Int = 1
     flip_chance::Float64 = 0.02
+    max_retirees::Int = 1000
+    max_retiree_samples::Int = 50
 end
 
 Base.@kwdef mutable struct DensityClassificationExperimentConfiguration <: Configuration

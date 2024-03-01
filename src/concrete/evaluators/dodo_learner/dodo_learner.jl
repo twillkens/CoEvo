@@ -115,20 +115,6 @@ end
 
 using Random
 
-function filter_raw_matrix(state::State, raw_matrix::OutcomeMatrix)
-    if state.generation > 1
-        other_species = state.ecosystem.all_species[2]
-        hillclimber_ids = [individual.id for individual in other_species.hillclimbers]
-        #children_ids = [individual.id for individual in other_species.children]
-        retiree_ids = [individual.id for individual in other_species.retirees]
-        #ids = [hillclimber_ids ; children_ids ; retiree_ids]
-        ids = [hillclimber_ids ; retiree_ids]
-        if length(hillclimber_ids) > 0
-            raw_matrix = filter_columns(raw_matrix, ids)
-        end
-    end
-    return raw_matrix
-end
 using Random
 using StatsBase
 
@@ -198,6 +184,23 @@ function evaluate(
     return evaluation
 end
 
+function filter_raw_matrix(state::State, raw_matrix::OutcomeMatrix)
+    if state.generation > 1
+        other_species = state.ecosystem.all_species[2]
+        #hillclimber_ids = [individual.id for individual in other_species.hillclimbers]
+        #children_ids = [individual.id for individual in other_species.children]
+        #ids = [hillclimber_ids ; children_ids ; retiree_ids]
+        #ids = [hillclimber_ids ; retiree_ids]
+        parent_ids = [individual.id for individual in other_species.parents]
+        retiree_ids = [individual.id for individual in other_species.retirees]
+        ids = [parent_ids ; retiree_ids]
+        if length(ids) > 0
+            raw_matrix = filter_columns(raw_matrix, ids)
+        end
+    end
+    return raw_matrix
+end
+
 function evaluate(
     evaluator::DodoLearnerEvaluator,
     species::AbstractSpecies,
@@ -205,8 +208,8 @@ function evaluate(
     state::State
 )
     raw_matrix = OutcomeMatrix(species.population, results)
-    #filtered_matrix = filter_raw_matrix(state, raw_matrix)
-    filtered_matrix = deepcopy(raw_matrix)
+    filtered_matrix = filter_raw_matrix(state, raw_matrix)
+    #filtered_matrix = deepcopy(raw_matrix)
     matrix = get_derived_matrix(filtered_matrix, evaluator.max_clusters)
     println("SIZE_LEARNER_RAW_MATRIX = ", size(raw_matrix.data))
     println("SIZE_LEARNER_FILTERED_MATRIX = ", size(filtered_matrix.data))

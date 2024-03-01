@@ -17,6 +17,7 @@ using ...Individuals.Dodo: DodoIndividual
 # Define a struct for the N-point crossover recombiner
 Base.@kwdef struct NPointCrossoverRecombiner <: Recombiner
     n_points::Int = 1 # Default number of crossover points
+    use_age::Bool = false # Whether to use age in crossover
 end
 
 function extract_genes(parents::Vector{<:Individual})
@@ -101,8 +102,18 @@ function recombine(
     #    end
     #end
     children = recombine(recombiner, parents, state)
+
     for child in children
-        mutate!(mutator, child.genotype, state)
+        if recombiner.use_age
+            parent_ages = [parent.age for parent in parents]
+            max_age = maximum(parent_ages)
+            n_mutations = rand(state.rng, 1:max_age)
+            for _ in 1:n_mutations
+                mutate!(mutator, child.genotype, state)
+            end
+        else
+            mutate!(mutator, child.genotype, state)
+        end
     end
     return children
 end

@@ -2,7 +2,7 @@ module Evaluators
 
 export Null, ScalarFitness, NSGAII, Disco, Redisco, HillClimber, DodoLearner#, AdaptiveArchive
 export SpreadDodo
-export Dodo, DodoTest
+export Dodo, DodoTest, NewDodo
 
 include("null/null.jl")
 using .Null: Null
@@ -36,5 +36,8 @@ using .DodoTest: DodoTest
 
 include("spread_dodo/spread_dodo.jl")
 using .SpreadDodo: SpreadDodo
+
+include("new_dodo/new_dodo.jl")
+using .NewDodo: NewDodo
 
 end

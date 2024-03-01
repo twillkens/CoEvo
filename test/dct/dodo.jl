@@ -2,17 +2,21 @@ using CoEvo.Concrete.Configurations.DensityClassification
 using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
 
-MAX_CLUSTERS = 10
+MAX_CLUSTERS = 5
 MAX_MUTATIONS = 10
 
 
 learner_reproducer_config = ReproducerConfiguration(
     id = "R",
-    species_type = "dodo_learner",
+    species_type = "new_dodo",
     n_parents = 25,
     n_children = 25,
-    selection_type = "tournament",
+    max_archive_size = 1000,
+    selection_type = "uniform_random",
     recombiner = "n_point_crossover",
+    n_explorers = 0,
+    max_retirees = 0,
+    max_retiree_samples = 0,
     n_dimensions = 128,
     flip_chance = 0.02,
 )
@@ -20,15 +24,19 @@ learner_reproducer_config = ReproducerConfiguration(
 
 learner_evaluator_config = EvaluatorConfiguration(
     id = "R",
-    evaluator_type = "dodo_learner",
+    evaluator_type = "new_dodo",
+    objective = "performance",
     max_clusters = MAX_CLUSTERS,
 )
 
 test_reproducer_config = ReproducerConfiguration(
     id = "IC",
-    species_type = "spread_dodo",
-    n_population = 50,
+    species_type = "new_dodo",
+    n_parents = 25,
+    n_children = 25,
+    n_explorers = 25,
     max_archive_size = 1000,
+    selection_type = "uniform_random",
     recombiner = "n_point_crossover",
     n_dimensions = 149,
     flip_chance = 0.02
@@ -36,7 +44,8 @@ test_reproducer_config = ReproducerConfiguration(
 
 test_evaluator_config = EvaluatorConfiguration(
     id = "IC",
-    evaluator_type = "spread_dodo",
+    evaluator_type = "new_dodo",
+    objective = "distinction",
     max_clusters = MAX_CLUSTERS,
 )
 
@@ -47,8 +56,8 @@ config = DensityClassificationExperimentConfiguration(
     learner_evaluator_config = learner_evaluator_config,
     distinguisher_evaluator_config = test_evaluator_config,
     seed = abs(rand(Int)),
-    n_generations = 500,
-    n_workers = 8,
+    n_generations = 50000,
+    n_workers = 1,
 )
 
 state = BasicEvolutionaryState(config)
