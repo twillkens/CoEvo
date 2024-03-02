@@ -52,10 +52,30 @@ function mutate_per_bit!(genes::Vector, flip_chance::Float64, rng::AbstractRNG =
     end
 end
 
+function get_exponential_window_size(max_size::Int, rng::AbstractRNG)
+    # Define the scale of the distribution to better fit the desired window size range
+    scale_factor = max_size / 5  # Adjust the scale factor to control distribution spread
+    
+    # Create an exponential distribution with mean = scale_factor
+    exp_dist = Exponential(scale_factor)
+    
+    while true
+        # Generate a window size from the exponential distribution
+        window_size = round(Int, rand(rng, exp_dist))
+        
+        # If the window size is within the valid range, return it
+        if 1 <= window_size <= max_size
+            return window_size
+        end
+        # Otherwise, regenerate the window size
+    end
+end
+
 function mutate_per_bit(
     genes::Vector, flip_chance::Float64 = 0.05, rng::AbstractRNG = Random.GLOBAL_RNG
 ) 
     new_genes = copy(genes)
+    flip_chance = 0.01 * get_exponential_window_size(10, rng)
     mutate_per_bit!(new_genes, flip_chance, rng)
     return new_genes
 end
@@ -170,22 +190,3 @@ end
 #        end
 #    end
 #end
-
-function get_exponential_window_size(max_size::Int, rng::AbstractRNG)
-    # Define the scale of the distribution to better fit the desired window size range
-    scale_factor = max_size / 5  # Adjust the scale factor to control distribution spread
-    
-    # Create an exponential distribution with mean = scale_factor
-    exp_dist = Exponential(scale_factor)
-    
-    while true
-        # Generate a window size from the exponential distribution
-        window_size = round(Int, rand(rng, exp_dist))
-        
-        # If the window size is within the valid range, return it
-        if 1 <= window_size <= max_size
-            return window_size
-        end
-        # Otherwise, regenerate the window size
-    end
-end

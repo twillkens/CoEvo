@@ -150,6 +150,27 @@ function filter_results_by_cohort(
     return filtered_results
 end
 
+function get_hillclimber_parent_ids(species::AbstractSpecies, matrix::OutcomeMatrix)
+    new_parent_ids = Int[]
+    for child in species.children
+        parent = species[child.parent_id]
+        child_outcomes = matrix[child.id, :]
+        parent_outcomes = matrix[parent.id, :]
+        parent_dominates_child = dominates(Maximize(), parent_outcomes, child_outcomes)
+        if parent_dominates_child
+            push!(new_parent_ids, parent.id)
+        else
+            child_on_lower_level = sum(child_outcomes) < sum(parent_outcomes)
+            if child_on_lower_level
+                push!(new_parent_ids, parent.id)
+            else
+                push!(new_parent_ids, child.id)
+            end
+        end
+    end
+    return new_parent_ids
+end
+
 function evaluate(
     evaluator::NewDodoEvaluator, 
     species::AbstractSpecies,
@@ -166,11 +187,17 @@ function evaluate(
     records = create_records(
         evaluator, species, raw_matrix, reconstructed_filtered_matrix, reconstructed_derived_matrix
     )
-    cluster_leader_ids = get_cluster_leader_ids(species, all_cluster_ids, records)
+    if evaluator.selection_method == "cluster_leader"
+        new_parent_ids = get_cluster_leader_ids(species, all_cluster_ids, records)
+    elseif evaluator.selection_method == "hillclimber"
+        new_parent_ids = get_hillclimber_parent_ids(species, derived_matrix)
+    else
+        error("Selection method $(evaluator.selection_method) not recognized")
+    end
 
     evaluation = NewDodoEvaluation(
         id = evaluator.id, 
-        cluster_leader_ids = cluster_leader_ids,
+        new_parent_ids = new_parent_ids,
         raw_matrix = raw_matrix,
         filtered_matrix = reconstructed_filtered_matrix,
         matrix = reconstructed_derived_matrix,

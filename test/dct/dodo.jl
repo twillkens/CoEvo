@@ -11,9 +11,8 @@ learner_reproducer_config = ReproducerConfiguration(
     species_type = "new_dodo",
     n_parents = 25,
     n_children = 25,
-    max_archive_size = 1000,
-    selection_type = "uniform_random",
-    recombiner = "n_point_crossover",
+    selection_type = "identity",
+    recombiner = "clone",
     n_explorers = 0,
     max_retirees = 0,
     max_retiree_samples = 0,
@@ -34,10 +33,11 @@ test_reproducer_config = ReproducerConfiguration(
     species_type = "new_dodo",
     n_parents = 25,
     n_children = 25,
-    n_explorers = 25,
-    max_archive_size = 1000,
-    selection_type = "uniform_random",
-    recombiner = "n_point_crossover",
+    n_explorers = 0,
+    max_retirees = 0,
+    max_retiree_samples = 0,
+    selection_type = "identity",
+    recombiner = "clone",
     n_dimensions = 149,
     flip_chance = 0.02
 )
@@ -57,7 +57,7 @@ config = DensityClassificationExperimentConfiguration(
     distinguisher_evaluator_config = test_evaluator_config,
     seed = abs(rand(Int)),
     n_generations = 50000,
-    n_workers = 1,
+    n_workers = 8,
 )
 
 state = BasicEvolutionaryState(config)

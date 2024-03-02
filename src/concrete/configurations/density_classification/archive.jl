@@ -88,8 +88,8 @@ function archive!(::DensityClassificationArchiver, state::State)
         results = [covered(elite_rule, ic, 320) for ic in ics]
         println("generation $(state.generation): ", mean(results))
         println("rule =", elite_rule)
-        fitnesses = [Int(sum(record.filtered_outcomes)) for record in evaluation.records]
-        println("fitnesses: ", fitnesses, " out of ", length(first(evaluation.records).filtered_outcomes))
+        fitnesses = [Int(sum(record.raw_outcomes)) for record in evaluation.records]
+        println("fitnesses: ", fitnesses, " out of ", length(first(evaluation.records).raw_outcomes))
 	flush(stdout)
     end
 end

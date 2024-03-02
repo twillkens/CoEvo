@@ -97,8 +97,7 @@ end
 
 function make_recombiner(config::ReproducerConfiguration)
     if config.recombiner == "clone"
-        error("Clone recombiner not implemented")
-        recombiner = NPointCrossoverRecombiner(n_points = 1)
+        recombiner = CloneRecombiner()
     elseif config.recombiner == "n_point_crossover"
         recombiner = NPointCrossoverRecombiner(n_points = 1)
     elseif config.recombiner == "permutation"

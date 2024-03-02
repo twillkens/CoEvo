@@ -7,7 +7,8 @@ using ...Matrices.Outcome: OutcomeMatrix
 Base.@kwdef struct NewDodoEvaluator <: Evaluator
     id::String = "A"
     objective::String = "performance"
-    other_species_comparison_cohorts::Vector{String} = ["parents", "retirees"]
+    selection_method::String = "hillclimber"
+    other_species_comparison_cohorts::Vector{String} = ["parents", "children"]
     min_clusters::Int = 1
     max_clusters::Int = 5
     maximize::Bool = true
@@ -15,9 +16,9 @@ Base.@kwdef struct NewDodoEvaluator <: Evaluator
     function_maximums::Union{Vector{Float64}, Nothing} = nothing
     n_runs::Int = 10
     filter_zero_rows::Bool = false
-    filter_zero_columns::Bool = true
-    filter_duplicate_rows::Bool = true
-    filter_duplicate_columns::Bool = true
+    filter_zero_columns::Bool = false
+    filter_duplicate_rows::Bool = false
+    filter_duplicate_columns::Bool = false
 end
 
 Base.@kwdef mutable struct NewDodoRecord{I <: Individual} <: Record
@@ -47,7 +48,7 @@ Base.@kwdef struct NewDodoEvaluation{
     R <: NewDodoRecord, M1 <: OutcomeMatrix, M2 <: OutcomeMatrix, M3 <: OutcomeMatrix
 } <: Evaluation
     id::String
-    cluster_leader_ids::Vector{Int}
+    new_parent_ids::Vector{Int}
     raw_matrix::M1
     filtered_matrix::M2
     matrix::M3

@@ -30,14 +30,31 @@ Base.@kwdef mutable struct NewDodoSpeciesCreator <: SpeciesCreator
     id::String
     n_parents::Int = 50
     n_children::Int = 50
-    n_explorers::Int = 25
-    max_retirees::Int = 1000
-    max_retiree_samples::Int = 50
+    n_explorers::Int = 0
+    max_retirees::Int = 0
+    max_retiree_samples::Int = 0
 end
 
 include("logging.jl")
 
+using ...Recombiners.NPointCrossover: NPointCrossoverRecombiner
+using ...Recombiners.Clone: CloneRecombiner
+
 function initialize_children(
+    recombiner::CloneRecombiner,
+    parents::Vector{I}, 
+    n_children::Int,
+    reproducer::Reproducer, 
+    state::State
+) where I <: DodoIndividual
+    children = recombine(
+        recombiner, reproducer.mutator, reproducer.phenotype_creator, parents, state
+)
+    return children
+end
+
+function initialize_children(
+    recombiner::NPointCrossoverRecombiner,
     parents::Vector{I}, 
     n_children::Int,
     reproducer::Reproducer, 
@@ -53,7 +70,7 @@ function initialize_children(
 end
 
 function create_new_dodo_species(
-    id::String, 
+    id::String,
     individual_creator::IndividualCreator, 
     n_parents::Int,
     n_children::Int,
@@ -62,10 +79,11 @@ function create_new_dodo_species(
     state::State
 )
     parents = create_individuals(individual_creator, n_parents, reproducer, state)
-    children = initialize_children(parents, n_children, reproducer, state)
-    explorers = create_individuals(individual_creator, n_explorers, reproducer, state)
+    children = initialize_children(reproducer.recombiner, parents, n_children, reproducer, state)
+    #explorers = create_individuals(individual_creator, n_explorers, reproducer, state)
     I = typeof(first(parents))
     retirees = I[]
+    explorers = I[]
     population = [parents ; children ; explorers]
     species = NewDodoSpecies(id, population, parents, children, explorers, retirees)
     return species
@@ -86,13 +104,20 @@ function create_species(
 end
 
 function promote_new_parents!(species::NewDodoSpecies, evaluation::Evaluation)
-    for id in evaluation.cluster_leader_ids
-        individual = species[id]
-        filter!(parent -> parent.id != id, species.parents)
-        filter!(explorer -> explorer.id != id, species.explorers)
-        filter!(retiree -> retiree.id != id, species.retirees)
-        push!(species.parents, individual)
+    if length(species.parents) != length(evaluation.new_parent_ids)
+        error("Length of species.parents != length of evaluation.new_parent_ids")
     end
+    #empty!(species.parents)
+    I = typeof(first(species.population))
+    new_parents = I[]
+    for id in evaluation.new_parent_ids
+        individual = species[id]
+        #filter!(parent -> parent.id != id, species.parents)
+        #filter!(explorer -> explorer.id != id, species.explorers)
+        #filter!(retiree -> retiree.id != id, species.retirees)
+        push!(new_parents, individual)
+    end
+    species.parents = new_parents
 end
 
 function update_retirees!(species::NewDodoSpecies, species_creator::NewDodoSpeciesCreator)
@@ -110,7 +135,7 @@ function update_children!(
 )
     records = [record for record in evaluation.records if record.individual in species.parents]
     selections = select(reproducer.selector, records, state)
-    species.children = recombine(reproducer.recombiner, reproducer.mutator, selections, state)
+    species.children = recombine(reproducer.recombiner, reproducer.mutator, reproducer.phenotype_creator, selections, state)
 end
 
 function update_explorers!(
