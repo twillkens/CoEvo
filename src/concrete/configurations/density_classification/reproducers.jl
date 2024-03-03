@@ -117,7 +117,7 @@ function create_reproducer(config::ReproducerConfiguration)
         species_creator = make_species_creator(config),
         selector = make_selector(config),
         recombiner = make_recombiner(config),
-        mutator = PerBitMutator(config.flip_chance),
+        mutator = PerBitMutator(config.flip_chance, 10),
     )
     return reproducer
 end

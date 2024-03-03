@@ -4,16 +4,16 @@ using ...Evaluators.NSGAII
 using ...Criteria
 
 function create_records(
-    evaluator::NewDodoEvaluator,
+    evaluator::TinEvaluator,
     species::AbstractSpecies,
     raw_matrix::OutcomeMatrix,
     filtered_matrix::OutcomeMatrix,
     matrix::OutcomeMatrix
 )
     I = typeof(species.population[1])
-    records = NewDodoRecord{I}[]
+    records = TinRecord{I}[]
     for id in matrix.row_ids
-        record = NewDodoRecord(
+        record = TinRecord(
             id = id, 
             individual = species[id],
             raw_outcomes = raw_matrix[id, :], 
@@ -30,7 +30,7 @@ function create_records(
 end
 
 function get_raw_matrix(
-    evaluator::NewDodoEvaluator, species::AbstractSpecies, results::Vector{<:Result}
+    evaluator::TinEvaluator, species::AbstractSpecies, results::Vector{<:Result}
 )
     objective = evaluator.objective
     if objective == "performance"
@@ -56,7 +56,7 @@ function reconstruct_matrix(raw_matrix::OutcomeMatrix, filtered_matrix::OutcomeM
     return filtered_matrix
 end
 
-function get_high_rank_records(cluster_ids::Vector{Int}, records::Vector{<:NewDodoRecord})
+function get_high_rank_records(cluster_ids::Vector{Int}, records::Vector{<:TinRecord})
     cluster_records = [record for record in records if record.id in cluster_ids]
     if length(cluster_records) != length(cluster_ids)
         println("CLUSTER_RECORDS = ", [record.id for record in cluster_records])
@@ -70,7 +70,7 @@ end
 
 
 function get_cluster_leader_id(
-    species::AbstractSpecies, cluster_ids::Vector{Int}, records::Vector{<:NewDodoRecord}
+    species::AbstractSpecies, cluster_ids::Vector{Int}, records::Vector{<:TinRecord}
 )
     high_rank_records = get_high_rank_records(cluster_ids, records)
     parent_records = [
@@ -85,7 +85,7 @@ end
 function get_cluster_leader_ids(
     species::AbstractSpecies, 
     all_cluster_ids::Vector{Vector{Int}}, 
-    records::Vector{<:NewDodoRecord}
+    records::Vector{<:TinRecord}
 )
     leader_ids = [
         get_cluster_leader_id(species, cluster_ids, records) for cluster_ids in all_cluster_ids
@@ -94,11 +94,11 @@ function get_cluster_leader_ids(
 end
 
 function print_info(
-    evaluator::NewDodoEvaluator, 
+    evaluator::TinEvaluator, 
     raw_matrix::OutcomeMatrix, 
     filtered_matrix::OutcomeMatrix, 
     derived_matrix::OutcomeMatrix, 
-    records::Vector{<:NewDodoRecord}, 
+    records::Vector{<:TinRecord}, 
     all_cluster_ids::Vector{Vector{Int}}
 )
     println("--------EVALUATOR_$(evaluator.id)-----")
@@ -125,7 +125,7 @@ function get_cohort_ids(species::AbstractSpecies, cohort_string::String)
 end
 
 function filter_results_by_cohort(
-    evaluator::NewDodoEvaluator, 
+    evaluator::TinEvaluator, 
     species::AbstractSpecies, 
     results::Vector{R}, 
     state::State
@@ -172,7 +172,7 @@ function get_hillclimber_parent_ids(species::AbstractSpecies, matrix::OutcomeMat
 end
 
 function evaluate(
-    evaluator::NewDodoEvaluator, 
+    evaluator::TinEvaluator, 
     species::AbstractSpecies,
     results::Vector{<:Result},
     state::State
@@ -198,7 +198,7 @@ function evaluate(
         error("Selection method $(evaluator.selection_method) not recognized")
     end
 
-    evaluation = NewDodoEvaluation(
+    evaluation = TinEvaluation(
         id = evaluator.id, 
         new_parent_ids = new_parent_ids,
         raw_matrix = raw_matrix,

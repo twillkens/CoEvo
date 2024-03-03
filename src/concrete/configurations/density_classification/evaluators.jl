@@ -41,6 +41,7 @@ function create_evaluator(config::EvaluatorConfiguration)
         evaluator = NewDodoEvaluator(
             id = config.id,
             objective = config.objective,
+            replacement_method = config.replacement_method,
             max_clusters = config.max_clusters
         )
     else

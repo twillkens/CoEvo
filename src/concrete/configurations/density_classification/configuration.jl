@@ -15,6 +15,7 @@ Base.@kwdef mutable struct EvaluatorConfiguration
     id::String = "L"
     evaluator_type::String = "new_dodo"
     objective::String = "performance"
+    replacement_method::String = "truncation"
     max_clusters::Int = 10
 end
 

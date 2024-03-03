@@ -27,7 +27,8 @@ function evolve(initial_state::Vector{Int}, rule::Vector{Int}, generations::Int)
             end
             
             # Apply the rule to determine the new state
-            states[gen, i] = rule[rule_length - index]
+            #states[gen, i] = rule[rule_length - index]
+            states[gen, i] = rule[index + 1]
         end
     end
 

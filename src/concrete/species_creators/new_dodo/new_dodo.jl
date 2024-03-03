@@ -16,6 +16,7 @@ using Random: shuffle!
 using ...Individuals.Dodo: DodoIndividual
 using ....Interfaces
 using ...Evaluators.NewDodo: NewDodoEvaluation
+using ....Interfaces: recombine
 
 Base.@kwdef mutable struct NewDodoSpecies{I <: Individual} <: AbstractSpecies
     id::String
@@ -109,12 +110,12 @@ function promote_new_parents!(species::NewDodoSpecies, evaluation::Evaluation)
     end
     #empty!(species.parents)
     I = typeof(first(species.population))
-    new_parents = I[]
+    new_parents = [parent for parent in species.parents if parent.id in evaluation.new_parent_ids]
     for id in evaluation.new_parent_ids
         individual = species[id]
-        #filter!(parent -> parent.id != id, species.parents)
-        #filter!(explorer -> explorer.id != id, species.explorers)
-        #filter!(retiree -> retiree.id != id, species.retirees)
+        filter!(parent -> parent.id != id, species.parents)
+        filter!(explorer -> explorer.id != id, species.explorers)
+        filter!(retiree -> retiree.id != id, species.retirees)
         push!(new_parents, individual)
     end
     species.parents = new_parents
@@ -135,7 +136,9 @@ function update_children!(
 )
     records = [record for record in evaluation.records if record.individual in species.parents]
     selections = select(reproducer.selector, records, state)
-    species.children = recombine(reproducer.recombiner, reproducer.mutator, reproducer.phenotype_creator, selections, state)
+    species.children = recombine(
+        reproducer.recombiner, reproducer.mutator, reproducer.phenotype_creator, selections, state
+    )
 end
 
 function update_explorers!(

@@ -74,10 +74,37 @@ end
 function mutate_per_bit(
     genes::Vector, flip_chance::Float64 = 0.05, rng::AbstractRNG = Random.GLOBAL_RNG
 ) 
-    new_genes = copy(genes)
-    flip_chance = 0.01 * get_exponential_window_size(10, rng)
-    mutate_per_bit!(new_genes, flip_chance, rng)
-    return new_genes
+    if rand() < 0.1
+        new_genes = copy(genes)
+        flip_chance = 0.01 * get_exponential_window_size(10, rng)
+        mutate_per_bit!(new_genes, flip_chance, rng)
+        return new_genes
+    else
+        # 90% chance to shuffle a window within the genes
+    end
+end
+
+Base.@kwdef struct PerBitMutator <: Mutator
+    flip_chance::Float64 = 0.01
+    flip_window::Int = 10
+end
+
+function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
+    if rand() < 0.1
+        flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
+        mutate_per_bit!(genotype.genes, flip_chance, state.rng)
+    else
+        n_half = div(length(genotype.genes), 2)
+        n_to_shuffle = get_exponential_window_size(n_half, state.rng)
+        indices_to_shuffle = randperm(state.rng, length(genotype.genes))[1:n_to_shuffle]
+        shuffled_genes = genotype.genes[indices_to_shuffle]
+        shuffle!(state.rng, shuffled_genes)
+        
+        # Apply the shuffled window back to the genotype
+        for (index, gene) in zip(indices_to_shuffle, shuffled_genes)
+            genotype.genes[index] =gene
+        end
+    end
 end
 
 function get_permutations(
@@ -147,13 +174,6 @@ function create_child(
     return DodoIndividual(id, parent_ids, 0, 1, genotype, phenotype)
 end
 
-Base.@kwdef struct PerBitMutator <: Mutator
-    flip_chance::Float64 = 0.02
-end
-
-function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
-    mutate_per_bit!(genotype.genes, mutator.flip_chance, state.rng)
-end
 
 
 #function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)

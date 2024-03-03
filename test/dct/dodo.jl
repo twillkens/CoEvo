@@ -17,7 +17,7 @@ learner_reproducer_config = ReproducerConfiguration(
     max_retirees = 0,
     max_retiree_samples = 0,
     n_dimensions = 128,
-    flip_chance = 0.02,
+    flip_chance = 0.01,
 )
 
 
@@ -39,7 +39,7 @@ test_reproducer_config = ReproducerConfiguration(
     selection_type = "identity",
     recombiner = "clone",
     n_dimensions = 149,
-    flip_chance = 0.02
+    flip_chance = 0.01
 )
 
 test_evaluator_config = EvaluatorConfiguration(
