@@ -14,6 +14,7 @@ using LinearAlgebra: dot
 
 Base.@kwdef mutable struct NSGAIIRecord <: Record
     id::Int = 0
+    other_id::Int = 0
     outcomes::Vector{Float64} = Float64[]
     rank::Int = 0
     crowding::Float64 = 0.0
@@ -128,7 +129,7 @@ end
 
 function nsga_sort!(
     records::Vector{R}, 
-    criterion::Criterion,
+    criterion::Criterion = Maximize(),
     function_minimums::Union{Nothing, Vector{Float64}} = nothing,
     function_maximums::Union{Nothing, Vector{Float64}} = nothing
 ) where {R <: Record}

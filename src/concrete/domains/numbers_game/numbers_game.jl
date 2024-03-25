@@ -72,7 +72,7 @@ end
 function measure(::NumbersGameDomain{CompareOnAll}, A::Vector{<:Real}, B::Vector{<:Real})
     compare_results = [v1 >= v2 for (v1, v2) in zip(A, B)]
     test_passed = all(compare_results) ? 1.0 : 0.0
-    return [test_passed, test_passed]
+    return [test_passed, 1.0 - test_passed]
 end
 
 @kwdef struct CompareOnAllSymmetric <: Metric

@@ -66,18 +66,15 @@ function create_environment(environment_creator::StatelessEnvironmentCreator, v1
     return environment
 end
 
+
 function get_outcome_set(
     environment::StatelessEnvironment{D, P1, P2}
 ) where {D <: DensityClassificationDomain, P1 <: Phenotype, P2 <: Phenotype}
     # Assuming the phenotype's `act!` method returns a tuple of (initial configuration, rule)
     rule = act!(environment.entity_1)
     ic = act!(environment.entity_2)
-    is_covered = covered_improved(rule, ic, environment.domain.max_timesteps)
-    if is_covered
-        return [1.0, 0.0]
-    else
-        return [0.0, 1.0]
-    end
+    outcome_set = get_outcome_set(environment.domain, ic, rule)
+    return outcome_set
 end
 
 end

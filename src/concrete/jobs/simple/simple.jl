@@ -2,12 +2,14 @@ module Simple
 
 export SimpleJob, SimpleJobCreator
 
-import ....Interfaces: create_jobs
+import ....Interfaces: create_jobs, make_all_matches
 
 using ....Abstract
 using ....Utilities: find_by_id
 using ....Interfaces
+using ...Ecosystems.MaxSolve
 using Random: AbstractRNG
+using ...Matches.Basic: BasicMatch
 
 struct SimpleJob{I <: Interaction, P <: Phenotype, M <: Match} <: Job
     interactions::Dict{String, I}
@@ -31,6 +33,35 @@ function make_all_matches(::SimpleJobCreator, ecosystem::Ecosystem, state::State
     ]
     all_matches = vcat(all_matches...)
     return all_matches
+end
+
+## TODO: maxsolve matchmaker
+
+function make_all_matches(
+    ::SimpleJobCreator,
+    ecosystem::MaxSolveEcosystem,
+    state::State
+)
+    all_learners = [
+        ecosystem.learner_population ; ecosystem.learner_children ; ecosystem.learner_archive
+    ]
+    all_learner_ids = unique([learner.id for learner in all_learners])
+    all_tests = [
+        ecosystem.test_population ; ecosystem.test_children ; ecosystem.test_archive
+    ]
+    all_test_ids = unique([child.id for child in all_tests])
+    matches = BasicMatch[]
+    matrix = ecosystem.payoff_matrix
+    for learner_id in all_learner_ids
+        for test_id in all_test_ids
+            if !(learner_id in matrix.row_ids) || !(test_id in matrix.column_ids)
+                match = BasicMatch("A", (learner_id, test_id), ("L", "T"))
+                push!(matches, match)
+            end
+        end
+    end
+    println("matches = ", [match.individual_ids for match in matches])
+    return matches
 end
 
 function make_partitions(items::Vector{T}, n_partitions::Int) where T
@@ -68,6 +99,15 @@ function get_phenotype_dict(ecosystem::Ecosystem, ids::Set{Tuple{String, Int}})
     pairs = map(collect(ids)) do (species_id, individual_id)
         species = ecosystem[species_id]
         individual = species[individual_id]
+        return individual.id => individual.phenotype
+    end
+    phenotype_dict = Dict(pairs)
+    return phenotype_dict
+end
+
+function get_phenotype_dict(ecosystem::MaxSolveEcosystem, ids::Set{Tuple{String, Int}})
+    pairs = map(collect(ids)) do (species_id, individual_id)
+        individual = ecosystem[individual_id]
         return individual.id => individual.phenotype
     end
     phenotype_dict = Dict(pairs)

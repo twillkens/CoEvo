@@ -51,6 +51,20 @@ end
 function recombine(
     recombiner::Recombiner, 
     mutator::Mutator,
+    individuals::Vector{Individual}, 
+    reproducer::Reproducer,
+    ::State
+)
+    recombiner = typeof(recombiner)
+    mutator = typeof(mutator)
+    individuals = typeof(individuals)
+    reproducer = typeof(reproducer)
+    error("recombine not implemented for $recombiner, $mutator, $individuals, $reproducer")
+end
+
+function recombine(
+    recombiner::Recombiner, 
+    mutator::Mutator,
     phenotype_creator::PhenotypeCreator,
     individuals::Vector{Individual},
     reproducer::Reproducer,

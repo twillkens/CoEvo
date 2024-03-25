@@ -37,7 +37,6 @@ function create_ecosystem(
     return new_ecosystem
 end
 
-
 function validate_ecosystem(ecosystem::SimpleEcosystem, state::State)
     all_individuals = [
         individual for species in ecosystem.all_species for individual in species.population
@@ -92,6 +91,11 @@ function evaluate(
     results::Vector{<:Result}, 
     state::State
 )
+    if length(evaluators) == 1
+        evaluator = first(evaluators)
+        evaluation = evaluate(evaluator, ecosystem, results, state)
+        return [evaluation]
+    end
     evaluations = map(ecosystem.all_species) do species
         evaluator = find_by_id(evaluators, species.id)
         evaluation = evaluate(evaluator, species, results, state)

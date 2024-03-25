@@ -21,7 +21,21 @@ function recombine(
     ::CloneRecombiner, 
     mutator::Mutator, 
     phenotype_creator::PhenotypeCreator, 
-    parent::Individual, 
+    parent::BasicIndividual, 
+    state::State
+)
+    id = step!(state.individual_id_counter)
+    genotype = mutate(mutator, parent.genotype, state)
+    phenotype = create_phenotype(phenotype_creator, id, genotype)
+    child = BasicIndividual(id, parent.id, genotype, phenotype)
+    return child
+end
+
+function recombine(
+    ::CloneRecombiner, 
+    mutator::Mutator, 
+    phenotype_creator::PhenotypeCreator, 
+    parent::DodoIndividual, 
     state::State
 )
     id = step!(state.individual_id_counter)

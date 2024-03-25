@@ -29,6 +29,15 @@ function create_records(
     return sorted_records
 end
 
+function create_records(
+    evaluator::TinEvaluator,
+    species::AbstractSpecies,
+    matrix::OutcomeMatrix
+)
+    records = create_records(evaluator, species, deepcopy(matrix), deepcopy(matrix), matrix)
+    return records
+end
+
 function get_raw_matrix(
     evaluator::TinEvaluator, species::AbstractSpecies, results::Vector{<:Result}
 )
@@ -208,4 +217,100 @@ function evaluate(
     )
     print_info(evaluator, raw_matrix, filtered_matrix, derived_matrix, records, all_cluster_ids)
     return evaluation
+end
+
+function create_test_matrix(
+    test::Individual, learners::Vector{<:Individual}, test_results::Vector{<:Result}
+)
+    n_subtests = length(first(test_results).outcome_set[1])
+    test_matrix = OutcomeMatrix(
+        id = test.id, 
+        row_ids = [learner.id for learner in learners], 
+        column_ids = collect(1:n_subtests), 
+        zeros(Float64, length(learners), n_subtests) 
+    )
+    for result in test_results
+        learner_id = result.match.individual_ids[1]
+        test_matrix[learner_id, :] = first(result.outcome_set)
+    end
+    return test_matrix
+end
+
+function fill_payoff_matrix_column!(
+    evaluator::TinEvaluator,
+    payoff_matrix::OutcomeMatrix, 
+    test::Individual, 
+    learner_species::AbstractSpecies, 
+    results::Vector{<:Result}
+)
+    test_results = [result for result in results if test.id in result.match.individual_ids]
+    test_matrix = create_test_matrix(test, learner_species, test_results)
+    learner_records = create_records(evaluator, learner_species, test_matrix)
+    maximum_rank = maximum(record.rank for record in learner_records)
+    for learner_record in learner_records
+        rank_score = maximum_rank - learner_record.rank
+        payoff_matrix[learner_record.id, test.id] = rank_score
+    end
+end
+
+function fill_payoff_matrix!(
+    evaluator::TinEvaluator, 
+    payoff_matrix::OutcomeMatrix, 
+    learner_species::AbstractSpecies, 
+    test_species::AbstractSpecies, 
+    results::Vector{<:Result}
+)
+    for test in test_species
+        fill_payoff_matrix_column!(evaluator, payoff_matrix, test, learner_species, results)
+    end
+end
+
+function make_payoff_matrix(
+    evaluator::TinEvaluator, 
+    learner_species::AbstractSpecies, 
+    test_species::AbstractSpecies,
+    results::Vector{<:Result}
+)
+    payoff_matrix = OutcomeMatrix(
+        id = "payoffs",
+        row_ids = [learner.id for learner in learner_species],
+        column_ids = [test.id for test in test_species],
+        zeros(Float64, length(learner_species), length(test_species))
+    )
+    for test in test_species
+        fill_payoff_matrix_column!(evaluator, payoff_matrix, test, learner_species, results)
+    end
+    return payoff_matrix
+end
+
+function evaluate(
+    evaluator::TinEvaluator,
+    ecosystem::Ecosystem,
+    results::Vector{<:Result},
+    state::State
+)
+    learner_species = ecosystem.all_species[1]
+    test_species = ecosystem.all_species[2]
+    payoff_matrix = make_payoff_matrix(evaluator, learner_species, test_species, results)
+    learner_derived_matrix, learner_all_cluster_ids = get_derived_matrix(
+        evaluator, payoff_matrix, payoff_matrix
+    )
+    learner_distinction_matrix = make_full_distinction_matrix(transpose(learner_derived_matrix))
+    test_distinction_matrix = make_full_distinction_matrix(learner_derived_matrix)
+    # make the distinction matrix for the tests
+    # cluster over the columns to get the derived distinctions
+    # cluster over the rows to get the test clusters
+    # choose the cluster leaders for the tests based on their distance to centroid;
+    # choose the hardest test of that group; if all equally hard, choose the one with
+    # the better distinction score; if all equally hard and equally distinct, choose the youngest
+    # if all the same age, choose randomly
+    # choose the perimeter members of the cluster via farthest-first traversal 
+    # starting from the cluster leader. 
+
+    # for evaluation of the learners, assemble the records
+    # sort first by pareto layer, then by distinction score, then by crowding, then by age
+    # truncate by the top N learners
+    # for the tests, collect the ids of the cluster leaders and the perimeter representatives
+
+
 end

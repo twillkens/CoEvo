@@ -1,20 +1,52 @@
 module Outcome
 
-export OutcomeMatrix, make_distinction_matrix, filter_zero_rows
+export OutcomeMatrix, make_distinction_matrix, filter_zero_rows, make_full_distinction_matrix
+export filter_identical_columns, filter_rows, filter_columns, transpose
 export generate_unique_tuples, filter_identical_columns
 export filter_rows, filter_columns, get_nonzero_row_indices, get_unique_column_indices
+export merge_matrices
+export transpose_and_invert
 
-import Base: getindex
+import Base: getindex, setindex!, show
+import Base: transpose
+
 using DataStructures
 using LinearAlgebra
 using ....Abstract
 
-struct OutcomeMatrix{T, U, V}
+Base.@kwdef mutable struct OutcomeMatrix{T, U, V, W} 
     id::T
     row_ids::Vector{U}
     column_ids::Vector{V}
-    data::Matrix{Float64}
+    data::Matrix{W}
 end
+
+function OutcomeMatrix{W}(id::T, row_ids::Vector{U}, column_ids::Vector{V}) where {T, U, V, W}
+    data = zeros(W, length(row_ids), length(column_ids))
+    return OutcomeMatrix(id, row_ids, column_ids, data)
+end
+
+function Base.show(io::IO, matrix::OutcomeMatrix)
+    # Print the ID of the OutcomeMatrix at the top
+    println(io, "OutcomeMatrix with ID: ", matrix.id)
+
+    # Print column IDs with proper spacing
+    print(io, "     ")  # Space for row ID column
+    for col_id in matrix.column_ids
+        print(io, " ", lpad(col_id, 6))
+    end
+    println(io)
+
+    # Print each row with the row ID on the left
+    for (i, row_id) in enumerate(matrix.row_ids)
+        print(io, lpad(row_id, 4), " |")
+        for j in 1:length(matrix.column_ids)
+            print(io, " ", lpad(matrix.data[i, j], 6))
+        end
+        println(io)
+    end
+end
+
 
 # Get a row by row_id, accommodating idiosyncratic IDs
 function getindex(matrix::OutcomeMatrix, row_id::Any)
@@ -42,7 +74,7 @@ function getindex(matrix::OutcomeMatrix, ::Colon, column_id::Any)
 end
 
 # Get a cell value by [row_id, column_id], accommodating idiosyncratic IDs
-function getindex(matrix::OutcomeMatrix, row_id, column_id)
+function getindex(matrix::OutcomeMatrix, row_id::Any, column_id::Any)
     row_index = findfirst(==(row_id), matrix.row_ids)
     column_index = findfirst(==(column_id), matrix.column_ids)
     if row_index === nothing || column_index === nothing
@@ -51,7 +83,24 @@ function getindex(matrix::OutcomeMatrix, row_id, column_id)
     return matrix.data[row_index, column_index]
 end
 
-function OutcomeMatrix(data::Matrix{Float64})
+function setindex!(
+    matrix::OutcomeMatrix{T, U, V, W}, value::Any, row_id::U, column_id::V, 
+) where {T, U, V, W}
+    row_index = findfirst(==(row_id), matrix.row_ids)
+    column_index = findfirst(==(column_id), matrix.column_ids)
+    if row_index === nothing || column_index === nothing
+        throw(ArgumentError("Invalid row ID $row_id or column ID $column_id"))
+    end
+    matrix.data[row_index, column_index] = W(value)
+end
+
+function OutcomeMatrix{W}(id::String, row_ids::Vector, column_ids::Vector) where W
+    data = zeros(W, length(row_ids), length(column_ids))
+    matrix = OutcomeMatrix(id, row_ids, column_ids, data)
+    return matrix
+end
+
+function OutcomeMatrix(data::Matrix)
     id = 0
     row_ids = collect(1:size(data, 1))
     # make column ids start at n_row_ids + 1
@@ -211,26 +260,47 @@ function filter_identical_columns(matrix::OutcomeMatrix)
     return matrix
 end
 
-import Base: transpose
-
-
-function transpose(matrix::OutcomeMatrix{T, U, V}) where {T, U, V}
+function transpose(matrix::OutcomeMatrix)
     # Transpose the data matrix
     transposed_data = collect(transpose(matrix.data))
     
     # Swap row_ids and column_ids to reflect the transposition
-    new_row_ids = matrix.column_ids
-    new_column_ids = matrix.row_ids
+    new_row_ids = deepcopy(matrix.column_ids)
+    new_column_ids = deepcopy(matrix.row_ids)
     
     # Return a new OutcomeMatrix with the transposed data and swapped IDs
     # Assuming the 'id' field should remain unchanged during transpose
     return OutcomeMatrix(matrix.id, new_row_ids, new_column_ids, transposed_data)
 end
 
+function transpose_and_invert(matrix::OutcomeMatrix)
+    # Transpose the data matrix
+    transposed_data = collect(transpose(matrix.data))
+    
+    # Swap row_ids and column_ids to reflect the transposition
+    new_row_ids = deepcopy(matrix.column_ids)
+    new_column_ids = deepcopy(matrix.row_ids)
+    
+    # Invert the data matrix
+    inverted_data = 1 .- transposed_data
+    
+    # Return a new OutcomeMatrix with the transposed data and swapped IDs
+    # Assuming the 'id' field should remain unchanged during transpose
+    return OutcomeMatrix(matrix.id, new_row_ids, new_column_ids, inverted_data)
+end
+
 function filter_rows(matrix::OutcomeMatrix, ids::Vector)
+    ids = unique(ids)
     row_indices = findall(id -> id in ids, matrix.row_ids)
     if isempty(row_indices)
+        println("matrix = ", matrix)
+        println("ids = ", ids)
         throw(ArgumentError("None of the specified row IDs found"))
+    end
+    if length(row_indices) != length(ids)
+        println("matrix = ", matrix)
+        println("ids = ", ids)
+        throw(ArgumentError("Some row IDs were not found"))
     end
     new_data = matrix.data[row_indices, :]
     new_row_ids = matrix.row_ids[row_indices]
@@ -239,6 +309,7 @@ function filter_rows(matrix::OutcomeMatrix, ids::Vector)
 end
 
 function filter_columns(matrix::OutcomeMatrix, ids::Vector)
+    ids = unique(ids)
     column_indices = findall(id -> id in ids, matrix.column_ids)
     if isempty(column_indices)
         println("matrix = ", matrix)
@@ -250,6 +321,77 @@ function filter_columns(matrix::OutcomeMatrix, ids::Vector)
     # Return a new OutcomeMatrix with the filtered columns
     return OutcomeMatrix(matrix.id, matrix.row_ids, new_column_ids, new_data)
 end
+
+function filter_matrix(matrix::OutcomeMatrix, row_ids::Vector, column_ids::Vector)
+    new_matrix = filter_rows(matrix, row_ids)
+    new_matrix = filter_columns(new_matrix, column_ids)
+    return new_matrix
+end
+
+
+function generate_all_tuples(n::Int)
+    all_tuples = [(i, j) for i in 1:n for j in 1:n if i != j]
+    return all_tuples
+end
+
+function make_full_distinction_matrix(matrix::Matrix)
+    nrows, ncols = size(matrix)
+    col_pairs = generate_all_tuples(ncols)
+    data = zeros(Bool, nrows, length(col_pairs))
+    for i in 1:nrows
+        for (j, (col_1, col_2)) in enumerate(col_pairs)
+            data[i, j] = matrix[i, col_1] > matrix[i, col_2] ? 1 : 0
+        end
+    end
+    return data
+end
+
+function generate_all_tuples(ids::Vector{T}) where T
+    all_tuples = [(ids[i], ids[j]) for i in 1:length(ids) for j in 1:length(ids) if i != j]
+    return all_tuples
+end
+
+function make_full_distinction_matrix(matrix::OutcomeMatrix; id = matrix.id)
+    # Convert OutcomeMatrix to Matrix{Float64}
+    distinction_matrix = make_full_distinction_matrix(matrix.data)
+    # Convert back to OutcomeMatrix if necessary, depending on the desired output format
+    row_ids = deepcopy(matrix.row_ids)
+    column_ids = generate_all_tuples(matrix.column_ids)
+    matrix = OutcomeMatrix(
+        id = id, row_ids = row_ids, column_ids = column_ids, data = distinction_matrix
+    )
+    return matrix
+end
+
+function merge_matrices(
+    matrix1::OutcomeMatrix{T, U, V, W}, matrix2::OutcomeMatrix{T, U, V, W}
+) where {T, U, V, W}
+    # Combine and sort row and column IDs, excluding duplicates
+    combined_row_ids = unique(sort(vcat(matrix1.row_ids, matrix2.row_ids)))
+    combined_column_ids = unique(sort(vcat(matrix1.column_ids, matrix2.column_ids)))
+    rows_1 = Set(matrix1.row_ids)
+    rows_2 = Set(matrix2.row_ids)
+    columns_1 = Set(matrix1.column_ids)
+    columns_2 = Set(matrix2.column_ids)
+
+    # Initialize the new matrix with zeros
+    zero_data = zeros(W, length(combined_row_ids), length(combined_column_ids))
+    new_matrix = OutcomeMatrix(matrix1.id, combined_row_ids, combined_column_ids, zero_data)
+    for row_id in new_matrix.row_ids
+        for col_id in new_matrix.column_ids
+            first_has_item = row_id in rows_1 && col_id in columns_1
+            if first_has_item
+                new_matrix[row_id, col_id] = matrix1[row_id, col_id]
+            else
+                new_matrix[row_id, col_id] = matrix2[row_id, col_id]
+            end
+        end
+    end
+    return new_matrix
+end
+
+
+
 
 end
 #function implement_competitive_fitness_sharing(outcome_matrix::SortedDict{Int, Vector{Float64}})

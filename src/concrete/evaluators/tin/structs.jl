@@ -21,16 +21,44 @@ Base.@kwdef struct TinEvaluator <: Evaluator
     filter_duplicate_columns::Bool = false
 end
 
-Base.@kwdef mutable struct TinRecord{I <: Individual} <: Record
+struct PayoffResult{O <: OutcomeMatrix}
+    raw::O
+    filtered::O
+    derived::O
+end
+
+Base.@kwdef mutable struct TinRecord{I <: Individual, P <: PayoffResult} <: Record
     id::Int = 0
     individual::I
-    raw_outcomes::Vector{Float64} = Float64[]
-    filtered_outcomes::Vector{Float64} = Float64[]
-    outcomes::Vector{Float64} = Float64[]
+    performance_payoffs::P
+    distinction_payoffs::P
     rank::Int = 0
     crowding::Float64 = 0.0
     dom_count::Int = 0
     dom_list::Vector{Int} = Int[]
+    distinction_score::Float64 = 0.0
+end
+
+function is_preferred(record::TinRecord, other::TinRecord)
+    if record.rank < other.rank
+        return true
+    elseif other.rank < record.rank
+        return false
+    else
+        if record.distinction_score > other.distinction_score
+            return true
+        elseif other.distinction_score > record.distinction_score
+            return false
+        else
+            if record.individual.age < other.individual.age
+                return true
+            elseif other.individual.age < record.individual.age
+                return false
+            else
+                return rand(Bool)
+            end
+        end
+    end
 end
 
 function Base.getproperty(record::TinRecord, name::Symbol)
@@ -44,13 +72,10 @@ function Base.getproperty(record::TinRecord, name::Symbol)
     return getfield(record, name)
 end
 
-Base.@kwdef struct TinEvaluation{
-    R <: TinRecord, M1 <: OutcomeMatrix, M2 <: OutcomeMatrix, M3 <: OutcomeMatrix
-} <: Evaluation
+Base.@kwdef struct TinEvaluation{R <: TinRecord, P <: PayoffResult} <: Evaluation
     id::String
     new_parent_ids::Vector{Int}
-    raw_matrix::M1
-    filtered_matrix::M2
-    matrix::M3
+    performance_payoffs::P
+    distinction_payoffs::P
     records::Vector{R}
 end

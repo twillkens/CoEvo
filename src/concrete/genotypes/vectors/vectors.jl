@@ -2,6 +2,9 @@ module Vectors
 
 export VectorGenotype, VectorGenotypeCreator
 export BasicVectorGenotype, BasicVectorGenotypeCreator, ScalarRangeGenotypeCreator
+export NumbersGameVectorGenotypeCreator, create_genotypes, BiasedNumbersGameVectorGenotypeCreator
+export DummyNGGenotypeCreator
+
 
 import ....Interfaces: create_genotypes
 
@@ -95,6 +98,8 @@ function create_genotypes(
     genotypes = [BasicVectorGenotype([scalar]) for scalar in scalars]
     return genotypes
 end
+
+include("numbers_game.jl")
 
 
 end

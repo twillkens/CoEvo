@@ -1,4 +1,4 @@
-export make_matches
+export make_matches, make_all_matches
 
 using ..Abstract
 
@@ -30,4 +30,10 @@ function make_matches(
     species_2 = all_species[2]
     matches = make_matches(matchmaker, interaction_id, species_1, species_2, state)
     return matches
+end
+
+function make_all_matches(job_creator::JobCreator, ecosystem::Ecosystem, state::State)
+    job_creator = typeof(job_creator)
+    ecosystem = typeof(ecosystem)
+    error("make_all_matches not implemented for $job_creator, $ecosystem")
 end

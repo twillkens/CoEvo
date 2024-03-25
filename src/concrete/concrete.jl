@@ -52,21 +52,21 @@ include("species_creators/species_creators.jl")
 using .SpeciesCreators: SpeciesCreators
 println("loaded species creators")
 
+include("matches/matches.jl")
+using .Matches: Matches
+println("loaded matches")
+
 include("ecosystems/ecosystems.jl")
 using .Ecosystems: Ecosystems
 println("loaded ecosystems")
 
 include("reproducers/reproducers.jl")
 using .Reproducers: Reproducers
-
 println("loaded reproducers")
+
 include("domains/domains.jl")
 using .Domains: Domains
 println("loaded domains")
-
-include("matches/matches.jl")
-using .Matches: Matches
-println("loaded matches")
 
 include("matchmakers/matchmakers.jl")
 using .MatchMakers: MatchMakers
