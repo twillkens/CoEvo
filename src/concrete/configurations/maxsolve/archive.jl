@@ -90,14 +90,16 @@ function archive!(::DensityClassificationArchiver, state::State)
         elite_fitness = -1
         elite_rule = nothing
         for learner in state.ecosystem.learner_archive
-            if learner.fitness > elite_fitness
-                elite_fitness = learner.fitness
+            fitness = sum(state.ecosystem.payoff_matrix[learner.id, :])
+            if fitness > elite_fitness
+                elite_fitness = fitness
                 elite_rule = learner.genotype.genes
             end
         end
         #elite_rule = first(state.ecosystem.learner_archive).genotype.genes
         ics = generate_unbiased_ICs(149, 2500)
         results = [covered(elite_rule, ic, 320) for ic in ics]
+        println("FITNESS: ", elite_fitness)
         println("SCORE: ", mean(results))
         println("rule =", elite_rule)
 	flush(stdout)
