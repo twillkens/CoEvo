@@ -101,5 +101,7 @@ end
 
 include("numbers_game.jl")
 
+include("density_classification.jl")
+
 
 end

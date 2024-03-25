@@ -37,6 +37,7 @@ Base.@kwdef struct MaxSolveConfiguration <: Configuration
     min_mutation::Float64 = -0.1
     max_mutation::Float64 = 0.1
     mutation_granularity::Float64 = 0.01
+    task::String = "dct"
 end
 
 function get_ecosystem_creator(config::MaxSolveConfiguration)
@@ -53,8 +54,7 @@ end
 
 dummy_species_creator() = BasicSpeciesCreator("A", 1, 1, 1, 1)
 
-
-function create_reproducer(config::MaxSolveConfiguration, species_id::String)
+function create_numbers_game_reproducer(config::MaxSolveConfiguration, species_id::String)
     reproducer = BasicReproducer(
         id = species_id,
         genotype_creator = NumbersGameVectorGenotypeCreator(
@@ -80,12 +80,20 @@ function create_reproducer(config::MaxSolveConfiguration, species_id::String)
 end
 
 function create_reproducers(config::MaxSolveConfiguration)
-    learner_reproducer = create_reproducer(config, "L")
-    test_reproducer = create_reproducer(config, "T")
+    if config.task == "numbers_game"
+        learner_reproducer = create_numbers_game_reproducer(config, "L")
+        test_reproducer = create_numbers_game_reproducer(config, "T")
+    elseif config.task == "dct"
+        learner_reproducer = create_learner_dct_reproducer(config)
+        test_reproducer = create_test_dct_reproducer(config)
+    else
+        error("Invalid task: $(config.task)")
+    end
     return [learner_reproducer, test_reproducer]
 end
 
-function create_simulator(config::MaxSolveConfiguration) 
+
+function create_numbers_game_simulator(config::MaxSolveConfiguration) 
     simulator = BasicSimulator(
         interactions = [
             BasicInteraction(
@@ -98,11 +106,20 @@ function create_simulator(config::MaxSolveConfiguration)
         ],
         matchmaker = AllVersusAllMatchMaker(),
         job_creator = SimpleJobCreator(n_workers = config.n_workers),
-        performer = CachePerformer(n_workers = config.n_workers),
+        performer = BasicPerformer(n_workers = config.n_workers),
     )
     return simulator
 end
 
+function create_simulator(config::MaxSolveConfiguration) 
+    if config.task == "numbers_game"
+        simulator = create_numbers_game_simulator(config)
+    elseif config.task == "dct"
+        simulator = create_dct_simulator(config)
+    else
+        error("Invalid task: $(config.task)")
+    end
+end
 
 function create_evaluators(::MaxSolveConfiguration)
     evaluator = NullEvaluator()
@@ -111,6 +128,62 @@ end
 
 function create_archivers(config::MaxSolveConfiguration)
     return Archiver[]
+end
+
+
+#------------------------------- DCT
+using ...Environments.ElementaryCellularAutomata: ElementaryCellularAutomataEnvironmentCreator
+#using ...Environments.ECAOptimized: ElementaryCellularAutomataEnvironmentCreator
+using ...Domains.DensityClassification: DensityClassificationDomain
+using ...Selectors.Identity: IdentitySelector
+using ...Phenotypes.Vectors: CloneVectorPhenotypeCreator
+using ...Mutators.Vectors: PerBitMutator
+
+function create_dct_simulator(config::MaxSolveConfiguration) 
+    simulator = BasicSimulator(
+        interactions = [
+            BasicInteraction(
+                id = "A",
+                environment_creator = StatelessEnvironmentCreator(
+                    domain = DensityClassificationDomain()
+                ),
+                species_ids = ["L", "T"],
+            )
+        ],
+        matchmaker = AllVersusAllMatchMaker(),
+        job_creator = SimpleJobCreator(n_workers = config.n_workers),
+        performer = BasicPerformer(n_workers = config.n_workers),
+    )
+    return simulator
+end
+
+
+function create_learner_dct_reproducer(config::MaxSolveConfiguration)
+    reproducer = BasicReproducer(
+        id = "L",
+        genotype_creator = DCTRuleCreator(),
+        phenotype_creator = CloneVectorPhenotypeCreator(),
+        individual_creator = BasicIndividualCreator(),
+        species_creator = dummy_species_creator(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(),
+        mutator = PerBitMutator()
+    )
+    return reproducer
+end
+
+function create_test_dct_reproducer(config::MaxSolveConfiguration)
+    reproducer = BasicReproducer(
+        id = "T",
+        genotype_creator = DCTInitialConditionCreator(),
+        phenotype_creator = CloneVectorPhenotypeCreator(),
+        individual_creator = BasicIndividualCreator(),
+        species_creator = dummy_species_creator(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(),
+        mutator = PerBitMutator()
+    )
+    return reproducer
 end
 
 end

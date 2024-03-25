@@ -47,4 +47,19 @@ function mutate!(
         end
     end
 end
+
+export PerBitMutator, mutate!
+
+Base.@kwdef struct PerBitMutator <: Mutator
+    flip_chance::Float64 = 0.01
+end
+
+function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
+    genes = genotype.genes
+    for i in eachindex(genes)
+        if rand(state.rng) < mutator.flip_chance
+            genes[i] = 1 - genes[i]
+        end
+    end
+end
 end
