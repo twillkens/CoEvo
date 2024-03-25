@@ -7,12 +7,12 @@ using Distributed
 
 config = MaxSolveConfiguration(
     seed = abs(rand(Int)),
-    n_learner_population = 30, 
-    n_learner_children = 30, 
-    n_test_population = 30, 
-    n_test_children = 30,
+    n_learner_population = 20, 
+    n_learner_children = 20, 
+    n_test_population = 20, 
+    n_test_children = 20,
     max_learner_archive_size = 25,
-    n_generations = 500,
+    n_generations = 2000,
     n_dimensions = 3,
     min_mutation = -0.06,
     max_mutation = 0.04,

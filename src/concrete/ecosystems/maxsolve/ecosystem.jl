@@ -273,6 +273,41 @@ function update_tests(
     return new_test_population, new_test_children
 end
 
+function update_tests_no_elites(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    new_test_population = select_individuals_aggregate(
+        ecosystem, evaluation.test_score_matrix, ecosystem_creator.n_test_population
+    )
+    println("length_test_population = ", length(new_test_population))
+    I = typeof(first(new_test_population))
+
+    #n_sample_archive = min(length(ecosystem.learner_archive), 10)
+    n_sample_archive = min(length(ecosystem.test_archive), ecosystem_creator.n_test_population)
+    if n_sample_archive == 0
+        new_archive_children = I[]
+    else
+        archive_parents = sample(
+            ecosystem.test_archive, n_sample_archive, replace = true
+        )
+        new_archive_children = create_children(archive_parents, reproducer, state)
+    end
+    n_sample_population = ecosystem_creator.n_test_children + 
+                          ecosystem_creator.n_test_population - n_sample_archive
+    println("n_sample_archive = ", n_sample_archive)
+    println("n_sample_population = ", n_sample_population)
+    test_parents = sample(
+        new_test_population, n_sample_population, replace = true
+    )
+    new_test_children = create_children(test_parents, reproducer, state)
+    return I[], [new_archive_children ; new_test_children]
+    #return new_learner_population, new_learner_children
+end
+
 function update_ecosystem!(
     ecosystem::MaxSolveEcosystem, 
     ecosystem_creator::MaxSolveEcosystemCreator, 
@@ -286,7 +321,10 @@ function update_ecosystem!(
     new_learner_population, new_learner_children = update_learners_no_elites(
         reproducers[1], evaluation, ecosystem, ecosystem_creator, state
     )
-    new_test_population, new_test_children = update_tests(
+    #new_test_population, new_test_children = update_tests(
+    #    reproducers[2], evaluation, ecosystem, ecosystem_creator, state
+    #)
+    new_test_population, new_test_children = update_tests_no_elites(
         reproducers[2], evaluation, ecosystem, ecosystem_creator, state
     )
     t = time()
@@ -356,6 +394,10 @@ function evaluate(
     #learner_score_matrix = evaluate_advanced(learner_population_matrix)
 
     test_payoff_matrix = transpose_and_invert(full_payoff_matrix)
+    test_payoff_matrix = filter_rows(
+        test_payoff_matrix, 
+        [test.id for test in [ecosystem.test_population; ecosystem.test_children]]
+    )
     test_payoff_matrix.id = "T"
     test_score_matrix = evaluate_advanced(test_payoff_matrix, 3.0, 1.0)
     #test_score_matrix = evaluate_advanced(test_payoff_matrix)
