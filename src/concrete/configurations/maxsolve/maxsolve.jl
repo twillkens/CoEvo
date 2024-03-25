@@ -38,6 +38,8 @@ Base.@kwdef struct MaxSolveConfiguration <: Configuration
     max_mutation::Float64 = 0.1
     mutation_granularity::Float64 = 0.01
     task::String = "dct"
+    learner_flip_chance::Float64 = 0.02
+    test_flip_chance::Float64 = 0.05
 end
 
 function get_ecosystem_creator(config::MaxSolveConfiguration)
@@ -126,8 +128,17 @@ function create_evaluators(::MaxSolveConfiguration)
     return [evaluator]
 end
 
+include("archive.jl")
+
 function create_archivers(config::MaxSolveConfiguration)
-    return Archiver[]
+    if config.task == "numbers_game"
+        archivers = Archiver[]
+    elseif config.task == "dct"
+        archivers = [DensityClassificationArchiver()]
+    else
+        error("Invalid task: $(config.task)")
+    end
+    return archivers
 end
 
 
@@ -167,7 +178,7 @@ function create_learner_dct_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
-        mutator = PerBitMutator()
+        mutator = PerBitMutator(config.learner_flip_chance)
     )
     return reproducer
 end
@@ -181,7 +192,7 @@ function create_test_dct_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
-        mutator = PerBitMutator()
+        mutator = PerBitMutator(config.test_flip_chance)
     )
     return reproducer
 end

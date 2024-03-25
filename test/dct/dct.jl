@@ -115,7 +115,9 @@ function evolve_until_relaxed(initial_state::Vector{Int}, rule::Vector{Int}, max
     states = zeros(Int, max_generations, width)
     states[1, :] = initial_state
     rule_length = length(rule)
+    println("rule_length = ", rule_length)
     r = Int((log2(rule_length) - 1) / 2)
+    println("r = ", r)
 
     for gen in 2:max_generations
         is_uniform = true
@@ -127,7 +129,7 @@ function evolve_until_relaxed(initial_state::Vector{Int}, rule::Vector{Int}, max
                 neighbor_index = mod(i + j - 1, width) + 1
                 index = (index << 1) + states[gen - 1, neighbor_index]
             end
-            states[gen, i] = rule[rule_length - index]
+            #states[gen, i] = rule[rule_length - index]
             states[gen, i] = rule[index + 1]
             if states[gen, i] != previous_state_uniform
                 is_uniform = false

@@ -20,13 +20,15 @@ function get_majority_value(values::Vector{Int})
     sum(values) > length(values) / 2 ? 1 : 0
 end
 
-function evolve_until_relaxed(initial_state::Vector{Int}, rule::Vector{Int}, max_generations::Int)
-    try
+function evolve_until_relaxed(rule::Vector{Int}, initial_state::Vector{Int}, max_generations::Int)
+    #try
         width = length(initial_state)
         states = zeros(Int, max_generations, width)
         states[1, :] = initial_state
         rule_length = length(rule)
+        #println("rule_length = ", rule_length)
         r = Int((log2(rule_length) - 1) / 2)
+        #println("r = ", r)
 
         for gen in 2:max_generations
             is_uniform = true
@@ -50,11 +52,11 @@ function evolve_until_relaxed(initial_state::Vector{Int}, rule::Vector{Int}, max
             end
         end
         return states, false
-    catch e
-        println("initial_state = ", initial_state)
-        println("rule = ", rule)
-        throw(e)
-    end
+    #catch e
+    #    println("initial_state = ", initial_state)
+    #    println("rule = ", rule)
+    #    throw(e)
+    #end
 end
 
 function covered_improved(R::Vector{Int}, IC::Vector{Int}, M::Int)
@@ -112,7 +114,7 @@ function get_outcome_set(
     #scores = [covered_improved(rule, ic, domain.max_timesteps) for ic in variations]
     #inverted_scores = [1 - score for score in scores]
     learner_passed = covered_improved(rule, initial_condition, domain.max_timesteps)
-    return [learner_passed, 1 - learner_passed]
+    return Float64[learner_passed, 1 - learner_passed]
 end
 
 

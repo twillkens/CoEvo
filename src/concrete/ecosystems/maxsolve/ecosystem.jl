@@ -205,11 +205,11 @@ function update_learners_no_elites(
     )
     #n_sample_archive = min(length(ecosystem.learner_archive), 10)
     n_sample_archive = length(ecosystem.learner_archive)
-    n_sample_population = 20
     archive_parents = sample(
         ecosystem.learner_archive, n_sample_archive, replace = true
     )
     new_archive_children = create_children(archive_parents, reproducer, state)
+    n_sample_population = ecosystem_creator.n_learner_children + ecosystem_creator.n_learner_population - n_sample_archive
     learner_parents = sample(
         new_learner_population, n_sample_population, replace = true
     )
@@ -310,17 +310,17 @@ function update_ecosystem!(
     ecosystem.test_children = new_test_children
     ecosystem.test_archive = new_test_archive
     ecosystem.payoff_matrix = matrix
-    println("--Generation $(state.generation)--")
-    for learner in new_learner_archive
-        genes = round.(learner.genotype.genes, digits=3)
-        println("learner_$(learner.id) = $genes)")
-    end
-    println("--")
-    println("length_test_archive = ", length(new_test_archive))
-    for test in new_test_archive
-        genes = round.(test.genotype.genes, digits=3)
-        println("test_$(test.id) = $genes)")
-    end
+    #println("--Generation $(state.generation)--")
+    #for learner in new_learner_archive
+    #    genes = round.(learner.genotype.genes, digits=3)
+    #    println("learner_$(learner.id) = $genes)")
+    #end
+    #println("--")
+    #println("length_test_archive = ", length(new_test_archive))
+    #for test in new_test_archive
+    #    genes = round.(test.genotype.genes, digits=3)
+    #    println("test_$(test.id) = $genes)")
+    #end
 end
 
 
