@@ -1,15 +1,21 @@
 using CoEvo.Concrete.Configurations.MaxSolve
 using CoEvo.Concrete.States.Basic
 using CoEvo.Interfaces
+using Distributed
 
 
 
 config = MaxSolveConfiguration(
-    n_learner_population = 2, 
-    n_learner_children = 2, 
-    n_test_population = 2, 
-    n_test_children = 2,
-    max_learner_archive_size = 10,
+    n_learner_population = 20, 
+    n_learner_children = 20, 
+    n_test_population = 20, 
+    n_test_children = 20,
+    max_learner_archive_size = 25,
+    n_generations = 1000,
+    min_mutation = -0.06,
+    max_mutation = 0.04,
+    domain = "CompareOnOne",
+    n_workers = nworkers()
 )
 
 state = BasicEvolutionaryState(config)

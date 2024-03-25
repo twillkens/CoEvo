@@ -54,7 +54,7 @@ end
 
 function Base.getindex(ecosystem::MaxSolveEcosystem, individual_id::Int)
     all_individuals = get_all_individuals(ecosystem)
-    println("all_ids = ", [individual.id for individual in all_individuals])
+    #println("all_ids = ", [individual.id for individual in all_individuals])
     individual = find_by_id(all_individuals, individual_id)
     if individual === nothing
         error("individual_id = $individual_id not found in ecosystem")
@@ -126,11 +126,11 @@ function create_ecosystem(
     end
 
     learner_population, learner_children = initialize_learners(eco_creator, first(reproducers), state)
-    println("learner_pop_ids = ", [learner.id for learner in learner_population])
-    println("learner_child_ids = ", [learner.id for learner in learner_children])
+    #println("learner_pop_ids = ", [learner.id for learner in learner_population])
+    #println("learner_child_ids = ", [learner.id for learner in learner_children])
     test_population, test_children = initialize_tests(eco_creator, last(reproducers), state)
-    println("test_pop_ids = ", [test.id for test in test_population])
-    println("test_child_ids = ", [test.id for test in test_children])
+    #println("test_pop_ids = ", [test.id for test in test_population])
+    #println("test_child_ids = ", [test.id for test in test_children])
     I = typeof(first(learner_population))
     payoff_matrix = OutcomeMatrix("L", Int[], Int[], fill(false, 0, 0))
     new_ecosystem = MaxSolveEcosystem(
@@ -235,7 +235,19 @@ function update_ecosystem!(
     ecosystem.test_children = new_test_children
     ecosystem.test_archive = new_test_archive
     ecosystem.payoff_matrix = matrix
+    println("--Generation $(state.generation)--")
+    for learner in new_learner_archive
+        genes = round.(learner.genotype.genes, digits=3)
+        println("learner_$(learner.id) = $genes)")
+    end
+    println("--")
+    println("length_test_archive = ", length(new_test_archive))
+    for test in new_test_archive
+        genes = round.(test.genotype.genes, digits=3)
+        println("test_$(test.id) = $genes)")
+    end
 end
+
 
 function create_performance_matrix(species_id::String, outcomes::Vector{<:Result})
     filtered_outcomes = filter(x -> x.species_id == species_id, outcomes)

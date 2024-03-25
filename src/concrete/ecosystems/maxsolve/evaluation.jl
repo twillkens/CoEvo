@@ -46,7 +46,7 @@ function zero_out_duplicate_rows(matrix::OutcomeMatrix{T, U, V, W}) where {T, U,
         end
     end
     ids_to_keep = Set(rand(ids) for ids in values(unique_rows))
-    println("IDs to keep = ", ids_to_keep)
+    #println("IDs to keep = ", ids_to_keep)
     for id in matrix.row_ids
         if !(id in ids_to_keep)
             for column_id in matrix.column_ids
@@ -63,20 +63,20 @@ function evaluate_advanced(
     outcome_weight::Float64 = 3.0,
     distinction_weight::Float64 = 1.0
 ) where {T, U, V, W}
-    println("-----")
-    println("Matrix = ", matrix)
+    #println("-----")
+    #println("Matrix = ", matrix)
     matrix = zero_out_duplicate_rows(matrix)
-    println("Zeroed out duplicate rows = ", matrix)
+    #println("Zeroed out duplicate rows = ", matrix)
     competitive_matrix = perform_competitive_fitness_sharing(matrix)
-    println("Competitive matrix = ", competitive_matrix)
+    #println("Competitive matrix = ", competitive_matrix)
     sum_competitive_matrix = make_sum_scalar_matrix(competitive_matrix)
-    println("Sum competitive matrix = ", sum_competitive_matrix)
+    #println("Sum competitive matrix = ", sum_competitive_matrix)
     distinction_matrix = make_full_distinction_matrix(matrix)
-    println("Distinction matrix = ", distinction_matrix)
+    #println("Distinction matrix = ", distinction_matrix)
     competitive_distinction_matrix = perform_competitive_fitness_sharing(distinction_matrix)
-    println("Competitive distinction matrix = ", competitive_distinction_matrix)
+    #println("Competitive distinction matrix = ", competitive_distinction_matrix)
     sum_competitive_distinction_matrix = make_sum_scalar_matrix(competitive_distinction_matrix)
-    println("Sum competitive distinction matrix = ", sum_competitive_distinction_matrix)
+    #println("Sum competitive distinction matrix = ", sum_competitive_distinction_matrix)
     scores = Pair{U, Float64}[]
     advanced_matrix = OutcomeMatrix{Float64}(matrix.id, matrix.row_ids, ["advanced_score"])
     for id in matrix.row_ids

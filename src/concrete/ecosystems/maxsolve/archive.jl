@@ -18,7 +18,7 @@ function maxsolve(matrix::OutcomeMatrix{T, U, V, W}, archive_size::Int) where {T
     n_pick = min(archive_size, length(number_solved))
     number_solved = sort(collect(number_solved), by=x->x[2], rev=true)[1:n_pick]
     matrix = filter_rows(matrix, [x[1] for x in number_solved])
-    println("filtered_matrix_maxsolve = ", matrix)
+    #println("filtered_matrix_maxsolve = ", matrix)
     tests_to_check = V[]
     for test_id in matrix.column_ids
         for learner_id in matrix.row_ids
@@ -28,15 +28,15 @@ function maxsolve(matrix::OutcomeMatrix{T, U, V, W}, archive_size::Int) where {T
             end
         end
     end
-    println("tests_to_check = ", tests_to_check)
+    #println("tests_to_check = ", tests_to_check)
     selected_tests = V[]
     while length(tests_to_check) > 0
         test_id = pop!(tests_to_check)
-        println("-----")
-        println("matrix[:, $test_id] = ", matrix[:, test_id])
+        #println("-----")
+        #println("matrix[:, $test_id] = ", matrix[:, test_id])
         test_is_redundant = false
         for other_test_id in tests_to_check
-            println("matrix[:, $other_test_id] = ", matrix[:, other_test_id])
+            #println("matrix[:, $other_test_id] = ", matrix[:, other_test_id])
             if matrix[:, test_id] == matrix[:, other_test_id]
                 test_is_redundant = true
                 break
