@@ -18,7 +18,9 @@ config = MaxSolveConfiguration(
     max_mutation = 0.04,
     domain = "CompareOnOne",
     n_workers = nworkers(),
-    task = "dct"
+    task = "dct",
+    learner_flip_chance = 0.01,
+    test_flip_chance = 0.01
 )
 
 state = BasicEvolutionaryState(config)

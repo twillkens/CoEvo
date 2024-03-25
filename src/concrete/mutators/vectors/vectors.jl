@@ -49,17 +49,40 @@ function mutate!(
 end
 
 export PerBitMutator, mutate!
+using Distributions
 
 Base.@kwdef struct PerBitMutator <: Mutator
     flip_chance::Float64 = 0.01
+    flip_window::Int = 10
+end
+
+function get_exponential_window_size(max_size::Int, rng::AbstractRNG)
+    # Define the scale of the distribution to better fit the desired window size range
+    scale_factor = max_size / 5  # Adjust the scale factor to control distribution spread
+    
+    # Create an exponential distribution with mean = scale_factor
+    exp_dist = Exponential(scale_factor)
+    
+    while true
+        # Generate a window size from the exponential distribution
+        window_size = round(Int, rand(rng, exp_dist))
+        
+        # If the window size is within the valid range, return it
+        if 1 <= window_size <= max_size
+            return window_size
+        end
+        # Otherwise, regenerate the window size
+    end
 end
 
 function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
     genes = genotype.genes
     for i in eachindex(genes)
-        if rand(state.rng) < mutator.flip_chance
+        flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
+        if rand(state.rng) < flip_chance
             genes[i] = 1 - genes[i]
         end
     end
 end
+
 end

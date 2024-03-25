@@ -350,6 +350,12 @@ function update_ecosystem!(
     ecosystem.test_children = new_test_children
     ecosystem.test_archive = new_test_archive
     ecosystem.payoff_matrix = matrix
+    println("length_learner_population = ", length(new_learner_population))
+    println("length_learner_children = ", length(new_learner_children))
+    println("length_learner_archive = ", length(new_learner_archive))
+    println("length_test_population = ", length(new_test_population))
+    println("length_test_children = ", length(new_test_children))
+    println("length_test_archive = ", length(new_test_archive))
     #println("--Generation $(state.generation)--")
     #for learner in new_learner_archive
     #    genes = round.(learner.genotype.genes, digits=3)

@@ -179,7 +179,7 @@ function create_learner_dct_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = NPointCrossoverRecombiner(n_points = 1),
-        mutator = PerBitMutator(config.learner_flip_chance)
+        mutator = PerBitMutator(flip_chance = config.learner_flip_chance)
     )
     return reproducer
 end
@@ -193,7 +193,7 @@ function create_test_dct_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = NPointCrossoverRecombiner(n_points = 1),
-        mutator = PerBitMutator(config.test_flip_chance)
+        mutator = PerBitMutator(flip_chance = config.test_flip_chance)
     )
     return reproducer
 end
