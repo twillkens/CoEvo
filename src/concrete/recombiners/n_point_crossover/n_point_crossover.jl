@@ -57,89 +57,141 @@ function perform_crossover(genes1::Vector, genes2::Vector, points::Vector{Int})
     return [child_genes1, child_genes2]
 end
 
-function create_child(child_genes::Vector, parents::Vector{<:DodoIndividual}, state::State)
-    id = step!(state.individual_id_counter)
-    child = DodoIndividual(
-        id = id, 
-        parent_ids = [parent.id for parent in parents],
-        age = 0,
-        temperature = 1,
-        genotype = BasicVectorGenotype(child_genes), 
-        phenotype = BasicVectorPhenotype(id, child_genes)
-    )
-    return child
-end
+
+using ...Recombiners.Clone: CloneRecombiner
 
 function create_children(
-    all_child_genes::Vector{T}, parents::Vector{<:DodoIndividual}, state::State
-) where T
-    children = [create_child(child_genes, parents, state) for child_genes in all_child_genes]
-    return children
-end
-
-function recombine(
-    recombiner::NPointCrossoverRecombiner, parents::Vector{<:Individual}, state::State
+    recombiner::NPointCrossoverRecombiner, 
+    mutator::Mutator, 
+    phenotype_creator::PhenotypeCreator, 
+    parents::Vector{<:Individual}, 
+    state::State
 )
+    parents = [deepcopy(parent) for parent in parents]
     if length(parents) == 2
         genes1, genes2 = extract_genes(parents)
         points = generate_crossover_points(recombiner.n_points, length(genes1))
-        child_genes = perform_crossover(genes1, genes2, points)
-        children = create_children(child_genes, parents, state)
+        child_genes_1, child_genes_2 = perform_crossover(genes1, genes2, points)
+        parents[1].genotype = BasicVectorGenotype(child_genes_1)
+        parents[2].genotype = BasicVectorGenotype(child_genes_2)
+        children = recombine(CloneRecombiner(), mutator, phenotype_creator, parents, state)
     else
         error("N-point crossover only supports 1 or 2 parents")
     end
     return children
 end
 
-function recombine(
-    recombiner::NPointCrossoverRecombiner, mutator::Mutator, selection::Selection, state::State
-)
-    parents = [deepcopy(record.individual) for record in selection.records]
-    #for parent in parents
-    #    n_mutations = rand(state.rng, 1:parent.temperature)
-    #    for _ in 1:n_mutations
-    #        mutate!(mutator, parent.genotype, state)
-    #    end
-    #end
-    children = recombine(recombiner, parents, state)
 
-    for child in children
-        if recombiner.use_age
-            parent_ages = [parent.age for parent in parents]
-            max_age = maximum(parent_ages)
-            n_mutations = rand(state.rng, 1:max_age)
-            for _ in 1:n_mutations
-                mutate!(mutator, child.genotype, state)
-            end
-        else
-            mutate!(mutator, child.genotype, state)
-        end
+using StatsBase
+
+function recombine(
+    recombiner::NPointCrossoverRecombiner, 
+    mutator::Mutator, 
+    phenotype_creator::PhenotypeCreator,
+    all_parents::Vector{I},
+    state::State
+) where I <: BasicIndividual
+    all_children = I[]
+    for _ in 1:div(length(all_parents), 2)
+        parents = sample(all_parents, 2, replace=false)
+        children = create_children(recombiner, mutator, phenotype_creator, parents, state)
+        append!(all_children, children)
     end
-    return children
-end
-
-function recombine(
-    recombiner::NPointCrossoverRecombiner, 
-    mutator::Mutator, 
-    selections::Vector{<:Selection}, 
-    state::State
-)
-    children = [recombine(recombiner, mutator, selection, state) for selection in selections]
-    children = vcat(children...)
-    return children
-end
-
-using ...Selectors.Selections: BasicSelection
-
-function recombine(
-    recombiner::NPointCrossoverRecombiner, 
-    mutator::Mutator, 
-    all_parents::Vector,
-    state::State
-)
-    selections = [BasicSelection(parents) for parents in all_parents]
-    children = recombine(recombiner, mutator, selections, state)
-    return children
+    return all_children
 end
 
 end
+#function recombine(
+#    recombiner::NPointCrossoverRecombiner, mutator::Mutator, selection::Selection, state::State
+#)
+#    parents = [deepcopy(record.individual) for record in selection.records]
+#    #for parent in parents
+#    #    n_mutations = rand(state.rng, 1:parent.temperature)
+#    #    for _ in 1:n_mutations
+#    #        mutate!(mutator, parent.genotype, state)
+#    #    end
+#    #end
+#    children = recombine(recombiner, parents, state)
+#
+#    for child in children
+#        if recombiner.use_age
+#            parent_ages = [parent.age for parent in parents]
+#            max_age = maximum(parent_ages)
+#            n_mutations = rand(state.rng, 1:max_age)
+#            for _ in 1:n_mutations
+#                mutate!(mutator, child.genotype, state)
+#            end
+#        else
+#            mutate!(mutator, child.genotype, state)
+#        end
+#    end
+#    return children
+#end
+#function recombine(
+#    recombiner::NPointCrossoverRecombiner, mutator::Mutator, selection::Selection, state::State
+#)
+#    parents = [deepcopy(record.individual) for record in selection.records]
+#    #for parent in parents
+#    #    n_mutations = rand(state.rng, 1:parent.temperature)
+#    #    for _ in 1:n_mutations
+#    #        mutate!(mutator, parent.genotype, state)
+#    #    end
+#    #end
+#    children = recombine(recombiner, parents, state)
+#
+#    for child in children
+#        if recombiner.use_age
+#            parent_ages = [parent.age for parent in parents]
+#            max_age = maximum(parent_ages)
+#            n_mutations = rand(state.rng, 1:max_age)
+#            for _ in 1:n_mutations
+#                mutate!(mutator, child.genotype, state)
+#            end
+#        else
+#            mutate!(mutator, child.genotype, state)
+#        end
+#    end
+#    return children
+#end
+#function recombine(
+#    recombiner::NPointCrossoverRecombiner, 
+#    mutator::Mutator, 
+#    selections::Vector{<:Selection}, 
+#    state::State
+#)
+#    children = [recombine(recombiner, mutator, selection, state) for selection in selections]
+#    children = vcat(children...)
+#    return children
+#end
+#
+#using ...Selectors.Selections: BasicSelection
+#
+#function recombine(
+#    recombiner::NPointCrossoverRecombiner, 
+#    mutator::Mutator, 
+#    all_parents::Vector,
+#    state::State
+#)
+#    selections = [BasicSelection(parents) for parents in all_parents]
+#    children = recombine(recombiner, mutator, selections, state)
+#    return children
+#end
+#function create_child(child_genes::Vector, parents::Vector{<:DodoIndividual}, state::State)
+#    id = step!(state.individual_id_counter)
+#    child = DodoIndividual(
+#        id = id, 
+#        parent_ids = [parent.id for parent in parents],
+#        age = 0,
+#        temperature = 1,
+#        genotype = BasicVectorGenotype(child_genes), 
+#        phenotype = BasicVectorPhenotype(id, child_genes)
+#    )
+#    return child
+#end
+#
+#function create_children(
+#    all_child_genes::Vector{T}, parents::Vector{<:DodoIndividual}, state::State
+#) where T
+#    children = [create_child(child_genes, parents, state) for child_genes in all_child_genes]
+#    return children
+#end
