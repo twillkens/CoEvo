@@ -289,9 +289,11 @@ function update_ecosystem!(
     new_test_population, new_test_children = update_tests(
         reproducers[2], evaluation, ecosystem, ecosystem_creator, state
     )
+    t = time()
     maxsolve_matrix = maxsolve(
         evaluation.full_payoff_matrix, ecosystem_creator.max_learner_archive_size
     )
+    println("maxsolve time = ", time() - t)
     new_learner_archive = [ecosystem[learner_id] for learner_id in maxsolve_matrix.row_ids]
 
     new_test_archive = [ecosystem[test_id] for test_id in maxsolve_matrix.column_ids]
@@ -342,6 +344,7 @@ function evaluate(
     results::Vector{<:Result}, 
     state::State
 )
+    t = time()
     outcomes = vcat([get_individual_outcomes(result) for result in results]...)
     new_payoff_matrix = create_performance_matrix("L", outcomes)
     full_payoff_matrix = merge_matrices(ecosystem.payoff_matrix, new_payoff_matrix)
@@ -363,5 +366,6 @@ function evaluate(
         learner_score_matrix,
         test_score_matrix
     )
+    println("evaluation time = ", time() - t)
     return [evaluation]
 end

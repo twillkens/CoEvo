@@ -83,8 +83,11 @@ import ....Interfaces: archive!
 function archive!(::DensityClassificationArchiver, state::State)
     #all_data = DataFrame()
     println("\n\n------------GENERATION $(state.generation)------------")
+    println("reproduction_time = ", state.timers.reproduction_time)
+    println("simulation_time = ", state.timers.simulation_time)
+    println("evaluation_time = ", state.timers.evaluation_time)
     if state.generation > 1 && state.generation % 10 == 0
-        elite_rule = last(state.ecosystem.learner_archive).genotype.genes
+        elite_rule = first(state.ecosystem.learner_archive).genotype.genes
         ics = generate_unbiased_ICs(149, 2500)
         results = [covered(elite_rule, ic, 320) for ic in ics]
         println("SCORE: ", mean(results))

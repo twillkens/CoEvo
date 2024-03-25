@@ -27,6 +27,7 @@ end
 
 function perform(performer::BasicPerformer, jobs::Vector{<:SimpleJob})
     try
+        println("length(jobs) = ", length(jobs))
         if length(jobs) == 1
             results = perform(performer, jobs[1])
         else
