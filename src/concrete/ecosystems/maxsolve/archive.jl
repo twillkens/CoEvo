@@ -47,6 +47,9 @@ function maxsolve(matrix::OutcomeMatrix{T, U, V, W}, archive_size::Int) where {T
             push!(selected_tests, test_id)
         end
     end
+    if length(selected_tests) == 0
+        return matrix
+    end
     matrix = filter_columns(matrix, selected_tests)
     return matrix
 end

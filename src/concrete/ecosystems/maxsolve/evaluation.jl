@@ -13,21 +13,18 @@ function make_sum_scalar_matrix(matrix::OutcomeMatrix)
 end
 
 function perform_competitive_fitness_sharing(matrix::OutcomeMatrix)
+    # Calculate the sum of each column and then take the inverse
+    test_defeats_inverses = 1.0 ./ sum(matrix.data, dims=1)
+
+    # Create a new OutcomeMatrix with the same dimensions
     new_matrix = OutcomeMatrix{Float64}(matrix.id, matrix.row_ids, matrix.column_ids)
-    test_defeats = Dict(id => sum(matrix[:, id]) for id in matrix.column_ids)  # Initialize scores for each learner
-    
-    for i in matrix.row_ids
-        for j in matrix.column_ids
-            outcome = matrix[i, j]
-            if outcome == 0
-                new_matrix[i, j] = 0
-            else
-                new_matrix[i, j] = matrix[i, j] / test_defeats[j]
-            end
-        end
-    end
+
+    # Use broadcasting to divide each column element by the corresponding test defeat sum
+    new_matrix.data = matrix.data .* test_defeats_inverses
+
     return new_matrix
 end
+
 
 function evaluate_standard(matrix::OutcomeMatrix)
     scalar_matrix = make_sum_scalar_matrix(matrix)
