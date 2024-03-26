@@ -298,7 +298,7 @@ function update_tests_no_elites(
         )
         new_archive_children = create_children(archive_parents, reproducer, state)
     end
-    n_sample_retirees = min(length(ecosystem.test_archive), 50)
+    n_sample_retirees = min(length(ecosystem.test_archive), 100)
     if n_sample_retirees > 0
         sampled_retirees = sample(
             ecosystem.test_archive, n_sample_retirees, replace = true
@@ -311,6 +311,7 @@ function update_tests_no_elites(
                           ecosystem_creator.n_test_population - n_sample_archive
     println("n_sample_archive = ", n_sample_archive)
     println("n_sample_population = ", n_sample_population)
+    println("n_sample_retirees = ", n_sample_retirees)
     test_parents = sample(
         new_test_population, n_sample_population, replace = true
     )
@@ -366,7 +367,6 @@ function update_ecosystem!(
     ecosystem.test_population = new_test_population
     ecosystem.test_children = new_test_children
     ecosystem.test_archive = new_test_archive
-    append!(ecosystem.retired_tests, retired_tests)
     ecosystem.payoff_matrix = matrix
     println("length_learner_population = ", length(new_learner_population))
     println("length_learner_children = ", length(new_learner_children))
@@ -374,7 +374,7 @@ function update_ecosystem!(
     println("length_test_population = ", length(new_test_population))
     println("length_test_children = ", length(new_test_children))
     println("length_test_archive = ", length(new_test_archive))
-    println("length_test_retirees = ", length(retired_tests))
+    println("length_test_retirees = ", length(ecosystem.retired_tests))
     #println("--Generation $(state.generation)--\n")
     #for learner in new_learner_archive
     #    genes = round.(learner.genotype.genes, digits=3)
