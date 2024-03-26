@@ -17,6 +17,7 @@ function maxsolve(matrix::OutcomeMatrix{T, U, V, W}, archive_size::Int) where {T
     end
     n_pick = min(archive_size, length(number_solved))
     number_solved = sort(collect(number_solved), by=x->x[2], rev=true)[1:n_pick]
+    println("number_solved = ", number_solved, " out of ", length(matrix.column_ids))
     matrix = filter_rows(matrix, [x[1] for x in number_solved])
     #println("filtered_matrix_maxsolve = ", matrix)
     tests_to_check = V[]

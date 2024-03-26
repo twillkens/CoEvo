@@ -102,7 +102,9 @@ function archive!(::DensityClassificationArchiver, state::State)
         println("FITNESS: ", elite_fitness)
         println("SCORE: ", mean(results))
         println("rule =", elite_rule)
-	flush(stdout)
+        flush(stdout)
+        ms = sort(round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_archive], digits = 3))
+        println("average_test_genotype_val = ", ms)
     end
 end
 

@@ -17,6 +17,7 @@ Base.@kwdef mutable struct MaxSolveEcosystem{I <: Individual, M <: OutcomeMatrix
     test_population::Vector{I}
     test_children::Vector{I}
     test_archive::Vector{I}
+    retired_tests::Vector{I}
     payoff_matrix::M
 end
 
@@ -141,6 +142,7 @@ function create_ecosystem(
         test_population = test_population, 
         test_children = test_children, 
         test_archive = I[], 
+        retired_tests = I[],
         payoff_matrix = payoff_matrix
     )
     return new_ecosystem
@@ -296,6 +298,15 @@ function update_tests_no_elites(
         )
         new_archive_children = create_children(archive_parents, reproducer, state)
     end
+    n_sample_retirees = min(length(ecosystem.test_archive), 50)
+    if n_sample_retirees > 0
+        sampled_retirees = sample(
+            ecosystem.test_archive, n_sample_retirees, replace = true
+        )
+        retiree_children = create_children(sampled_retirees, reproducer, state)
+        append!(new_archive_children, retiree_children)
+    end
+    
     n_sample_population = ecosystem_creator.n_test_children + 
                           ecosystem_creator.n_test_population - n_sample_archive
     println("n_sample_archive = ", n_sample_archive)
@@ -303,6 +314,7 @@ function update_tests_no_elites(
     test_parents = sample(
         new_test_population, n_sample_population, replace = true
     )
+
     new_test_children = create_children(test_parents, reproducer, state)
     return I[], [new_archive_children ; new_test_children]
     #return new_learner_population, new_learner_children
@@ -335,6 +347,11 @@ function update_ecosystem!(
     new_learner_archive = [ecosystem[learner_id] for learner_id in maxsolve_matrix.row_ids]
 
     new_test_archive = [ecosystem[test_id] for test_id in maxsolve_matrix.column_ids]
+    retired_tests = [test for test in ecosystem.test_archive if test.id ∉ maxsolve_matrix.column_ids]
+    append!(ecosystem.retired_tests, retired_tests)
+    while length(ecosystem.retired_tests) > 1000
+        popfirst!(ecosystem.retired_tests)
+    end
     matrix = filter_rows(
         evaluation.full_payoff_matrix, 
         [learner.id for learner in [new_learner_population ; new_learner_archive]]
@@ -349,6 +366,7 @@ function update_ecosystem!(
     ecosystem.test_population = new_test_population
     ecosystem.test_children = new_test_children
     ecosystem.test_archive = new_test_archive
+    append!(ecosystem.retired_tests, retired_tests)
     ecosystem.payoff_matrix = matrix
     println("length_learner_population = ", length(new_learner_population))
     println("length_learner_children = ", length(new_learner_children))
@@ -356,17 +374,19 @@ function update_ecosystem!(
     println("length_test_population = ", length(new_test_population))
     println("length_test_children = ", length(new_test_children))
     println("length_test_archive = ", length(new_test_archive))
-    #println("--Generation $(state.generation)--")
+    println("length_test_retirees = ", length(retired_tests))
+    #println("--Generation $(state.generation)--\n")
     #for learner in new_learner_archive
     #    genes = round.(learner.genotype.genes, digits=3)
-    #    println("learner_$(learner.id) = $genes)")
+    #    print("learner_$(learner.id) = $genes, ")
     #end
     #println("--")
-    #println("length_test_archive = ", length(new_test_archive))
+    #println("length_test_archive = ", length(new_test_archive), "\n")
     #for test in new_test_archive
     #    genes = round.(test.genotype.genes, digits=3)
-    #    println("test_$(test.id) = $genes)")
+    #    print("test_$(test.id) = $genes, ")
     #end
+    #println()
 end
 
 
@@ -396,7 +416,7 @@ function evaluate(
         full_payoff_matrix, 
         [learner.id for learner in [ecosystem.learner_population; ecosystem.learner_children]]
     )   
-    learner_score_matrix = evaluate_advanced(learner_population_matrix, 1.0, 0.0)
+    learner_score_matrix = evaluate_advanced(learner_population_matrix, 3.0, 1.0)
     #learner_score_matrix = evaluate_advanced(learner_population_matrix)
 
     test_payoff_matrix = transpose_and_invert(full_payoff_matrix)
