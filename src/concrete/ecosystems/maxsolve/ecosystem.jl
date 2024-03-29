@@ -169,6 +169,24 @@ function select_individuals_aggregate(
     return selected_indivduals
 end
 
+using ...Selectors.FitnessProportionate
+function roulette(rng::AbstractRNG, n_spins::Int, fitnesses::Vector{<:Real})
+    if any(fitnesses .<= 0)
+        throw(ArgumentError("Fitness values must be strictly positive for FitnessProportionateSelector."))
+    end
+    probabilities = fitnesses ./ sum(fitnesses)
+    cumulative_probabilities = cumsum(probabilities)
+    winner_indices = Array{Int}(undef, n_spins)
+    spins = rand(rng, n_spins)
+    for (i, spin) in enumerate(spins)
+        candidate_index = 1
+        while cumulative_probabilities[candidate_index] < spin
+            candidate_index += 1
+        end
+        winner_indices[i] = candidate_index
+    end
+    return winner_indices
+end
 function update_learners(
     reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,
@@ -182,13 +200,21 @@ function update_learners(
     #n_sample_archive = min(length(ecosystem.learner_archive), 10)
     #n_sample_population = 40 - n_sample_archive # ecosystem_creator.n_learner_children
     n_sample_population = ecosystem_creator.n_learner_children
+    id_scores = [
+        learner => sum(evaluation.learner_score_matrix[learner.id, :]) 
+        for learner in new_learner_population
+    ]
+    println("id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    indices = roulette(state.rng, n_sample_population, [id_score[2] + 0.00001 for id_score in id_scores] )
+    println("indices = ", indices)
+    learner_parents = [first(id_score) for id_score in id_scores[indices]]
     #archive_parents = sample(
     #    ecosystem.learner_archive, n_sample_archive, replace = true
     #)
     #new_archive_children = create_children(archive_parents, reproducer, state)
-    learner_parents = sample(
-        new_learner_population, n_sample_population, replace = true
-    )
+    #learner_parents = sample(
+    #    new_learner_population, n_sample_population, replace = true
+    #)
     new_learner_children = create_children(learner_parents, reproducer, state)
     #I = typeof(first(new_learner_population))
     #return I[], [new_archive_children ; new_learner_children]
@@ -444,7 +470,7 @@ function evaluate(
         full_payoff_matrix, 
         [learner.id for learner in [ecosystem.learner_population; ecosystem.learner_children]]
     )   
-    learner_score_matrix = evaluate_advanced(learner_population_matrix, 3.0, 1.0)
+    learner_score_matrix = evaluate_advanced(learner_population_matrix, 1.0, 0.0)
     #learner_score_matrix = evaluate_advanced(learner_population_matrix)
 
     test_payoff_matrix = transpose_and_invert(full_payoff_matrix)

@@ -26,6 +26,7 @@ function archive!(::DensityClassificationArchiver, state::State)
     if state.generation > 1 && state.generation % 2 == 0
         println("---------")
         all_tests = [state.ecosystem.test_archive ; state.ecosystem.test_population ; state.ecosystem.test_children]
+        all_tests = state.ecosystem.test_archive
         elite_fitness = -1
         elite_rule = nothing
         #for learner in [state.ecosystem.learner_population ; state.ecosystem.learner_children]
@@ -51,7 +52,7 @@ function archive!(::DensityClassificationArchiver, state::State)
         #elite_rule = first(state.ecosystem.learner_archive).genotype.genes
         ics = generate_unbiased_ICs(149, 2500)
         results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
-        println("SCORE vs RANDOM: ", mean(results))
+        println("\n#*****SCORE vs RANDOM*****\n: ", mean(results))
         flush(stdout)
         ms = sort(round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_archive], digits = 3))
         println("average_test_genotype_val = ", ms)

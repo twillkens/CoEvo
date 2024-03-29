@@ -77,8 +77,8 @@ end
 
 function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
     genes = genotype.genes
+    flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
     for i in eachindex(genes)
-        flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
         if rand(state.rng) < flip_chance
             genes[i] = 1 - genes[i]
         end
