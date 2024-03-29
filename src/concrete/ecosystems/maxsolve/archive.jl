@@ -53,7 +53,7 @@ function maxsolve(matrix::OutcomeMatrix{T, U, V, W}, archive_size::Int) where {T
     end
     println("selected_tests = ", length(selected_tests))
     if length(selected_tests) == 0
-        return matrix
+        push!(selected_tests, matrix.column_ids[1])
     end
     matrix = filter_columns(matrix, selected_tests)
     println("filtered_matrix_maxsolve = ", size(matrix.data))

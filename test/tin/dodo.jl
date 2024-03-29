@@ -4,13 +4,15 @@ using CoEvo.Interfaces
 using Distributed
 
 
+N_POP = 20
+N_ARCHIVE = 10
 
 config = MaxSolveConfiguration(
     seed = abs(rand(Int)),
-    n_learner_population = 20, 
-    n_learner_children = 20, 
-    n_test_population = 20, 
-    n_test_children = 20,
+    n_learner_population = N_POP, 
+    n_learner_children = N_POP, 
+    n_test_population = N_POP, 
+    n_test_children = N_POP,
     max_learner_archive_size = 20,
     n_generations = 2000,
     n_dimensions = 3,
