@@ -1,21 +1,4 @@
 
-module DensityClassification
-
-export DensityClassificationDomain, Covers, covered_improved, evolve_until_relaxed, get_majority_value
-
-import ....Interfaces: measure, get_outcome_set
-
-using Base: @kwdef
-using ....Abstract: Metric, Domain
-
-# Assuming ElementaryCellularAutomataDomain and related phenotype definitions are properly defined elsewhere
-struct Covers <: Metric end
-
-Base.@kwdef struct DensityClassificationDomain{M <: Metric} <: Domain{M}
-    outcome_metric::M = Covers()
-    max_timesteps::Int = 320
-end
-
 function get_majority_value(values::Vector{Int})
     sum(values) > length(values) / 2 ? 1 : 0
 end
@@ -57,20 +40,4 @@ function covered_improved(R::Vector{Int}, IC::Vector{Int}, M::Int)
     else
         return false
     end
-end
-
-
-function get_outcome_set(
-    domain::DensityClassificationDomain{Covers},
-    rule::Vector{<:Real},
-    initial_condition::Vector{<:Real}
-)
-    #variations = generate_variations(initial_condition)
-    #scores = [covered_improved(rule, ic, domain.max_timesteps) for ic in variations]
-    #inverted_scores = [1 - score for score in scores]
-    learner_passed = covered_improved(rule, initial_condition, domain.max_timesteps)
-    return Float64[learner_passed, 1 - learner_passed]
-end
-
-
 end

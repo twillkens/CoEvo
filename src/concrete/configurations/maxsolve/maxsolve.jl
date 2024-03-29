@@ -149,6 +149,7 @@ using ...Domains.DensityClassification: DensityClassificationDomain
 using ...Selectors.Identity: IdentitySelector
 using ...Phenotypes.Vectors: CloneVectorPhenotypeCreator
 using ...Mutators.Vectors: PerBitMutator
+using ...Performers.Cache: CachePerformer
 
 function create_dct_simulator(config::MaxSolveConfiguration) 
     simulator = BasicSimulator(
@@ -163,7 +164,7 @@ function create_dct_simulator(config::MaxSolveConfiguration)
         ],
         matchmaker = AllVersusAllMatchMaker(),
         job_creator = SimpleJobCreator(n_workers = config.n_workers),
-        performer = BasicPerformer(n_workers = config.n_workers),
+        performer = CachePerformer(n_workers = config.n_workers),
     )
     return simulator
 end

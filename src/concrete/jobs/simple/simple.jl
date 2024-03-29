@@ -49,15 +49,15 @@ function make_all_matches(
     all_tests = [
         ecosystem.test_population ; ecosystem.test_children ; ecosystem.test_archive
     ]
-    all_test_ids = unique([child.id for child in all_tests])
+    all_test_ids = unique([test.id for test in all_tests])
     matches = BasicMatch[]
     matrix = ecosystem.payoff_matrix
     for learner_id in all_learner_ids
         for test_id in all_test_ids
-            if !(learner_id in matrix.row_ids) || !(test_id in matrix.column_ids)
+            #if !(learner_id in matrix.row_ids) || !(test_id in matrix.column_ids)
                 match = BasicMatch("A", (learner_id, test_id), ("L", "T"))
                 push!(matches, match)
-            end
+            #end
         end
     end
     #println("matches = ", [match.individual_ids for match in matches])

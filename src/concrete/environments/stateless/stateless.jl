@@ -73,7 +73,7 @@ function get_outcome_set(
     # Assuming the phenotype's `act!` method returns a tuple of (initial configuration, rule)
     rule = act!(environment.entity_1)
     ic = act!(environment.entity_2)
-    outcome_set = get_outcome_set(environment.domain, ic, rule)
+    outcome_set = get_outcome_set(environment.domain, rule, ic)
     return outcome_set
 end
 

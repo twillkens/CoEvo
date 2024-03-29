@@ -97,10 +97,15 @@ end
 
 
 function next_generation!(state::BasicEvolutionaryState)
+    println("------ Generation: ", state.generation, " ------")
     state.generation += 1
+    println("\nUpdating ecosystem")
     update_ecosystem!(state)
+    println("\nPerforming simulation")
     perform_simulation!(state)
+    println("\nPerforming evaluations")
     perform_evaluations!(state)
+    println("\nArchiving")
     archive!(state)
 end
 

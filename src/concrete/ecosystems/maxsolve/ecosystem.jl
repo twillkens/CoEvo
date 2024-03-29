@@ -163,7 +163,7 @@ function select_individuals_aggregate(
     ecosystem::MaxSolveEcosystem, score_matrix::OutcomeMatrix, n::Int
 )
     id_scores = [id => sum(score_matrix[id, :]) for id in score_matrix.row_ids]
-    sort!(id_scores, by=x->x[2], rev=true)
+    sort!(id_scores, by=x-> (x[2], rand()), rev=true)
     selected_ids = [first(id_score) for id_score in id_scores[1:n]]
     selected_indivduals = [ecosystem[id] for id in selected_ids]
     return selected_indivduals
@@ -269,8 +269,22 @@ function update_tests(
         ecosystem, evaluation.test_score_matrix, ecosystem_creator.n_test_population
     )
     test_parents = sample(
-        new_test_population, ecosystem_creator.n_test_children, replace = true
+        [new_test_population ; ecosystem.test_archive; ecosystem.retired_tests], ecosystem_creator.n_test_children, replace = true
     )
+    random_parents = sample(
+        [new_test_population ; ecosystem.test_archive], ecosystem_creator.n_test_children, replace = true
+    )
+    for parent in random_parents
+        for i in eachindex(parent.genotype.genes)
+            parent.genotype.genes[i] = rand(0:1)
+        end
+    end
+    append!(test_parents, random_parents)
+    #n_sample_archive = min(length(ecosystem.test_archive), 20)
+    #archive_parents = sample(
+    #    ecosystem.test_archive, n_sample_archive, replace = true
+    #)
+    #append!(test_parents, archive_parents)
     new_test_children = create_children(test_parents, reproducer, state)
     return new_test_population, new_test_children
 end
@@ -326,55 +340,52 @@ function update_ecosystem!(
     ecosystem_creator::MaxSolveEcosystemCreator, 
     state::State
 )
+    println("------UPDATE ECOSYSTEM: GENERATION: $(state.generation) ------")
     reproducers = state.reproducers
     evaluation = first(state.evaluations)
-    #new_learner_population, new_learner_children = update_learners(
-    #    reproducers[1], evaluation, ecosystem, ecosystem_creator, state
-    #)
-    new_learner_population, new_learner_children = update_learners_no_elites(
+    if ecosystem_creator.max_learner_archive_size > 0
+        t = time()
+
+        maxsolve_matrix = maxsolve(
+            evaluation.full_payoff_matrix, ecosystem_creator.max_learner_archive_size
+        )
+        println("maxsolve time = ", time() - t)
+        new_learner_archive = [ecosystem[learner_id] for learner_id in maxsolve_matrix.row_ids]
+
+        new_test_archive = [ecosystem[test_id] for test_id in maxsolve_matrix.column_ids]
+        retired_tests = [test for test in ecosystem.test_archive if test.id ∉ maxsolve_matrix.column_ids]
+        append!(ecosystem.retired_tests, retired_tests)
+        while length(ecosystem.retired_tests) > 1000
+            popfirst!(ecosystem.retired_tests)
+        end
+        ecosystem.learner_archive = new_learner_archive
+        println("length_learner_archive = ", length(new_learner_archive))
+        ecosystem.test_archive = new_test_archive
+        println("length_test_archive = ", length(new_test_archive))
+    end
+    new_learner_population, new_learner_children = update_learners(
         reproducers[1], evaluation, ecosystem, ecosystem_creator, state
     )
-    #new_test_population, new_test_children = update_tests(
-    #    reproducers[2], evaluation, ecosystem, ecosystem_creator, state
+    #new_learner_population, new_learner_children = update_learners_no_elites(
+    #    reproducers[1], evaluation, ecosystem, ecosystem_creator, state
     #)
-    new_test_population, new_test_children = update_tests_no_elites(
+    new_test_population, new_test_children = update_tests(
         reproducers[2], evaluation, ecosystem, ecosystem_creator, state
     )
-    t = time()
-    maxsolve_matrix = maxsolve(
-        evaluation.full_payoff_matrix, ecosystem_creator.max_learner_archive_size
-    )
-    println("maxsolve time = ", time() - t)
-    new_learner_archive = [ecosystem[learner_id] for learner_id in maxsolve_matrix.row_ids]
-
-    new_test_archive = [ecosystem[test_id] for test_id in maxsolve_matrix.column_ids]
-    retired_tests = [test for test in ecosystem.test_archive if test.id ∉ maxsolve_matrix.column_ids]
-    append!(ecosystem.retired_tests, retired_tests)
-    while length(ecosystem.retired_tests) > 1000
-        popfirst!(ecosystem.retired_tests)
-    end
-    matrix = filter_rows(
-        evaluation.full_payoff_matrix, 
-        [learner.id for learner in [new_learner_population ; new_learner_archive]]
-    )
-    matrix = filter_columns(
-        matrix, 
-        [test.id for test in [new_test_population ; new_test_archive]]
-    )
+    #new_test_population, new_test_children = update_tests_no_elites(
+    #    reproducers[2], evaluation, ecosystem, ecosystem_creator, state
+    #)
     ecosystem.learner_population = new_learner_population
     ecosystem.learner_children = new_learner_children
-    ecosystem.learner_archive = new_learner_archive
     ecosystem.test_population = new_test_population
     ecosystem.test_children = new_test_children
-    ecosystem.test_archive = new_test_archive
-    ecosystem.payoff_matrix = matrix
     println("length_learner_population = ", length(new_learner_population))
     println("length_learner_children = ", length(new_learner_children))
-    println("length_learner_archive = ", length(new_learner_archive))
     println("length_test_population = ", length(new_test_population))
     println("length_test_children = ", length(new_test_children))
-    println("length_test_archive = ", length(new_test_archive))
     println("length_test_retirees = ", length(ecosystem.retired_tests))
+
+
     #println("--Generation $(state.generation)--\n")
     #for learner in new_learner_archive
     #    genes = round.(learner.genotype.genes, digits=3)
@@ -395,6 +406,9 @@ function create_performance_matrix(species_id::String, outcomes::Vector{<:Result
     ids = sort(unique([outcome.id for outcome in filtered_outcomes]))
     other_ids = sort(unique([outcome.other_id for outcome in filtered_outcomes]))
     #W = typeof(first(outcomes).outcome)
+    if length(filtered_outcomes) != length(ids) * length(other_ids)
+        error("length(filtered_outcomes) = $(length(filtered_outcomes)), length(ids) = $(length(ids)), length(other_ids) = $(length(other_ids))")
+    end
     payoff_matrix = OutcomeMatrix{Bool}(species_id, ids, other_ids)
     for outcome in filtered_outcomes
         payoff_matrix[outcome.id, outcome.other_id] = Bool(outcome.outcome)
@@ -402,16 +416,30 @@ function create_performance_matrix(species_id::String, outcomes::Vector{<:Result
     return payoff_matrix
 end
 
+include("covered.jl")
+
 function evaluate(
     ecosystem::MaxSolveEcosystem, 
     evaluators::Vector{<:Evaluator}, 
     results::Vector{<:Result}, 
     state::State
 )
+    println("-----EVALUATION GEN: $(state.generation)")
     t = time()
     outcomes = vcat([get_individual_outcomes(result) for result in results]...)
     new_payoff_matrix = create_performance_matrix("L", outcomes)
-    full_payoff_matrix = merge_matrices(ecosystem.payoff_matrix, new_payoff_matrix)
+    #for learner in [ecosystem.learner_population ; ecosystem.learner_children ; ecosystem.learner_archive]
+    #    for test in [ecosystem.test_population ; ecosystem.test_children ; ecosystem.test_archive]
+    #        covered = covered_improved(learner.genotype.genes, test.genotype.genes, 320)
+    #        if covered != new_payoff_matrix[learner.id, test.id]
+    #            println("learner_genes = ", learner.genotype.genes)
+    #            println("test_genes = ", test.genotype.genes)
+    #            error("covered = $covered, new_payoff_matrix[learner.id, test.id] = $(new_payoff_matrix[learner.id, test.id])")
+    #        end
+    #    end
+    #end
+    #full_payoff_matrix = merge_matrices(ecosystem.payoff_matrix, new_payoff_matrix)
+    full_payoff_matrix = deepcopy(new_payoff_matrix)
     learner_population_matrix = filter_rows(
         full_payoff_matrix, 
         [learner.id for learner in [ecosystem.learner_population; ecosystem.learner_children]]
@@ -430,10 +458,11 @@ function evaluate(
 
     evaluation = MaxSolveEvaluation(
         ecosystem.id, 
-        full_payoff_matrix, 
+        new_payoff_matrix, 
         learner_score_matrix,
         test_score_matrix
     )
+    ecosystem.payoff_matrix = evaluation.full_payoff_matrix
     println("evaluation time = ", time() - t)
     return [evaluation]
 end
