@@ -86,29 +86,29 @@ function evaluate_advanced(
     return advanced_matrix
 end
 
-function farthest_first_search(matrix::OutcomeMatrix, initial_visited::Vector)
+function farthest_first_search(
+    matrix::OutcomeMatrix, initial_visited::Vector, n_points::Int = length(matrix.row_ids)
+)
     # Initialize the set of visited nodes with the initial_visited entries
     visited = Set(initial_visited)
-    println("Visited = ", visited)
+    #println("Visited = ", visited)
     
     # Initialize a list to store the search order
     search_order = copy(initial_visited)
-    println("Search order = ", search_order)
+    println("N_POINTS = ", n_points)
+    println("Search order at start = ", search_order)
 
     # Continue the loop until all nodes are visited
-    while length(visited) < length(matrix.row_ids)
+    while length(visited) < n_points
         # Initialize variables to store the farthest node and its distance
         farthest_node = nothing
         max_distance = -Inf  # Use -Inf to initialize the max distance
-        println("Farthest node = ", farthest_node)
-        println("Max distance = ", max_distance)
 
         for row_id in matrix.row_ids
             # Skip if the node is already visited
             if row_id in visited
                 continue
             end
-            println("Row id = ", row_id)
 
             # Initialize the minimum distance for the current node
             min_distance = Inf  # Initialize to positive infinity
@@ -116,7 +116,8 @@ function farthest_first_search(matrix::OutcomeMatrix, initial_visited::Vector)
             # Calculate the minimum distance from the current node to any node in the visited set
             for visited_id in visited
                 # Calculate the distance (here, assuming Hamming distance for binary data)
-                distance = sum(matrix[row_id, :] .!= matrix[visited_id, :])
+                #distance = sum(matrix[row_id, :] .!= matrix[visited_id, :])
+                distance = sqrt(sum((matrix[row_id, :] - matrix[visited_id, :]).^2))
 
                 # Update the minimum distance if the current distance is smaller
                 if distance < min_distance
@@ -132,9 +133,57 @@ function farthest_first_search(matrix::OutcomeMatrix, initial_visited::Vector)
         end
 
         # Add the farthest node to the visited set and the search order
+        println("Farthest node = ", farthest_node, " length_visited = ", length(visited))
         push!(visited, farthest_node)
         push!(search_order, farthest_node)
     end
+    println("Search order at end = ", search_order)
+    farthest_first = collect(setdiff(search_order, initial_visited))
+    println("Farthest first = ", farthest_first)
 
-    return search_order
+    return farthest_first
+end
+
+function evaluate_dodo(
+    ecosystem::Ecosystem, raw_matrix::OutcomeMatrix, state::State, species_id::String
+)
+    #results = filter_results_by_cohort(evaluator, species, results, state)
+    #println("RAW_MATRIX = ", raw_matrix)
+    filtered_matrix = get_filtered_matrix(raw_matrix)
+    #println("FILTERED_MATRIX = ", filtered_matrix)
+    #filtered_matrix = deepcopy(raw_matrix)
+    derived_matrix, all_cluster_ids = get_derived_matrix(filtered_matrix)
+    if length(all_cluster_ids) == 0
+        all_cluster_ids = [[id for id in raw_matrix.row_ids]]
+    end
+    println("DERIVED_MATRIX = ", derived_matrix)
+    println("ALL_CLUSTER_IDS = ", all_cluster_ids)
+    reconstructed_filtered_matrix = reconstruct_matrix(raw_matrix, filtered_matrix)
+    reconstructed_derived_matrix = reconstruct_matrix(raw_matrix, derived_matrix)
+    records = create_records(
+        ecosystem, raw_matrix, reconstructed_filtered_matrix, reconstructed_derived_matrix
+    )
+    cluster_leader_ids = get_cluster_leader_ids(all_cluster_ids, records)
+    println("CLUSTER_LEADER_IDS = ", cluster_leader_ids)
+    n_farthest_points = min(5, length(reconstructed_derived_matrix.row_ids)) #- length(cluster_leader_ids)
+
+    farthest_first_ids = farthest_first_search(reconstructed_derived_matrix, cluster_leader_ids, n_farthest_points)
+    println("FARTHEST_FIRST_POINTS = ", farthest_first_ids)
+    new_parent_ids = [cluster_leader_ids; farthest_first_ids]
+    println("NEW_PARENT_IDS = ", new_parent_ids)
+    if length(new_parent_ids) != 5
+        println("ERROR: Not enough parents to evaluate")
+    end
+
+    evaluation = NewDodoEvaluation(
+        id = species_id,
+        new_parent_ids = new_parent_ids,
+        raw_matrix = raw_matrix,
+        filtered_matrix = reconstructed_filtered_matrix,
+        matrix = reconstructed_derived_matrix,
+        records = records
+    )
+    print_info(raw_matrix, filtered_matrix, derived_matrix, records, all_cluster_ids)
+    return evaluation
+    #return new_parent_ids
 end

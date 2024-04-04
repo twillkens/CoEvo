@@ -31,8 +31,8 @@ function archive!(::DensityClassificationArchiver, state::State)
         elite_rule = nothing
         #for learner in [state.ecosystem.learner_population ; state.ecosystem.learner_children]
         for learner in state.ecosystem.learner_archive
-            #p = filter_columns(state.ecosystem.payoff_matrix,[test.id for test in state.ecosystem.test_archive])
-            p = state.ecosystem.payoff_matrix
+            p = filter_columns(state.ecosystem.payoff_matrix,[test.id for test in all_tests])
+            #p = state.ecosystem.payoff_matrix
             fitness = sum(p[learner.id, :])
             if fitness > elite_fitness
                 elite_fitness = fitness
@@ -47,7 +47,7 @@ function archive!(::DensityClassificationArchiver, state::State)
         ics = [test.genotype.genes for test in all_tests]
         results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
         println("REPLAYED_SCORE_VS_TESTS: ", sum(results), " out of ", length(results))
-        p = filter_rows(state.ecosystem.payoff_matrix, [elite_rule.id])
+        #p = filter_rows(state.ecosystem.payoff_matrix, [elite_rule.id])
         #println(p)
         #elite_rule = first(state.ecosystem.learner_archive).genotype.genes
         ics = generate_unbiased_ICs(149, 2500)

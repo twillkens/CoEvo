@@ -71,9 +71,9 @@ function create_fallback_clustering(X::Matrix{<:Real}, on::Symbol=:rows)
 end
 
 function get_best_clustering(matrix::OutcomeMatrix, max_clusters::Int; on::Symbol=:rows)
-    check_length = length(matrix.row_ids)
+    check_length = on == :rows ? length(matrix.row_ids) : length(matrix.column_ids)
     max_clusters = min(max_clusters, check_length - 1)
-    X = collect(transpose(matrix.data))
+    X = on == :rows ? transpose(matrix.data) : matrix.data
 
     # Split the work of clustering across workers
     # Each worker handles clustering for a different number of clusters
@@ -93,17 +93,16 @@ function get_best_clustering(matrix::OutcomeMatrix, max_clusters::Int; on::Symbo
 
     best_quality = -Inf
     best_clustering = nothing
-    println("CLUSTERINGS = ", clusterings)
+    #println("CLUSTERINGS = ", clusterings)
 
     for clustering in clusterings
-        println("COUNTS = ", clustering.counts)
         # Assuming calculate_clustering_qualities and quality checks are defined elsewhere and are serial
         if maximum(clustering.counts) == size(X, 2) || minimum(clustering.counts) == 0
             continue
         end
 
         quality = first(calculate_clustering_qualities(X, [clustering]))
-        println("QUALITY = ", quality)
+        println("COUNTS = ", clustering.counts, ", QUALITY = ", quality)
 
         if quality > best_quality
             best_quality = quality
@@ -117,8 +116,9 @@ function get_best_clustering(matrix::OutcomeMatrix, max_clusters::Int; on::Symbo
     elseif isnothing(best_clustering)
         error("Failed to find a non-degenerate clustering. Consider adjusting max_clusters or input data.")
     end
+    ids = on == :rows ? matrix.row_ids : matrix.column_ids
 
-    cluster_ids = assign_cluster_ids(matrix.row_ids, best_clustering.assignments)
+    cluster_ids = assign_cluster_ids(ids, best_clustering.assignments)
 
-    return cluster_ids
+    return best_clustering, cluster_ids
 end

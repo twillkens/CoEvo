@@ -1,3 +1,7 @@
+export evaluate, get_raw_matrix, reconstruct_matrix, get_high_rank_records
+export get_cluster_leader_id, get_cluster_leader_ids, print_info, get_other_species 
+export get_cohort_ids, filter_results_by_cohort, get_hillclimber_parent_ids, create_records
+
 using ....Abstract
 using ...Matrices.Outcome
 using ...Evaluators.NSGAII
@@ -209,3 +213,5 @@ function evaluate(
     print_info(evaluator, raw_matrix, filtered_matrix, derived_matrix, records, all_cluster_ids)
     return evaluation
 end
+
+#using ...Ecosystems.MaxSolve
