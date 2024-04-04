@@ -324,6 +324,13 @@ function evaluate(
         full_payoff_matrix, 
         [learner.id for learner in [ecosystem.learner_population; ecosystem.learner_children]]
     )   
+    nonchild_column_ids = [
+        col_id for col_id in learner_population_matrix.column_ids 
+            if col_id ∉ [test.id for test in ecosystem.test_children]
+    ]
+    learner_population_matrix = filter_columns(
+        learner_population_matrix, nonchild_column_ids
+    )
     learner_score_matrix = evaluate_advanced(learner_population_matrix, 1.0, 0.0)
     #learner_score_matrix = evaluate_advanced(learner_population_matrix)
 
@@ -342,9 +349,16 @@ function evaluate(
         learner_score_matrix,
         test_score_matrix
     )
-    learner_dodo_evaluation = evaluate_dodo(ecosystem, full_payoff_matrix, state, "L")
+    nonchild_column_ids = [
+        col_id for col_id in test_payoff_matrix.column_ids 
+            if col_id ∉ [learner.id for learner in ecosystem.learner_children]
+    ]
+    println("nonchild_column_ids = ", nonchild_column_ids)
+    test_payoff_matrix = filter_columns(test_payoff_matrix, nonchild_column_ids)
+    #learner_dodo_evaluation = evaluate_dodo(ecosystem, full_payoff_matrix, state, "L")
     test_dodo_evaluation = evaluate_dodo(ecosystem, test_payoff_matrix, state, "T")
     ecosystem.payoff_matrix = evaluation.full_payoff_matrix
     println("evaluation time = ", time() - t)
-    return [evaluation, learner_dodo_evaluation, test_dodo_evaluation]
+    return [evaluation, test_dodo_evaluation]
+    #return [evaluation, learner_dodo_evaluation, test_dodo_evaluation]
 end

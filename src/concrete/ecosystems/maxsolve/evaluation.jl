@@ -95,8 +95,8 @@ function farthest_first_search(
     
     # Initialize a list to store the search order
     search_order = copy(initial_visited)
-    println("N_POINTS = ", n_points)
-    println("Search order at start = ", search_order)
+    #println("N_POINTS = ", n_points)
+    #println("Search order at start = ", search_order)
 
     # Continue the loop until all nodes are visited
     while length(visited) < n_points
@@ -133,13 +133,13 @@ function farthest_first_search(
         end
 
         # Add the farthest node to the visited set and the search order
-        println("Farthest node = ", farthest_node, " length_visited = ", length(visited))
+        #println("Farthest node = ", farthest_node, " length_visited = ", length(visited))
         push!(visited, farthest_node)
         push!(search_order, farthest_node)
     end
-    println("Search order at end = ", search_order)
+    #println("Search order at end = ", search_order)
     farthest_first = collect(setdiff(search_order, initial_visited))
-    println("Farthest first = ", farthest_first)
+    #println("Farthest first = ", farthest_first)
 
     return farthest_first
 end

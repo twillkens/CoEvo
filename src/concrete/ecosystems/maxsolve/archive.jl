@@ -42,7 +42,7 @@ function maxsolve(matrix::OutcomeMatrix{T, U, V, W}, archive_size::Int) where {T
         test_is_redundant = false
         for other_test_id in tests_to_check
              #println("matrix[:, $other_test_id] = ", matrix[:, other_test_id])
-            if matrix[:, test_id] == matrix[:, other_test_id]
+            if all(matrix[:, test_id] .== matrix[:, other_test_id])
                 test_is_redundant = true
                 break
             end
@@ -56,6 +56,16 @@ function maxsolve(matrix::OutcomeMatrix{T, U, V, W}, archive_size::Int) where {T
         push!(selected_tests, matrix.column_ids[1])
     end
     matrix = filter_columns(matrix, selected_tests)
+    for i in eachindex(matrix.column_ids)
+        current = matrix.column_ids[i]
+        start = i + 1
+        for j in start:length(matrix.column_ids)
+            other = matrix.column_ids[j]
+            if matrix[:, current] == matrix[:, other]
+                error("Two tests are the same")
+            end
+        end
+    end
     println("filtered_matrix_maxsolve = ", size(matrix.data))
     return matrix
 end
