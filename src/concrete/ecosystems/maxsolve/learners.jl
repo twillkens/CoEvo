@@ -1,3 +1,4 @@
+using ....Abstract
 
 function update_learners(
     reproducer::Reproducer, 
@@ -7,13 +8,13 @@ function update_learners(
     state::State
 )
     new_learner_population = select_individuals_aggregate(
-        ecosystem, evaluation.learner_score_matrix, ecosystem_creator.n_learner_population
+        ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_learner_population
     )
     #n_sample_archive = min(length(ecosystem.learner_archive), 10)
     #n_sample_population = 40 - n_sample_archive # ecosystem_creator.n_learner_children
     n_sample_population = ecosystem_creator.n_learner_children
     id_scores = [
-        learner => sum(evaluation.learner_score_matrix[learner.id, :]) 
+        learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
         for learner in new_learner_population
     ]
     println("id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))

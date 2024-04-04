@@ -156,8 +156,8 @@ function evaluate_dodo(
     if length(all_cluster_ids) == 0
         all_cluster_ids = [[id for id in raw_matrix.row_ids]]
     end
-    println("DERIVED_MATRIX = ", derived_matrix)
-    println("ALL_CLUSTER_IDS = ", all_cluster_ids)
+    #println("DERIVED_MATRIX = ", derived_matrix)
+    #println("ALL_CLUSTER_IDS = ", all_cluster_ids)
     reconstructed_filtered_matrix = reconstruct_matrix(raw_matrix, filtered_matrix)
     reconstructed_derived_matrix = reconstruct_matrix(raw_matrix, derived_matrix)
     records = create_records(
@@ -168,16 +168,12 @@ function evaluate_dodo(
     n_farthest_points = min(5, length(reconstructed_derived_matrix.row_ids)) #- length(cluster_leader_ids)
 
     farthest_first_ids = farthest_first_search(reconstructed_derived_matrix, cluster_leader_ids, n_farthest_points)
-    println("FARTHEST_FIRST_POINTS = ", farthest_first_ids)
-    new_parent_ids = [cluster_leader_ids; farthest_first_ids]
-    println("NEW_PARENT_IDS = ", new_parent_ids)
-    if length(new_parent_ids) != 5
-        println("ERROR: Not enough parents to evaluate")
-    end
+    #println("FARTHEST_FIRST_POINTS = ", farthest_first_ids)
 
     evaluation = NewDodoEvaluation(
         id = species_id,
-        new_parent_ids = new_parent_ids,
+        cluster_leader_ids = cluster_leader_ids,
+        farthest_first_ids = farthest_first_ids,
         raw_matrix = raw_matrix,
         filtered_matrix = reconstructed_filtered_matrix,
         matrix = reconstructed_derived_matrix,

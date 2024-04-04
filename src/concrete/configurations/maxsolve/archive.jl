@@ -31,7 +31,7 @@ function archive!(::DensityClassificationArchiver, state::State)
         elite_rule = nothing
         #for learner in [state.ecosystem.learner_population ; state.ecosystem.learner_children]
         for learner in state.ecosystem.learner_archive
-            p = filter_columns(state.ecosystem.payoff_matrix,[test.id for test in all_tests])
+            p = filter_columns(state.ecosystem.payoff_matrix, [test.id for test in all_tests])
             #p = state.ecosystem.payoff_matrix
             fitness = sum(p[learner.id, :])
             if fitness > elite_fitness

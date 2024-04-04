@@ -9,26 +9,26 @@ using Random
 
 function update_tests_dodo(
     reproducer::Reproducer, 
-    evaluations::Vector{<:Evaluation},
+    evaluation::MaxSolveEvaluation,
     ecosystem::MaxSolveEcosystem, 
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
-    test_dodo_evaluation = last(evaluations)
     new_test_population = copy(ecosystem.test_population)
-    new_pop = [ecosystem[id] for id in test_dodo_evaluation.new_parent_ids]
-    filter!(ind -> !(ind.id in test_dodo_evaluation.new_parent_ids), new_test_population)
+    new_parent_ids = evaluation.distinction_dodo_evaluation.cluster_leader_ids
+    new_pop = [ecosystem[id] for id in new_parent_ids]
+    filter!(ind -> !(ind.id in new_parent_ids), new_test_population)
     append!(new_test_population, new_pop)
     n_new_retirees = 0
     while length(new_test_population) > ecosystem_creator.n_test_population
         n_new_retirees += 1
         retiree = popfirst!(new_test_population)
-        push!(ecosystem.retired_tests, retiree)
-        if length(ecosystem.retired_tests) > 1000
-            popfirst!(ecosystem.retired_tests)
-        end
+        #push!(ecosystem.retired_tests, retiree)
+        #if length(ecosystem.retired_tests) > 1000
+        #    popfirst!(ecosystem.retired_tests)
+        #end
     end
-    println("N_NEW_RETIREES = ", n_new_retirees)
+    #println("N_NEW_RETIREES = ", n_new_retirees)
     #push!(new_learner_population, first(ecosystem.learner_children))
     all_archive_tests = [ecosystem.retired_tests ; ecosystem.test_archive]
     n_archive_parents = min(length(all_archive_tests), 20)
@@ -44,8 +44,6 @@ function update_tests_dodo(
     #for _ in 1:length(children)
     #    popfirst!(new_test_population)
     #end
-
-
     return new_test_population, children
 end
 

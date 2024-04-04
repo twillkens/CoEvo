@@ -334,10 +334,10 @@ function generate_all_tuples(n::Int)
     return all_tuples
 end
 
-function make_full_distinction_matrix(matrix::Matrix)
+function make_full_distinction_matrix(matrix::Matrix{T}) where T
     nrows, ncols = size(matrix)
     col_pairs = generate_all_tuples(ncols)
-    data = zeros(Bool, nrows, length(col_pairs))
+    data = zeros(T, nrows, length(col_pairs))
     for i in 1:nrows
         for (j, (col_1, col_2)) in enumerate(col_pairs)
             data[i, j] = matrix[i, col_1] > matrix[i, col_2] ? 1 : 0
