@@ -2,6 +2,7 @@ export MaxSolveEcosystem, MaxSolveEcosystemCreator, MaxSolveEvaluation
 export create_ecosystem, update_ecosystem!, evaluate, make_all_matches
 export get_all_individuals, select_individuals_aggregate, create_performance_matrix
 export initialize_learners, initialize_tests, create_children, update_learners, update_tests
+export run_tournament
 
 import ....Interfaces: make_all_matches
 using ....Interfaces
@@ -247,7 +248,10 @@ function update_ecosystem!(
         ecosystem.test_archive = new_test_archive
         println("length_test_archive = ", length(new_test_archive))
     end
-    new_learner_population, new_learner_children = update_learners(
+    #new_learner_population, new_learner_children = update_learners(
+    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+    #)
+    new_learner_population, new_learner_children = update_learners_disco(
         reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     )
     #new_learner_population, new_learner_children = update_learners_no_elites(
