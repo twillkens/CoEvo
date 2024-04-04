@@ -32,7 +32,7 @@ function update_learners_disco(
     new_learner_population = [record.individual for record in new_learner_population_records]
     tournament_samples = [sample(new_learner_population_records, 3, replace = false) for _ in 1:ecosystem_creator.n_learner_children]
     learner_parents = [run_tournament(samples, state.rng).individual for samples in tournament_samples]
-    append!(learner_parents, ecosystem.learner_archive)
+    #append!(learner_parents, ecosystem.learner_archive)
     new_learner_children = create_children(learner_parents, reproducer, state)
     return new_learner_population, new_learner_children
 end

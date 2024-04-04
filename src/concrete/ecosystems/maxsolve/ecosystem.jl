@@ -64,6 +64,7 @@ function get_all_individuals(ecosystem::MaxSolveEcosystem{I, M}) where {I, M}
         ecosystem.test_population
         ecosystem.test_children ;
         ecosystem.test_archive ; 
+        ecosystem.retired_tests
     ])
     
     return individuals
@@ -355,9 +356,12 @@ function evaluate(
     println("-----EVALUATION GEN: $(state.generation)")
     t = time()
     outcomes = vcat([get_individual_outcomes(result) for result in results]...)
-    row_ids = [learner.id for learner in [ecosystem.learner_population; ecosystem.learner_children]]
+    #row_ids = [learner.id for learner in [ecosystem.learner_population; ecosystem.learner_children]]
+    row_ids = [learner.id for learner in [
+        ecosystem.learner_population; ecosystem.learner_children; ecosystem.learner_archive
+    ]]
     column_ids = [test.id for test in [
-        ecosystem.test_population; ecosystem.test_archive; ecosystem.retired_tests
+        ecosystem.test_population; ecosystem.test_children ; ecosystem.test_archive
     ]]
     learner_evaluation = MaxSolveEvaluation(
         "L", 
@@ -368,9 +372,11 @@ function evaluate(
         state
     )
 
-    row_ids = [test.id for test in [ecosystem.test_population; ecosystem.test_children]]
+    row_ids = [test.id for test in [
+        ecosystem.test_population; ecosystem.test_children ; ecosystem.test_archive
+    ]]
     column_ids = [learner.id for learner in [
-        ecosystem.learner_population; ecosystem.learner_archive
+        ecosystem.learner_population; ecosystem.learner_children ; ecosystem.learner_archive
     ]]
     test_evaluation = MaxSolveEvaluation(
         "T", 
