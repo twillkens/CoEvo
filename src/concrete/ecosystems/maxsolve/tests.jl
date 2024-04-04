@@ -15,7 +15,10 @@ function update_tests_dodo(
     state::State
 )
     new_test_population = copy(ecosystem.test_population)
-    new_parent_ids = evaluation.distinction_dodo_evaluation.cluster_leader_ids
+    new_parent_ids = [
+        evaluation.distinction_dodo_evaluation.cluster_leader_ids ; 
+        evaluation.distinction_dodo_evaluation.farthest_first_ids
+    ]
     new_pop = [ecosystem[id] for id in new_parent_ids]
     filter!(ind -> !(ind.id in new_parent_ids), new_test_population)
     append!(new_test_population, new_pop)

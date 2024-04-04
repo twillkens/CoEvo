@@ -272,6 +272,8 @@ function update_ecosystem!(
     println("length_test_population = ", length(new_test_population))
     println("length_test_children = ", length(new_test_children))
     println("length_test_retirees = ", length(ecosystem.retired_tests))
+    println("LEARNER_POPULATION_IDS = ", [learner.id for learner in new_learner_population])
+    println("TEST_POPULATION_IDS = ", [test.id for test in new_test_population])
 
 
     #println("--Generation $(state.generation)--\n")
@@ -322,7 +324,9 @@ function MaxSolveEvaluation(
     distinction_matrix = make_full_distinction_matrix(payoff_matrix)
     standard_score_matrix = evaluate_standard(payoff_matrix)
     advanced_score_matrix = evaluate_advanced(payoff_matrix, performance_weight, distinction_weight)
+    println("----EVALUATING DODO FOR $(species_id)----P")
     payoff_dodo_evaluation = evaluate_dodo(ecosystem, payoff_matrix, state, "$(species_id)-P")
+    println("----EVALUATING DODO FOR $(species_id)----D")
     distinction_dodo_evaluation = evaluate_dodo(ecosystem, distinction_matrix, state, "$(species_id)-D")
     evaluation = MaxSolveEvaluation(
         species_id, 

@@ -7,8 +7,8 @@ using Clustering
 
 function assign_cluster_ids(row_ids::Vector{T}, assignments) where T
     cluster_dict = Dict{Int, Vector{T}}()
-    println("ROW_IDS = ", row_ids)
-    println("ASSIGNMENTS = ", assignments)
+    #println("ROW_IDS = ", row_ids)
+    #println("ASSIGNMENTS = ", assignments)
     for (row_index, assignment) in enumerate(assignments)
         push!(get!(cluster_dict, assignment, []), row_ids[row_index])
     end
@@ -116,9 +116,6 @@ function get_best_clustering(matrix::OutcomeMatrix, max_clusters::Int; on::Symbo
     elseif isnothing(best_clustering)
         error("Failed to find a non-degenerate clustering. Consider adjusting max_clusters or input data.")
     end
-    ids = on == :rows ? matrix.row_ids : matrix.column_ids
 
-    cluster_ids = assign_cluster_ids(ids, best_clustering.assignments)
-
-    return best_clustering, cluster_ids
+    return best_clustering
 end

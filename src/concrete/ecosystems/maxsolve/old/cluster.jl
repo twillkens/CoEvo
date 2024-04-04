@@ -50,15 +50,15 @@ function create_derived_matrix(matrix::OutcomeMatrix, centroids)
     return derived_matrix
 end
 
-function assign_cluster_ids(row_ids, assignments)
-    cluster_dict = Dict{Int, Vector{Int}}()
-    println("ROW_IDS = ", row_ids)
-    println("ASSIGNMENTS = ", assignments)
-    for (row_index, assignment) in enumerate(assignments)
-        push!(get!(cluster_dict, assignment, []), row_ids[row_index])
-    end
-    return values(cluster_dict) |> collect
-end
+#function assign_cluster_ids(row_ids, assignments)
+#    cluster_dict = Dict{Int, Vector{Int}}()
+#    #println("ROW_IDS = ", row_ids)
+#    #println("ASSIGNMENTS = ", assignments)
+#    for (row_index, assignment) in enumerate(assignments)
+#        push!(get!(cluster_dict, assignment, []), row_ids[row_index])
+#    end
+#    return values(cluster_dict) |> collect
+#end
 
 function perform_kmeans_and_get_derived_matrix(matrix::OutcomeMatrix, max_clusters::Int)
     # Early exit conditions
@@ -78,7 +78,9 @@ function perform_kmeans_and_get_derived_matrix(matrix::OutcomeMatrix, max_cluste
         return simplify_matrix(matrix)
     end
 
-    columns_clustering, columns_clustering_ids = get_best_clustering(matrix, max_clusters, on=:columns)
+    println("CLUSTERING ON COLUMNS")
+
+    columns_clustering = get_best_clustering(matrix, max_clusters, on=:columns)
     # Create derived matrix from centroids
     matrix = create_derived_matrix(matrix, columns_clustering.centers)
     all_columns_same = all(all(matrix.data[:, 1] .== matrix.data[:, j]) for j in 2:size(matrix.data, 2))
@@ -88,7 +90,9 @@ function perform_kmeans_and_get_derived_matrix(matrix::OutcomeMatrix, max_cluste
     if all_columns_same || all_rows_same || max_clusters < 2
         return simplify_matrix(matrix)
     end
-    rows_clustering, rows_clustering_ids = get_best_clustering(matrix, max_clusters, on=:rows)
+
+    println("CLUSTERING ON ROWS")
+    rows_clustering = get_best_clustering(matrix, max_clusters, on=:rows)
 
     # Assign cluster IDs to row IDs
     n_rows_expected, n_columns_expected = size(matrix.data)
@@ -96,8 +100,9 @@ function perform_kmeans_and_get_derived_matrix(matrix::OutcomeMatrix, max_cluste
         throw(ArgumentError("Derived matrix and cluster IDs have inconsistent dimensions"))
     end
     #println("CLUSTER_IDS = ", cluster_ids)
+    cluster_ids = assign_cluster_ids(matrix.row_ids, rows_clustering.assignments)
 
-    return matrix, rows_clustering_ids
+    return matrix, cluster_ids
 end
 
 function get_derived_matrix(matrix::OutcomeMatrix, max_clusters::Int = 5)

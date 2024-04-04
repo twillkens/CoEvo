@@ -23,7 +23,7 @@ function archive!(::DensityClassificationArchiver, state::State)
     println("reproduction_time = ", state.timers.reproduction_time)
     println("simulation_time = ", state.timers.simulation_time)
     println("evaluation_time = ", state.timers.evaluation_time)
-    if state.generation > 1 && state.generation % 2 == 0
+    if state.generation > 1 && state.generation % 1 == 0
         println("---------")
         all_tests = [state.ecosystem.test_archive ; state.ecosystem.test_population ; state.ecosystem.test_children]
         all_tests = state.ecosystem.test_archive
