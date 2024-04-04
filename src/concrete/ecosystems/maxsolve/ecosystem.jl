@@ -101,10 +101,12 @@ end
 
 using ...Ecosystems.Simple: SimpleEcosystem
 using ...Species.Basic: BasicSpecies
+using ...Recombiners.Clone: CloneRecombiner
 
-function create_children(parents::Vector{<:Individual}, reproducer::Reproducer, state::State)
+function create_children(parents::Vector{<:Individual}, reproducer::Reproducer, state::State; use_crossover::Bool = true)
+    recombiner = use_crossover ? reproducer.recombiner : CloneRecombiner()
     children = recombine(
-        reproducer.recombiner, reproducer.mutator, reproducer.phenotype_creator, parents, state
+        recombiner, reproducer.mutator, reproducer.phenotype_creator, parents, state
     )
     return children
 end
@@ -137,7 +139,7 @@ function initialize_tests(
     test_parents = sample(
         test_population, eco_creator.n_test_children, replace = true
     )
-    test_children = create_children(test_parents, reproducer, state)
+    test_children = create_children(test_parents, reproducer, state; use_crossover=false)
     return test_population, test_children
 end
 

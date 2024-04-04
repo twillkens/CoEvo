@@ -27,6 +27,7 @@ function update_learners(
     #learner_parents = sample(
     #    new_learner_population, n_sample_population, replace = true
     #)
+    append!(learner_parents, ecosystem.learner_archive)
     new_learner_children = create_children(learner_parents, reproducer, state)
     #I = typeof(first(new_learner_population))
     #return I[], [new_archive_children ; new_learner_children]

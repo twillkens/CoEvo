@@ -33,7 +33,7 @@ function update_tests_dodo(
         end
     end
     parents = [new_test_population ; archive_parents ; random_parents]
-    children = create_children(parents, reproducer, state)
+    children = create_children(parents, reproducer, state; use_crossover = false)
     #for _ in 1:length(children)
     #    popfirst!(new_test_population)
     #end
