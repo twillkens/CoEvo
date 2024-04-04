@@ -33,9 +33,9 @@ function update_tests_dodo(
     end
     #println("N_NEW_RETIREES = ", n_new_retirees)
     #push!(new_learner_population, first(ecosystem.learner_children))
-    n_archive_parents = min(length(ecosystem.retired_tests), 10)
+    n_archive_parents = min(length(ecosystem.retired_tests), 20)
     archive_parents = sample(ecosystem.retired_tests, n_archive_parents, replace = true)
-    random_parents = sample(new_test_population, 10, replace = true)
+    random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
     for parent in random_parents
         for i in eachindex(parent.genotype.genes)
             parent.genotype.genes[i] = rand(0:1)
