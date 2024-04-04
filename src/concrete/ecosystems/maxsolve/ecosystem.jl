@@ -232,11 +232,11 @@ function update_ecosystem!(
         new_learner_archive = [ecosystem[learner_id] for learner_id in maxsolve_matrix.row_ids]
 
         new_test_archive = [ecosystem[test_id] for test_id in maxsolve_matrix.column_ids]
-        retired_tests = [test for test in ecosystem.test_archive if test.id ∉ maxsolve_matrix.column_ids]
-        append!(ecosystem.retired_tests, retired_tests)
-        while length(ecosystem.retired_tests) > 1000
-            popfirst!(ecosystem.retired_tests)
-        end
+        #retired_tests = [test for test in ecosystem.test_archive if test.id ∉ maxsolve_matrix.column_ids]
+        #append!(ecosystem.retired_tests, retired_tests)
+        #while length(ecosystem.retired_tests) > 1000
+        #    popfirst!(ecosystem.retired_tests)
+        #end
         ecosystem.learner_archive = new_learner_archive
         println("length_learner_archive = ", length(new_learner_archive))
         ecosystem.test_archive = new_test_archive

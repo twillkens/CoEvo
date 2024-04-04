@@ -19,9 +19,16 @@ function update_tests_dodo(
     new_pop = [ecosystem[id] for id in test_dodo_evaluation.new_parent_ids]
     filter!(ind -> !(ind.id in test_dodo_evaluation.new_parent_ids), new_test_population)
     append!(new_test_population, new_pop)
+    n_new_retirees = 0
     while length(new_test_population) > ecosystem_creator.n_test_population
-        popfirst!(new_test_population)
+        n_new_retirees += 1
+        retiree = popfirst!(new_test_population)
+        push!(ecosystem.retired_tests, retiree)
+        if length(ecosystem.retired_tests) > 1000
+            popfirst!(ecosystem.retired_tests)
+        end
     end
+    println("N_NEW_RETIREES = ", n_new_retirees)
     #push!(new_learner_population, first(ecosystem.learner_children))
     all_archive_tests = [ecosystem.retired_tests ; ecosystem.test_archive]
     n_archive_parents = min(length(all_archive_tests), 20)
