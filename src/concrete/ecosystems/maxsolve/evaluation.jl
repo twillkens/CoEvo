@@ -86,63 +86,61 @@ function evaluate_advanced(
     return advanced_matrix
 end
 
+
 function farthest_first_traversal(
-    matrix::OutcomeMatrix, initial_visited::Vector, n_points::Int = length(matrix.row_ids)
-)
-    # Initialize the set of visited nodes with the initial_visited entries
-    visited = Set(initial_visited)
-    #println("Visited = ", visited)
-    
-    # Initialize a list to store the search order
+    matrix::OutcomeMatrix, initial_visited::Vector{U}, n_points::Int = length(matrix.row_ids)
+) where U
+    # Initialize a boolean array to keep track of visited nodes, using row_ids
+    visited = falses(n_points)
+    for id in initial_visited
+        idx = findfirst(==(id), matrix.row_ids)
+        visited[idx] = true
+    end
+
     search_order = copy(initial_visited)
-    #println("N_POINTS = ", n_points)
-    #println("Search order at start = ", search_order)
 
-    # Continue the loop until all nodes are visited
-    while length(visited) < n_points
-        # Initialize variables to store the farthest node and its distance
+    # Preallocate a distance matrix to store precomputed distances
+    distances = fill(-Inf, n_points, n_points)
+
+    while sum(visited) < n_points
         farthest_node = nothing
-        max_distance = -Inf  # Use -Inf to initialize the max distance
+        max_distance = -Inf
 
-        for row_id in matrix.row_ids
-            # Skip if the node is already visited
-            if row_id in visited
+        for i in 1:n_points
+            if visited[i]
                 continue
             end
 
-            # Initialize the minimum distance for the current node
-            min_distance = Inf  # Initialize to positive infinity
+            min_distance = Inf
+            for j in findall(visited)
+                if distances[i, j] == -Inf
+                    # Computing the distance between row i and row j
+                    distance = sum(matrix.data[i, :] .!= matrix.data[j, :])
+                    distances[i, j] = distance
+                    distances[j, i] = distance  # Symmetric property
+                else
+                    distance = distances[i, j]
+                end
 
-            # Calculate the minimum distance from the current node to any node in the visited set
-            for visited_id in visited
-                # Calculate the distance (here, assuming Hamming distance for binary data)
-                #distance = sum(matrix[row_id, :] .!= matrix[visited_id, :])
-                distance = sqrt(sum((matrix[row_id, :] - matrix[visited_id, :]).^2))
-
-                # Update the minimum distance if the current distance is smaller
                 if distance < min_distance
                     min_distance = distance
                 end
             end
 
-            # Update the farthest node if the minimum distance is greater than the current maximum distance
             if min_distance > max_distance
                 max_distance = min_distance
-                farthest_node = row_id
+                farthest_node = i
             end
         end
 
-        # Add the farthest node to the visited set and the search order
-        #println("Farthest node = ", farthest_node, " length_visited = ", length(visited))
-        push!(visited, farthest_node)
-        push!(search_order, farthest_node)
+        visited[farthest_node] = true
+        push!(search_order, matrix.row_ids[farthest_node])
     end
-    #println("Search order at end = ", search_order)
-    farthest_first = collect(setdiff(search_order, initial_visited))
-    #println("Farthest first = ", farthest_first)
 
-    return farthest_first
+    # Filter out the initial_visited to return only the new sequence
+    return filter(x -> !(x in initial_visited), search_order)
 end
+
 
 function evaluate_dodo(
     ecosystem::Ecosystem, raw_matrix::OutcomeMatrix, state::State, species_id::String
@@ -165,9 +163,10 @@ function evaluate_dodo(
     )
     cluster_leader_ids = get_cluster_leader_ids(all_cluster_ids, records)
     println("CLUSTER_LEADER_IDS = ", cluster_leader_ids)
-    n_farthest_points = min(5, length(reconstructed_derived_matrix.row_ids)) #- length(cluster_leader_ids)
+    #n_farthest_points = min(5, length(reconstructed_derived_matrix.row_ids)) #- length(cluster_leader_ids)
+    #farthest_first_ids = farthest_first_traversal(reconstructed_derived_matrix, cluster_leader_ids, n_farthest_points)
 
-    farthest_first_ids = farthest_first_traversal(reconstructed_derived_matrix, cluster_leader_ids, n_farthest_points)
+    farthest_first_ids = farthest_first_traversal(reconstructed_derived_matrix, cluster_leader_ids)
     #println("FARTHEST_FIRST_POINTS = ", farthest_first_ids)
 
     evaluation = NewDodoEvaluation(
@@ -183,3 +182,61 @@ function evaluate_dodo(
     return evaluation
     #return new_parent_ids
 end
+
+#function farthest_first_traversal(
+#    matrix::OutcomeMatrix, initial_visited::Vector, n_points::Int = length(matrix.row_ids)
+#)
+#    # Initialize the set of visited nodes with the initial_visited entries
+#    visited = Set(initial_visited)
+#    #println("Visited = ", visited)
+#    
+#    # Initialize a list to store the search order
+#    search_order = copy(initial_visited)
+#    #println("N_POINTS = ", n_points)
+#    #println("Search order at start = ", search_order)
+#
+#    # Continue the loop until all nodes are visited
+#    while length(visited) < n_points
+#        # Initialize variables to store the farthest node and its distance
+#        farthest_node = nothing
+#        max_distance = -Inf  # Use -Inf to initialize the max distance
+#
+#        for row_id in matrix.row_ids
+#            # Skip if the node is already visited
+#            if row_id in visited
+#                continue
+#            end
+#
+#            # Initialize the minimum distance for the current node
+#            min_distance = Inf  # Initialize to positive infinity
+#
+#            # Calculate the minimum distance from the current node to any node in the visited set
+#            for visited_id in visited
+#                # Calculate the distance (here, assuming Hamming distance for binary data)
+#                distance = sum(matrix[row_id, :] .!= matrix[visited_id, :])
+#                #distance = sqrt(sum((matrix[row_id, :] - matrix[visited_id, :]).^2))
+#
+#                # Update the minimum distance if the current distance is smaller
+#                if distance < min_distance
+#                    min_distance = distance
+#                end
+#            end
+#
+#            # Update the farthest node if the minimum distance is greater than the current maximum distance
+#            if min_distance > max_distance
+#                max_distance = min_distance
+#                farthest_node = row_id
+#            end
+#        end
+#
+#        # Add the farthest node to the visited set and the search order
+#        #println("Farthest node = ", farthest_node, " length_visited = ", length(visited))
+#        push!(visited, farthest_node)
+#        push!(search_order, farthest_node)
+#    end
+#    #println("Search order at end = ", search_order)
+#    farthest_first = collect(setdiff(search_order, initial_visited))
+#    #println("Farthest first = ", farthest_first)
+#
+#    return farthest_first
+#end

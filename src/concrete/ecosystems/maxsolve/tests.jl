@@ -56,9 +56,21 @@ function update_tests_farthest_first(
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
-    elites = select_individuals_aggregate(ecosystem, evaluation.advanced_score_matrix, 5)
+    #elites = select_individuals_aggregate(ecosystem, evaluation.advanced_score_matrix, 5)
+    #elite_ids = [individual.id for individual in elites]
+    #farthest_first_ordering = farthest_first_traversal(evaluation.distinction_matrix, elite_ids)
+    #farthest_first_ordering = [elite_ids ; farthest_first_ordering]
+    filtered_distinction_matrix = get_filtered_matrix(evaluation.distinction_matrix)
+    score_matrix = evaluate_advanced(filtered_distinction_matrix)
+    elites = select_individuals_aggregate(ecosystem, score_matrix, min(length(score_matrix.row_ids), 5))
     elite_ids = [individual.id for individual in elites]
-    farthest_first_ordering = farthest_first_traversal(evaluation.distinction_matrix, elite_ids)
+    farthest_first_ordering = farthest_first_traversal(filtered_distinction_matrix, elite_ids)
+    farthest_first_ordering = [elite_ids ; farthest_first_ordering]
+    nonordered_ids = shuffle([
+        id for id in evaluation.distinction_matrix.row_ids if !(id in farthest_first_ordering)
+    ])
+    append!(farthest_first_ordering, nonordered_ids)
+
     new_test_population = [
         ecosystem[id] for id in farthest_first_ordering][1:ecosystem_creator.n_test_population
     ]
