@@ -258,16 +258,16 @@ function update_ecosystem!(
     #new_learner_population, new_learner_children = update_learners_no_elites(
     #    reproducers[1], evaluation, ecosystem, ecosystem_creator, state
     #)
-    #new_test_population, new_test_children = update_tests(
-    #    reproducers[2], evaluation, ecosystem, ecosystem_creator, state
-    #)
+    test_evaluation = last(state.evaluations)
+    new_test_population, new_test_children = update_tests(
+        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    )
     #new_test_population, new_test_children = update_tests_no_elites(
     #    reproducers[2], evaluation, ecosystem, ecosystem_creator, state
     #)
-    test_evaluation = last(state.evaluations)
-    new_test_population, new_test_children = update_tests_dodo(
-        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    )
+    #new_test_population, new_test_children = update_tests_dodo(
+    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    #)
     ecosystem.learner_population = new_learner_population
     ecosystem.learner_children = new_learner_children
     ecosystem.test_population = new_test_population
@@ -332,7 +332,8 @@ function MaxSolveEvaluation(
     println("----EVALUATING DODO FOR $(species_id)----P")
     payoff_dodo_evaluation = evaluate_dodo(ecosystem, payoff_matrix, state, "$(species_id)-P")
     println("----EVALUATING DODO FOR $(species_id)----D")
-    distinction_dodo_evaluation = evaluate_dodo(ecosystem, distinction_matrix, state, "$(species_id)-D")
+    distinction_dodo_evaluation = payoff_dodo_evaluation
+    #distinction_dodo_evaluation = evaluate_dodo(ecosystem, distinction_matrix, state, "$(species_id)-D")
     evaluation = MaxSolveEvaluation(
         species_id, 
         full_payoff_matrix,

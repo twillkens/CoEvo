@@ -57,14 +57,12 @@ function update_tests(
     state::State
 )
     new_test_population = select_individuals_aggregate(
-        ecosystem, evaluation.test_score_matrix, ecosystem_creator.n_test_population
+        ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_test_population
     )
     test_parents = sample(
         [new_test_population ; ecosystem.test_archive; ecosystem.retired_tests], ecosystem_creator.n_test_children, replace = true
     )
-    random_parents = sample(
-        [new_test_population ; ecosystem.test_archive], ecosystem_creator.n_test_children, replace = true
-    )
+    random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
     for parent in random_parents
         for i in eachindex(parent.genotype.genes)
             parent.genotype.genes[i] = rand(0:1)
