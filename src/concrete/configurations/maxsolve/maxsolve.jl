@@ -194,7 +194,7 @@ function create_test_dct_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = NPointCrossoverRecombiner(n_points = 1),
-        mutator = PerBitMutator(flip_chance = config.test_flip_chance)
+        mutator = PerBitMutator(flip_chance = config.test_flip_chance, use_symmetry = true)
     )
     return reproducer
 end

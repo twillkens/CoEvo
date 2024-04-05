@@ -54,6 +54,7 @@ using Distributions
 Base.@kwdef struct PerBitMutator <: Mutator
     flip_chance::Float64 = 0.01
     flip_window::Int = 10
+    use_symmetry::Bool = false
 end
 
 function get_exponential_window_size(max_size::Int, rng::AbstractRNG)
@@ -77,10 +78,30 @@ end
 
 function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
     genes = genotype.genes
-    flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
-    for i in eachindex(genes)
-        if rand(state.rng) < flip_chance
-            genes[i] = 1 - genes[i]
+    if mutator.use_symmetry
+        x = rand()
+        if x < 0.1
+            genes = collect(reverse(genes))
+        elseif x < 0.2
+            genes = [1 - gene for gene in genes]
+        elseif x < 0.3
+            genes = [1 - gene for gene in collect(reverse(genes))]
+        else
+            #flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
+            flip_chance = mutator.flip_chance
+            for i in eachindex(genes)
+                if rand(state.rng) < flip_chance
+                    genes[i] = 1 - genes[i]
+                end
+            end
+        end
+    else
+        #flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
+        flip_chance = mutator.flip_chance
+        for i in eachindex(genes)
+            if rand(state.rng) < flip_chance
+                genes[i] = 1 - genes[i]
+            end
         end
     end
 end
