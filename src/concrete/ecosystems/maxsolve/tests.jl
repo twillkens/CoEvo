@@ -49,6 +49,44 @@ function update_tests_dodo(
     return new_test_population, children
 end
 
+function update_tests_farthest_first(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    elites = select_individuals_aggregate(ecosystem, evaluation.advanced_score_matrix, 5)
+    elite_ids = [individual.id for individual in elites]
+    farthest_first_ordering = farthest_first_traversal(evaluation.distinction_matrix, elite_ids)
+    new_test_population = [
+        ecosystem[id] for id in farthest_first_ordering][1:ecosystem_creator.n_test_population
+    ]
+    id_scores = [
+        test => sum(evaluation.advanced_score_matrix[test.id, :]) for test in new_test_population
+    ]
+    println("id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    test_parents = sample(
+        new_test_population,
+        ecosystem_creator.n_test_children, replace = true
+    )
+    n_active_retirees = min(length(ecosystem.retired_tests), div(ecosystem_creator.n_learner_children, 4))
+    active_retirees = sample(ecosystem.retired_tests, n_active_retirees, replace = false)
+    random_parents = [
+        deepcopy(parent) 
+        for parent in sample(
+            new_test_population, div(ecosystem_creator.n_learner_children, 4), replace = true
+        )]
+    for parent in random_parents
+        for i in eachindex(parent.genotype.genes)
+            parent.genotype.genes[i] = rand(0:1)
+        end
+    end
+    append!(test_parents, random_parents)
+    new_test_children = create_children(test_parents, reproducer, state; use_crossover = false)
+    return active_retirees, new_test_children
+end
+
 function update_tests_nu_advanced(
     reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,

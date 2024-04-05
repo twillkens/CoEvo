@@ -264,9 +264,12 @@ function update_ecosystem!(
         reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     )
     test_evaluation = last(state.evaluations)
-    new_test_population, new_test_children = update_tests_nu_advanced(
+    new_test_population, new_test_children = update_tests_farthest_first(
         reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
     )
+    #new_test_population, new_test_children = update_tests_nu_advanced(
+    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    #)
     #new_learner_population, new_learner_children = update_learners(
     #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     #)

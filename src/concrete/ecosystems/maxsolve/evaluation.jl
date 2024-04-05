@@ -86,7 +86,7 @@ function evaluate_advanced(
     return advanced_matrix
 end
 
-function farthest_first_search(
+function farthest_first_traversal(
     matrix::OutcomeMatrix, initial_visited::Vector, n_points::Int = length(matrix.row_ids)
 )
     # Initialize the set of visited nodes with the initial_visited entries
@@ -167,7 +167,7 @@ function evaluate_dodo(
     println("CLUSTER_LEADER_IDS = ", cluster_leader_ids)
     n_farthest_points = min(5, length(reconstructed_derived_matrix.row_ids)) #- length(cluster_leader_ids)
 
-    farthest_first_ids = farthest_first_search(reconstructed_derived_matrix, cluster_leader_ids, n_farthest_points)
+    farthest_first_ids = farthest_first_traversal(reconstructed_derived_matrix, cluster_leader_ids, n_farthest_points)
     #println("FARTHEST_FIRST_POINTS = ", farthest_first_ids)
 
     evaluation = NewDodoEvaluation(
