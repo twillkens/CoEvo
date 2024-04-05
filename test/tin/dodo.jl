@@ -5,14 +5,15 @@ using Distributed
 
 
 N_POP = 20
+N_CHILDREN = 40
 N_ARCHIVE = 10
 
 config = MaxSolveConfiguration(
     seed = abs(rand(Int)),
     n_learner_population = N_POP, 
-    n_learner_children = N_POP, 
+    n_learner_children = N_CHILDREN, 
     n_test_population = N_POP, 
-    n_test_children = N_POP,
+    n_test_children = N_CHILDREN,
     max_learner_archive_size = N_ARCHIVE,
     n_generations = 2000,
     n_dimensions = 3,

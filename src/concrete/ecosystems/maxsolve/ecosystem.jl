@@ -258,23 +258,28 @@ function update_ecosystem!(
         end
 
         ecosystem.learner_archive = new_learner_archive
-        println("length_learner_archive = ", length(new_learner_archive))
         ecosystem.test_archive = new_test_archive
-        println("length_test_archive = ", length(new_test_archive))
     end
+    new_learner_population, new_learner_children = update_learners_nu_disco(
+        reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+    )
+    test_evaluation = last(state.evaluations)
+    new_test_population, new_test_children = update_tests_nu_advanced(
+        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    )
     #new_learner_population, new_learner_children = update_learners(
     #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     #)
-    new_learner_population, new_learner_children = update_learners_disco(
-        reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
-    )
+    #new_learner_population, new_learner_children = update_learners_disco(
+    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+    #)
     #new_learner_population, new_learner_children = update_learners_no_elites(
     #    reproducers[1], evaluation, ecosystem, ecosystem_creator, state
     #)
-    test_evaluation = last(state.evaluations)
-    new_test_population, new_test_children = update_tests_advanced(
-        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    )
+    #test_evaluation = last(state.evaluations)
+    #new_test_population, new_test_children = update_tests_advanced(
+    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    #)
     #new_test_population, new_test_children = update_tests_no_elites(
     #    reproducers[2], evaluation, ecosystem, ecosystem_creator, state
     #)
@@ -287,11 +292,13 @@ function update_ecosystem!(
     ecosystem.test_children = new_test_children
     println("length_learner_population = ", length(new_learner_population))
     println("length_learner_children = ", length(new_learner_children))
+    println("length_learner_archive = ", length(ecosystem.learner_archive))
     println("length_learner_retirees = ", length(ecosystem.learner_retirees))
     println("LEARNER_POPULATION_IDS = ", [learner.id for learner in new_learner_population])
 
     println("length_test_population = ", length(new_test_population))
     println("length_test_children = ", length(new_test_children))
+    println("length_test_archive = ", length(ecosystem.test_archive))
     println("length_test_retirees = ", length(ecosystem.retired_tests))
     println("TEST_POPULATION_IDS = ", [test.id for test in new_test_population])
 
@@ -373,16 +380,16 @@ function evaluate(
     t = time()
     outcomes = vcat([get_individual_outcomes(result) for result in results]...)
     row_ids = [learner.id for learner in [
-        ecosystem.learner_population; ecosystem.learner_children
+        ecosystem.learner_population; ecosystem.learner_children; ecosystem.learner_archive
     ]]
     column_ids = [test.id for test in [
-        ecosystem.test_population; ecosystem.test_archive
+        ecosystem.test_population; ecosystem.test_children ; ecosystem.test_archive
     ]]
     #row_ids = [learner.id for learner in [
-    #    ecosystem.learner_population; ecosystem.learner_children; ecosystem.learner_archive
+    #    ecosystem.learner_population; ecosystem.learner_children
     #]]
     #column_ids = [test.id for test in [
-    #    ecosystem.test_population; ecosystem.test_children ; ecosystem.test_archive
+    #    ecosystem.test_population; ecosystem.test_archive
     #]]
     learner_evaluation = MaxSolveEvaluation(
         "L", 
@@ -393,19 +400,18 @@ function evaluate(
         state
     )
 
-    #row_ids = [test.id for test in [
-    #    ecosystem.test_population; ecosystem.test_children ; ecosystem.test_archive
-    #]]
-    #column_ids = [learner.id for learner in [
-    #    ecosystem.learner_population; ecosystem.learner_children ; ecosystem.learner_archive
-    #]]
     row_ids = [test.id for test in [
-        ecosystem.test_population; ecosystem.test_children
+        ecosystem.test_population; ecosystem.test_children ; ecosystem.test_archive
     ]]
     column_ids = [learner.id for learner in [
-        ecosystem.learner_population; ecosystem.learner_archive
+        ecosystem.learner_population; ecosystem.learner_children ; ecosystem.learner_archive
     ]]
-
+    #row_ids = [test.id for test in [
+    #    ecosystem.test_population; ecosystem.test_children
+    #]]
+    #column_ids = [learner.id for learner in [
+    #    ecosystem.learner_population; ecosystem.learner_archive
+    #]]
 
     test_evaluation = MaxSolveEvaluation(
         "T", 
@@ -413,7 +419,9 @@ function evaluate(
         column_ids, 
         ecosystem, 
         outcomes, 
-        state
+        state;
+        performance_weight = 0.0,
+        distinction_weight = 1.0
     )
 
     println("evaluation time = ", time() - t)

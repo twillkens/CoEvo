@@ -21,7 +21,7 @@ function create_records(
     filtered_matrix::OutcomeMatrix,
     matrix::OutcomeMatrix
 )
-    I = typeof(first(ecosystem.learner_population))
+    I = typeof(first(ecosystem.learner_children))
     records = NewDodoRecord{I}[]
     for id in matrix.row_ids
         record = NewDodoRecord(

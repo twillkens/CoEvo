@@ -49,6 +49,42 @@ function update_tests_dodo(
     return new_test_population, children
 end
 
+function update_tests_nu_advanced(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    new_test_population = select_individuals_aggregate(
+        ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_test_population
+    )
+    n_sample_population = ecosystem_creator.n_test_children
+    id_scores = [
+        learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
+        for learner in new_test_population
+    ]
+    println("id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    indices = roulette(state.rng, n_sample_population, [id_score[2] + 0.00001 for id_score in id_scores] )
+    println("indices = ", indices)
+    test_parents = [first(id_score) for id_score in id_scores[indices]]
+    test_parents = sample(
+        [new_test_population ; ecosystem.test_archive; ecosystem.retired_tests], 
+        ecosystem_creator.n_test_children, replace = true
+    )
+    n_active_retirees = min(length(ecosystem.retired_tests), div(ecosystem_creator.n_learner_children, 4))
+    active_retirees = sample(ecosystem.retired_tests, n_active_retirees, replace = false)
+    random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
+    for parent in random_parents
+        for i in eachindex(parent.genotype.genes)
+            parent.genotype.genes[i] = rand(0:1)
+        end
+    end
+    append!(test_parents, random_parents)
+    new_test_children = create_children(test_parents, reproducer, state; use_crossover = false)
+    return active_retirees, new_test_children
+end
+
 function update_tests_advanced(
     reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,
