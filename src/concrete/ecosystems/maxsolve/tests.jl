@@ -49,7 +49,7 @@ function update_tests_dodo(
     return new_test_population, children
 end
 
-function update_tests(
+function update_tests_advanced(
     reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,
     ecosystem::MaxSolveEcosystem, 
@@ -60,7 +60,8 @@ function update_tests(
         ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_test_population
     )
     test_parents = sample(
-        [new_test_population ; ecosystem.test_archive; ecosystem.retired_tests], ecosystem_creator.n_test_children, replace = true
+        [new_test_population ; ecosystem.test_archive; ecosystem.retired_tests], 
+        ecosystem_creator.n_test_children, replace = true
     )
     random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
     for parent in random_parents

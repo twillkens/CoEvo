@@ -27,12 +27,31 @@ function update_learners_disco(
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
-    new_learner_population_records = evaluation.payoff_dodo_evaluation.records[1:ecosystem_creator.n_learner_population]
-    println("DISCO_RECORDS = ", [(record.rank, round(record.crowding; digits=3)) for record in new_learner_population_records])
+    new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
+        1:ecosystem_creator.n_learner_population
+    ]
+    println("DISCO_RECORDS = ", [
+        (record.rank, round(record.crowding; digits=3)) 
+        for record in new_learner_population_records]
+    )
     new_learner_population = [record.individual for record in new_learner_population_records]
-    tournament_samples = [sample(new_learner_population_records, 3, replace = false) for _ in 1:ecosystem_creator.n_learner_children]
-    learner_parents = [run_tournament(samples, state.rng).individual for samples in tournament_samples]
-    #append!(learner_parents, ecosystem.learner_archive)
+    tournament_samples = [
+        sample(new_learner_population_records, 5, replace = false) 
+        for _ in 1:ecosystem_creator.n_learner_children
+    ]
+    learner_records = [
+        run_tournament(samples, state.rng) for samples in tournament_samples
+    ]
+    println("SELECTED_LEARNER_RECORDS = ", [
+        (record.rank, round(record.crowding; digits=3)) 
+        for record in learner_records]
+    )   
+    learner_parents = [record.individual for record in learner_records]
+    archive_parents = sample(
+        [ecosystem.learner_archive; ecosystem.learner_retirees], 
+        ecosystem_creator.n_learner_children, replace = true
+    )
+    append!(learner_parents, archive_parents)
     new_learner_children = create_children(learner_parents, reproducer, state)
     return new_learner_population, new_learner_children
 end
