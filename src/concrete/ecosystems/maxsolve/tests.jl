@@ -222,24 +222,31 @@ function update_tests_regularized(
     payoff_matrix = filter_columns(
         evaluation.payoff_matrix, [learner.id for learner in ecosystem.learner_population]
     )
+    N_ELITES = 5
     advanced_score_matrix = evaluate_advanced(payoff_matrix, 3.0, 1.0)
-    parents = select_individuals_aggregate(ecosystem, advanced_score_matrix, 3)
-    println("len parents = ", length(parents))
-    new_test_children = create_children(parents, reproducer, state; use_crossover = false)
-    println("len new_test_children = ", length(new_test_children))
-    append!(new_test_population, new_test_children)
-    for _ in 1:3
-        retiree = popfirst!(new_test_population)
-        push!(ecosystem.retired_tests, retiree)
+    elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, N_ELITES)
+    println("len elites = ", length(elites))
+    for elite in elites
+        filter!(ind -> ind.id != elite.id, new_test_population)
+        println("len pop after filter = ", length(new_test_population))
+        push!(new_test_population, elite)
+        println("len pop after push = ", length(new_test_population))
+        if !(elite in ecosystem.test_population)
+            retiree = popfirst!(new_test_population)
+            filter!(ind -> ind.id != retiree.id, ecosystem.retired_tests)
+            push!(ecosystem.retired_tests, retiree)
+            if length(ecosystem.retired_tests) > 1000
+                popfirst!(ecosystem.retired_tests)
+            end
+        end
     end
-
+    new_test_children = create_children(new_test_population, reproducer, state; use_crossover = false)
+    println("len new_test_children = ", length(new_test_children))
     println("len new_test_population = ", length(new_test_population))
-
-    #push!(new_learner_population, first(ecosystem.learner_children))
-
-    #n_active_retirees = min(length(ecosystem.retired_tests), div(ecosystem_creator.n_learner_children, 4))
-    n_active_retirees = min(length(ecosystem.retired_tests), ecosystem_creator.n_test_population)
-    active_retirees = sample(ecosystem.retired_tests, n_active_retirees, replace = false)
+    retiree_candidates = [retiree for retiree in ecosystem.retired_tests if !(retiree in new_test_population)]
+    n_active_retirees = min(length(retiree_candidates), 25)
+    active_retirees = sample(retiree_candidates, n_active_retirees, replace = false)
+    println("len active_retirees = ", length(active_retirees))
     #n_random_immigrants = div(ecosystem_creator.n_learner_children, 4)
     n_random_immigrants = 10
     random_immigrants = create_children(
@@ -250,7 +257,8 @@ function update_tests_regularized(
             immigrant.genotype.genes[i] = rand(0:1)
         end
     end
-    misc_tests = [active_retirees ; random_immigrants]
+    println("len random immigrants = ", length(random_immigrants))
+    misc_tests = [active_retirees ; random_immigrants; new_test_children]
     if length(new_test_population) != length(ecosystem.test_population)
         error("LENGTHS = ", length(new_test_population), " ", length(ecosystem.test_population))
     end
