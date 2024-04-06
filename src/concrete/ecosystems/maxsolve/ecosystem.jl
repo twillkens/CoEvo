@@ -101,7 +101,7 @@ using ...Recombiners.Clone: CloneRecombiner
 
 function create_children(parents::Vector{<:Individual}, reproducer::Reproducer, state::State; use_crossover::Bool = true)
     recombiner = use_crossover ? reproducer.recombiner : CloneRecombiner()
-    recombiner = CloneRecombiner()
+    #recombiner = CloneRecombiner()
     children = recombine(
         recombiner, reproducer.mutator, reproducer.phenotype_creator, parents, state
     )

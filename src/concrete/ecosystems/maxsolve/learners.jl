@@ -28,19 +28,23 @@ function update_learners_nu_disco(
     state::State
 )
 
-    elite_learner = first(select_individuals_aggregate(
-        ecosystem, evaluation.advanced_score_matrix, 1
-    ))
-    push!(ecosystem.learner_archive, elite_learner)
-    n_archive_samples = min(length(ecosystem.learner_archive), 10)
-    archive_parents = sample(
-        ecosystem.learner_archive, n_archive_samples, replace = true
-    )
+    elites = [record.individual for record in evaluation.payoff_dodo_evaluation.records[1:5]]
+    for elite in elites
+        filter!(learner -> learner != elite, ecosystem.learner_archive)
+        push!(ecosystem.learner_archive, elite)
+    end
 
     new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
         1:ecosystem_creator.n_learner_population
     ]
     new_learner_population = [record.individual for record in new_learner_population_records]
+    archive_sample_candidates = [
+        learner for learner in ecosystem.learner_archive if !(learner in new_learner_population)
+    ]
+    n_archive_samples = min(length(archive_sample_candidates), 20)
+    archive_samples = sample(
+        archive_sample_candidates, n_archive_samples, replace = false
+    )
     println("LEARNER_DISCO_RECORDS = ", [
         (record.rank, round(record.crowding; digits=3)) 
         for record in new_learner_population_records]
@@ -57,9 +61,9 @@ function update_learners_nu_disco(
         for record in learner_records]
     )   
     learner_parents = [record.individual for record in learner_records]
-    append!(learner_parents, archive_parents)
     I = typeof(first(learner_parents))
     new_learner_children = create_children(learner_parents, reproducer, state)
+    append!(new_learner_children, archive_samples)
     return new_learner_population, new_learner_children
 end
 

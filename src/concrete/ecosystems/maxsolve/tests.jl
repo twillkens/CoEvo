@@ -231,7 +231,7 @@ function update_tests_regularized(
         println("len pop after filter = ", length(new_test_population))
         push!(new_test_population, elite)
         println("len pop after push = ", length(new_test_population))
-        if !(elite in ecosystem.test_population)
+        while length(new_test_population) > ecosystem_creator.n_test_population
             retiree = popfirst!(new_test_population)
             filter!(ind -> ind.id != retiree.id, ecosystem.retired_tests)
             push!(ecosystem.retired_tests, retiree)
@@ -240,7 +240,7 @@ function update_tests_regularized(
             end
         end
     end
-    new_test_children = create_children(new_test_population, reproducer, state; use_crossover = false)
+    new_test_children = create_children(new_test_population, reproducer, state; use_crossover = true)
     println("len new_test_children = ", length(new_test_children))
     println("len new_test_population = ", length(new_test_population))
     retiree_candidates = [retiree for retiree in ecosystem.retired_tests if !(retiree in new_test_population)]
