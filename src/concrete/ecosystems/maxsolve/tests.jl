@@ -223,12 +223,12 @@ function update_tests_regularized(
         evaluation.payoff_matrix, [learner.id for learner in ecosystem.learner_population]
     )
     advanced_score_matrix = evaluate_advanced(payoff_matrix, 3.0, 1.0)
-    parents = select_individuals_aggregate(ecosystem, advanced_score_matrix, 5)
+    parents = select_individuals_aggregate(ecosystem, advanced_score_matrix, 3)
     println("len parents = ", length(parents))
     new_test_children = create_children(parents, reproducer, state; use_crossover = false)
     println("len new_test_children = ", length(new_test_children))
     append!(new_test_population, new_test_children)
-    for _ in 1:5
+    for _ in 1:3
         retiree = popfirst!(new_test_population)
         push!(ecosystem.retired_tests, retiree)
     end

@@ -27,6 +27,16 @@ function update_learners_nu_disco(
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
+
+    elite_learner = first(select_individuals_aggregate(
+        ecosystem, evaluation.advanced_score_matrix, 1
+    ))
+    push!(ecosystem.learner_archive, elite_learner)
+    n_archive_samples = min(length(ecosystem.learner_archive), 10)
+    archive_parents = sample(
+        ecosystem.learner_archive, n_archive_samples, replace = true
+    )
+
     new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
         1:ecosystem_creator.n_learner_population
     ]
@@ -47,6 +57,7 @@ function update_learners_nu_disco(
         for record in learner_records]
     )   
     learner_parents = [record.individual for record in learner_records]
+    append!(learner_parents, archive_parents)
     I = typeof(first(learner_parents))
     new_learner_children = create_children(learner_parents, reproducer, state)
     return new_learner_population, new_learner_children
