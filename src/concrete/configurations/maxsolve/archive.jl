@@ -54,8 +54,10 @@ function archive!(::DensityClassificationArchiver, state::State)
         results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
         println("\n#*****SCORE vs RANDOM*****\n: ", mean(results))
         flush(stdout)
+        ms = sort(round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_population], digits = 3))
+        println("average_pop_test_genotype_val = ", ms)
         ms = sort(round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_archive], digits = 3))
-        println("average_test_genotype_val = ", ms)
+        println("average_archive_test_genotype_val = ", ms)
         #all_tests = [state.ecosystem.test_archive ; state.ecosystem.test_population ; state.ecosystem.test_children]
         #f = Dict()
         #for test in all_tests

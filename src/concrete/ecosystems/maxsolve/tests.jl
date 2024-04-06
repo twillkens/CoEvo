@@ -211,6 +211,50 @@ function update_tests_no_elites(
     #return new_learner_population, new_learner_children
 end
 
+function update_tests_regularized(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    new_test_population = copy(ecosystem.test_population)
+    
+    parents = select_individuals_aggregate(ecosystem, evaluation.advanced_score_matrix, 5)
+    println("len parents = ", length(parents))
+    new_test_children = create_children(parents, reproducer, state; use_crossover = false)
+    println("len new_test_children = ", length(new_test_children))
+    append!(new_test_population, new_test_children)
+    for _ in 1:5
+        popfirst!(new_test_population)
+    end
+    
+    println("len new_test_population = ", length(new_test_population))
+
+    #push!(new_learner_population, first(ecosystem.learner_children))
+
+    #n_active_retirees = min(length(ecosystem.retired_tests), div(ecosystem_creator.n_learner_children, 4))
+    n_active_retirees = min(length(ecosystem.retired_tests), 10)
+    active_retirees = sample(ecosystem.retired_tests, n_active_retirees, replace = false)
+    #n_random_immigrants = div(ecosystem_creator.n_learner_children, 4)
+    n_random_immigrants = 10
+    random_immigrants = create_children(
+        sample(new_test_population, n_random_immigrants, replace = true), reproducer, state
+    )
+    for immigrant in random_immigrants
+        for i in eachindex(immigrant.genotype.genes)
+            immigrant.genotype.genes[i] = rand(0:1)
+        end
+    end
+    misc_tests = [active_retirees ; random_immigrants]
+    if length(new_test_population) != length(ecosystem.test_population)
+        error("LENGTHS = ", length(new_test_population), " ", length(ecosystem.test_population))
+    end
+    #I = typeof(first(new_learner_population))
+    #return I[], [new_archive_children ; new_learner_children]
+    return new_test_population, misc_tests
+end
+
     #for _ in 1:5
     #    competitors = sample(new_test_population, 3, replace = false)
     #    id_scores = [

@@ -101,6 +101,7 @@ using ...Recombiners.Clone: CloneRecombiner
 
 function create_children(parents::Vector{<:Individual}, reproducer::Reproducer, state::State; use_crossover::Bool = true)
     recombiner = use_crossover ? reproducer.recombiner : CloneRecombiner()
+    recombiner = CloneRecombiner()
     children = recombine(
         recombiner, reproducer.mutator, reproducer.phenotype_creator, parents, state
     )
@@ -264,7 +265,10 @@ function update_ecosystem!(
         reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     )
     test_evaluation = last(state.evaluations)
-    new_test_population, new_test_children = update_tests_farthest_first(
+    #new_test_population, new_test_children = update_tests_farthest_first(
+    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    #)
+    new_test_population, new_test_children = update_tests_regularized(
         reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
     )
     #new_test_population, new_test_children = update_tests_nu_advanced(
