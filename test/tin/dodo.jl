@@ -4,16 +4,18 @@ using CoEvo.Interfaces
 using Distributed
 
 
-N_POP = 20
-N_CHILDREN = 40
-N_ARCHIVE = 10
+N_LEARNER_POP = 20
+N_LEARNER_CHILDREN = 40
+N_TEST_POP = 20
+N_TEST_CHILDREN = 40
+N_ARCHIVE = 0
 
 config = MaxSolveConfiguration(
     seed = abs(rand(Int)),
-    n_learner_population = N_POP, 
-    n_learner_children = N_CHILDREN, 
-    n_test_population = N_POP, 
-    n_test_children = N_CHILDREN,
+    n_learner_population = N_LEARNER_POP, 
+    n_learner_children = N_LEARNER_CHILDREN, 
+    n_test_population = N_TEST_POP, 
+    n_test_children = N_TEST_CHILDREN,
     max_learner_archive_size = N_ARCHIVE,
     n_generations = 2000,
     n_dimensions = 3,
@@ -22,8 +24,8 @@ config = MaxSolveConfiguration(
     domain = "CompareOnOne",
     n_workers = nworkers(),
     task = "dct",
-    learner_flip_chance = 0.01,
-    test_flip_chance = 0.01
+    learner_flip_chance = 0.02,
+    test_flip_chance = 0.02
 )
 
 state = BasicEvolutionaryState(config)

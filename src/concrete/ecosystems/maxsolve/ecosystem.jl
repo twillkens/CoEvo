@@ -192,6 +192,7 @@ function select_individuals_aggregate(
 end
 
 using ...Selectors.FitnessProportionate
+
 function roulette(rng::AbstractRNG, n_spins::Int, fitnesses::Vector{<:Real})
     if any(fitnesses .<= 0)
         throw(ArgumentError("Fitness values must be strictly positive for FitnessProportionateSelector."))
@@ -209,6 +210,7 @@ function roulette(rng::AbstractRNG, n_spins::Int, fitnesses::Vector{<:Real})
     end
     return winner_indices
 end
+
 struct MaxSolveEvaluation{
     T <: OutcomeMatrix, U <: OutcomeMatrix, V <: OutcomeMatrix
 } <: Evaluation
@@ -264,6 +266,9 @@ function update_ecosystem!(
     new_learner_population, new_learner_children = update_learners_nu_disco(
         reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     )
+    ecosystem.learner_population = new_learner_population
+    ecosystem.learner_children = new_learner_children
+
     test_evaluation = last(state.evaluations)
     #new_test_population, new_test_children = update_tests_farthest_first(
     #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
@@ -293,21 +298,19 @@ function update_ecosystem!(
     #new_test_population, new_test_children = update_tests_dodo(
     #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
     #)
-    ecosystem.learner_population = new_learner_population
-    ecosystem.learner_children = new_learner_children
     ecosystem.test_population = new_test_population
     ecosystem.test_children = new_test_children
     println("length_learner_population = ", length(new_learner_population))
     println("length_learner_children = ", length(new_learner_children))
     println("length_learner_archive = ", length(ecosystem.learner_archive))
     println("length_learner_retirees = ", length(ecosystem.learner_retirees))
-    println("LEARNER_POPULATION_IDS = ", [learner.id for learner in new_learner_population])
+    #println("LEARNER_POPULATION_IDS = ", [learner.id for learner in new_learner_population])
 
     println("length_test_population = ", length(new_test_population))
     println("length_test_children = ", length(new_test_children))
     println("length_test_archive = ", length(ecosystem.test_archive))
     println("length_test_retirees = ", length(ecosystem.retired_tests))
-    println("TEST_POPULATION_IDS = ", [test.id for test in new_test_population])
+    #println("TEST_POPULATION_IDS = ", [test.id for test in new_test_population])
 
 
     #println("--Generation $(state.generation)--\n")

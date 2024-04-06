@@ -30,6 +30,7 @@ function update_learners_nu_disco(
     new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
         1:ecosystem_creator.n_learner_population
     ]
+    new_learner_population = [record.individual for record in new_learner_population_records]
     println("LEARNER_DISCO_RECORDS = ", [
         (record.rank, round(record.crowding; digits=3)) 
         for record in new_learner_population_records]
@@ -48,7 +49,7 @@ function update_learners_nu_disco(
     learner_parents = [record.individual for record in learner_records]
     I = typeof(first(learner_parents))
     new_learner_children = create_children(learner_parents, reproducer, state)
-    return I[], new_learner_children
+    return new_learner_population, new_learner_children
 end
 
 function update_learners_disco(

@@ -219,22 +219,26 @@ function update_tests_regularized(
     state::State
 )
     new_test_population = copy(ecosystem.test_population)
-    
-    parents = select_individuals_aggregate(ecosystem, evaluation.advanced_score_matrix, 5)
+    payoff_matrix = filter_columns(
+        evaluation.payoff_matrix, [learner.id for learner in ecosystem.learner_population]
+    )
+    advanced_score_matrix = evaluate_advanced(payoff_matrix, 3.0, 1.0)
+    parents = select_individuals_aggregate(ecosystem, advanced_score_matrix, 5)
     println("len parents = ", length(parents))
     new_test_children = create_children(parents, reproducer, state; use_crossover = false)
     println("len new_test_children = ", length(new_test_children))
     append!(new_test_population, new_test_children)
     for _ in 1:5
-        popfirst!(new_test_population)
+        retiree = popfirst!(new_test_population)
+        push!(ecosystem.retired_tests, retiree)
     end
-    
+
     println("len new_test_population = ", length(new_test_population))
 
     #push!(new_learner_population, first(ecosystem.learner_children))
 
     #n_active_retirees = min(length(ecosystem.retired_tests), div(ecosystem_creator.n_learner_children, 4))
-    n_active_retirees = min(length(ecosystem.retired_tests), 10)
+    n_active_retirees = min(length(ecosystem.retired_tests), ecosystem_creator.n_test_population)
     active_retirees = sample(ecosystem.retired_tests, n_active_retirees, replace = false)
     #n_random_immigrants = div(ecosystem_creator.n_learner_children, 4)
     n_random_immigrants = 10
