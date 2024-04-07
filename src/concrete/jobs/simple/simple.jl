@@ -43,11 +43,11 @@ function make_all_matches(
     state::State
 )
     all_learners = [
-        ecosystem.learner_population ; ecosystem.learner_children ; ecosystem.learner_archive
+        ecosystem.learner_population ; ecosystem.learner_children #; ecosystem.learner_archive
     ]
     all_learner_ids = unique([learner.id for learner in all_learners])
     all_tests = [
-        ecosystem.test_population ; ecosystem.test_children ; ecosystem.test_archive
+        ecosystem.test_population ; ecosystem.test_children #; ecosystem.test_archive
     ]
     all_test_ids = unique([test.id for test in all_tests])
     matches = BasicMatch[]

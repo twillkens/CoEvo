@@ -7,6 +7,13 @@ function run_tournament(contenders::Array{<:NewDodoRecord}, rng::AbstractRNG)
         elseif record_2.rank < record_1.rank
             return record_2
         else
+	#	if sum(record_1.outcomes) > sum(record_2.outcomes)
+        #       		return record_1
+	#	elseif sum(record_1.outcomes) < sum(record_2.outcomes)
+	#		return record_2
+	#	    else
+	#		return rand(rng, (record_1, record_2))
+	#	    end
             if record_1.crowding > record_2.crowding
                 return record_1
             elseif record_2.crowding > record_1.crowding
@@ -28,10 +35,17 @@ function update_learners_nu_disco(
     state::State
 )
 
-    elites = [record.individual for record in evaluation.payoff_dodo_evaluation.records[1:5]]
+
+    rank_one_records = [record for record in evaluation.payoff_dodo_evaluation.records if record.rank == 1]
+    elites = sample(rank_one_records, 1)
+    #elites = [record.individual for record in evaluation.payoff_dodo_evaluation.records[1:3]]
     for elite in elites
+	    elite = elite.individual
         filter!(learner -> learner != elite, ecosystem.learner_archive)
         push!(ecosystem.learner_archive, elite)
+	if length(ecosystem.learner_archive) > 20
+		popfirst!(ecosystem.learner_archive)
+	end
     end
 
     new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
@@ -41,7 +55,7 @@ function update_learners_nu_disco(
     archive_sample_candidates = [
         learner for learner in ecosystem.learner_archive if !(learner in new_learner_population)
     ]
-    n_archive_samples = min(length(archive_sample_candidates), 20)
+    n_archive_samples = min(length(archive_sample_candidates), 5)
     archive_samples = sample(
         archive_sample_candidates, n_archive_samples, replace = false
     )
@@ -62,8 +76,9 @@ function update_learners_nu_disco(
     )   
     learner_parents = [record.individual for record in learner_records]
     I = typeof(first(learner_parents))
+    #append!(learner_parents, archive_samples)
     new_learner_children = create_children(learner_parents, reproducer, state)
-    append!(new_learner_children, archive_samples)
+    #append!(new_learner_children, archive_samples)
     return new_learner_population, new_learner_children
 end
 

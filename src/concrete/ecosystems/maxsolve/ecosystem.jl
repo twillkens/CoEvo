@@ -390,17 +390,17 @@ function evaluate(
     t = time()
     outcomes = vcat([get_individual_outcomes(result) for result in results]...)
     row_ids = [learner.id for learner in [
-        ecosystem.learner_population; ecosystem.learner_children; ecosystem.learner_archive
+        ecosystem.learner_population; ecosystem.learner_children#; ecosystem.learner_archive
     ]]
     column_ids = [test.id for test in [
-        ecosystem.test_population; ecosystem.test_children ; ecosystem.test_archive
+        ecosystem.test_population; ecosystem.test_children #; ecosystem.test_archive
     ]]
     #row_ids = [learner.id for learner in [
     #    ecosystem.learner_population; ecosystem.learner_children
     #]]
-    #column_ids = [test.id for test in [
-    #    ecosystem.test_population; ecosystem.test_archive
-    #]]
+    #column_ids = [test.id for test in 
+    #    ecosystem.test_population
+    #]
     learner_evaluation = MaxSolveEvaluation(
         "L", 
         row_ids, 
@@ -411,10 +411,10 @@ function evaluate(
     )
 
     row_ids = [test.id for test in [
-        ecosystem.test_population; ecosystem.test_children ; ecosystem.test_archive
+        ecosystem.test_population; ecosystem.test_children #; ecosystem.test_archive
     ]]
     column_ids = [learner.id for learner in [
-        ecosystem.learner_population; ecosystem.learner_children ; ecosystem.learner_archive
+        ecosystem.learner_population; ecosystem.learner_children #; ecosystem.learner_archive
     ]]
     #row_ids = [test.id for test in [
     #    ecosystem.test_population; ecosystem.test_children
