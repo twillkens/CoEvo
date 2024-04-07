@@ -4,9 +4,9 @@ using CoEvo.Interfaces
 using Distributed
 
 
-N_LEARNER_POP = 200
-N_LEARNER_CHILDREN = 200
-N_TEST_POP = 200
+N_LEARNER_POP = 250
+N_LEARNER_CHILDREN = 250
+N_TEST_POP = 250
 N_TEST_CHILDREN = 50
 N_ARCHIVE = 0
 
@@ -24,8 +24,8 @@ config = MaxSolveConfiguration(
     domain = "CompareOnOne",
     n_workers = nworkers(),
     task = "dct",
-    learner_flip_chance = 0.01,
-    test_flip_chance = 0.01
+    learner_flip_chance = 0.02,
+    test_flip_chance = 0.05
 )
 
 state = BasicEvolutionaryState(config)

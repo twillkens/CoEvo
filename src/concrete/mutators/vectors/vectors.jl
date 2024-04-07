@@ -78,7 +78,8 @@ end
 
 function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
     genes = genotype.genes
-    if mutator.use_symmetry
+    if false
+    #if mutator.use_symmetry
         x = rand()
         if x < 0.1
             genes = collect(reverse(genes))
@@ -96,8 +97,8 @@ function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::S
             end
         end
     else
-        flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
-        #flip_chance = mutator.flip_chance
+        #flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
+        flip_chance = mutator.flip_chance
         for i in eachindex(genes)
             if rand(state.rng) < flip_chance
                 genes[i] = 1 - genes[i]

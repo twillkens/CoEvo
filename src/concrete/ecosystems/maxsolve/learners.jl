@@ -77,7 +77,7 @@ function update_learners_nu_disco(
     learner_parents = [record.individual for record in learner_records]
     I = typeof(first(learner_parents))
     #append!(learner_parents, archive_samples)
-    new_learner_children = create_children(learner_parents, reproducer, state)
+    new_learner_children = create_children(learner_parents, reproducer, state; use_crossover = false)
     #append!(new_learner_children, archive_samples)
     return new_learner_population, new_learner_children
 end

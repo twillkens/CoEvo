@@ -100,8 +100,8 @@ using ...Species.Basic: BasicSpecies
 using ...Recombiners.Clone: CloneRecombiner
 
 function create_children(parents::Vector{<:Individual}, reproducer::Reproducer, state::State; use_crossover::Bool = true)
-    recombiner = use_crossover ? reproducer.recombiner : CloneRecombiner()
-    #recombiner = CloneRecombiner()
+    #recombiner = use_crossover ? reproducer.recombiner : CloneRecombiner()
+    recombiner = CloneRecombiner()
     children = recombine(
         recombiner, reproducer.mutator, reproducer.phenotype_creator, parents, state
     )
@@ -270,32 +270,10 @@ function update_ecosystem!(
     ecosystem.learner_children = new_learner_children
 
     test_evaluation = last(state.evaluations)
-    #new_test_population, new_test_children = update_tests_farthest_first(
-    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    #)
     new_test_population, new_test_children = update_tests_regularized(
         reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
     )
-    #new_test_population, new_test_children = update_tests_nu_advanced(
-    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    #)
-    #new_learner_population, new_learner_children = update_learners(
-    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
-    #)
-    #new_learner_population, new_learner_children = update_learners_disco(
-    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
-    #)
-    #new_learner_population, new_learner_children = update_learners_no_elites(
-    #    reproducers[1], evaluation, ecosystem, ecosystem_creator, state
-    #)
-    #test_evaluation = last(state.evaluations)
-    #new_test_population, new_test_children = update_tests_advanced(
-    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    #)
-    #new_test_population, new_test_children = update_tests_no_elites(
-    #    reproducers[2], evaluation, ecosystem, ecosystem_creator, state
-    #)
-    #new_test_population, new_test_children = update_tests_dodo(
+    #new_test_population, new_test_children = update_tests_standard_distinctions(
     #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
     #)
     ecosystem.test_population = new_test_population

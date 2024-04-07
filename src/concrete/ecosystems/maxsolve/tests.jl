@@ -7,6 +7,23 @@ using ...Matrices.Outcome
 using ...Matches.Basic
 using Random
 
+
+function update_tests_standard_distinctions(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    matrix = make_sum_scalar_matrix(evaluation.distinction_matrix)
+    new_test_population = select_individuals_aggregate(
+        ecosystem, matrix, ecosystem_creator.n_test_population
+    )
+    test_parents = sample(new_test_population, ecosystem_creator.n_test_children, replace = true)
+    new_test_children = create_children(test_parents, reproducer, state)
+    return new_test_population, new_test_children
+end
+
 function update_tests_dodo(
     reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,
@@ -260,8 +277,8 @@ function update_tests_regularized(
         end
     end
     println("len random immigrants = ", length(random_immigrants))
-    misc_tests = [active_retirees ; random_immigrants; new_test_children]
-    #misc_tests = [active_retirees ; new_test_children]
+    #misc_tests = [active_retirees ; random_immigrants; new_test_children]
+    misc_tests = [active_retirees ; new_test_children]
     if length(new_test_population) != length(ecosystem.test_population)
         error("LENGTHS = ", length(new_test_population), " ", length(ecosystem.test_population))
     end
