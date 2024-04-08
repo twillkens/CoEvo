@@ -7,8 +7,9 @@ using Distributed
 N_LEARNER_POP = 100
 N_LEARNER_CHILDREN = 100
 N_TEST_POP = 100
-N_TEST_CHILDREN = 50
+N_TEST_CHILDREN = 150
 N_ARCHIVE = 0
+N_GENERATIONS = 200
 
 for trial in 1:20
     config = MaxSolveConfiguration(
@@ -27,7 +28,7 @@ for trial in 1:20
         n_workers = nworkers(),
         task = "dct",
         learner_flip_chance = 0.02,
-        test_flip_chance = 0.05
+        test_flip_chance = 0.04
     )
 
     state = BasicEvolutionaryState(config)

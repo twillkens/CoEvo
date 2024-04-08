@@ -163,16 +163,16 @@ function update_tests_advanced(
         ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_test_population
     )
     test_parents = sample(
-        [new_test_population ; ecosystem.test_archive; ecosystem.retired_tests], 
+        [new_test_population ; ecosystem.test_archive], 
         ecosystem_creator.n_test_children, replace = true
     )
-    random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
-    for parent in random_parents
-        for i in eachindex(parent.genotype.genes)
-            parent.genotype.genes[i] = rand(0:1)
-        end
-    end
-    append!(test_parents, random_parents)
+    #random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
+    #for parent in random_parents
+    #    for i in eachindex(parent.genotype.genes)
+    #        parent.genotype.genes[i] = rand(0:1)
+    #    end
+    #end
+    #append!(test_parents, random_parents)
     #n_sample_archive = min(length(ecosystem.test_archive), 20)
     #archive_parents = sample(
     #    ecosystem.test_archive, n_sample_archive, replace = true

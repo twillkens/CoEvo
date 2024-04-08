@@ -4,14 +4,15 @@ using DataFrames
 using CSV
 using Serialization
 using ....Abstract
+using Distributed
 
 struct DensityClassificationArchiver <: Archiver 
     data::DataFrame
 end
 
 function DensityClassificationArchiver()
-    if isfile("results.csv")
-        data = CSV.read("results.csv", DataFrame)
+    if isfile("results-disco-advanced.csv")
+        data = CSV.read("results-disco-advanced.csv", DataFrame)
     else
         data = DataFrame(
             trial = Int[], 
@@ -59,13 +60,15 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         println("rule =", elite_rule.genotype.genes)
         println("FITNESS: ", elite_fitness, " out of ", length(all_tests))
         ics = [test.genotype.genes for test in all_tests]
-        results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
+        #results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
+	results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
         println("REPLAYED_SCORE_VS_TESTS: ", sum(results), " out of ", length(results))
         #p = filter_rows(state.ecosystem.payoff_matrix, [elite_rule.id])
         #println(p)
         #elite_rule = first(state.ecosystem.learner_archive).genotype.genes
         ics = generate_unbiased_ICs(149, 10_000)
-        results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
+        #results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
+	results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
         score = mean(results)
         println("\n#*****SCORE vs RANDOM*****\n\n", score)
         println()
@@ -99,7 +102,7 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         push!(archiver.data, info)
     
         # Optionally, save the DataFrame to a CSV file every generation
-        CSV.write("results.csv", archiver.data)
+        CSV.write("results-disco-advanced.csv", archiver.data)
     end
 end
 

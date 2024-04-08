@@ -270,12 +270,15 @@ function update_ecosystem!(
     ecosystem.learner_children = new_learner_children
 
     test_evaluation = last(state.evaluations)
-    new_test_population, new_test_children = update_tests_regularized(
-        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    )
+    #new_test_population, new_test_children = update_tests_regularized(
+    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    #)
     #new_test_population, new_test_children = update_tests_standard_distinctions(
     #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
     #)
+    new_test_population, new_test_children = update_tests_advanced(
+        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    )
     ecosystem.test_population = new_test_population
     ecosystem.test_children = new_test_children
     println("length_learner_population = ", length(new_learner_population))
@@ -408,7 +411,7 @@ function evaluate(
         ecosystem, 
         outcomes, 
         state;
-        performance_weight = 0.0,
+        performance_weight = 3.0,
         distinction_weight = 1.0
     )
 
