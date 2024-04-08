@@ -40,6 +40,7 @@ Base.@kwdef struct MaxSolveConfiguration <: Configuration
     task::String = "dct"
     learner_flip_chance::Float64 = 0.02
     test_flip_chance::Float64 = 0.05
+    algorithm::String = "dodo"
 end
 
 function get_ecosystem_creator(config::MaxSolveConfiguration)

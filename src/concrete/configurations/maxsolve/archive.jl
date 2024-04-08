@@ -5,7 +5,25 @@ using CSV
 using Serialization
 using ....Abstract
 
-struct DensityClassificationArchiver <: Archiver end
+struct DensityClassificationArchiver <: Archiver 
+    data::DataFrame
+end
+
+function DensityClassificationArchiver()
+    if isfile("results.csv")
+        data = CSV.read("results.csv", DataFrame)
+    else
+        data = DataFrame(
+            trial = Int[], 
+            algorithm = String[],
+            generation = Int[], 
+            fitness = Float64[], 
+            score = Float64[], 
+            seed = Int[]
+        )
+    end
+    return DensityClassificationArchiver(data)
+end
 
 
 using Random
@@ -17,7 +35,7 @@ import ....Interfaces: archive!
 
 include("improved.jl")
 
-function archive!(::DensityClassificationArchiver, state::State)
+function archive!(archiver::DensityClassificationArchiver, state::State)
     #all_data = DataFrame()
     println("\n\n------------GENERATION $(state.generation)------------")
     println("reproduction_time = ", state.timers.reproduction_time)
@@ -46,9 +64,10 @@ function archive!(::DensityClassificationArchiver, state::State)
         #p = filter_rows(state.ecosystem.payoff_matrix, [elite_rule.id])
         #println(p)
         #elite_rule = first(state.ecosystem.learner_archive).genotype.genes
-        ics = generate_unbiased_ICs(149, 2500)
+        ics = generate_unbiased_ICs(149, 10_000)
         results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
-        println("\n#*****SCORE vs RANDOM*****\n\n", mean(results))
+        score = mean(results)
+        println("\n#*****SCORE vs RANDOM*****\n\n", score)
         println()
 
         ms = round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_population], digits = 3)
@@ -69,6 +88,18 @@ function archive!(::DensityClassificationArchiver, state::State)
         #    serialize("state.jls", state)
         #    error("ELITE FOUND")
         #end
+        info = (
+            trial = state.configuration.id, 
+            algorithm = state.configuration.algorithm,
+            generation = state.generation, 
+            fitness = elite_fitness,
+            score = score,
+            seed = state.configuration.seed
+        )
+        push!(archiver.data, info)
+    
+        # Optionally, save the DataFrame to a CSV file every generation
+        CSV.write("results.csv", archiver.data)
     end
 end
 
