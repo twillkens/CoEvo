@@ -37,21 +37,10 @@ end
 
 ## TODO: maxsolve matchmaker
 
-function make_all_matches(
-    ::SimpleJobCreator,
-    ecosystem::MaxSolveEcosystem,
-    state::State
-)
-    all_learners = [
-        ecosystem.learner_population ; ecosystem.learner_children #; ecosystem.learner_archive
-    ]
-    all_learner_ids = unique([learner.id for learner in all_learners])
-    all_tests = [
-        ecosystem.test_population ; ecosystem.test_children #; ecosystem.test_archive
-    ]
-    all_test_ids = unique([test.id for test in all_tests])
+function make_all_matches(::SimpleJobCreator, ecosystem::MaxSolveEcosystem, state::State)
+    all_learner_ids = unique([learner.id for learner in ecosystem.learners.active])
+    all_test_ids = unique([test.id for test in ecosystem.tests.active])
     matches = BasicMatch[]
-    matrix = ecosystem.payoff_matrix
     for learner_id in all_learner_ids
         for test_id in all_test_ids
             #if !(learner_id in matrix.row_ids) || !(test_id in matrix.column_ids)

@@ -6,27 +6,6 @@ using CoEvo.Interfaces
 # Experiment parameters
 N_TRIALS = 5
 N_WORKERS = nworkers()
-N_GENERATIONS = 20
-N_TIMESTEPS = 320
-N_VALIDATION_INITIAL_CONDITIONS = 10_000
-
-# Learner population parameters
-N_LEARNER_POP = 20
-N_LEARNER_CHILDREN = 20
-LEARNER_RECOMBINER = "clone"
-RULE_LENGTH = 128
-LEARNER_FLIP_CHANCE = 0.02
-
-# Test population parameters
-N_TEST_POP = 20
-N_TEST_CHILDREN = 20
-TEST_RECOMBINER = "clone"
-INITIAL_CONDITION_LENGTH = 149
-TEST_FLIP_CHANCE = 0.05
-
-# MaxSolve parameters
-ALGORITHM = "standard"
-N_MAXSOLVE_ARCHIVE = 0
 
 for trial in 1:N_TRIALS
     seed = abs(rand(Int))
@@ -36,27 +15,41 @@ for trial in 1:N_TRIALS
         id = trial,
         seed = seed,
         n_workers = N_WORKERS,
-        n_generations = N_GENERATIONS,
-        n_timesteps = N_TIMESTEPS,
-        n_validation_initial_conditions = N_VALIDATION_INITIAL_CONDITIONS,
+        n_generations = 20,
+        n_timesteps = 320,
+        n_validation_initial_conditions = 10_000,
 
         # Learner population parameters
-        n_learner_population = N_LEARNER_POP, 
-        n_learner_children = N_LEARNER_CHILDREN, 
-        learner_recombiner = LEARNER_RECOMBINER,
-        rule_length = RULE_LENGTH,
-        learner_flip_chance = LEARNER_FLIP_CHANCE,
+        n_learner_population = 20, 
+        n_learner_children = 20, 
+
+        max_learner_archive_size = 20,
+        max_active_learner_archive = 0,
+
+        max_learner_retiree_size = 0,
+        max_active_learner_retirees = 0,
+
+        learner_recombiner = "clone",
+        rule_length = 128,
+        learner_flip_chance = 0.2,
 
         # Test population parameters
-        n_test_population = N_TEST_POP, 
-        n_test_children = N_TEST_CHILDREN,
-        test_recombiner = TEST_RECOMBINER,
-        initial_condition_length = INITIAL_CONDITION_LENGTH,
-        test_flip_chance = TEST_FLIP_CHANCE,
+        n_test_population = 20, 
+        n_test_children = 20,
+
+        max_test_archive_size = 0,
+        max_active_test_archive = 0,
+
+        max_test_retiree_size = 10,
+        max_active_test_retirees = 5,
+
+        test_recombiner = "clone",
+        initial_condition_length = 149,
+        test_flip_chance = 0.05,
 
         # MaxSolve parameters
-        algorithm = ALGORITHM,
-        max_learner_archive_size = N_MAXSOLVE_ARCHIVE,
+        algorithm = "dodo",
+
     )
 
     state = BasicEvolutionaryState(config)

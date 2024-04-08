@@ -11,13 +11,14 @@ using ....Interfaces: create_species, update_species!
 using ....Interfaces
 using ...Matrices.Outcome
 
+include("structs.jl")
 include("archive.jl")
 #include("filter.jl")
 #include("evaluate.jl")
 #include("evaluation.jl")
 #include("sillhouette_kmeans.jl")
 #include("cluster.jl")
+include("disco/disco.jl")
 include("ecosystem.jl")
-#include("disco/disco.jl")
 
 end

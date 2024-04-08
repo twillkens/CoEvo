@@ -1,4 +1,3 @@
-
 using Random
 using ...Matrices.Outcome: OutcomeMatrix
 
@@ -26,9 +25,9 @@ end
 
 function get_filtered_indices(
     matrix::Matrix; 
-    filter_zero_rows::Bool = true, 
-    filter_zero_columns::Bool = true, 
-    filter_duplicate_rows::Bool = true, 
+    filter_zero_rows::Bool = false, 
+    filter_zero_columns::Bool = false, 
+    filter_duplicate_rows::Bool = false, 
     filter_duplicate_columns::Bool = true, 
     rng::AbstractRNG = Random.GLOBAL_RNG
 ) 
@@ -72,7 +71,7 @@ end
 
 function get_filtered_matrix(matrix::OutcomeMatrix; kwargs...)
     #non_zero_row_indices = get_nonzero_row_indices(matrix.data)
-    row_indices, column_indices = get_filtered_indices(matrix.data, kwargs...)
+    row_indices, column_indices = get_filtered_indices(matrix.data; kwargs...)
     matrix = OutcomeMatrix(
         matrix.id, 
         matrix.row_ids[row_indices], 

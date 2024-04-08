@@ -23,7 +23,12 @@ function DensityClassificationArchiver()
         data = CSV.read("results.csv", DataFrame)
     else
         data = DataFrame(
-            trial = Int[], generation = Int[], fitness = Float64[], score = Float64[], seed = Int[]
+            trial = Int[], 
+            algorithm = String[],
+            generation = Int[], 
+            fitness = Float64[], 
+            score = Float64[], 
+            seed = Int[]
         )
     end
     return DensityClassificationArchiver(data)
@@ -31,13 +36,13 @@ end
 
 
 function get_elite_rule_and_fitness(::DensityClassificationArchiver, state::State)
-    all_tests = [state.ecosystem.test_population ; state.ecosystem.test_children]
+    evaluation = first(state.evaluations)
+    payoff_matrix = evaluation.payoff_matrix
     elite_fitness = -1
     elite_rule = nothing
-    for learner in [state.ecosystem.learner_population ; state.ecosystem.learner_children]
-        p = filter_columns(state.ecosystem.payoff_matrix, [test.id for test in all_tests])
+    for learner in state.ecosystem.learners.active
         #p = state.ecosystem.payoff_matrix
-        fitness = sum(p[learner.id, :])
+        fitness = sum(payoff_matrix[learner.id, :])
         if fitness > elite_fitness
             elite_fitness = fitness
             elite_rule = learner
@@ -101,13 +106,14 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
     #if state.generation > 1 && state.generation % 1 == 0
     elite_rule, elite_fitness = get_elite_rule_and_fitness(archiver, state)
     score = get_validation_score(elite_rule, state.configuration)
-    test_population_values = get_average_genotype_values(state.ecosystem.test_population)
+    test_population_values = get_average_genotype_values(state.ecosystem.tests.population)
     test_children_values = get_average_genotype_values(
-        state.ecosystem.test_children; do_sort = true
+        state.ecosystem.tests.children; do_sort = true
     )
             # Append the current results to the archiver's DataFrame
     info = (
         trial = state.configuration.id, 
+        algorithm = state.configuration.algorithm,
         generation = state.generation, 
         fitness = elite_fitness,
         score = score,

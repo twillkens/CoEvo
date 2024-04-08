@@ -4,7 +4,7 @@ using ...Evaluators.NSGAII
 using ...Criteria
 
 
-function Base.getproperty(record::NewDodoRecord, name::Symbol)
+function Base.getproperty(record::DiscoRecord, name::Symbol)
     if name == :raw_fitness
         return sum(record.raw_outcomes)
     elseif name == :filtered_fitness
@@ -16,20 +16,17 @@ function Base.getproperty(record::NewDodoRecord, name::Symbol)
 end
 
 function create_records(
-    ecosystem::MaxSolveEcosystem,
-    raw_matrix::OutcomeMatrix,
-    filtered_matrix::OutcomeMatrix,
-    matrix::OutcomeMatrix
+    raw_matrix::OutcomeMatrix, filtered_matrix::OutcomeMatrix, matrix::OutcomeMatrix,
+    ids_cluster_map::Dict{Int, Int}
 )
-    I = typeof(first(ecosystem.learner_children))
-    records = NewDodoRecord{I}[]
+    records = DiscoRecord[]
     for id in matrix.row_ids
-        record = NewDodoRecord(
+        record = DiscoRecord(
             id = id, 
-            individual = ecosystem[id],
             raw_outcomes = float.(raw_matrix[id, :]), 
             filtered_outcomes = float.(filtered_matrix[id, :]),
-            outcomes = float.(matrix[id, :])
+            outcomes = float.(matrix[id, :]),
+            cluster = ids_cluster_map[id]
         )
         push!(records, record)
     end
@@ -37,7 +34,6 @@ function create_records(
     sorted_records = nsga_sort!(records, criterion, nothing, nothing)
     return sorted_records
 end
-
 
 function reconstruct_matrix(raw_matrix::OutcomeMatrix, filtered_matrix::OutcomeMatrix)
     filtered_data = zeros(Float64, length(raw_matrix.row_ids), length(filtered_matrix.column_ids))
@@ -52,61 +48,63 @@ function reconstruct_matrix(raw_matrix::OutcomeMatrix, filtered_matrix::OutcomeM
     return filtered_matrix
 end
 
-function get_high_rank_records(cluster_ids::Vector{Int}, records::Vector{<:NewDodoRecord})
-    cluster_records = [record for record in records if record.id in cluster_ids]
-    if length(cluster_records) != length(cluster_ids)
-        println("CLUSTER_RECORDS = ", [record.id for record in cluster_records])
-        println("CLUSTER_IDS = ", cluster_ids)
-        error("Cluster records and cluster ids do not match")
-    end
-    highest_rank = first(cluster_records).rank
-    high_rank_records = [record for record in cluster_records if record.rank == highest_rank]
-    return high_rank_records
-end
-
-
-function get_cluster_leader_id(
-    cluster_ids::Vector{Int}, records::Vector{<:NewDodoRecord}
-)
-    high_rank_records = get_high_rank_records(cluster_ids, records)
-    #parent_records = [
-    #    record for record in high_rank_records if record.individual in species.parents
-    #]
-    #other_records = [record for record in high_rank_records if !(record in parent_records)]
-    #chosen_record = length(other_records) > 0 ? rand(other_records) : rand(parent_records)
-    chosen_record = rand(high_rank_records)
-    id = chosen_record.id
-    return id
-end
-
-function get_cluster_leader_ids(
-    all_cluster_ids::Vector{Vector{Int}}, 
-    records::Vector{<:NewDodoRecord}
-)
-    leader_ids = [
-        get_cluster_leader_id(cluster_ids, records) for cluster_ids in all_cluster_ids
-    ]
-    return leader_ids
-end
-
 function print_info(
     #evaluator::NewDodoEvaluator, 
     raw_matrix::OutcomeMatrix, 
     filtered_matrix::OutcomeMatrix, 
     derived_matrix::OutcomeMatrix, 
-    records::Vector{<:NewDodoRecord}, 
+    records::Vector{<:DiscoRecord}, 
     all_cluster_ids::Vector{Vector{Int}}
 )
     #println("--------EVALUATOR_$(evaluator.id)-----")
     println("CLUSTER_SIZES = ", [length(cluster) for cluster in all_cluster_ids])
     println("SIZE_RAW_MATRIX = ", size(raw_matrix.data))
-    println("SIZE_FILTERED_MATRIX = ", size(filtered_matrix.data))
-    println("SIZE_DERIVED_MATRIX = ", size(derived_matrix.data))
-    #tag = evaluator.objective == "performance" ? "FILTERED_OUTCOMES" : "FILTERED_DISTINCTIONS"
     tag = "SUM_RAW_OUTCOMES"
-    println("$tag = ", [Int(sum(record.raw_outcomes)) for record in records])
-    tag = "SUM_OUTCOMES_FILTERED"
-    println("$tag = ", [Int(sum(record.filtered_outcomes)) for record in records])
+    println("$tag = ", sort([Int(sum(record.raw_outcomes)) for record in records]; rev=true))
+    println("SIZE_FILTERED_MATRIX = ", size(filtered_matrix.data))
+    tag = "SUM_FILTERED_OUTCOMES_"
+    println("$tag = ", sort([Int(sum(record.filtered_outcomes)) for record in records]; rev=true))
+    println("SIZE_DERIVED_MATRIX = ", size(derived_matrix.data))
+end
+
+function evaluate_disco(raw_matrix::OutcomeMatrix, species_id::String, state::State)
+    #results = filter_results_by_cohort(evaluator, species, results, state)
+    #println("RAW_MATRIX = ", raw_matrix)
+    filtered_matrix = get_filtered_matrix(raw_matrix; rng = state.rng)
+    #println("FILTERED_MATRIX_IDS = ", filtered_matrix.row_ids)
+    #println("SIZE_FILTERED_MATRIX = ", size(filtered_matrix.data))
+    #println("SUM_FILTERED_OUTCOMES = ", [Int(sum(filtered_matrix[id, :])) for id in filtered_matrix.row_ids])
+    #println("FILTERED_MATRIX = ", filtered_matrix)
+    #filtered_matrix = deepcopy(raw_matrix)
+    derived_matrix, all_cluster_ids = get_derived_matrix(filtered_matrix)
+    #println("DERIVED_MATRIX_IDS = ", derived_matrix.row_ids)
+    if length(all_cluster_ids) == 0
+        all_cluster_ids = [[id for id in raw_matrix.row_ids]]
+    end
+    ids_cluster_map = create_row_id_to_cluster_id_map(all_cluster_ids)
+    #println("DERIVED_MATRIX = ", derived_matrix)
+    #println("ALL_CLUSTER_IDS = ", all_cluster_ids)
+    #println("IDS_CLUSTER_MAP = ", ids_cluster_map)
+    reconstructed_filtered_matrix = reconstruct_matrix(raw_matrix, filtered_matrix)
+    reconstructed_derived_matrix = reconstruct_matrix(raw_matrix, derived_matrix)
+    records = create_records(
+        raw_matrix, reconstructed_filtered_matrix, reconstructed_derived_matrix, ids_cluster_map
+    )
+    println("DISCO_RECORDS_$(species_id) = ", [
+        (record.rank, round(record.crowding; digits=2)) 
+        for record in records]
+    )
+
+    evaluation = DiscoEvaluation(
+        id = species_id,
+        raw_matrix = raw_matrix,
+        filtered_matrix = reconstructed_filtered_matrix,
+        matrix = reconstructed_derived_matrix,
+        records = records
+    )
+    print_info(raw_matrix, filtered_matrix, derived_matrix, records, all_cluster_ids)
+    return evaluation
+    #return new_parent_ids
 end
 
 # function get_other_species(species::AbstractSpecies, state::State)

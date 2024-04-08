@@ -43,6 +43,10 @@ Base.@kwdef struct DensityClassificationTaskConfiguration <: Configuration
     # Learner population parameters
     n_learner_population::Int = 20
     n_learner_children::Int = 20
+    max_learner_archive_size::Int = 0
+    max_active_learner_archive::Int = 0
+    max_learner_retiree_size::Int = 0
+    max_active_learner_retirees::Int = 0
     learner_recombiner::String = "clone"
     rule_length::Int = 128
     learner_flip_chance::Float64 = 0.02
@@ -50,24 +54,38 @@ Base.@kwdef struct DensityClassificationTaskConfiguration <: Configuration
     # Test population parameters
     n_test_population::Int = 20
     n_test_children::Int = 20
+    max_test_archive_size::Int = 0
+    max_active_test_archive::Int = 0
+    max_test_retiree_size::Int = 0
+    max_active_test_retirees::Int = 0
     test_recombiner::String = "clone"
     initial_condition_length::Int = 149
     test_flip_chance::Float64 = 0.05
 
     # MaxSolve parameters
     algorithm::String = "standard"
-    max_learner_archive_size::Int = 10
 end
 
 function get_ecosystem_creator(config::DensityClassificationTaskConfiguration)
     ecosystem_creator = MaxSolveEcosystemCreator(
         id = config.id,
-        n_learner_population = config.n_learner_population,
-        n_learner_children = config.n_learner_children,
-        n_test_population = config.n_test_population,
-        n_test_children = config.n_test_children,
+        learners = MaxSolveSpeciesParameters(
+            n_population = config.n_learner_population,
+            n_children = config.n_learner_children,
+            max_archive_size = config.max_learner_archive_size,
+            max_active_archive = config.max_active_learner_archive,
+            max_retiree_size = config.max_learner_retiree_size,
+            max_active_retirees = config.max_active_learner_retirees,
+        ),
+        tests = MaxSolveSpeciesParameters(
+            n_population = config.n_test_population,
+            n_children = config.n_test_children,
+            max_archive_size = config.max_test_archive_size,
+            max_active_archive = config.max_active_test_archive,
+            max_retiree_size = config.max_test_retiree_size,
+            max_active_retirees = config.max_active_test_retirees,
+        ),
         algorithm = config.algorithm,
-        max_learner_archive_size = config.max_learner_archive_size,
     )
     return ecosystem_creator
 end

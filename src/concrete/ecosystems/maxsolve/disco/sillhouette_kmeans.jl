@@ -1,4 +1,5 @@
 export create_fallback_clustering, get_best_clustering
+export assign_cluster_ids, create_row_id_to_cluster_id_map, calculate_clustering_qualities
 
 using StatsBase
 using LinearAlgebra
@@ -13,6 +14,16 @@ function assign_cluster_ids(row_ids::Vector{T}, assignments) where T
         push!(get!(cluster_dict, assignment, []), row_ids[row_index])
     end
     return values(cluster_dict) |> collect
+end
+
+function create_row_id_to_cluster_id_map(clusters::Vector{Vector{T}}) where T
+    row_id_to_cluster_id = Dict{T, Int}()
+    for (cluster_id, cluster) in enumerate(clusters)
+        for row_id in cluster
+            row_id_to_cluster_id[row_id] = cluster_id
+        end
+    end
+    return row_id_to_cluster_id
 end
 
 function calculate_clustering_qualities(X, clusterings)
