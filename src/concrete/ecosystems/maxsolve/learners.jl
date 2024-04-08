@@ -7,13 +7,6 @@ function run_tournament(contenders::Array{<:NewDodoRecord}, rng::AbstractRNG)
         elseif record_2.rank < record_1.rank
             return record_2
         else
-	#	if sum(record_1.outcomes) > sum(record_2.outcomes)
-        #       		return record_1
-	#	elseif sum(record_1.outcomes) < sum(record_2.outcomes)
-	#		return record_2
-	#	    else
-	#		return rand(rng, (record_1, record_2))
-	#	    end
             if record_1.crowding > record_2.crowding
                 return record_1
             elseif record_2.crowding > record_1.crowding
@@ -27,38 +20,17 @@ function run_tournament(contenders::Array{<:NewDodoRecord}, rng::AbstractRNG)
     return winner
 end
 
-function update_learners_nu_disco(
+function update_learners_disco!(
     reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,
     ecosystem::MaxSolveEcosystem, 
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
-
-
-    rank_one_records = [record for record in evaluation.payoff_dodo_evaluation.records if record.rank == 1]
-    elites = sample(rank_one_records, 1)
-    #elites = [record.individual for record in evaluation.payoff_dodo_evaluation.records[1:3]]
-    for elite in elites
-	    elite = elite.individual
-        filter!(learner -> learner != elite, ecosystem.learner_archive)
-        push!(ecosystem.learner_archive, elite)
-	if length(ecosystem.learner_archive) > 20
-		popfirst!(ecosystem.learner_archive)
-	end
-    end
-
     new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
         1:ecosystem_creator.n_learner_population
     ]
     new_learner_population = [record.individual for record in new_learner_population_records]
-    archive_sample_candidates = [
-        learner for learner in ecosystem.learner_archive if !(learner in new_learner_population)
-    ]
-    n_archive_samples = min(length(archive_sample_candidates), 5)
-    archive_samples = sample(
-        archive_sample_candidates, n_archive_samples, replace = false
-    )
     println("LEARNER_DISCO_RECORDS = ", [
         (record.rank, round(record.crowding; digits=3)) 
         for record in new_learner_population_records]
@@ -75,11 +47,9 @@ function update_learners_nu_disco(
         for record in learner_records]
     )   
     learner_parents = [record.individual for record in learner_records]
-    I = typeof(first(learner_parents))
-    #append!(learner_parents, archive_samples)
-    new_learner_children = create_children(learner_parents, reproducer, state; use_crossover = false)
-    #append!(new_learner_children, archive_samples)
-    return new_learner_population, new_learner_children
+    new_learner_children = create_children(learner_parents, reproducer, state)
+    ecosystem.learner_population = new_learner_population
+    ecosystem.learner_children = new_learner_children
 end
 
 function update_learners_disco(
@@ -118,39 +88,28 @@ function update_learners_disco(
     return new_learner_population, new_learner_children
 end
 
-function update_learners(
+function update_learners_scalar_fitness!(
     reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,
-    ecosystem::MaxSolveEcosystem, 
+    population::Vector{<:Individual},
+    children::Vector{<:Individual},
     ecosystem_creator::MaxSolveEcosystemCreator,
+    ecosystem::MaxSolveEcosystem,
     state::State
 )
     new_learner_population = select_individuals_aggregate(
-        ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_learner_population
+        ecosystem, evaluation.payoff_matrix, ecosystem_creator.n_learner_population, state
     )
-    #n_sample_archive = min(length(ecosystem.learner_archive), 10)
-    #n_sample_population = 40 - n_sample_archive # ecosystem_creator.n_learner_children
     n_sample_population = ecosystem_creator.n_learner_children
-    id_scores = [
-        learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
-        for learner in new_learner_population
-    ]
-    println("id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
-    indices = roulette(state.rng, n_sample_population, [id_score[2] + 0.00001 for id_score in id_scores] )
-    println("indices = ", indices)
-    learner_parents = [first(id_score) for id_score in id_scores[indices]]
-    #archive_parents = sample(
-    #    ecosystem.learner_archive, n_sample_archive, replace = true
-    #)
-    #new_archive_children = create_children(archive_parents, reproducer, state)
-    #learner_parents = sample(
-    #    new_learner_population, n_sample_population, replace = true
-    #)
-    append!(learner_parents, ecosystem.learner_archive)
+    learner_parents = sample(
+        new_learner_population, n_sample_population, replace = true
+    )
     new_learner_children = create_children(learner_parents, reproducer, state)
-    #I = typeof(first(new_learner_population))
-    #return I[], [new_archive_children ; new_learner_children]
-    return new_learner_population, new_learner_children
+    ecosystem.learner_population = new_learner_population
+    ecosystem.learner_children = new_learner_children
+end
+
+function update_learners_advanced!()
 end
 
 function update_learners_no_elites(
@@ -161,7 +120,7 @@ function update_learners_no_elites(
     state::State
 )
     new_learner_population = select_individuals_aggregate(
-        ecosystem, evaluation.learner_score_matrix, ecosystem_creator.n_learner_population
+        ecosystem, evaluation.learner_score_matrix, ecosystem_creator.n_learner_population, state
     )
     #n_sample_archive = min(length(ecosystem.learner_archive), 10)
     n_sample_archive = length(ecosystem.learner_archive)
@@ -215,3 +174,53 @@ function update_learners_regularized(
     end
     return new_learner_population, new_learner_children
 end
+
+#function update_learners_nu_disco(
+#    reproducer::Reproducer, 
+#    evaluation::MaxSolveEvaluation,
+#    ecosystem::MaxSolveEcosystem, 
+#    ecosystem_creator::MaxSolveEcosystemCreator,
+#    state::State
+#)
+#    rank_one_records = [record for record in evaluation.payoff_dodo_evaluation.records if record.rank == 1]
+#    elites = sample(rank_one_records, 1)
+#    #elites = [record.individual for record in evaluation.payoff_dodo_evaluation.records[1:3]]
+#    for elite in elites
+#	    elite = elite.individual
+#        filter!(learner -> learner != elite, ecosystem.learner_archive)
+#        push!(ecosystem.learner_archive, elite)
+#	if length(ecosystem.learner_archive) > 20
+#		popfirst!(ecosystem.learner_archive)
+#	end
+#    end
+#
+#    new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
+#        1:ecosystem_creator.n_learner_population
+#    ]
+#    new_learner_population = [record.individual for record in new_learner_population_records]
+#    archive_sample_candidates = [
+#        learner for learner in ecosystem.learner_archive if !(learner in new_learner_population)
+#    ]
+#    n_archive_samples = min(length(archive_sample_candidates), 5)
+#    archive_samples = sample(
+#        archive_sample_candidates, n_archive_samples, replace = false
+#    )
+#    println("LEARNER_DISCO_RECORDS = ", [
+#        (record.rank, round(record.crowding; digits=3)) 
+#        for record in new_learner_population_records]
+#    )
+#    tournament_samples = [
+#        sample(new_learner_population_records, 5, replace = false) 
+#        for _ in 1:ecosystem_creator.n_learner_children
+#    ]
+#    learner_records = [
+#        run_tournament(samples, state.rng) for samples in tournament_samples
+#    ]
+#    println("SELECTED_LEARNER_RECORDS = ", [
+#        (record.rank, round(record.crowding; digits=3)) 
+#        for record in learner_records]
+#    )   
+#    learner_parents = [record.individual for record in learner_records]
+#    new_learner_children = create_children(learner_parents, reproducer, state)
+#    return new_learner_population, new_learner_children
+#end

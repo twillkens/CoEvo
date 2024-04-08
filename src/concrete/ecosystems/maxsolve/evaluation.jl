@@ -1,10 +1,21 @@
 export create_performance_matrix, make_sum_scalar_matrix, perform_competitive_fitness_sharing
-export evaluate_standard, zero_out_duplicate_rows, evaluate_advanced, farthest_first_search
+export evaluate_standard, zero_out_duplicate_rows, evaluate_advanced, farthest_first_traversal
 
 using ...Matrices.Outcome: OutcomeMatrix, make_full_distinction_matrix
 
+function get_ids_truncation_replacement(
+    score_matrix::OutcomeMatrix, n::Int, rng::AbstractRNG = Random.GLOBAL_RNG
+)
+    if length(score_matrix.column_ids) > 1
+        error("Truncation selection only works with a single column for scalar fitness")
+    end
+    id_scores = [id => first(score_matrix[id, :]) for id in score_matrix.row_ids]
+    sort!(id_scores, by=x-> (x[2], rand(rng)), rev=true)
+    ids = [first(id_score) for id_score in id_scores[1:n]]
+    return ids
+end
 
-function make_sum_scalar_matrix(matrix::OutcomeMatrix)
+function make_standard_sum_matrix(matrix::OutcomeMatrix)
     average_scalar_matrix = OutcomeMatrix{Float64}(matrix.id, matrix.row_ids, ["sum"])
     for i in matrix.row_ids
         average_scalar_matrix[i, "sum"] = sum(matrix[i, :])
@@ -12,7 +23,7 @@ function make_sum_scalar_matrix(matrix::OutcomeMatrix)
     return average_scalar_matrix
 end
 
-function perform_competitive_fitness_sharing(matrix::OutcomeMatrix)
+function perform_competitive_sharing(matrix::OutcomeMatrix)
     # Calculate the sum of each column and then take the inverse
     test_defeats_inverses = 1.0 ./ sum(matrix.data, dims=1)
 
@@ -25,13 +36,16 @@ function perform_competitive_fitness_sharing(matrix::OutcomeMatrix)
     return new_matrix
 end
 
-
-function evaluate_standard(matrix::OutcomeMatrix)
-    scalar_matrix = make_sum_scalar_matrix(matrix)
-    return scalar_matrix
+function make_competitive_sum_matrix(matrix::OutcomeMatrix)
+    competitive_matrix = perform_competitive_sharing(matrix)
+    sum_matrix = make_standard_sum_matrix(competitive_matrix)
+    return sum_matrix
 end
 
-function zero_out_duplicate_rows(matrix::OutcomeMatrix{T, U, V, W}) where {T, U, V, W}
+
+function zero_out_duplicate_rows(
+    matrix::OutcomeMatrix{T, U, V, W}, rng::AbstractRNG = Random.GLOBAL_RNG
+) where {T, U, V, W}
     matrix = deepcopy(matrix)
     unique_rows = Dict{Vector{W}, Vector{U}}()
     for id in matrix.row_ids
@@ -42,7 +56,7 @@ function zero_out_duplicate_rows(matrix::OutcomeMatrix{T, U, V, W}) where {T, U,
             push!(unique_rows[row], id)
         end
     end
-    ids_to_keep = Set(rand(ids) for ids in values(unique_rows))
+    ids_to_keep = Set(rand(rng, ids) for ids in values(unique_rows))
     #println("IDs to keep = ", ids_to_keep)
     for id in matrix.row_ids
         if !(id in ids_to_keep)
@@ -54,35 +68,54 @@ function zero_out_duplicate_rows(matrix::OutcomeMatrix{T, U, V, W}) where {T, U,
     return matrix
 end
 
-
-function evaluate_advanced(
-    matrix::OutcomeMatrix{T, U, V, W}, 
-    outcome_weight::Float64 = 3.0,
-    distinction_weight::Float64 = 1.0
-) where {T, U, V, W}
+function print_advanced_sum_matrix_info(
+    matrix::OutcomeMatrix, competitive_matrix::OutcomeMatrix, distinction_matrix::OutcomeMatrix,
+    sum_competitive_matrix::OutcomeMatrix, sum_competitive_distinction_matrix::OutcomeMatrix
+)
     #println("-----")
     #println("Matrix = ", matrix)
-    matrix = zero_out_duplicate_rows(matrix)
     #println("Zeroed out duplicate rows = ", matrix)
-    competitive_matrix = perform_competitive_fitness_sharing(matrix)
     #println("Competitive matrix = ", competitive_matrix)
-    sum_competitive_matrix = make_sum_scalar_matrix(competitive_matrix)
     #println("Sum competitive matrix = ", sum_competitive_matrix)
-    distinction_matrix = make_full_distinction_matrix(matrix)
     #println("Distinction matrix = ", distinction_matrix)
-    competitive_distinction_matrix = perform_competitive_fitness_sharing(distinction_matrix)
-    #println("Competitive distinction matrix = ", competitive_distinction_matrix)
-    sum_competitive_distinction_matrix = make_sum_scalar_matrix(competitive_distinction_matrix)
     #println("Sum competitive distinction matrix = ", sum_competitive_distinction_matrix)
+end
+
+
+function get_score_matrix(
+    matrix::OutcomeMatrix, zero_out_duplicate_rows::Bool, competitive_sharing::Bool, weight::Float64,
+)
+    matrix = zero_out_duplicate_rows ? zero_out_duplicate_rows(matrix) : matrix
+    matrix = competitive_sharing ? make_competitive_sum_matrix(matrix) : make_standard_sum_matrix(matrix)
+    matrix.data = matrix.data .* weight
+    return matrix
+end
+
+function advanced_sum_matrix(
+    outcome_matrix::OutcomeMatrix{T, U, V, W}, 
+    distinction_matrix::OutcomeMatrix{T, U, V, W},
+    outcome_weight::Float64 = 3.0,
+    distinction_weight::Float64 = 1.0,
+    rng::AbstractRNG = Random.GLOBAL_RNG
+) where {T, U, V, W}
+    outcome_matrix = zero_out_duplicate_rows(outcome_matrix, rng)
+    competitive_outcome_matrix = make_competitive_sum_matrix(outcome_matrix)
+    distinction_matrix = zero_out_duplicate_rows(distinction_matrix, rng)
+    competitive_distinction_matrix = make_competitive_sum_matrix(distinction_matrix)
+    row_ids = outcome_matrix.row_ids
     scores = Pair{U, Float64}[]
-    advanced_matrix = OutcomeMatrix{Float64}(matrix.id, matrix.row_ids, ["advanced_score"])
-    for id in matrix.row_ids
-        outcome_score = sum_competitive_matrix[id, "sum"] * outcome_weight
-        distinction_score = sum_competitive_distinction_matrix[id, "sum"] * distinction_weight
+    advanced_matrix = OutcomeMatrix{Float64}(outcome_matrix.id, row_ids, ["advanced_score"])
+    for id in row_ids
+        outcome_score = competitive_outcome_matrix[id, "sum"] * outcome_weight
+        distinction_score = competitive_distinction_matrix[id, "sum"] * distinction_weight
         score = outcome_score + distinction_score
         advanced_matrix[id, "advanced_score"] = score
     end
     sort!(scores, by=x->x[2], rev=true)
+    print_advanced_sum_matrix_info(
+        outcome_matrix, competitive_outcome_matrix, distinction_matrix,
+        competitive_distinction_matrix, advanced_matrix
+    )
     return advanced_matrix
 end
 
@@ -181,6 +214,25 @@ function evaluate_dodo(
     print_info(raw_matrix, filtered_matrix, derived_matrix, records, all_cluster_ids)
     return evaluation
     #return new_parent_ids
+end
+using ...Selectors.FitnessProportionate
+
+function roulette(rng::AbstractRNG, n_spins::Int, fitnesses::Vector{<:Real})
+    if any(fitnesses .<= 0)
+        throw(ArgumentError("Fitness values must be strictly positive for FitnessProportionateSelector."))
+    end
+    probabilities = fitnesses ./ sum(fitnesses)
+    cumulative_probabilities = cumsum(probabilities)
+    winner_indices = Array{Int}(undef, n_spins)
+    spins = rand(rng, n_spins)
+    for (i, spin) in enumerate(spins)
+        candidate_index = 1
+        while cumulative_probabilities[candidate_index] < spin
+            candidate_index += 1
+        end
+        winner_indices[i] = candidate_index
+    end
+    return winner_indices
 end
 
 #function farthest_first_traversal(

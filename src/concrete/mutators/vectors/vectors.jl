@@ -1,9 +1,11 @@
 module Vectors
 
 export BasicVectorMutator, NumbersGameVectorMutator, mutate
-
+export NumbersGameVectorMutator, mutate!
+export PerBitMutator, mutate!
 import ....Interfaces: mutate, mutate!
 
+using Distributions
 using Random: AbstractRNG, randn
 using StatsBase
 using ....Abstract
@@ -26,7 +28,6 @@ function mutate(
     return mutated_genotype
 end
 
-export NumbersGameVectorMutator, mutate!
 
 Base.@kwdef struct NumbersGameVectorMutator <: Mutator
     n_mutations::Int = 2
@@ -48,11 +49,10 @@ function mutate!(
     end
 end
 
-export PerBitMutator, mutate!
-using Distributions
 
 Base.@kwdef struct PerBitMutator <: Mutator
     flip_chance::Float64 = 0.01
+    use_window::Bool = false
     flip_window::Int = 5
     use_symmetry::Bool = false
 end
@@ -78,8 +78,10 @@ end
 
 function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
     genes = genotype.genes
-    if false
-    #if mutator.use_symmetry
+    flip_chance = mutator.use_window ? 
+        mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng) :
+        mutator.flip_chance
+    if mutator.use_symmetry
         x = rand()
         if x < 0.1
             genes = collect(reverse(genes))
@@ -88,8 +90,6 @@ function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::S
         elseif x < 0.3
             genes = [1 - gene for gene in collect(reverse(genes))]
         else
-            flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
-            #flip_chance = mutator.flip_chance
             for i in eachindex(genes)
                 if rand(state.rng) < flip_chance
                     genes[i] = 1 - genes[i]
@@ -97,8 +97,6 @@ function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::S
             end
         end
     else
-        #flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
-        flip_chance = mutator.flip_chance
         for i in eachindex(genes)
             if rand(state.rng) < flip_chance
                 genes[i] = 1 - genes[i]

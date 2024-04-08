@@ -43,15 +43,15 @@ function update_tests_dodo(
     while length(new_test_population) > ecosystem_creator.n_test_population
         n_new_retirees += 1
         retiree = popfirst!(new_test_population)
-        #push!(ecosystem.retired_tests, retiree)
-        #if length(ecosystem.retired_tests) > 1000
-        #    popfirst!(ecosystem.retired_tests)
+        #push!(ecosystem.test_retirees, retiree)
+        #if length(ecosystem.test_retirees) > 1000
+        #    popfirst!(ecosystem.test_retirees)
         #end
     end
     #println("N_NEW_RETIREES = ", n_new_retirees)
     #push!(new_learner_population, first(ecosystem.learner_children))
-    n_archive_parents = min(length(ecosystem.retired_tests), 20)
-    archive_parents = sample(ecosystem.retired_tests, n_archive_parents, replace = true)
+    n_archive_parents = min(length(ecosystem.test_retirees), 20)
+    archive_parents = sample(ecosystem.test_retirees, n_archive_parents, replace = true)
     random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
     for parent in random_parents
         for i in eachindex(parent.genotype.genes)
@@ -99,8 +99,8 @@ function update_tests_farthest_first(
         new_test_population,
         ecosystem_creator.n_test_children, replace = true
     )
-    n_active_retirees = min(length(ecosystem.retired_tests), div(ecosystem_creator.n_learner_children, 4))
-    active_retirees = sample(ecosystem.retired_tests, n_active_retirees, replace = false)
+    n_active_retirees = min(length(ecosystem.test_retirees), div(ecosystem_creator.n_learner_children, 4))
+    active_retirees = sample(ecosystem.test_retirees, n_active_retirees, replace = false)
     random_parents = [
         deepcopy(parent) 
         for parent in sample(
@@ -136,11 +136,11 @@ function update_tests_nu_advanced(
     println("indices = ", indices)
     test_parents = [first(id_score) for id_score in id_scores[indices]]
     test_parents = sample(
-        [new_test_population ; ecosystem.test_archive; ecosystem.retired_tests], 
+        [new_test_population ; ecosystem.test_archive; ecosystem.test_retirees], 
         ecosystem_creator.n_test_children, replace = true
     )
-    n_active_retirees = min(length(ecosystem.retired_tests), div(ecosystem_creator.n_learner_children, 4))
-    active_retirees = sample(ecosystem.retired_tests, n_active_retirees, replace = false)
+    n_active_retirees = min(length(ecosystem.test_retirees), div(ecosystem_creator.n_learner_children, 4))
+    active_retirees = sample(ecosystem.test_retirees, n_active_retirees, replace = false)
     random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
     for parent in random_parents
         for i in eachindex(parent.genotype.genes)
@@ -163,7 +163,7 @@ function update_tests_advanced(
         ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_test_population
     )
     test_parents = sample(
-        [new_test_population ; ecosystem.test_archive; ecosystem.retired_tests], 
+        [new_test_population ; ecosystem.test_archive; ecosystem.test_retirees], 
         ecosystem_creator.n_test_children, replace = true
     )
     random_parents = [deepcopy(parent) for parent in sample(new_test_population, 10, replace = true)]
@@ -246,23 +246,23 @@ function update_tests_regularized(
     #println("len elites = ", length(elites))
     for elite in elites
         filter!(ind -> ind.id != elite.id, new_test_population)
-        filter!(ind -> ind.id != elite.id, ecosystem.retired_tests)
+        filter!(ind -> ind.id != elite.id, ecosystem.test_retirees)
         #println("len pop after filter = ", length(new_test_population))
         push!(new_test_population, elite)
         #println("len pop after push = ", length(new_test_population))
         while length(new_test_population) > ecosystem_creator.n_test_population
             retiree = popfirst!(new_test_population)
-            filter!(ind -> ind.id != retiree.id, ecosystem.retired_tests)
-            push!(ecosystem.retired_tests, retiree)
-            if length(ecosystem.retired_tests) > 1000
-                popfirst!(ecosystem.retired_tests)
+            filter!(ind -> ind.id != retiree.id, ecosystem.test_retirees)
+            push!(ecosystem.test_retirees, retiree)
+            if length(ecosystem.test_retirees) > 1000
+                popfirst!(ecosystem.test_retirees)
             end
         end
     end
     new_test_children = create_children(new_test_population, reproducer, state; use_crossover = false)
     println("len new_test_children = ", length(new_test_children))
     println("len new_test_population = ", length(new_test_population))
-    retiree_candidates = [retiree for retiree in ecosystem.retired_tests if !(retiree in new_test_population)]
+    retiree_candidates = [retiree for retiree in ecosystem.test_retirees if !(retiree in new_test_population)]
     n_active_retirees = min(length(retiree_candidates), 50)
     active_retirees = sample(retiree_candidates, n_active_retirees, replace = false)
     println("len active_retirees = ", length(active_retirees))
