@@ -1,6 +1,6 @@
 export MaxSolveSpecies, MaxSolveEcosystem, MaxSolveSpeciesParameters, MaxSolveEcosystemCreator
-export NewDodoRecord, NewDodoEvaluation, DiscoRecord, DiscoEvaluation
-export MaxSolveEvaluation, EvolutionStrategyParameters, DiscoScoreParameters, DodoParameters
+export DiscoRecord, DiscoEvaluation
+export MaxSolveEvaluation, EvolutionStrategyParameters, DodoParameters
 export EcosystemScoreParameters, StandardParameters, SCORE_PARAMS
 
 using ....Abstract
@@ -50,13 +50,13 @@ function get_all_individuals(ecosystem::MaxSolveEcosystem)
 end
 
 Base.@kwdef struct MaxSolveSpeciesParameters
-    n_population::Int = 20
-    n_parents::Int = 20
-    n_children::Int = 20
-    max_archive_size::Int = 0
-    max_retiree_size::Int = 0
-    max_active_archive::Int = 0
-    max_active_retirees::Int = 0
+    n_population::Int
+    n_parents::Int
+    n_children::Int
+    max_archive_size::Int
+    max_retiree_size::Int
+    max_active_archive::Int
+    max_active_retirees::Int
 end
 
 Base.@kwdef struct MaxSolveEcosystemCreator <: EcosystemCreator 

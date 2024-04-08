@@ -42,6 +42,7 @@ Base.@kwdef struct DensityClassificationTaskConfiguration <: Configuration
 
     # Learner population parameters
     n_learner_population::Int = 20
+    n_learner_parents::Int = 20
     n_learner_children::Int = 20
     max_learner_archive_size::Int = 0
     max_active_learner_archive::Int = 0
@@ -53,6 +54,7 @@ Base.@kwdef struct DensityClassificationTaskConfiguration <: Configuration
 
     # Test population parameters
     n_test_population::Int = 20
+    n_test_parents::Int = 20
     n_test_children::Int = 20
     max_test_archive_size::Int = 0
     max_active_test_archive::Int = 0
@@ -71,6 +73,7 @@ function get_ecosystem_creator(config::DensityClassificationTaskConfiguration)
         id = config.id,
         learners = MaxSolveSpeciesParameters(
             n_population = config.n_learner_population,
+            n_parents = config.n_test_parents,
             n_children = config.n_learner_children,
             max_archive_size = config.max_learner_archive_size,
             max_active_archive = config.max_active_learner_archive,
@@ -80,6 +83,7 @@ function get_ecosystem_creator(config::DensityClassificationTaskConfiguration)
         tests = MaxSolveSpeciesParameters(
             n_population = config.n_test_population,
             n_children = config.n_test_children,
+            n_parents = config.n_test_parents,
             max_archive_size = config.max_test_archive_size,
             max_active_archive = config.max_active_test_archive,
             max_retiree_size = config.max_test_retiree_size,

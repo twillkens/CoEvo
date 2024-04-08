@@ -20,10 +20,11 @@ for trial in 1:N_TRIALS
         n_validation_initial_conditions = 10_000,
 
         # Learner population parameters
-        n_learner_population = 20, 
-        n_learner_children = 20, 
+        n_learner_population = 30, 
+        n_learner_parents = 30,
+        n_learner_children = 30, 
 
-        max_learner_archive_size = 20,
+        max_learner_archive_size = 0,
         max_active_learner_archive = 0,
 
         max_learner_retiree_size = 0,
@@ -34,8 +35,9 @@ for trial in 1:N_TRIALS
         learner_flip_chance = 0.2,
 
         # Test population parameters
-        n_test_population = 20, 
-        n_test_children = 20,
+        n_test_population = 30, 
+        n_test_parents = 30,
+        n_test_children = 30,
 
         max_test_archive_size = 0,
         max_active_test_archive = 0,

@@ -1,5 +1,5 @@
 export MaxSolveEcosystem, MaxSolveEcosystemCreator, MaxSolveEvaluation
-export MaxSolveSpeciesParameters, MaxSolveEcosystemCreator, NewDodoRecord, NewDodoEvaluation
+export MaxSolveSpeciesParameters, MaxSolveEcosystemCreator
 export create_ecosystem, update_ecosystem!, evaluate, make_all_matches
 export get_all_individuals
 export create_children
@@ -87,9 +87,9 @@ function get_ids_truncation_replacement(
         error("Truncation selection only works with a single column for scalar fitness")
     end
     id_scores = shuffle(rng, [id => first(score_matrix[id, :]) for id in score_matrix.row_ids])
-    println("ID_SCORES = ", id_scores)
+    #println("ID_SCORES = ", id_scores)
     sort!(id_scores, by=x-> (x[2], rand(rng)), rev=true)
-    println("SORTED_ID_SCORES = ", id_scores)
+    #println("SORTED_ID_SCORES = ", id_scores)
     ids = [first(id_score) for id_score in id_scores[1:n]]
     return ids
 end
