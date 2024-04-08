@@ -104,6 +104,7 @@ end
 function archive!(archiver::DensityClassificationArchiver, state::State)
     #all_data = DataFrame()
     #if state.generation > 1 && state.generation % 1 == 0
+    print_timers(state)
     elite_rule, elite_fitness = get_elite_rule_and_fitness(archiver, state)
     score = get_validation_score(elite_rule, state.configuration)
     test_population_values = get_average_genotype_values(state.ecosystem.tests.population)

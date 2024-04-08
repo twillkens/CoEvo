@@ -121,6 +121,27 @@ function make_competitive_sum_matrix(matrix::OutcomeMatrix)
     return sum_matrix
 end
 
+using SHA
+
+function zero_out_duplicate_rows!(matrix::Matrix, rng::AbstractRNG = Random.GLOBAL_RNG)
+    unique_rows = Set{String}()
+    nrows, ncols = size(matrix)
+    indices = shuffle(rng, 1:nrows)
+    for i in indices
+        # Convert the row to a string representation
+        row_str = join(string.(matrix[i, :]), ",")
+        hash = bytes2hex(sha256(row_str))
+
+        if hash in unique_rows
+            matrix[i, :] .= 0
+        else
+            push!(unique_rows, hash)
+        end
+    end
+
+    return matrix
+end
+
 
 function zero_out_duplicate_rows(
     matrix::OutcomeMatrix{T, U, V, W}, rng::AbstractRNG = Random.GLOBAL_RNG
@@ -154,7 +175,11 @@ function get_score_matrix(
     weight::Float64,
     rng::AbstractRNG = Random.GLOBAL_RNG
 )
-    matrix = zero_dup_rows ? zero_out_duplicate_rows(matrix, rng) : matrix
+    matrix = deepcopy(matrix)
+    if zero_dup_rows
+        zero_out_duplicate_rows!(matrix.data, rng)
+    end
+    #matrix = zero_dup_rows ? zero_out_duplicate_rows(matrix, rng) : matrix
     matrix = competitive_sharing ? 
         make_competitive_sum_matrix(matrix) : make_standard_sum_matrix(matrix)
     matrix.data = matrix.data .* weight
