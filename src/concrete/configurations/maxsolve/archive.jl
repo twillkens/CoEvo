@@ -6,13 +6,15 @@ using Serialization
 using ....Abstract
 using Distributed
 
+SAVE_FILE = "disco-advanced-3.csv"
+
 struct DensityClassificationArchiver <: Archiver 
     data::DataFrame
 end
 
 function DensityClassificationArchiver()
-    if isfile("results-disco-advanced.csv")
-        data = CSV.read("results-disco-advanced.csv", DataFrame)
+    if isfile(SAVE_FILE)
+        data = CSV.read(SAVE_FILE, DataFrame)
     else
         data = DataFrame(
             trial = Int[], 
@@ -38,7 +40,7 @@ include("improved.jl")
 
 function archive!(archiver::DensityClassificationArchiver, state::State)
     #all_data = DataFrame()
-    println("\n\n------------GENERATION $(state.generation)------------")
+    println("\n\n------------GENERATION $(state.generation), $SAVE_FILE------------")
     println("reproduction_time = ", state.timers.reproduction_time)
     println("simulation_time = ", state.timers.simulation_time)
     println("evaluation_time = ", state.timers.evaluation_time)
@@ -74,7 +76,7 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         println()
 
         ms = round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_population], digits = 3)
-        println("average_pop_test_genotype_val = ", ms)
+	println("average_pop_test_genotype_val = ", reverse(ms))
         ms = sort(round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_children], digits = 3))
         println("\naverage_children_test_genotype_val = ", ms)
         flush(stdout)
@@ -102,7 +104,7 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         push!(archiver.data, info)
     
         # Optionally, save the DataFrame to a CSV file every generation
-        CSV.write("results-disco-advanced.csv", archiver.data)
+        CSV.write(SAVE_FILE, archiver.data)
     end
 end
 
