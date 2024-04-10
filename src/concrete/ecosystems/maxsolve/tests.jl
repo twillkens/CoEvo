@@ -236,34 +236,39 @@ function update_tests_regularized(
     state::State
 )
     new_test_population = copy(ecosystem.test_population)
-    payoff_matrix = filter_columns(
-        evaluation.payoff_matrix, [learner.id for learner in ecosystem.learner_population]
-    )
-    #payoff_matrix = evaluation.payoff_matrix
+    #payoff_matrix = filter_columns(
+    #    evaluation.payoff_matrix, [learner.id for learner in ecosystem.learner_population]
+    #)
+    payoff_matrix = evaluation.payoff_matrix
     N_ELITES = 2
-    MAX_ACTIVE_RETIREES = 50
+    MAX_ACTIVE_RETIREES = 25
     MAX_ARCHIVE_SIZE = 1000
     advanced_score_matrix = evaluate_advanced(payoff_matrix, 0.0, 1.0)
     elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, N_ELITES)
-    random_elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, 50)
-    random_elites = shuffle([elite for elite in random_elites if !(elite in elites)])[1:N_ELITES]
-    append!(elites, random_elites)
-    if state.generation > 99 && state.generation % 10 == 0
-            random_immigrants = create_children(
-        	sample(new_test_population, 1, replace = true), reproducer, state; use_crossover = false
-            )
-            for immigrant in random_immigrants
-        	for i in eachindex(immigrant.genotype.genes)
-        	    immigrant.genotype.genes[i] = rand(0:1)
-        	end
-            end
-            append!(elites, random_immigrants)
-    end
-    if length(ecosystem.retired_tests) > 0
-            random_retiree = rand(ecosystem.retired_tests)
-            #retiree_child = first(create_children([random_retiree], reproducer, state; use_crossover = false))
-            push!(elites, random_retiree)
-    end
+    elite_ids = [elite.id for elite in elites]
+    farthest_ids = farthest_first_traversal(evaluation.distinction_matrix, elite_ids)[1:1]
+    println("farthest_ids = ", farthest_ids)
+    farthest = [ind for ind in [ecosystem.test_population ; ecosystem.test_children] if ind.id in farthest_ids]
+    append!(elites, farthest)
+    #random_elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, 50)
+    #random_elites = shuffle([elite for elite in random_elites if !(elite in elites)])[1:N_ELITES]
+    #append!(elites, random_elites)
+    #if state.generation > 99 && state.generation % 10 == 0
+    #        random_immigrants = create_children(
+    #    	sample(new_test_population, 1, replace = true), reproducer, state; use_crossover = false
+    #        )
+    #        for immigrant in random_immigrants
+    #    	for i in eachindex(immigrant.genotype.genes)
+    #    	    immigrant.genotype.genes[i] = rand(0:1)
+    #    	end
+    #        end
+    #        append!(elites, random_immigrants)
+    #end
+    #if length(ecosystem.retired_tests) > 0
+    #        random_retiree = rand(ecosystem.retired_tests)
+    #        #retiree_child = first(create_children([random_retiree], reproducer, state; use_crossover = false))
+    #        push!(elites, random_retiree)
+    #end
     #println("len elites = ", length(elites))
     for elite in elites
 	#if elite in new_test_population

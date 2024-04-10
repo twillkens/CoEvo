@@ -7,7 +7,7 @@ using ....Abstract
 using Distributed
 using ...Domains.DensityClassification: covered_improved
 
-SAVE_FILE = "qmeu-learner-3.csv"
+SAVE_FILE = "try-1.csv"
 
 struct DensityClassificationArchiver <: Archiver 
     data::DataFrame

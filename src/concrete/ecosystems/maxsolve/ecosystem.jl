@@ -237,7 +237,10 @@ function update_ecosystem!(
     println("------UPDATE ECOSYSTEM: GENERATION: $(state.generation) ------")
     reproducers = state.reproducers
     learner_evaluation = first(state.evaluations)
-    new_learner_population, new_learner_children = update_learners_nu_disco(
+    #new_learner_population, new_learner_children = update_learners_nu_disco(
+    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+    #)
+    new_learner_population, new_learner_children = update_learners_disco(
         reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     )
     ecosystem.learner_population = new_learner_population
@@ -262,27 +265,11 @@ function update_ecosystem!(
     println("length_learner_children = ", length(new_learner_children))
     println("length_learner_archive = ", length(ecosystem.learner_archive))
     println("length_learner_retirees = ", length(ecosystem.learner_retirees))
-    #println("LEARNER_POPULATION_IDS = ", [learner.id for learner in new_learner_population])
 
     println("length_test_population = ", length(new_test_population))
     println("length_test_children = ", length(new_test_children))
     println("length_test_archive = ", length(ecosystem.test_archive))
     println("length_test_retirees = ", length(ecosystem.retired_tests))
-    #println("TEST_POPULATION_IDS = ", [test.id for test in new_test_population])
-
-
-    #println("--Generation $(state.generation)--\n")
-    #for learner in new_learner_archive
-    #    genes = round.(learner.genotype.genes, digits=3)
-    #    print("learner_$(learner.id) = $genes, ")
-    #end
-    #println("--")
-    #println("length_test_archive = ", length(new_test_archive), "\n")
-    #for test in new_test_archive
-    #    genes = round.(test.genotype.genes, digits=3)
-    #    print("test_$(test.id) = $genes, ")
-    #end
-    #println()
 end
 
 
