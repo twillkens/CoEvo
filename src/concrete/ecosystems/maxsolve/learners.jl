@@ -56,12 +56,12 @@ function update_learners_nu_disco(
     archive_sample_candidates = [
         learner for learner in ecosystem.learner_archive if !(learner in new_learner_population)
     ]
-    n_archive_samples = min(length(archive_sample_candidates), 10)
+    n_archive_samples = min(length(archive_sample_candidates), 25)
     println("N_SAMPLES = ", n_archive_samples)
     archive_samples = sample(
         archive_sample_candidates, n_archive_samples, replace = false
     )
-    n_archive_parents = min(length(archive_sample_candidates), 10)
+    n_archive_parents = min(length(archive_sample_candidates), 25)
     archive_parents = sample(
         archive_sample_candidates, n_archive_parents, replace = false
     )
@@ -73,7 +73,7 @@ function update_learners_nu_disco(
     )
     tournament_samples = [
         sample(new_learner_population_records, 5, replace = false) 
-        for _ in 1:ecosystem_creator.n_learner_children - n_archive_samples * 2
+	for _ in 1:ecosystem_creator.n_learner_children - length(archive_samples)
     ]
     learner_records = [
         run_tournament(samples, state.rng) for samples in tournament_samples

@@ -248,21 +248,22 @@ function update_tests_regularized(
     random_elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, 50)
     random_elites = shuffle([elite for elite in random_elites if !(elite in elites)])[1:N_ELITES]
     append!(elites, random_elites)
-    #random_immigrants = create_children(
-
-    #    sample(new_test_population, 1, replace = true), reproducer, state; use_crossover = false
-    #)
-    #for immigrant in random_immigrants
-    #    for i in eachindex(immigrant.genotype.genes)
-    #        immigrant.genotype.genes[i] = rand(0:1)
-    #    end
-    #end
-    #append!(elites, random_immigrants)
-    #if length(ecosystem.retired_tests) > 0
-    #        random_retiree = rand(ecosystem.retired_tests)
-    #        retiree_child = first(create_children([random_retiree], reproducer, state; use_crossover = false))
-    #        push!(elites, retiree_child)
-    #end
+    if state.generation > 99 && state.generation % 10 == 0
+            random_immigrants = create_children(
+        	sample(new_test_population, 1, replace = true), reproducer, state; use_crossover = false
+            )
+            for immigrant in random_immigrants
+        	for i in eachindex(immigrant.genotype.genes)
+        	    immigrant.genotype.genes[i] = rand(0:1)
+        	end
+            end
+            append!(elites, random_immigrants)
+    end
+    if length(ecosystem.retired_tests) > 0
+            random_retiree = rand(ecosystem.retired_tests)
+            #retiree_child = first(create_children([random_retiree], reproducer, state; use_crossover = false))
+            push!(elites, random_retiree)
+    end
     #println("len elites = ", length(elites))
     for elite in elites
 	#if elite in new_test_population
