@@ -5,8 +5,9 @@ using CSV
 using Serialization
 using ....Abstract
 using Distributed
+using ...Domains.DensityClassification: covered_improved
 
-SAVE_FILE = "disco-advanced-3.csv"
+SAVE_FILE = "qmeu-learner-2.csv"
 
 struct DensityClassificationArchiver <: Archiver 
     data::DataFrame
@@ -36,7 +37,19 @@ using Serialization
 
 import ....Interfaces: archive!
 
-include("improved.jl")
+function generate_unbiased_ICs(n::Int, n_samples::Int)
+    # Initialize an array to hold the generated ICs
+    ICs = Vector{Vector{Int}}(undef, n_samples)
+
+    # Generate each IC
+    for i in 1:n_samples
+        # For an unbiased distribution, each bit has a 50% chance of being 1 or 0
+        IC = rand(0:1, n)
+        ICs[i] = IC
+    end
+
+    return ICs
+end
 
 function archive!(archiver::DensityClassificationArchiver, state::State)
     #all_data = DataFrame()

@@ -151,6 +151,7 @@ function create_ecosystem(
     #println("learner_pop_ids = ", [learner.id for learner in learner_population])
     #println("learner_child_ids = ", [learner.id for learner in learner_children])
     test_population, test_children = initialize_tests(eco_creator, last(reproducers), state)
+    retiree_population, _  = initialize_tests(eco_creator, last(reproducers), state)
     #println("test_pop_ids = ", [test.id for test in test_population])
     #println("test_child_ids = ", [test.id for test in test_children])
     I = typeof(first(learner_population))
@@ -164,7 +165,8 @@ function create_ecosystem(
         test_population = test_population, 
         test_children = test_children, 
         test_archive = I[], 
-        retired_tests = I[],
+        #retired_tests = I[],
+        retired_tests = retiree_population,
         payoff_matrix = payoff_matrix
     )
     return new_ecosystem
@@ -235,34 +237,6 @@ function update_ecosystem!(
     println("------UPDATE ECOSYSTEM: GENERATION: $(state.generation) ------")
     reproducers = state.reproducers
     learner_evaluation = first(state.evaluations)
-    #if ecosystem_creator.max_learner_archive_size > 0
-    #    t = time()
-    #    maxsolve_matrix = maxsolve(
-    #        learner_evaluation.full_payoff_matrix, ecosystem_creator.max_learner_archive_size
-    #    )
-    #    println("maxsolve time = ", time() - t)
-
-    #    new_learner_archive = [ecosystem[learner_id] for learner_id in maxsolve_matrix.row_ids]
-    #    retired_learners = [
-    #        learner for learner in ecosystem.learner_archive if learner.id ∉ maxsolve_matrix.row_ids
-    #    ]
-    #    append!(ecosystem.learner_retirees, retired_learners)
-    #    while length(ecosystem.learner_retirees) > 1000
-    #        popfirst!(ecosystem.learner_retirees)
-    #    end
-
-    #    new_test_archive = [ecosystem[test_id] for test_id in maxsolve_matrix.column_ids]
-    #    retired_tests = [
-    #        test for test in ecosystem.test_archive if test.id ∉ maxsolve_matrix.column_ids
-    #    ]
-    #    append!(ecosystem.retired_tests, retired_tests)
-    #    while length(ecosystem.retired_tests) > 1000
-    #        popfirst!(ecosystem.retired_tests)
-    #    end
-
-    #    ecosystem.learner_archive = new_learner_archive
-    #    ecosystem.test_archive = new_test_archive
-    #end
     new_learner_population, new_learner_children = update_learners_nu_disco(
         reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     )
@@ -270,15 +244,18 @@ function update_ecosystem!(
     ecosystem.learner_children = new_learner_children
 
     test_evaluation = last(state.evaluations)
-    new_test_population, new_test_children = update_tests_regularized(
-        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    )
+
     #new_test_population, new_test_children = update_tests_standard_distinctions(
     #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
     #)
+
     #new_test_population, new_test_children = update_tests_advanced(
     #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
     #)
+
+    new_test_population, new_test_children = update_tests_regularized(
+        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+    )
     ecosystem.test_population = new_test_population
     ecosystem.test_children = new_test_children
     println("length_learner_population = ", length(new_learner_population))

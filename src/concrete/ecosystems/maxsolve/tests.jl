@@ -236,16 +236,20 @@ function update_tests_regularized(
     state::State
 )
     new_test_population = copy(ecosystem.test_population)
-    #payoff_matrix = filter_columns(
-    #    evaluation.payoff_matrix, [learner.id for learner in ecosystem.learner_population]
-    #)
-    payoff_matrix = evaluation.payoff_matrix
-    N_ELITES = 3
-    MAX_ACTIVE_RETIREES = 10
+    payoff_matrix = filter_columns(
+        evaluation.payoff_matrix, [learner.id for learner in ecosystem.learner_population]
+    )
+    #payoff_matrix = evaluation.payoff_matrix
+    N_ELITES = 2
+    MAX_ACTIVE_RETIREES = 50
     MAX_ARCHIVE_SIZE = 1000
     advanced_score_matrix = evaluate_advanced(payoff_matrix, 0.0, 1.0)
     elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, N_ELITES)
+    random_elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, 50)
+    random_elites = shuffle([elite for elite in random_elites if !(elite in elites)])[1:N_ELITES]
+    append!(elites, random_elites)
     #random_immigrants = create_children(
+
     #    sample(new_test_population, 1, replace = true), reproducer, state; use_crossover = false
     #)
     #for immigrant in random_immigrants
@@ -254,11 +258,11 @@ function update_tests_regularized(
     #    end
     #end
     #append!(elites, random_immigrants)
-    if length(ecosystem.retired_tests) > 0
-            random_retiree = rand(ecosystem.retired_tests)
-            retiree_child = first(create_children([random_retiree], reproducer, state; use_crossover = false))
-            push!(elites, retiree_child)
-    end
+    #if length(ecosystem.retired_tests) > 0
+    #        random_retiree = rand(ecosystem.retired_tests)
+    #        retiree_child = first(create_children([random_retiree], reproducer, state; use_crossover = false))
+    #        push!(elites, retiree_child)
+    #end
     #println("len elites = ", length(elites))
     for elite in elites
 	#if elite in new_test_population

@@ -36,14 +36,15 @@ function update_learners_nu_disco(
 )
 
 
-    rank_one_records = [record for record in evaluation.payoff_dodo_evaluation.records if record.rank == 1]
-    elites = sample(rank_one_records, 1)
-    #elites = [record.individual for record in evaluation.payoff_dodo_evaluation.records[1:3]]
+    #rank_one_records = [record for record in evaluation.payoff_dodo_evaluation.records if record.rank == 1]
+    #elites = sample(rank_one_records, 1)
+    #elites = [record.individual for record in shuffle(evaluation.payoff_dodo_evaluation.records[1:10])]
+    elites = [record.individual for record in shuffle(evaluation.payoff_dodo_evaluation.records[1:50])][1:10]
     for elite in elites
-	    elite = elite.individual
+	    #elite = elite.individual
         filter!(learner -> learner != elite, ecosystem.learner_archive)
         push!(ecosystem.learner_archive, elite)
-	if length(ecosystem.learner_archive) > 20
+	if length(ecosystem.learner_archive) > 1000
 		popfirst!(ecosystem.learner_archive)
 	end
     end
@@ -55,17 +56,24 @@ function update_learners_nu_disco(
     archive_sample_candidates = [
         learner for learner in ecosystem.learner_archive if !(learner in new_learner_population)
     ]
-    n_archive_samples = min(length(archive_sample_candidates), 5)
+    n_archive_samples = min(length(archive_sample_candidates), 10)
+    println("N_SAMPLES = ", n_archive_samples)
     archive_samples = sample(
         archive_sample_candidates, n_archive_samples, replace = false
     )
+    n_archive_parents = min(length(archive_sample_candidates), 10)
+    archive_parents = sample(
+        archive_sample_candidates, n_archive_parents, replace = false
+    )
+    new_archive_children = create_children(archive_parents, reproducer, state; use_crossover = false)
+    append!(archive_samples, new_archive_children)
     println("LEARNER_DISCO_RECORDS = ", [
         (record.rank, round(record.crowding; digits=3)) 
         for record in new_learner_population_records]
     )
     tournament_samples = [
         sample(new_learner_population_records, 5, replace = false) 
-        for _ in 1:ecosystem_creator.n_learner_children
+        for _ in 1:ecosystem_creator.n_learner_children - n_archive_samples * 2
     ]
     learner_records = [
         run_tournament(samples, state.rng) for samples in tournament_samples
@@ -78,7 +86,7 @@ function update_learners_nu_disco(
     I = typeof(first(learner_parents))
     #append!(learner_parents, archive_samples)
     new_learner_children = create_children(learner_parents, reproducer, state; use_crossover = false)
-    #append!(new_learner_children, archive_samples)
+    append!(new_learner_children, archive_samples)
     return new_learner_population, new_learner_children
 end
 
