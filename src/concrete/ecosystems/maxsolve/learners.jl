@@ -72,7 +72,7 @@ function update_learners_nu_disco(
         for record in new_learner_population_records]
     )
     tournament_samples = [
-        sample(new_learner_population_records, 5, replace = false) 
+        sample(new_learner_population_records, 3, replace = false) 
 	for _ in 1:ecosystem_creator.n_learner_children - length(archive_samples)
     ]
     learner_records = [
@@ -83,10 +83,25 @@ function update_learners_nu_disco(
         for record in learner_records]
     )   
     learner_parents = [record.individual for record in learner_records]
+    #
+    #n_learner_parents = ecosystem_creator.n_learner_children - length(archive_samples)
+    #learner_parents = sample(
+    #    new_learner_population, n_learner_parents, replace = true
+    #)
     I = typeof(first(learner_parents))
     #append!(learner_parents, archive_samples)
     new_learner_children = create_children(learner_parents, reproducer, state; use_crossover = false)
     append!(new_learner_children, archive_samples)
+    #random_immigrants = create_children(
+    #    sample(new_learner_children, 1, replace = true), reproducer, state; use_crossover = false
+    #)
+    #for immigrant in random_immigrants
+    #    for i in eachindex(immigrant.genotype.genes)
+    #        immigrant.genotype.genes[i] = rand(0:1)
+    #    end
+    #end
+    #append!(new_learner_children, random_immigrants)
+    #popfirst!(new_learner_children)
     return new_learner_population, new_learner_children
 end
 
