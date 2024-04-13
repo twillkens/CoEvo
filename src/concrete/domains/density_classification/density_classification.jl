@@ -16,6 +16,55 @@ Base.@kwdef struct DensityClassificationDomain{M <: Metric} <: Domain{M}
     max_timesteps::Int = 320
 end
 
+using Random
+using Plots
+
+function generate_IC(n::Int, rho::Int)
+    v = Int[zeros(rho) ; ones(n - rho)]
+    IC = shuffle(v)
+    return IC
+end
+
+function generate_IC(n::Int)
+    rho = rand(1:n)
+    IC = generate_IC(n, rho)
+    return IC
+end
+
+using Random
+
+function generate_unbiased_ICs(n::Int, n_samples::Int)
+    # Initialize an array to hold the generated ICs
+    ICs = Vector{Vector{Int}}(undef, n_samples)
+    
+    # Generate each IC
+    for i in 1:n_samples
+        # For an unbiased distribution, each bit has a 50% chance of being 1 or 0
+        IC = rand(0:1, n)
+        ICs[i] = IC
+    end
+    
+    return ICs
+end
+
+using Random
+
+
+
+function plot_eca(states::Matrix{Int})
+    # Reverse the states matrix to have the initial state at the top
+    states_reversed = reverse(states, dims=1)
+    
+    # Define a custom color gradient: 0 -> white, 1 -> black
+    cmap = cgrad([:white, :black])
+    
+    # Plot using a direct image representation with the custom color gradient
+    heatmap(
+        states_reversed, aspect_ratio=1, colorbar=false, legend=false, ticks=nothing, 
+        border=:none, cmap=cmap
+    )
+end
+
 function get_majority_value(values::Vector{Int})
     sum(values) > length(values) / 2 ? 1 : 0
 end

@@ -4,6 +4,7 @@ using DataFrames
 using CSV
 using Serialization
 using ....Abstract
+using ...Domains.DensityClassification: covered_improved, generate_unbiased_ICs
 
 struct DensityClassificationArchiver <: Archiver 
     data::DataFrame
@@ -33,7 +34,7 @@ using Serialization
 
 import ....Interfaces: archive!
 
-include("improved.jl")
+#include("improved.jl")
 
 function archive!(archiver::DensityClassificationArchiver, state::State)
     #all_data = DataFrame()
