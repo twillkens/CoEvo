@@ -28,7 +28,7 @@ for trial in 1:20
         n_workers = nworkers(),
         task = "dct",
         learner_flip_chance = 0.02,
-        test_flip_chance = 0.04
+        test_flip_chance = 0.05
     )
 
     state = BasicEvolutionaryState(config)

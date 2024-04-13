@@ -62,7 +62,7 @@ function evaluate_advanced(
 ) where {T, U, V, W}
     #println("-----")
     #println("Matrix = ", matrix)
-    matrix = zero_out_duplicate_rows(matrix)
+    #matrix = zero_out_duplicate_rows(matrix)
     #println("Zeroed out duplicate rows = ", matrix)
     competitive_matrix = perform_competitive_fitness_sharing(matrix)
     #println("Competitive matrix = ", competitive_matrix)

@@ -124,7 +124,7 @@ function update_learners_disco(
     )
     new_learner_population = [record.individual for record in new_learner_population_records]
     tournament_samples = [
-        sample(new_learner_population_records, 3, replace = false) 
+        sample(new_learner_population_records, 5, replace = false) 
         for _ in 1:ecosystem_creator.n_learner_children
     ]
     learner_records = [
@@ -269,3 +269,54 @@ function update_learners_regularized(
     end
     return new_learner_population, new_learner_children
 end
+
+# Function to perform Stochastic Universal Sampling
+function stochastic_universal_sampling(evaluation_scores, population_size, rng)
+    total_scores = sum(evaluation_scores)
+    step_size = total_scores / population_size
+    start_point = rand(rng) * step_size
+    pointers = [start_point + i * step_size for i in 0:(population_size - 1)]
+
+    selected_individuals = []
+    cumulative_score = 0.0
+    current_index = 1
+
+    for pointer in pointers
+        while cumulative_score < pointer
+            cumulative_score += evaluation_scores[current_index]
+            current_index += 1
+        end
+        push!(selected_individuals, current_index - 1)
+    end
+
+    return selected_individuals
+end
+
+# Function to calculate scores from an evaluation matrix for each individual
+function calculate_individual_scores(evaluation_matrix, individuals)
+    [sum(evaluation_matrix[individual, :]) for individual in individuals]
+end
+
+# Main function that updates learners using SUS
+function update_learners_sus(
+    reproducer::Reproducer,
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem,
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    # Assuming learners are indexed from 1 to n in the ecosystem
+    all_scores = [sum(evaluation.advanced_score_matrix[i, :]) for i in evaluation.advanced_score_matrix.row_ids]
+    learner_indices = stochastic_universal_sampling(all_scores, ecosystem_creator.n_learner_population, state.rng)
+    println("LEARNER_INDICES = ", learner_indices)
+    learner_ids = [evaluation.advanced_score_matrix.row_ids[i] for i in learner_indices]
+    new_learner_population = [ecosystem[i] for i in learner_ids]
+
+    parent_indices = stochastic_universal_sampling(all_scores, ecosystem_creator.n_learner_children, state.rng)
+    parent_ids = [evaluation.advanced_score_matrix.row_ids[i] for i in learner_indices]
+    learner_parents = [ecosystem[i] for i in parent_ids]
+    new_learner_children = create_children(learner_parents, reproducer, state)
+
+    return new_learner_population, new_learner_children
+end
+

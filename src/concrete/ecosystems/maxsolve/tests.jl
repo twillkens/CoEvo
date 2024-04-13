@@ -253,17 +253,6 @@ function update_tests_regularized(
     #random_elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, 50)
     #random_elites = shuffle([elite for elite in random_elites if !(elite in elites)])[1:N_ELITES]
     #append!(elites, random_elites)
-    #if state.generation > 99 && state.generation % 10 == 0
-    #        random_immigrants = create_children(
-    #    	sample(new_test_population, 1, replace = true), reproducer, state; use_crossover = false
-    #        )
-    #        for immigrant in random_immigrants
-    #    	for i in eachindex(immigrant.genotype.genes)
-    #    	    immigrant.genotype.genes[i] = rand(0:1)
-    #    	end
-    #        end
-    #        append!(elites, random_immigrants)
-    #end
     #if length(ecosystem.retired_tests) > 0
     #        random_retiree = rand(ecosystem.retired_tests)
     #        #retiree_child = first(create_children([random_retiree], reproducer, state; use_crossover = false))
@@ -302,6 +291,18 @@ function update_tests_regularized(
     active_retirees = sample(retiree_candidates, n_active_retirees, replace = false)
     println("len active_retirees = ", length(active_retirees))
     misc_tests = [active_retirees ; new_test_children]
+
+    #random_immigrants = create_children(
+    #    sample(new_test_population, 1, replace = true), reproducer, state; use_crossover = false
+    #)
+    #for immigrant in random_immigrants
+    #    for i in eachindex(immigrant.genotype.genes)
+    #        immigrant.genotype.genes[i] = rand(0:1)
+    #    end
+    #end
+    #pop!(misc_tests)
+    #append!(misc_tests, random_immigrants)
+
     if length(new_test_population) != length(ecosystem.test_population)
         error("LENGTHS = ", length(new_test_population), " ", length(ecosystem.test_population))
     end

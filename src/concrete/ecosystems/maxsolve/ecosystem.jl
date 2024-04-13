@@ -246,6 +246,9 @@ function update_ecosystem!(
     #new_learner_population, new_learner_children = update_learners_tourn(
     #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     #)
+    #new_learner_population, new_learner_children = update_learners_sus(
+    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+    #)
     ecosystem.learner_population = new_learner_population
     ecosystem.learner_children = new_learner_children
 
