@@ -130,7 +130,12 @@ function update_learners_disco(
     learner_records = [
         run_tournament(samples, state.rng) for samples in tournament_samples
     ]
-    println("SELECTED_LEARNER_RECORDS = ", [
+    #println("BAD = ", [
+    #    (record.rank, round(record.crowding; digits=3)) 
+    #    for record in learner_records]
+    #)   
+        #learner_records = sample(new_learner_population_records, ecosystem_creator.n_learner_children, replace = true) 
+    println("SELECTED_LEARNER_RECORDS 00 = ", [
         (record.rank, round(record.crowding; digits=3)) 
         for record in learner_records]
     )   
@@ -155,8 +160,6 @@ function update_learners(
     new_learner_population = select_individuals_aggregate(
         ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_learner_population
     )
-    #n_sample_archive = min(length(ecosystem.learner_archive), 10)
-    #n_sample_population = 40 - n_sample_archive # ecosystem_creator.n_learner_children
     n_sample_population = ecosystem_creator.n_learner_children
     id_scores = [
         learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
@@ -166,19 +169,43 @@ function update_learners(
     indices = roulette(state.rng, n_sample_population, [id_score[2] + 0.00001 for id_score in id_scores] )
     println("indices = ", indices)
     learner_parents = [first(id_score) for id_score in id_scores[indices]]
-    #archive_parents = sample(
-    #    ecosystem.learner_archive, n_sample_archive, replace = true
-    #)
-    #new_archive_children = create_children(archive_parents, reproducer, state)
-    #learner_parents = sample(
-    #    new_learner_population, n_sample_population, replace = true
-    #)
-    append!(learner_parents, ecosystem.learner_archive)
     new_learner_children = create_children(learner_parents, reproducer, state)
-    #I = typeof(first(new_learner_population))
-    #return I[], [new_archive_children ; new_learner_children]
     return new_learner_population, new_learner_children
 end
+
+function update_learners_tourn(
+    reproducer::Reproducer,
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem,
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    new_learner_population = select_individuals_aggregate(
+        ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_learner_population
+    )
+    n_sample_population = ecosystem_creator.n_learner_children
+    id_scores = [
+        learner => sum(evaluation.advanced_score_matrix[learner.id, :])
+        for learner in new_learner_population
+    ]
+    println("LEARNER_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+
+    # Tournament selection starts here
+    tournament_size = 5  # This can be adjusted based on preference
+    I = typeof(first(new_learner_population))
+    learner_parents = I[]
+    for _ in 1:n_sample_population
+        tournament_contestants = rand(state.rng, id_scores, tournament_size)
+        winner = reduce((x, y) -> x[2] > y[2] ? x : y, tournament_contestants)
+        push!(learner_parents, winner[1])
+    end
+    # Tournament selection ends here
+
+    #println("Selected parent indices for learners = ", [parent.id for parent in learner_parents])
+    new_learner_children = create_children(learner_parents, reproducer, state)
+    return new_learner_population, new_learner_children
+end
+
 
 function update_learners_no_elites(
     reproducer::Reproducer, 

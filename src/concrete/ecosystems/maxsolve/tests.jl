@@ -241,15 +241,15 @@ function update_tests_regularized(
     #)
     payoff_matrix = evaluation.payoff_matrix
     N_ELITES = 2
-    MAX_ACTIVE_RETIREES = 25
+    MAX_ACTIVE_RETIREES = 10
     MAX_ARCHIVE_SIZE = 1000
     advanced_score_matrix = evaluate_advanced(payoff_matrix, 0.0, 1.0)
     elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, N_ELITES)
-    elite_ids = [elite.id for elite in elites]
-    farthest_ids = farthest_first_traversal(evaluation.distinction_matrix, elite_ids)[1:1]
-    println("farthest_ids = ", farthest_ids)
-    farthest = [ind for ind in [ecosystem.test_population ; ecosystem.test_children] if ind.id in farthest_ids]
-    append!(elites, farthest)
+    #elite_ids = [elite.id for elite in elites]
+    #farthest_ids = farthest_first_traversal(evaluation.distinction_matrix, elite_ids)[1:1]
+    #println("farthest_ids = ", farthest_ids)
+    #farthest = [ind for ind in [ecosystem.test_population ; ecosystem.test_children] if ind.id in farthest_ids]
+    #append!(elites, farthest)
     #random_elites = select_individuals_aggregate(ecosystem, advanced_score_matrix, 50)
     #random_elites = shuffle([elite for elite in random_elites if !(elite in elites)])[1:N_ELITES]
     #append!(elites, random_elites)

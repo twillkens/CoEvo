@@ -165,8 +165,8 @@ function create_ecosystem(
         test_population = test_population, 
         test_children = test_children, 
         test_archive = I[], 
-        #retired_tests = I[],
-        retired_tests = retiree_population,
+        retired_tests = I[],
+        #retired_tests = retiree_population,
         payoff_matrix = payoff_matrix
     )
     return new_ecosystem
@@ -243,6 +243,9 @@ function update_ecosystem!(
     new_learner_population, new_learner_children = update_learners_disco(
         reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
     )
+    #new_learner_population, new_learner_children = update_learners_tourn(
+    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+    #)
     ecosystem.learner_population = new_learner_population
     ecosystem.learner_children = new_learner_children
 
@@ -352,7 +355,9 @@ function evaluate(
         column_ids, 
         ecosystem, 
         outcomes, 
-        state
+        state,
+        performance_weight = 1.0,
+        distinction_weight = 0.0
     )
 
     row_ids = [test.id for test in [

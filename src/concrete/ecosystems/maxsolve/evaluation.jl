@@ -91,7 +91,9 @@ function farthest_first_traversal(
     matrix::OutcomeMatrix, initial_visited::Vector{U}, n_points::Int = length(matrix.row_ids)
 ) where U
     # Initialize a boolean array to keep track of visited nodes, using row_ids
-    visited = falses(n_points)
+    println("row ids = ", matrix.row_ids)
+    println("initial ids = ", initial_visited)
+    visited = falses(length(matrix.row_ids))
     for id in initial_visited
         idx = findfirst(==(id), matrix.row_ids)
         visited[idx] = true
