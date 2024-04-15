@@ -103,8 +103,8 @@ function print_info(
     println("SIZE_FILTERED_MATRIX = ", size(filtered_matrix.data))
     println("SIZE_DERIVED_MATRIX = ", size(derived_matrix.data))
     #tag = evaluator.objective == "performance" ? "FILTERED_OUTCOMES" : "FILTERED_DISTINCTIONS"
-    tag = "SUM_OUTCOMES_FILTERED"
-    println("$tag = ", [Int(sum(record.filtered_outcomes)) for record in records])
+    tag = "SUM_OUTCOMES"
+    println("$tag = ", [Int(sum(record.raw_outcomes)) for record in records])
 end
 
 # function get_other_species(species::AbstractSpecies, state::State)

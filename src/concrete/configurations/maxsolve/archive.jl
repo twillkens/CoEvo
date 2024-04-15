@@ -75,37 +75,20 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         println("rule =", elite_rule.genotype.genes)
         println("FITNESS: ", elite_fitness, " out of ", length(all_tests))
         ics = [test.genotype.genes for test in all_tests]
-        #results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
-	results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
+	    results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
         println("REPLAYED_SCORE_VS_TESTS: ", sum(results), " out of ", length(results))
-        #p = filter_rows(state.ecosystem.payoff_matrix, [elite_rule.id])
-        #println(p)
-        #elite_rule = first(state.ecosystem.learner_archive).genotype.genes
         ics = generate_unbiased_ICs(149, 10_000)
-        #results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
-	results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
+	    results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
         score = mean(results)
         println("\n#*****SCORE vs RANDOM*****\n\n", score)
         println()
 
         ms = round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_population], digits = 3)
-	println("average_pop_test_genotype_val = ", reverse(ms))
+	    println("average_pop_test_genotype_val = ", reverse(ms))
         ms = sort(round.([mean(indiv.genotype.genes) for indiv in state.ecosystem.test_children], digits = 3))
         println("\naverage_children_test_genotype_val = ", ms)
         flush(stdout)
-        #all_tests = [state.ecosystem.test_archive ; state.ecosystem.test_population ; state.ecosystem.test_children]
-        #f = Dict()
-        #for test in all_tests
-        #    ic = test.genotype.genes
-        #    result = covered_improved(elite_rule.genotype.genes, ic, 320)
-        #    f[test.id] = result
-        #end
-        #println(f)
         println("---------")
-        #if elite_fitness != sum(results)
-        #    serialize("state.jls", state)
-        #    error("ELITE FOUND")
-        #end
         info = (
             trial = state.configuration.id, 
             algorithm = state.configuration.algorithm,
@@ -120,9 +103,3 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         CSV.write(SAVE_FILE, archiver.data)
     end
 end
-
-
-#function create_archivers(::DensityClassificationExperimentConfiguration)
-#    archivers = [DensityClassificationArchiver()]
-#    return archivers
-#end

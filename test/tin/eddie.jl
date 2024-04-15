@@ -4,6 +4,7 @@ using CoEvo.Interfaces
 using Distributed
 
 
+N_TRIALS = 20
 N_LEARNER_POP = 100
 N_LEARNER_CHILDREN = 100
 N_TEST_POP = 100
@@ -11,7 +12,7 @@ N_TEST_CHILDREN = 100
 N_ARCHIVE = 0
 N_GENERATIONS = 200
 
-for trial in 1:20
+for trial in 1:N_TRIALS
     config = MaxSolveConfiguration(
         id = trial,
         seed = abs(rand(Int)),
@@ -25,7 +26,8 @@ for trial in 1:20
         min_mutation = -0.06,
         max_mutation = 0.04,
         domain = "CompareOnOne",
-        n_workers = nworkers(),
+        #n_workers = nworkers(),
+        n_workers = 1,
         task = "dct",
         learner_flip_chance = 0.02,
         test_flip_chance = 0.05

@@ -20,9 +20,12 @@ include("imports.jl")
 
 Base.@kwdef struct MaxSolveConfiguration <: Configuration
     id::Int = 1
+    tag::Int = 1
     seed::Int = 42
     n_generations::Int = 5
     n_workers::Int = 1
+    learner_algorithm::String = "disco"
+    test_algorithm::String = "standard"
     n_learner_population::Int = 20
     n_learner_children::Int = 20
     n_test_population::Int = 20
@@ -46,6 +49,8 @@ end
 function get_ecosystem_creator(config::MaxSolveConfiguration)
     ecosystem_creator = MaxSolveEcosystemCreator(
         id = config.id,
+        learner_algorithm = config.learner_algorithm,
+        test_algorithm = config.test_algorithm,
         n_learner_population = config.n_learner_population,
         n_learner_children = config.n_learner_children,
         n_test_population = config.n_test_population,
@@ -130,12 +135,13 @@ function create_evaluators(::MaxSolveConfiguration)
 end
 
 include("archive.jl")
+include("numbers_game_archive.jl")
 
 function create_archivers(config::MaxSolveConfiguration)
     if config.task == "numbers_game"
-        archivers = Archiver[]
+        archivers = [NumbersGameArchiver(config)]
     elseif config.task == "dct"
-        archivers = [DensityClassificationArchiver()]
+        archivers = [DensityClassificationArchiver(config)]
     else
         error("Invalid task: $(config.task)")
     end

@@ -30,6 +30,8 @@ Base.@kwdef struct MaxSolveEcosystemCreator <: EcosystemCreator
     n_test_population::Int = 20
     n_test_children::Int = 20
     max_learner_archive_size::Int = 10
+    learner_algorithm::String = "standard"
+    test_algorithm::String = "standard"
 end
 
 Base.@kwdef mutable struct NewDodoRecord{I <: Individual} <: Record
@@ -237,34 +239,35 @@ function update_ecosystem!(
     println("------UPDATE ECOSYSTEM: GENERATION: $(state.generation) ------")
     reproducers = state.reproducers
     learner_evaluation = first(state.evaluations)
-    #new_learner_population, new_learner_children = update_learners_nu_disco(
-    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
-    #)
-    new_learner_population, new_learner_children = update_learners_disco(
-        reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
-    )
-    #new_learner_population, new_learner_children = update_learners_tourn(
-    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
-    #)
-    #new_learner_population, new_learner_children = update_learners_sus(
-    #    reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
-    #)
+
+    if ecosystem_creator.learner_algorithm == "disco"
+        new_learner_population, new_learner_children = update_learners_disco(
+            reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+        )
+    else
+        error("Invalid learner algorithm: $(ecosystem_creator.learner_algorithm)")
+    end
     ecosystem.learner_population = new_learner_population
     ecosystem.learner_children = new_learner_children
 
     test_evaluation = last(state.evaluations)
 
-    #new_test_population, new_test_children = update_tests_standard_distinctions(
-    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    #)
-
-    #new_test_population, new_test_children = update_tests_advanced(
-    #    reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    #)
-
-    new_test_population, new_test_children = update_tests_regularized(
-        reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
-    )
+    println("Using test algorithm: $(ecosystem_creator.test_algorithm)")
+    if ecosystem_creator.test_algorithm == "standard"
+        new_test_population, new_test_children = update_tests_standard_distinctions(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
+    elseif ecosystem_creator.test_algorithm == "advanced"
+        new_test_population, new_test_children = update_tests_advanced(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
+    elseif ecosystem_creator.test_algorithm == "qmeu"
+        new_test_population, new_test_children = update_tests_regularized(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
+    else
+        error("Invalid test algorithm: $(ecosystem_creator.test_algorithm)")
+    end
     ecosystem.test_population = new_test_population
     ecosystem.test_children = new_test_children
     println("length_learner_population = ", length(new_learner_population))
