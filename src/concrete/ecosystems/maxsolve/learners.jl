@@ -7,13 +7,6 @@ function run_tournament(contenders::Array{<:NewDodoRecord}, rng::AbstractRNG)
         elseif record_2.rank < record_1.rank
             return record_2
         else
-	#	if sum(record_1.outcomes) > sum(record_2.outcomes)
-        #       		return record_1
-	#	elseif sum(record_1.outcomes) < sum(record_2.outcomes)
-	#		return record_2
-	#	    else
-	#		return rand(rng, (record_1, record_2))
-	#	    end
             if record_1.crowding > record_2.crowding
                 return record_1
             elseif record_2.crowding > record_1.crowding

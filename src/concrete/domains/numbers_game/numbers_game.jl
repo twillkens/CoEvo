@@ -94,7 +94,7 @@ end
 function measure(::NumbersGameDomain{CompareOnOne}, A::Vector{<:Real}, B::Vector{<:Real})
     largest_dimension_B = findmax(B)[2]
     test_passed = A[largest_dimension_B] >= B[largest_dimension_B] ? 1.0 : 0.0
-    return [test_passed, test_passed]
+    return [test_passed, 1.0 - test_passed]
 end
 
 @kwdef struct CompareOnOneSymmetric <: Metric

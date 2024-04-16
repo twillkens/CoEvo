@@ -82,9 +82,14 @@ function plot_fitnesses(files::Vector{FileDetail})
     savefig(p, "Fitnesses.png")
     display(p)
 end
-function plot_scores(files::Vector{FileDetail})
-    p = plot(legend=:bottomright, xlabel="Generation", ylabel="Accuracy", title="Density Classification Task: Accuracy")
-
+function plot_scores(
+    files::Vector{FileDetail}; 
+    title::String="Density Classification Task: Accuracy",
+    legend::Symbol=:bottomright,
+    ylabel::String="Accuracy",
+    filename::String="dct"
+)
+    p = plot(legend=legend, xlabel="Generation", ylabel=ylabel, title=title)
     for file in files
         # Read the CSV file
         data = CSV.read(file.filepath, DataFrame)
@@ -115,7 +120,7 @@ function plot_scores(files::Vector{FileDetail})
               label=file.label, color=file.color)
     end
 
-    savefig(p, "$LOG_DIR/Scores.png")
+    savefig(p, "$LOG_DIR/$filename-scores.png")
     display(p)
 end
 
@@ -290,10 +295,61 @@ function plot_heatmap(files::Vector{FileDetail})
     end
 end
 
-files = [
-    #FileDetail("standard.csv", "Standard", :red),
+
+# Function to load data from files and extract scores for a specific generation across all trials
+function load_and_prepare_data(file_details::Vector{FileDetail}, target_generation::Int)
+    data_dict = Dict{String, Vector{Float64}}()
+    
+    for file_detail in file_details
+        df = CSV.read(file_detail.filepath, DataFrame)
+        
+        # Filter data to only include the specific generation
+        filtered_df = filter(row -> row.generation == target_generation, df)
+        
+        # Assuming 'trial' column exists to uniquely identify each trial at the target generation
+        # Extract the 'score' column values into a Vector{Float64}
+        scores = Vector{Float64}(filtered_df.score)
+        
+        # Ensure that we get exactly 60 scores, one for each trial
+        if length(scores) != 60
+            error("Expected 60 scores for each trial at generation $target_generation, got $(length(scores))")
+        end
+        
+        # Insert the scores vector into the dictionary with the corresponding label
+        data_dict[file_detail.label] = scores
+    end
+    
+    return data_dict
+end
+
+include("analyze.jl")
+# Example function to run analysis on data extracted for a specific generation
+function run_file_analysis(file_details::Vector{FileDetail}, generation::Int, control_label::String)
+    data = load_and_prepare_data(file_details, generation)
+    results = run_analysis(control_label, data)
+    return results
+end
+
+dct_files = [
     FileDetail("$LOG_DIR/STANDARD.csv", "Standard", :red),
     FileDetail("$LOG_DIR/ADVANCED.csv", "Advanced", :blue),
     FileDetail("$LOG_DIR/QMEU.csv", "QueMEU", :green),
-    # Add more FileDetail entries as needed
 ]
+
+coa_files = [
+    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnAll-1.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnAll-1.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnAll-1.csv", "QueMEU", :green),
+]
+
+coo_files = [
+    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnOne-1.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnOne-1.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnOne-1.csv", "QueMEU", :green),
+]
+
+plot_scores(dct_files, title="Density Classification Task: N = 149", ylabel="Accuracy", filename="dct")
+plot_scores(coa_files, legend=:topleft, title="Compare-on-All: Five Dimensions", ylabel="Minimum Dimension Value", filename="coa")
+plot_scores(coo_files, legend=:topleft, title="Compare-on-One: Five Dimensions", ylabel="Minimum Dimension Value", filename="coo")
+
+plot_heatmap(dct_files)
