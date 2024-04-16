@@ -13,7 +13,7 @@ struct FileDetail
     color::Symbol
 end
 
-const LOG_DIR = "logs/data"
+const LOG_DIR = "QUEMEU-DATA"
 
 const DEFAULT_BOOTSTRAPPED_CONFIDENCE_INTERVALS = Dict(
         "lower_confidence" => 0,
@@ -23,16 +23,13 @@ const N_BOOTSTRAP_SAMPLES = 1000
 
 const DEFAULT_CONFIDENCE = 0.95
 
-const N_TRIALS = 20
-const N_GENERATIONS = 10000
-
 function get_bootstrapped_confidence_intervals(
-    values::Vector{Float64}, confidence_level::Float64 = 0.95
+    values::Vector{Float64}, confidence_level::Float64 = DEFAULT_CONFIDENCE
 )
     if length(values) == 0
         return Dict("lower_confidence" => 0, "upper_confidence" => 0)
     end
-    bootstrap_result = bootstrap(mean, values, BasicSampling(1000))
+    bootstrap_result = bootstrap(mean, values, BasicSampling(N_BOOTSTRAP_SAMPLES))
     _, lower_confidence, upper_confidence = first(bootstrap_confint(
         bootstrap_result, BasicConfInt(confidence_level)
     ))
@@ -331,21 +328,21 @@ function run_file_analysis(file_details::Vector{FileDetail}, generation::Int, co
 end
 
 dct_files = [
-    FileDetail("$LOG_DIR/STANDARD.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/ADVANCED.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/QMEU.csv", "QueMEU", :green),
+    FileDetail("$LOG_DIR/dct-standard.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/dct-advanced.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/dct-qmeu.csv", "QueMEU", :green),
 ]
 
 coa_files = [
-    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnAll-1.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnAll-1.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnAll-1.csv", "QueMEU", :green),
+    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnAll.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnAll.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnAll.csv", "QueMEU", :green),
 ]
 
 coo_files = [
-    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnOne-1.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnOne-1.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnOne-1.csv", "QueMEU", :green),
+    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnOne.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnOne.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnOne.csv", "QueMEU", :green),
 ]
 
 plot_scores(dct_files, title="Density Classification Task: N = 149", ylabel="Accuracy", filename="dct")

@@ -1,5 +1,4 @@
-name = "CoEvo"
-uuid = "842a0346-8272-4eaf-bb06-52321997162a"
+name = "QueMEU-Anon"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
