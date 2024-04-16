@@ -390,28 +390,4 @@ function merge_matrices(
     return new_matrix
 end
 
-
-
-
 end
-#function implement_competitive_fitness_sharing(outcome_matrix::SortedDict{Int, Vector{Float64}})
-#    n_outcomes = length(first(outcome_matrix)[2])
-#    outcome_sums = zeros(Float64, n_outcomes)
-#    for i in 1:n_outcomes
-#        for outcomes in values(outcome_matrix)
-#            outcome_sums[i] += outcomes[i]
-#        end
-#    end
-#    new_outcome_matrix = SortedDict{Int, Vector{Float64}}()
-#
-#    for (id, outcomes) in outcome_matrix
-#        new_outcomes = zeros(Float64, n_outcomes)
-#        for i in 1:n_outcomes
-#            if outcomes[i] == 1
-#                new_outcomes[i] = 1 / outcome_sums[i]
-#            end
-#        end
-#        new_outcome_matrix[id] = new_outcomes
-#    end
-#    return new_outcome_matrix
-#end

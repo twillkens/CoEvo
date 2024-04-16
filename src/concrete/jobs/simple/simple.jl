@@ -7,7 +7,7 @@ import ....Interfaces: create_jobs, make_all_matches
 using ....Abstract
 using ....Utilities: find_by_id
 using ....Interfaces
-using ...Ecosystems.MaxSolve
+using ...Ecosystems.QueMEU
 using Random: AbstractRNG
 using ...Matches.Basic: BasicMatch
 
@@ -39,7 +39,7 @@ end
 
 function make_all_matches(
     ::SimpleJobCreator,
-    ecosystem::MaxSolveEcosystem,
+    ecosystem::QueMEUEcosystem,
     state::State
 )
     all_learners = [
@@ -105,7 +105,7 @@ function get_phenotype_dict(ecosystem::Ecosystem, ids::Set{Tuple{String, Int}})
     return phenotype_dict
 end
 
-function get_phenotype_dict(ecosystem::MaxSolveEcosystem, ids::Set{Tuple{String, Int}})
+function get_phenotype_dict(ecosystem::QueMEUEcosystem, ids::Set{Tuple{String, Int}})
     pairs = map(collect(ids)) do (species_id, individual_id)
         individual = ecosystem[individual_id]
         return individual.id => individual.phenotype

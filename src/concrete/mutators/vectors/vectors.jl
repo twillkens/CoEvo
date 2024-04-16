@@ -30,7 +30,7 @@ export NumbersGameVectorMutator, mutate!
 
 Base.@kwdef struct NumbersGameVectorMutator <: Mutator
     n_mutations::Int = 2
-    min_mutation::Float64 = -0.1
+    min_mutation::Float64 = -0.15
     max_mutation::Float64 = 0.1
     mutation_granularity::Float64 = 0.01
 end
@@ -78,31 +78,10 @@ end
 
 function mutate!(mutator::PerBitMutator, genotype::BasicVectorGenotype, state::State)
     genes = genotype.genes
-    if false
-    #if mutator.use_symmetry
-        x = rand()
-        if x < 0.1
-            genes = collect(reverse(genes))
-        elseif x < 0.2
-            genes = [1 - gene for gene in genes]
-        elseif x < 0.3
-            genes = [1 - gene for gene in collect(reverse(genes))]
-        else
-            flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
-            #flip_chance = mutator.flip_chance
-            for i in eachindex(genes)
-                if rand(state.rng) < flip_chance
-                    genes[i] = 1 - genes[i]
-                end
-            end
-        end
-    else
-        #flip_chance = mutator.flip_chance * get_exponential_window_size(mutator.flip_window, state.rng)
-        flip_chance = mutator.flip_chance
-        for i in eachindex(genes)
-            if rand(state.rng) < flip_chance
-                genes[i] = 1 - genes[i]
-            end
+    flip_chance = mutator.flip_chance
+    for i in eachindex(genes)
+        if rand(state.rng) < flip_chance
+            genes[i] = 1 - genes[i]
         end
     end
 end

@@ -65,9 +65,6 @@ function get_outcome_set(
     rule::Vector{<:Real},
     initial_condition::Vector{<:Real}
 )
-    #variations = generate_variations(initial_condition)
-    #scores = [covered_improved(rule, ic, domain.max_timesteps) for ic in variations]
-    #inverted_scores = [1 - score for score in scores]
     learner_passed = covered_improved(rule, initial_condition, domain.max_timesteps)
     return Float64[learner_passed, 1 - learner_passed]
 end
