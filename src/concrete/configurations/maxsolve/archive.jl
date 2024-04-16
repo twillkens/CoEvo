@@ -13,9 +13,19 @@ struct DensityClassificationArchiver <: Archiver
     data::DataFrame
 end
 
-function DensityClassificationArchiver()
-    if isfile(SAVE_FILE)
-        data = CSV.read(SAVE_FILE, DataFrame)
+function get_dct_save_file(configuration::MaxSolveConfiguration)
+    task = configuration.task
+    algo = configuration.test_algorithm
+    domain = configuration.domain
+    tag = configuration.tag
+    file = "$(task)-$(algo)-$(domain)-$(tag).csv"
+    return file
+end
+
+function DensityClassificationArchiver(configuration::MaxSolveConfiguration)
+    file = get_dct_save_file(configuration)
+    if isfile(file)
+        data = CSV.read(file, DataFrame)
     else
         data = DataFrame(
             trial = Int[], 
@@ -91,7 +101,7 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         println("---------")
         info = (
             trial = state.configuration.id, 
-            algorithm = state.configuration.algorithm,
+            algorithm = state.configuration.test_algorithm,
             generation = state.generation, 
             fitness = elite_fitness,
             score = score,
@@ -99,7 +109,8 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         )
         push!(archiver.data, info)
     
+        file = get_dct_save_file(state.configuration)
         # Optionally, save the DataFrame to a CSV file every generation
-        CSV.write(SAVE_FILE, archiver.data)
+        CSV.write(file, archiver.data)
     end
 end

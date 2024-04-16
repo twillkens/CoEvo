@@ -12,12 +12,8 @@ using ....Interfaces
 using ...Matrices.Outcome
 
 include("archive.jl")
-#include("filter.jl")
-#include("evaluate.jl")
 include("evaluation.jl")
-#include("sillhouette_kmeans.jl")
-#include("cluster.jl")
 include("ecosystem.jl")
-include("old/dodo.jl")
+include("clustering/clustering.jl")
 
 end

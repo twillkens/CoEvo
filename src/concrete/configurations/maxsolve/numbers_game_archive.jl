@@ -105,7 +105,6 @@ function append_to_csv(df, csv_path)
     end
 end
 
-
 function archive!(archiver::NumbersGameArchiver, state::State)
     #all_data = DataFrame()
     species_data = collect_species_data("L", state.ecosystem.learner_population, state.generation)
@@ -123,7 +122,7 @@ function archive!(archiver::NumbersGameArchiver, state::State)
     elite_minimum_gene = minimum(elite.genotype.genes)
     info = (
         trial = state.configuration.id, 
-        algorithm = state.configuration.algorithm,
+        algorithm = state.configuration.test_algorithm,
         generation = state.generation, 
         fitness = elite_fitness,
         score = elite_minimum_gene,
@@ -131,13 +130,4 @@ function archive!(archiver::NumbersGameArchiver, state::State)
     )
     push!(archiver.data, info)
     CSV.write(get_save_file(state.configuration), archiver.data)
-
-        #append!(all_data, species_data)
-    #mode = state.configuration.mode
-    #csv_dir = "trials/$mode"
-    #if !isdir(csv_dir)
-    #    mkpath(csv_dir)
-    #end
-    #csv_path = "$csv_dir/$(state.id).csv"
-    #append_to_csv(all_data, csv_path)
 end

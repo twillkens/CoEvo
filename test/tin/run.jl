@@ -29,13 +29,14 @@ for trial in 1:10
         max_learner_archive_size = N_ARCHIVE,
         n_generations = N_GENERATIONS,
         n_dimensions = 5,
-        min_mutation = -0.1,
+        min_mutation = -0.15,
         max_mutation = 0.1,
         use_delta = false,
         delta = 0.25,
         domain = "CompareOnOne",
         n_workers = nworkers(),
-        task = "numbers_game",
+        task = "numbers_game", 
+        #task = "dct",
         learner_flip_chance = 0.02,
         test_flip_chance = 0.05
     )
