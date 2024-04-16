@@ -151,7 +151,6 @@ end
 
 #------------------------------- DCT
 using ...Environments.ElementaryCellularAutomata: ElementaryCellularAutomataEnvironmentCreator
-#using ...Environments.ECAOptimized: ElementaryCellularAutomataEnvironmentCreator
 using ...Domains.DensityClassification: DensityClassificationDomain
 using ...Selectors.Identity: IdentitySelector
 using ...Phenotypes.Vectors: CloneVectorPhenotypeCreator
@@ -186,8 +185,7 @@ function create_learner_dct_reproducer(config::QueMEUConfiguration)
         individual_creator = BasicIndividualCreator(),
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
-        recombiner = NPointCrossoverRecombiner(n_points = 1),
-        #recombiner = CloneRecombiner(),
+        recombiner = CloneRecombiner(),
         mutator = PerBitMutator(flip_chance = config.learner_flip_chance)
     )
     return reproducer
@@ -202,9 +200,8 @@ function create_test_dct_reproducer(config::QueMEUConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = NPointCrossoverRecombiner(n_points = 1),
-        #recombiner = CloneRecombiner(),
-        mutator = PerBitMutator(flip_chance = config.test_flip_chance, use_symmetry = true)
-        #mutator = PerBitMutator(flip_chance = config.learner_flip_chance)
+        recombiner = CloneRecombiner(),
+        mutator = PerBitMutator(flip_chance = config.test_flip_chance, use_symmetry = false)
     )
     return reproducer
 end
