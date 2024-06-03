@@ -96,8 +96,6 @@ include("performers/performers.jl")
 using .Performers: Performers
 println("loaded performers")
 
-#include("modes/modes.jl")
-#using .Modes: Modes
 include("simulators/simulators.jl")
 using .Simulators: Simulators
 println("loaded simulators")

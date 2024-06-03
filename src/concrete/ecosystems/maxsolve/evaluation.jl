@@ -1,5 +1,5 @@
 export create_performance_matrix, make_sum_scalar_matrix, perform_competitive_fitness_sharing
-export evaluate_standard, zero_out_duplicate_rows, evaluate_advanced, farthest_first_search
+export evaluate_standard, zero_out_duplicate_rows, evaluate_advanced
 
 using ...Matrices.Outcome: OutcomeMatrix, make_full_distinction_matrix
 

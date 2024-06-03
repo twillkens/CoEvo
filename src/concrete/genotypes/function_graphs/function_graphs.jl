@@ -13,6 +13,20 @@ function graphs,
 """
 module FunctionGraphs
 
+export evaluate_function
+export FunctionGraphGenotype, FunctionGraphGenotypeCreator
+export Edge, Node
+export create_genotypes
+export FUNCTION_MAP, GraphFunction, evaluate_function, InputGraphFunction, BiasGraphFunction
+export OutputGraphFunction, IdentityGraphFunction, AddGraphFunction, SubtractGraphFunction
+export MultiplyGraphFunction, GraphDivide, MaximumGraphFunction, MinimumGraphFunction
+export SineGraphFunction, CosineGraphFunction, SigmoidGraphFunction, TanhGraphFunction
+export ReluGraphFunction, AndGraphFunction, OrGraphFunction, NandGraphFunction, XorGraphFunction
+export IfLessThenElseGraphFunction, ModuloGraphFunction, NaturalLogGraphFunction, ExpGraphFunction
+export get_size, minimize
+export remove_node_and_redirect, substitute_node_with_bias_connection, get_prunable_genes
+export validate_genotype, has_cycle_nonrecurrent
+
 import ....Interfaces: create_genotypes, get_size, minimize
 
 using Base: @kwdef

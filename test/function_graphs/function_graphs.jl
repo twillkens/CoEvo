@@ -6,12 +6,11 @@ using Base: @kwdef
 using CoEvo
 using Random  
 using StableRNGs: StableRNG
-using CoEvo.Names
-using CoEvo.Genotypes.FunctionGraphs
-using CoEvo.Mutators.FunctionGraphs
-using CoEvo.Mutators.FunctionGraphs: add_function as fg_add_function, remove_function as fg_remove_function
-using CoEvo.Phenotypes.FunctionGraphs.Linearized
-using CoEvo.Phenotypes.FunctionGraphs.Basic
+using CoEvo.Concrete.Genotypes.FunctionGraphs
+using CoEvo.Concrete.Mutators.FunctionGraphs
+using CoEvo.Concrete.Mutators.FunctionGraphs: add_function as fg_add_function, remove_function as fg_remove_function
+#using CoEvo.Concrete.Phenotypes.FunctionGraphs.Linearized
+using CoEvo.Concrete.Phenotypes.FunctionGraphs.Basic
 using ProgressBars
 
 println("Starting tests for FunctionGraphs...")

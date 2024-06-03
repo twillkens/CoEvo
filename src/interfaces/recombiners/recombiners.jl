@@ -42,10 +42,9 @@ function recombine(
     ::State
 )
     recombiner = typeof(recombiner)
-    mutator = typeof(mutator)
     individuals = typeof(individuals)
     reproducer = typeof(reproducer)
-    error("recombine not implemented for $recombiner, $mutator, $individuals, $reproducer")
+    error("recombine not implemented for $recombiner, $individuals, $reproducer")
 end
 
 function recombine(

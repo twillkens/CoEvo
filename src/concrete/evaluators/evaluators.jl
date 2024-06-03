@@ -1,6 +1,6 @@
 module Evaluators
 
-export Null, ScalarFitness, NSGAII, Disco, Redisco, HillClimber, DodoLearner#, AdaptiveArchive
+export Null, ScalarFitness, NSGAII, Disco, Redisco, HillClimber, DodoLearner
 export SpreadDodo
 export Dodo, DodoTest, NewDodo, Tin
 
@@ -12,9 +12,6 @@ using .ScalarFitness: ScalarFitness
 
 include("nsga-ii/nsga-ii.jl")
 using .NSGAII: NSGAII
-
-#include("distinction/distinction.jl")
-#using .Distinction: Distinction
 
 include("disco/disco.jl")
 using .Disco: Disco
