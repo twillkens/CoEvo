@@ -152,7 +152,7 @@ function create_archivers(config::MaxSolveConfiguration)
     elseif config.task == "dct"
         archivers = [DensityClassificationArchiver(config)]
     elseif config.task == "fsm"
-        archivers = [FSMArchiver()]
+        archivers = [FSMArchiver(config)]
     else
         error("Invalid task: $(config.task)")
     end
@@ -237,7 +237,7 @@ using ...Performers.Cache: CachePerformer
 
 
 function create_fsm_simulator(config::MaxSolveConfiguration) 
-    domain = PredictionGameDomain("PredatorPrey")
+    domain = PredictionGameDomain("PreyPredator")
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     simulator = BasicSimulator(
         interactions = [
