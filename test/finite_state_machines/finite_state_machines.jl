@@ -1,3 +1,5 @@
+using Test
+
 @testset "FiniteStateMachines" begin
 
 println("Starting tests for FiniteStateMachines and LinguisticPredictionGame...")

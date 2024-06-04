@@ -244,6 +244,10 @@ function update_ecosystem!(
         new_learner_population, new_learner_children = update_learners_disco(
             reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
         )
+    elseif ecosystem_creator.learner_algorithm == "tourn"
+        new_learner_population, new_learner_children = update_learners_tourn(
+            reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+        )
     else
         error("Invalid learner algorithm: $(ecosystem_creator.learner_algorithm)")
     end

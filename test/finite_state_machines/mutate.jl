@@ -6,10 +6,13 @@ using Random
 using StableRNGs
 using StatsBase
 using CoEvo
-using .Counters.Basic: BasicCounter
-using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
-using .Mutators.FiniteStateMachines: FiniteStateMachineMutator
-using .Mutators.FiniteStateMachines: add_state, remove_state, change_link, change_label
+using .CoEvo.Concrete.Counters.Basic
+#using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
+using .CoEvo.Concrete.Genotypes.FiniteStateMachines
+using .CoEvo.Concrete.Mutators.FiniteStateMachines
+
+#using .Mutators.FiniteStateMachines: FiniteStateMachineMutator
+#using .Mutators.FiniteStateMachines: add_state, remove_state, change_link, change_label
 
 @testset "add_state" begin
     start = 1

@@ -5,7 +5,9 @@ using Test
 using Random
 using StableRNGs
 using CoEvo
-using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
+#using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
+#using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
+using .CoEvo.Concrete.Genotypes.FiniteStateMachines
 
 @testset "basic equals" begin
     start = 1

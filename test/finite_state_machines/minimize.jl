@@ -5,8 +5,9 @@ using Test
 using Random
 using StableRNGs
 using CoEvo
-using .Genotypes: minimize 
-using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype, minimize_verbose
+#using .Genotypes: minimize 
+using .CoEvo.Interfaces
+#using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype, minimize_verbose
 
 @testset "cornell1" begin
     source = "http://www.cs.cornell.edu/courses/cs2800/2013fa/Handouts/minimization.pdf"

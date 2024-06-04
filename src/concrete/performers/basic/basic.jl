@@ -26,7 +26,7 @@ function perform(::BasicPerformer, job::SimpleJob)
 end
 
 function perform(performer::BasicPerformer, jobs::Vector{<:SimpleJob})
-    try
+    #try
         println("length(jobs) = ", length(jobs))
         if length(jobs) == 1
             results = perform(performer, jobs[1])
@@ -36,12 +36,12 @@ function perform(performer::BasicPerformer, jobs::Vector{<:SimpleJob})
         end
         results = vcat(results...)
         return results
-    catch e
-        f = open("test/circle/jobs.jls", "w")
-        serialize(f, jobs)
-        close(f)
-        throw(e)
-    end
+    #catch e
+    #    f = open("test/circle/jobs.jls", "w")
+    #    serialize(f, jobs)
+    #    close(f)
+    #    throw(e)
+    #end
 end
 
 end

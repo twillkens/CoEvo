@@ -2,6 +2,9 @@ module MaxSolve
 
 export MaxSolveConfiguration, get_ecosystem_creator, create_reproducer, create_reproducers
 export create_simulator, create_evaluator, create_archivers
+export create_numbers_game_reproducer, create_numbers_game_simulator
+export create_fsm_simulator, create_learner_fsm_reproducer, create_test_fsm_reproducer
+
 
 import ....Interfaces: create_reproducers, create_simulator, create_evaluators, create_archivers
 import ....Interfaces: get_ecosystem_creator
@@ -94,6 +97,9 @@ function create_reproducers(config::MaxSolveConfiguration)
     elseif config.task == "dct"
         learner_reproducer = create_learner_dct_reproducer(config)
         test_reproducer = create_test_dct_reproducer(config)
+    elseif config.task == "fsm"
+        learner_reproducer = create_learner_fsm_reproducer(config)
+        test_reproducer = create_test_fsm_reproducer(config)
     else
         error("Invalid task: $(config.task)")
     end
@@ -124,6 +130,8 @@ function create_simulator(config::MaxSolveConfiguration)
         simulator = create_numbers_game_simulator(config)
     elseif config.task == "dct"
         simulator = create_dct_simulator(config)
+    elseif config.task == "fsm"
+        simulator = create_fsm_simulator(config)
     else
         error("Invalid task: $(config.task)")
     end
@@ -136,12 +144,15 @@ end
 
 include("archive.jl")
 include("numbers_game_archive.jl")
+include("fsm_archive.jl")
 
 function create_archivers(config::MaxSolveConfiguration)
     if config.task == "numbers_game"
         archivers = [NumbersGameArchiver(config)]
     elseif config.task == "dct"
         archivers = [DensityClassificationArchiver(config)]
+    elseif config.task == "fsm"
+        archivers = [FSMArchiver()]
     else
         error("Invalid task: $(config.task)")
     end
@@ -205,6 +216,70 @@ function create_test_dct_reproducer(config::MaxSolveConfiguration)
         #recombiner = CloneRecombiner(),
         mutator = PerBitMutator(flip_chance = config.test_flip_chance, use_symmetry = true)
         #mutator = PerBitMutator(flip_chance = config.learner_flip_chance)
+    )
+    return reproducer
+end
+
+#------------------------------- FSM
+#using ...Environments.ElementaryCellularAutomata: ElementaryCellularAutomataEnvironmentCreator
+using ...Environments.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
+using ...Domains.PredictionGame: PredictionGameDomain
+using ...Phenotypes.Defaults: DefaultPhenotypeCreator
+using ...Genotypes.FiniteStateMachines: FiniteStateMachineGenotypeCreator
+using ...Mutators.FiniteStateMachines: FiniteStateMachineMutator
+
+#using ...Environments.ECAOptimized: ElementaryCellularAutomataEnvironmentCreator
+#using ...Domains.DensityClassification: DensityClassificationDomain
+using ...Selectors.Identity: IdentitySelector
+using ...Phenotypes.Vectors: CloneVectorPhenotypeCreator
+using ...Mutators.Vectors: PerBitMutator
+using ...Performers.Cache: CachePerformer
+
+
+function create_fsm_simulator(config::MaxSolveConfiguration) 
+    domain = PredictionGameDomain("PredatorPrey")
+    environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
+    simulator = BasicSimulator(
+        interactions = [
+            BasicInteraction(
+                id = "A",
+                environment_creator = environment_creator,
+                species_ids = ["L", "T"],
+            )
+        ],
+        matchmaker = AllVersusAllMatchMaker(),
+        job_creator = SimpleJobCreator(n_workers = config.n_workers),
+        performer = CachePerformer(n_workers = config.n_workers),
+    )
+    return simulator
+end
+
+using ...Recombiners.NPointCrossover: NPointCrossoverRecombiner
+
+function create_learner_fsm_reproducer(config::MaxSolveConfiguration)
+    reproducer = BasicReproducer(
+        id = "L",
+        genotype_creator = FiniteStateMachineGenotypeCreator(),
+        phenotype_creator = DefaultPhenotypeCreator(),
+        individual_creator = BasicIndividualCreator(),
+        species_creator = dummy_species_creator(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(),
+        mutator = FiniteStateMachineMutator(n_changes = 1)
+    )
+    return reproducer
+end
+
+function create_test_fsm_reproducer(config::MaxSolveConfiguration)
+    reproducer = BasicReproducer(
+        id = "T",
+        genotype_creator = FiniteStateMachineGenotypeCreator(),
+        phenotype_creator = DefaultPhenotypeCreator(),
+        individual_creator = BasicIndividualCreator(),
+        species_creator = dummy_species_creator(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(),
+        mutator = FiniteStateMachineMutator(n_changes = 1)
     )
     return reproducer
 end

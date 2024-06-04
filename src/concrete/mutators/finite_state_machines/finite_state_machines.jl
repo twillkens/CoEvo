@@ -3,7 +3,7 @@ module FiniteStateMachines
 export FiniteStateMachineMutator
 export add_state, remove_state, change_link, change_label
 
-import ....Interfaces: mutate
+import ....Interfaces: mutate, mutate!
 
 using Random: AbstractRNG, rand
 using StatsBase: sample, Weights
@@ -106,12 +106,13 @@ function mutate(
     gene_id_counter::Counter, 
     genotype::FiniteStateMachineGenotype
 ) 
-    genotype_before = genotype
+    #genotype_before = genotype
     mutation_functions = collect(keys(mutator.mutation_probabilities))
     mutation_probabilities = Weights(collect(values(mutator.mutation_probabilities)))
-    mutation_functions = sample(
-        rng, mutation_functions, mutation_probabilities, mutator.n_changes
-    )
+    #x = Weights([0.5, 0.25, 0.125, 0.0625, 0.0625])
+    #n_changes = sample(rng, 1:5, x)
+    n_changes = mutator.n_changes
+    mutation_functions = sample(rng, mutation_functions, mutation_probabilities, n_changes)
     for mutation_function in mutation_functions
         genotype = mutation_function(rng, gene_id_counter, genotype)
     end
@@ -120,6 +121,19 @@ function mutate(
     )
         throw(ErrorException("Duplicate states in genotype"))
     end
+    return genotype
+end
+
+function mutate!(
+    mutator::FiniteStateMachineMutator,
+    genotype::FiniteStateMachineGenotype,
+    state::State
+)
+    mutant = mutate(mutator, state.rng, state.gene_id_counter, genotype)
+    genotype.start = mutant.start
+    genotype.ones = mutant.ones
+    genotype.zeros = mutant.zeros
+    genotype.links = mutant.links
     return genotype
 end
 

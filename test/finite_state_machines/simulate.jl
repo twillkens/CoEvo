@@ -4,13 +4,20 @@ using Test
 
 using CoEvo
 
-using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
-using .Phenotypes: Phenotype, create_phenotype
-using .Phenotypes.Defaults: DefaultPhenotypeCreator
-using .Phenotypes.FiniteStateMachines: FiniteStateMachinePhenotype
-using .Domains.PredictionGame: PredictionGameDomain
-using .Environments: create_environment, is_active, step!, get_outcome_set
-using .Environments.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
+#using .Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
+using .CoEvo.Abstract
+using .CoEvo.Interfaces
+using .CoEvo.Concrete.Genotypes.FiniteStateMachines
+using .CoEvo.Concrete.Phenotypes.Defaults
+using .CoEvo.Concrete.Phenotypes.FiniteStateMachines
+using .CoEvo.Concrete.Domains.PredictionGame
+using .CoEvo.Concrete.Environments.LinguisticPredictionGame
+#using .Phenotypes: Phenotype, create_phenotype
+#using .Phenotypes.Defaults: DefaultPhenotypeCreator
+#using .Phenotypes.FiniteStateMachines: FiniteStateMachinePhenotype
+#using .Domains.PredictionGame: PredictionGameDomain
+#using .Environments: create_environment, is_active, step!, get_outcome_set
+#using .Environments.LinguisticPredictionGame: LinguisticPredictionGameEnvironmentCreator
 
 phenotype_creator = DefaultPhenotypeCreator()
 

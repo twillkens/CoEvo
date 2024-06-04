@@ -4,6 +4,8 @@ import ....Interfaces: create_genotypes
 import Base: length, ==, hash
 
 using ....Abstract: Genotype, GenotypeCreator, Counter, AbstractRNG
+using ....Abstract
+using ....Interfaces
 using ....Interfaces: step!
 
 """
@@ -17,7 +19,7 @@ Represents a finite state machine as a genotype.
 - `zeros::Set{T}`: States labeled as "0".
 - `links::Dict{Tuple{T, Bool}, T}`: Dictionary mapping from a state and an input (true/false) to the next state.
 """
-struct FiniteStateMachineGenotype{T} <: Genotype
+mutable struct FiniteStateMachineGenotype{T} <: Genotype
     start::T
     ones::Set{T}
     zeros::Set{T}
@@ -100,6 +102,15 @@ function create_genotypes(
     n_population::Int
 )
     genotypes = [create_genotype(genotype_creator, rng, gene_id_counter) for _ in 1:n_population]
+    return genotypes
+end
+
+function create_genotypes(
+    genotype_creator::FiniteStateMachineGenotypeCreator,
+    n_genotypes::Int,
+    state::State
+)
+    genotypes = create_genotypes(genotype_creator, state.rng, state.gene_id_counter, n_genotypes)
     return genotypes
 end
 

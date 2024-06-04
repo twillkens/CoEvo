@@ -28,7 +28,6 @@ function get_phenotypes(environment::Environment)::Vector{Pair{Int, Phenotype}}
     )
 end
 
-
 function step!(environment::Environment)::Nothing
     environment = typeof(environment)
     error("step! not implemented for $environment")

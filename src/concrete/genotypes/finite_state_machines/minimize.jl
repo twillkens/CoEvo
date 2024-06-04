@@ -1,5 +1,7 @@
 export minimize, minimize_verbose
 
+import ....Interfaces: minimize
+
 """
 Hopcroft's DFA minimization algorithm implementation for FiniteStateMachineGenotype.
 """
@@ -194,9 +196,15 @@ function merge_partitions_for_real_fsm(
     merged_state_map = Dict(
         x => R(i) for (i, partition) in enumerate(all_partitions) for x in partition
     )
+    #println("start = ", fsm.start)
+    #println("ones = ", fsm.ones)
+    #println("zeros = ", fsm.zeros)
+    #println("links = ", fsm.links)
+    #println("all_partitions = ", all_partitions)
+    #println("merged_state_map = ", merged_state_map)
     new_start = merged_state_map[fsm.start]
-    new_ones = Set(merged_state_map[state] for state in fsm.ones)
-    new_zeros = Set(merged_state_map[state] for state in fsm.zeros)
+    new_ones = Set{R}(merged_state_map[state] for state in fsm.ones if state in keys(merged_state_map))
+    new_zeros = Set{R}(merged_state_map[state] for state in fsm.zeros if state in keys(merged_state_map))
     new_links = Dict(
         (merged_state_map[origin], symbol) => merged_state_map[destination]
         for ((origin, symbol), destination) in fsm.links 

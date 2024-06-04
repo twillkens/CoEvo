@@ -2,7 +2,7 @@ module FiniteStateMachines
 
 export FiniteStateMachinePhenotype
 
-import ....Interfaces: create_phenotype, act!
+import ....Interfaces: create_phenotype, act!, reset!
 using ....Abstract
 
 using ...Genotypes.FiniteStateMachines: FiniteStateMachineGenotype
@@ -29,9 +29,15 @@ function create_phenotype(::PhenotypeCreator, genotype::FiniteStateMachineGenoty
     return phenotype
 end
 
+function create_phenotype(phenotype_creator::PhenotypeCreator, id::Int, genotype::FiniteStateMachineGenotype)
+    create_phenotype(phenotype_creator, genotype, id)
+end
+
 function act!(phenotype::FiniteStateMachinePhenotype{T}, state::T, bit::Bool) where T
     next_state, next_bit = phenotype.links[(state, bit)]
     return next_state, next_bit
 end
+
+reset!(phenotype::FiniteStateMachinePhenotype{T}) where T = nothing
 
 end

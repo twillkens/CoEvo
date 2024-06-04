@@ -35,17 +35,18 @@ end
 # TODO: fix hacky type manipulation
 function create_environment(
     environment_creator::LinguisticPredictionGameEnvironmentCreator{D},
-    phenotypes::Vector{<:Phenotype}
+    fsm_A::Phenotype,
+    fsm_B::Phenotype
 ) where {D <: Domain}
-    fsm_A, fsm_B = phenotypes
+    #fsm_A, fsm_B = phenotypes
     state1, bit1 = fsm_A.start
     state2, bit2 = fsm_B.start
     state_pair_log = Dict((state1, state2) => 1)
-    datatype_1 = typeof(phenotypes[1]).parameters[1]
+    datatype_1 = typeof(fsm_A).parameters[1]
     environment = LinguisticPredictionGameEnvironment(
         domain = environment_creator.domain,
-        entity_1 = phenotypes[1],
-        entity_2 = phenotypes[2],
+        entity_1 = fsm_A,
+        entity_2 = fsm_B,
         timestep = 1,
         loop_start = -1,
         state1 = state1,

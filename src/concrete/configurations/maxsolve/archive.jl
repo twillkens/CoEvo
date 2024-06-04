@@ -114,3 +114,4 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         CSV.write(file, archiver.data)
     end
 end
+
