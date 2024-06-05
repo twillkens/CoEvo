@@ -5,7 +5,7 @@ using Distributed
 using Random
 
 # Number of trials you want to run
-const N_TRIALS = 30
+const N_TRIALS = 1
 
 # Initialize required number of worker processes
 addprocs(N_TRIALS)
@@ -34,8 +34,8 @@ function run_trial(trial_id)
         id = trial_id,
         tag = trial_id + 100,
         seed = seed,
-        learner_algorithm = "disco",
-        test_algorithm = "standard",
+        learner_algorithm = "roulette",
+        test_algorithm = "roulette",
         n_learner_population = N_LEARNER_POP, 
         n_learner_children = N_LEARNER_CHILDREN, 
         n_test_population = N_TEST_POP, 

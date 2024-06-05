@@ -175,7 +175,7 @@ function update_learners_roulette(
         learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
         for learner in new_learner_population
     ]
-    println("id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    println("LEARNERS_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
     indices = roulette(state.rng, n_sample_population, [id_score[2] + 0.00001 for id_score in id_scores] )
     println("indices = ", indices)
     learner_parents = [first(id_score) for id_score in id_scores[indices]]
