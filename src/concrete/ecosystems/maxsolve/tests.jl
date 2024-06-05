@@ -288,6 +288,31 @@ function update_tests_roulette(
     return new_test_population, new_test_children
 end
 
+export update_tests_control
+
+function update_tests_control(
+    reproducer::Reproducer,
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem,
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    new_test_population = [ecosystem.test_population ; ecosystem.test_children]
+    n_sample_population = ecosystem_creator.n_test_population + ecosystem_creator.n_test_children
+    id_scores = [
+        test => sum(evaluation.payoff_matrix[test.id, :])
+        for test in new_test_population
+    ]
+    println("TEST_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    indices = rand(state.rng, 1:length(id_scores), n_sample_population)
+    println("indices = ", indices)
+    test_parents = [first(id_score) for id_score in id_scores[indices]]
+    new_test_children = create_children(test_parents, reproducer, state)
+    new_test_population, new_test_children = new_test_children[1:100], new_test_children[101:200]
+    return new_test_population, new_test_children
+end
+
+
 
     ##n_random_immigrants = div(ecosystem_creator.n_learner_children, 4)
     #n_random_immigrants = 25

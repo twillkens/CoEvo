@@ -16,8 +16,28 @@ using Serialization
 #    println("Genotype sizes: ", genotype_sizes)
 #end
 #
-struct FSMArchiver <: Archiver 
+
+struct ModesPruner{E <: Ecosystem, I <: Individual}
+    checkpoint_interval::Int
+    previous_ecosystem::E
+    previous_pruned::Set{I}
+    all_pruned::Set{I}
+end
+
+function ModesPruner(state::State)
+    I = typeof(state.ecosystem.learner_population[1])
+    return ModesPruner(200, state.ecosystem, Set{I}(), Set{I}())
+end
+
+function update!(pruner::ModesPruner, state::State)
+    pruner.previous_ecosystem = deepcopy(state.ecosystem)
+    pruner.previous_pruned = pruner.all_pruned
+    pruner.all_pruned = Set{typeof(state.ecosystem.learner_population[1])}()
+end
+
+mutable struct FSMArchiver <: Archiver 
     data::DataFrame
+    pruner::Any
 end
 
 function FSMArchiver(configuration::MaxSolveConfiguration)
@@ -34,15 +54,24 @@ function FSMArchiver(configuration::MaxSolveConfiguration)
             seed = Int[]
         )
     end
-    return FSMArchiver(data)
+    return FSMArchiver(data, nothing)
 end
 
 function archive!(archiver::FSMArchiver, state::State)
+    #if state.generation == 1
+    #    archiver.pruner = ModesPruner(state)
+    #else
+    #    update!(archiver.pruner, state)
+    #end
     elite_fitness = -1
     elite = nothing
     for learner in [state.ecosystem.learner_population ; state.ecosystem.learner_children]
         p = state.ecosystem.payoff_matrix
-        fitness = sum(p[learner.id, :])
+        if state.configuration.learner_algorithm == "control"
+            fitness = rand(state.rng)
+        else
+            fitness = sum(p[learner.id, :])
+        end
         if fitness > elite_fitness
             elite_fitness = fitness
             elite = learner

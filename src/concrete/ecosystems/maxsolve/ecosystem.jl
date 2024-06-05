@@ -252,6 +252,10 @@ function update_ecosystem!(
         new_learner_population, new_learner_children = update_learners_roulette(
             reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
         )
+    elseif ecosystem_creator.learner_algorithm == "control"
+        new_learner_population, new_learner_children = update_learners_control(
+            reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+        )
     else
         error("Invalid learner algorithm: $(ecosystem_creator.learner_algorithm)")
     end
@@ -275,6 +279,10 @@ function update_ecosystem!(
         )
     elseif ecosystem_creator.test_algorithm == "roulette"
         new_test_population, new_test_children = update_tests_roulette(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
+    elseif ecosystem_creator.test_algorithm == "control"
+        new_test_population, new_test_children = update_tests_control(
             reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
         )
     else

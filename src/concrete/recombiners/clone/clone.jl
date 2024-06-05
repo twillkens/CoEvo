@@ -32,6 +32,20 @@ function recombine(
 end
 
 function recombine(
+    ::CloneRecombiner,
+    mutator::Mutator,
+    phenotype_creator::PhenotypeCreator,
+    parent::ModesIndividual,
+    state::State
+)
+    id = step!(state.individual_id_counter)
+    genotype = mutate(mutator, parent.genotype, state)
+    phenotype = create_phenotype(phenotype_creator, id, genotype)
+    child = ModesIndividual(id, parent.id, parent.tag, genotype, phenotype)
+    return child
+end
+
+function recombine(
     ::CloneRecombiner, 
     mutator::Mutator, 
     phenotype_creator::PhenotypeCreator, 

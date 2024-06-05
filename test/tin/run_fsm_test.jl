@@ -32,10 +32,10 @@ function run_trial(trial_id)
 
     config = MaxSolveConfiguration(
         id = trial_id,
-        tag = trial_id + 100,
+        tag = trial_id,
         seed = seed,
-        learner_algorithm = "roulette",
-        test_algorithm = "roulette",
+        learner_algorithm = "control",
+        test_algorithm = "control",
         n_learner_population = N_LEARNER_POP, 
         n_learner_children = N_LEARNER_CHILDREN, 
         n_test_population = N_TEST_POP, 
