@@ -5,7 +5,7 @@ using Distributed
 using Random
 
 # Number of trials you want to run
-const N_TRIALS = 4
+const N_TRIALS = 30
 
 # Initialize required number of worker processes
 addprocs(N_TRIALS)
@@ -24,7 +24,7 @@ end
     const N_TEST_POP = 100
     const N_TEST_CHILDREN = 100
     const N_ARCHIVE = 1000
-    const N_GENERATIONS = 20000
+    const N_GENERATIONS = 10000
 # Function to run each trial
 function run_trial(trial_id)
     seed = abs(rand(Int))
@@ -32,10 +32,10 @@ function run_trial(trial_id)
 
     config = MaxSolveConfiguration(
         id = trial_id,
-        tag = trial_id,
+        tag = trial_id + 100,
         seed = seed,
         learner_algorithm = "disco",
-        test_algorithm = "qmeu",
+        test_algorithm = "standard",
         n_learner_population = N_LEARNER_POP, 
         n_learner_children = N_LEARNER_CHILDREN, 
         n_test_population = N_TEST_POP, 

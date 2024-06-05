@@ -157,6 +157,33 @@ function update_learners(
     return new_learner_population, new_learner_children
 end
 
+export update_learners_roulette
+
+function update_learners_roulette(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    #new_learner_population = select_individuals_aggregate(
+    #    ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_learner_population
+    #)
+    new_learner_population = [ecosystem.learner_population ; ecosystem.learner_children]
+    n_sample_population = ecosystem_creator.n_learner_population + ecosystem_creator.n_learner_children
+    id_scores = [
+        learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
+        for learner in new_learner_population
+    ]
+    println("id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    indices = roulette(state.rng, n_sample_population, [id_score[2] + 0.00001 for id_score in id_scores] )
+    println("indices = ", indices)
+    learner_parents = [first(id_score) for id_score in id_scores[indices]]
+    new_learner_children = create_children(learner_parents, reproducer, state)
+    new_learner_population, new_learner_children = new_learner_children[1:100],  new_learner_children[101:200]
+    return new_learner_population, new_learner_children
+end
+
 function update_learners_tourn(
     reproducer::Reproducer,
     evaluation::MaxSolveEvaluation,
