@@ -335,9 +335,9 @@ function MaxSolveEvaluation(
     distinction_matrix = make_full_distinction_matrix(payoff_matrix)
     standard_score_matrix = evaluate_standard(payoff_matrix)
     advanced_score_matrix = evaluate_advanced(payoff_matrix, performance_weight, distinction_weight)
-    println("----EVALUATING DODO FOR $(species_id)----P")
+    #println("----EVALUATING DODO FOR $(species_id)----P")
     payoff_dodo_evaluation = evaluate_dodo(ecosystem, payoff_matrix, state, "$(species_id)-P")
-    println("----EVALUATING DODO FOR $(species_id)----D")
+    #println("----EVALUATING DODO FOR $(species_id)----D")
     distinction_dodo_evaluation = payoff_dodo_evaluation
     #distinction_dodo_evaluation = evaluate_dodo(ecosystem, distinction_matrix, state, "$(species_id)-D")
     evaluation = MaxSolveEvaluation(

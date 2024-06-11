@@ -303,9 +303,9 @@ function update_tests_control(
         test => sum(evaluation.payoff_matrix[test.id, :])
         for test in new_test_population
     ]
-    println("TEST_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    #println("TEST_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
     indices = rand(state.rng, 1:length(id_scores), n_sample_population)
-    println("indices = ", indices)
+    #println("indices = ", indices)
     test_parents = [first(id_score) for id_score in id_scores[indices]]
     new_test_children = create_children(test_parents, reproducer, state)
     new_test_population, new_test_children = new_test_children[1:100], new_test_children[101:200]

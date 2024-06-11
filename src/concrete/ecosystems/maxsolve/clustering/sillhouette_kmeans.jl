@@ -102,7 +102,7 @@ function get_best_clustering(matrix::OutcomeMatrix, max_clusters::Int; on::Symbo
         end
 
         quality = first(calculate_clustering_qualities(X, [clustering]))
-        println("COUNTS = ", clustering.counts, ", QUALITY = ", quality)
+        #println("COUNTS = ", clustering.counts, ", QUALITY = ", quality)
 
         if quality > best_quality
             best_quality = quality

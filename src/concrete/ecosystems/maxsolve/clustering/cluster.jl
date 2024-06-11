@@ -78,7 +78,7 @@ function perform_kmeans_and_get_derived_matrix(matrix::OutcomeMatrix, max_cluste
         return simplify_matrix(matrix)
     end
 
-    println("CLUSTERING ON COLUMNS")
+    #println("CLUSTERING ON COLUMNS")
 
     columns_clustering = get_best_clustering(matrix, max_clusters, on=:columns)
     # Create derived matrix from centroids
@@ -91,7 +91,7 @@ function perform_kmeans_and_get_derived_matrix(matrix::OutcomeMatrix, max_cluste
         return simplify_matrix(matrix)
     end
 
-    println("CLUSTERING ON ROWS")
+    #println("CLUSTERING ON ROWS")
     rows_clustering = get_best_clustering(matrix, max_clusters, on=:rows)
 
     # Assign cluster IDs to row IDs

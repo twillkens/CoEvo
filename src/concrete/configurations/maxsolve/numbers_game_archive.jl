@@ -10,12 +10,16 @@ struct NumbersGameArchiver <: Archiver
     data::DataFrame
 end
 
-function get_save_file(configuration::MaxSolveConfiguration)
+function get_save_file(configuration::MaxSolveConfiguration, extra::String = "")
     task = configuration.task
     algo = configuration.test_algorithm
     domain = configuration.domain
     tag = configuration.tag
-    file = "$(task)-$(algo)-$(domain)-$(tag).csv"
+    if extra == ""
+        file = "$(task)-$(algo)-$(domain)-$(tag).csv"
+    else
+        file = "$(task)-$(algo)-$(domain)-$(tag)-$(extra).csv"
+    end
     return file
 end
 

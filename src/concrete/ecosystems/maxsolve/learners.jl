@@ -30,10 +30,10 @@ function update_learners_disco(
     new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
         1:ecosystem_creator.n_learner_population
     ]
-    println("DISCO_RECORDS = ", [
-        (record.rank, round(record.crowding; digits=3)) 
-        for record in new_learner_population_records]
-    )
+    #println("DISCO_RECORDS = ", [
+    #    (record.rank, round(record.crowding; digits=3)) 
+    #    for record in new_learner_population_records]
+    #)
     new_learner_population = [record.individual for record in new_learner_population_records]
     tournament_samples = [
         sample(new_learner_population_records, 5, replace = false) 
@@ -42,10 +42,10 @@ function update_learners_disco(
     learner_records = [
         run_tournament(samples, state.rng) for samples in tournament_samples
     ]
-    println("SELECTED_LEARNER_RECORDS 00 = ", [
-        (record.rank, round(record.crowding; digits=3)) 
-        for record in learner_records]
-    )   
+    #println("SELECTED_LEARNER_RECORDS 00 = ", [
+    #    (record.rank, round(record.crowding; digits=3)) 
+    #    for record in learner_records]
+    #)   
 
     learner_parents = [record.individual for record in learner_records]
     new_learner_children = create_children(learner_parents, reproducer, state)
@@ -175,9 +175,9 @@ function update_learners_roulette(
         learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
         for learner in new_learner_population
     ]
-    println("LEARNERS_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    #println("LEARNERS_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
     indices = roulette(state.rng, n_sample_population, [id_score[2] + 0.00001 for id_score in id_scores] )
-    println("indices = ", indices)
+    #println("indices = ", indices)
     learner_parents = [first(id_score) for id_score in id_scores[indices]]
     new_learner_children = create_children(learner_parents, reproducer, state)
     new_learner_population, new_learner_children = new_learner_children[1:100],  new_learner_children[101:200]
@@ -199,9 +199,9 @@ function update_learners_control(
         learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
         for learner in new_learner_population
     ]
-    println("LEARNERS_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    #println("LEARNERS_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
     indices = rand(state.rng, 1:length(id_scores), n_sample_population)
-    println("indices = ", indices)
+    #println("indices = ", indices)
     learner_parents = [first(id_score) for id_score in id_scores[indices]]
     new_learner_children = create_children(learner_parents, reproducer, state)
     new_learner_population, new_learner_children = new_learner_children[1:100], new_learner_children[101:200]

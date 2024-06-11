@@ -116,7 +116,7 @@ function evaluate_dodo(
         matrix = reconstructed_derived_matrix,
         records = records
     )
-    print_info(raw_matrix, filtered_matrix, derived_matrix, records, all_cluster_ids)
+    #print_info(raw_matrix, filtered_matrix, derived_matrix, records, all_cluster_ids)
     return evaluation
 end
 

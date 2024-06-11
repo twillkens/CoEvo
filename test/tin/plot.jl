@@ -13,7 +13,7 @@ struct FileDetail
     color::Symbol
 end
 
-const LOG_DIR = "logs/data"
+const LOG_DIR = "logs/QUEMEU-DATA"
 
 const DEFAULT_BOOTSTRAPPED_CONFIDENCE_INTERVALS = Dict(
         "lower_confidence" => 0,
@@ -331,25 +331,51 @@ function run_file_analysis(file_details::Vector{FileDetail}, generation::Int, co
 end
 
 dct_files = [
-    FileDetail("$LOG_DIR/STANDARD.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/ADVANCED.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/QMEU.csv", "QueMEU", :green),
+    FileDetail("$LOG_DIR/dct-standard.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/dct-advanced.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/dct-qmeu.csv", "QueMEU", :green),
 ]
 
 coa_files = [
-    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnAll-1.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnAll-1.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnAll-1.csv", "QueMEU", :green),
+    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnAll.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnAll.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnAll.csv", "QueMEU", :green),
 ]
 
 coo_files = [
-    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnOne-1.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnOne-1.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnOne-1.csv", "QueMEU", :green),
+    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnOne.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnOne.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnOne.csv", "QueMEU", :green),
+]
+
+fsm_files = [
+    FileDetail("$LOG_DIR/fsm-control.csv", "Control", :orange),
+    FileDetail("$LOG_DIR/fsm-roulette.csv", "Roulette", :purple),
+    FileDetail("$LOG_DIR/fsm-standard.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/fsm-advanced.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/fsm-qmeu.csv", "QueMEU", :green),
+]
+
+fsm_simple_files = [
+    FileDetail("$LOG_DIR/fsm-standard.csv", "Standard", :red),
+    FileDetail("$LOG_DIR/fsm-advanced.csv", "Advanced", :blue),
+    FileDetail("$LOG_DIR/fsm-qmeu.csv", "QueMEU", :green),
 ]
 
 plot_scores(dct_files, title="Density Classification Task: N = 149", ylabel="Accuracy", filename="dct")
 plot_scores(coa_files, legend=:topleft, title="Compare-on-All: Five Dimensions", ylabel="Minimum Dimension Value", filename="coa")
 plot_scores(coo_files, legend=:topleft, title="Compare-on-One: Five Dimensions", ylabel="Minimum Dimension Value", filename="coo")
+plot_scores(
+    fsm_files, 
+    legend=:topleft, title="Linguistic Prediction Game: Two-Species Competitive", 
+    ylabel="Elite Learner/Evader Hopcroft Complexity", 
+    filename="fsm"
+)
+plot_scores(
+    fsm_simple_files, 
+    legend=:topleft, title="Linguistic Prediction Game: Two-Species Competitive", 
+    ylabel="Elite Learner/Evader Hopcroft Complexity", 
+    filename="fsm_simple"
+)
 
-plot_heatmap(dct_files)
+#plot_heatmap(dct_files)

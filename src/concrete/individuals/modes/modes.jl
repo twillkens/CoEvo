@@ -16,6 +16,22 @@ end
 
 struct ModesIndividualCreator <: IndividualCreator end
 
+function create_individuals(::ModesIndividualCreator, n_individuals::Int, reproducer::Reproducer, state::State)
+    ids = step!(state.individual_id_counter, n_individuals)
+    genotypes = create_genotypes(
+        reproducer.genotype_creator, n_individuals, state
+    )
+    phenotypes = [
+        create_phenotype(reproducer.phenotype_creator, id, genotype) 
+        for (genotype, id) in zip(genotypes, ids)
+    ]
+    individuals = [
+        ModesIndividual(id, id, id, full_genotype, phenotype)
+        for (id, full_genotype, phenotype) in zip(ids, genotypes, phenotypes)
+    ]
+    return individuals
+end
+
 function create_individuals(::ModesIndividualCreator, n_individuals::Int, state::State)
     ids = step!(state.reproducer.individual_id_counter, n_individuals)
     genotypes = create_genotypes(

@@ -23,6 +23,9 @@ test/numbers/out.txt
 test/numbers/working.txt
 
 python/gedlibpy/build
+fsm_data
+fsm_logs
+FSM-DATA
 
 
 

@@ -255,13 +255,14 @@ function create_fsm_simulator(config::MaxSolveConfiguration)
 end
 
 using ...Recombiners.NPointCrossover: NPointCrossoverRecombiner
+using ...Individuals.Modes: ModesIndividualCreator
 
 function create_learner_fsm_reproducer(config::MaxSolveConfiguration)
     reproducer = BasicReproducer(
         id = "L",
         genotype_creator = FiniteStateMachineGenotypeCreator(),
         phenotype_creator = DefaultPhenotypeCreator(),
-        individual_creator = BasicIndividualCreator(),
+        individual_creator = ModesIndividualCreator(),
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
@@ -275,7 +276,7 @@ function create_test_fsm_reproducer(config::MaxSolveConfiguration)
         id = "T",
         genotype_creator = FiniteStateMachineGenotypeCreator(),
         phenotype_creator = DefaultPhenotypeCreator(),
-        individual_creator = BasicIndividualCreator(),
+        individual_creator = ModesIndividualCreator(),
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
