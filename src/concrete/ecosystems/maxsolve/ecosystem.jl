@@ -277,6 +277,10 @@ function update_ecosystem!(
         new_test_population, new_test_children = update_tests_regularized(
             reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
         )
+    elseif ecosystem_creator.test_algorithm == "qmeu-immigrant"
+        new_test_population, new_test_children = update_tests_qmeu_immigrant(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
     elseif ecosystem_creator.test_algorithm == "roulette"
         new_test_population, new_test_children = update_tests_roulette(
             reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
@@ -335,11 +339,8 @@ function MaxSolveEvaluation(
     distinction_matrix = make_full_distinction_matrix(payoff_matrix)
     standard_score_matrix = evaluate_standard(payoff_matrix)
     advanced_score_matrix = evaluate_advanced(payoff_matrix, performance_weight, distinction_weight)
-    #println("----EVALUATING DODO FOR $(species_id)----P")
     payoff_dodo_evaluation = evaluate_dodo(ecosystem, payoff_matrix, state, "$(species_id)-P")
-    #println("----EVALUATING DODO FOR $(species_id)----D")
     distinction_dodo_evaluation = payoff_dodo_evaluation
-    #distinction_dodo_evaluation = evaluate_dodo(ecosystem, distinction_matrix, state, "$(species_id)-D")
     evaluation = MaxSolveEvaluation(
         species_id, 
         full_payoff_matrix,
@@ -369,12 +370,6 @@ function evaluate(
     column_ids = [test.id for test in [
         ecosystem.test_population; ecosystem.test_children #; ecosystem.test_archive
     ]]
-    #row_ids = [learner.id for learner in [
-    #    ecosystem.learner_population; ecosystem.learner_children
-    #]]
-    #column_ids = [test.id for test in 
-    #    ecosystem.test_population
-    #]
     learner_evaluation = MaxSolveEvaluation(
         "L", 
         row_ids, 
@@ -392,16 +387,6 @@ function evaluate(
     column_ids = [learner.id for learner in [
         ecosystem.learner_population; ecosystem.learner_children #; ecosystem.learner_archive
     ]]
-    #learner_archive::Vector{I}
-    #learner_retirees::Vector{I}
-    #filter!(id -> (id in ecosystem.learner_population), column_ids)
-    #filter!(id -> !(id in ecosystem.learner_retirees), column_ids)
-    #row_ids = [test.id for test in [
-    #    ecosystem.test_population; ecosystem.test_children
-    #]]
-    #column_ids = [learner.id for learner in [
-    #    ecosystem.learner_population; ecosystem.learner_archive
-    #]]
 
     test_evaluation = MaxSolveEvaluation(
         "T", 

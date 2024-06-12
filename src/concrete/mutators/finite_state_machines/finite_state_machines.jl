@@ -109,9 +109,9 @@ function mutate(
     #genotype_before = genotype
     mutation_functions = collect(keys(mutator.mutation_probabilities))
     mutation_probabilities = Weights(collect(values(mutator.mutation_probabilities)))
-    #x = Weights([0.5, 0.25, 0.125, 0.0625, 0.0625])
-    #n_changes = sample(rng, 1:5, x)
-    n_changes = mutator.n_changes
+    lambda = 0.5 # Rate parameter for the exponential distribution
+    change_weights = Weights([exp(-lambda * (i - 1)) for i in 1:mutator.n_changes])
+    n_changes = sample(rng, 1:mutator.n_changes, change_weights)
     mutation_functions = sample(rng, mutation_functions, mutation_probabilities, n_changes)
     for mutation_function in mutation_functions
         genotype = mutation_function(rng, gene_id_counter, genotype)

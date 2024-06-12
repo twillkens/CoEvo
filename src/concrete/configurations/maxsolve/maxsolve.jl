@@ -39,7 +39,7 @@ Base.@kwdef struct MaxSolveConfiguration <: Configuration
     domain::String = "CompareOnAll"
     use_delta::Bool = false
     delta::Float64 = 0.25
-    n_mutations::Int = 2
+    n_mutations::Int = 1
     min_mutation::Float64 = -0.1
     max_mutation::Float64 = 0.1
     mutation_granularity::Float64 = 0.01
@@ -266,7 +266,7 @@ function create_learner_fsm_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
-        mutator = FiniteStateMachineMutator(n_changes = 1)
+        mutator = FiniteStateMachineMutator(n_changes = config.n_mutations)
     )
     return reproducer
 end
@@ -280,7 +280,7 @@ function create_test_fsm_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
-        mutator = FiniteStateMachineMutator(n_changes = 1)
+        mutator = FiniteStateMachineMutator(n_changes = config.n_mutations)
     )
     return reproducer
 end
