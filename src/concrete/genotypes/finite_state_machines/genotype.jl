@@ -1,4 +1,4 @@
-export FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator
+export FiniteStateMachineGenotype, FiniteStateMachineGenotypeCreator, create_random_fsm_genotype
 
 import ....Interfaces: create_genotypes
 import Base: length, ==, hash
@@ -7,6 +7,8 @@ using ....Abstract: Genotype, GenotypeCreator, Counter, AbstractRNG
 using ....Abstract
 using ....Interfaces
 using ....Interfaces: step!
+using ...Counters.Basic: BasicCounter
+using Random
 
 """
     FiniteStateMachineGenotype{T}
@@ -112,6 +114,42 @@ function create_genotypes(
 )
     genotypes = create_genotypes(genotype_creator, state.rng, state.gene_id_counter, n_genotypes)
     return genotypes
+end
+
+function create_random_fsm_genotype(
+    n_states::Int,
+    gene_id_counter::Counter = BasicCounter(),
+    rng::AbstractRNG = Random.GLOBAL_RNG,
+)
+    # Generate state IDs
+    state_ids = [step!(gene_id_counter) for _ in 1:n_states]
+
+    # Randomly assign labels to states
+    ones = Set{Int}()
+    zeros = Set{Int}()
+    for state_id in state_ids
+        if rand(rng, Bool)
+            push!(ones, state_id)
+        else
+            push!(zeros, state_id)
+        end
+    end
+
+    # Create random transitions
+    links = Dict{Tuple{Int, Bool}, Int}()
+    for state_id in state_ids
+        for bit in [true, false]
+            next_state = rand(rng, state_ids)
+            links[(state_id, bit)] = next_state
+        end
+    end
+
+    # Select a random start state
+    start_state = rand(rng, state_ids)
+
+    # Create the FiniteStateMachineGenotype
+    genotype = FiniteStateMachineGenotype(start_state, ones, zeros, links)
+    return genotype
 end
 
 function Base.:(==)(fsm1::FiniteStateMachineGenotype, fsm2::FiniteStateMachineGenotype)

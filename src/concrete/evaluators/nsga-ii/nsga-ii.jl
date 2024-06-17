@@ -38,6 +38,10 @@ function dominates(::Maximize, a::Vector{<:Real}, b::Vector{<:Real})
     res
 end
 
+function dominates(a::Vector{<:Real}, b::Vector{<:Real})
+    return dominates(Maximize(), a, b)
+end
+
 function dominates(::Maximize, a::Record, b::Record)
     res = false
     for i in eachindex(a.outcomes)

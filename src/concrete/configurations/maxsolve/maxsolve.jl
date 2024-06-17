@@ -266,7 +266,7 @@ function create_learner_fsm_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
-        mutator = FiniteStateMachineMutator(n_changes = config.n_mutations)
+        mutator = FiniteStateMachineMutator(n_changes = 1)
     )
     return reproducer
 end
@@ -280,7 +280,7 @@ function create_test_fsm_reproducer(config::MaxSolveConfiguration)
         species_creator = dummy_species_creator(),
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
-        mutator = FiniteStateMachineMutator(n_changes = config.n_mutations)
+        mutator = FiniteStateMachineMutator(n_changes = 1)
     )
     return reproducer
 end

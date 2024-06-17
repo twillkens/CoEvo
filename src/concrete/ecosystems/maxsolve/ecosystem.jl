@@ -9,6 +9,7 @@ using ....Interfaces
 using ....Abstract
 using ...Matrices.Outcome
 using ...Matches.Basic
+using ...Genotypes.FiniteStateMachines
 
 Base.@kwdef mutable struct MaxSolveEcosystem{I <: Individual, M <: OutcomeMatrix} <: Ecosystem
     id::Int
@@ -100,6 +101,7 @@ end
 using ...Ecosystems.Simple: SimpleEcosystem
 using ...Species.Basic: BasicSpecies
 using ...Recombiners.Clone: CloneRecombiner
+using ...Phenotypes.Defaults: DefaultPhenotypeCreator
 
 function create_children(parents::Vector{<:Individual}, reproducer::Reproducer, state::State; use_crossover::Bool = true)
     #recombiner = use_crossover ? reproducer.recombiner : CloneRecombiner()
@@ -119,9 +121,21 @@ function initialize_learners(
         reproducer, 
         state
     )
-    learner_parents = sample(
-        learner_population, eco_creator.n_learner_children, replace = true
-    )
+    if eco_creator.learner_algorithm == "p_phc_uni"
+        for individual in learner_population
+            n_states = rand(state.rng, 1:8)
+            new_genotype = create_random_fsm_genotype(n_states, state.gene_id_counter, state.rng)
+            individual.genotype = new_genotype
+            individual.phenotype = create_phenotype(DefaultPhenotypeCreator(), individual.id, individual.genotype)
+        end
+    end
+    if eco_creator.learner_algorithm in ["p_phc", "p_phc_uni", "p_phc_p_frs", "p_phc_p_uhs"]
+        learner_parents = learner_population
+    else
+        learner_parents = sample(
+            learner_population, eco_creator.n_learner_children, replace = true
+        )
+    end
     learner_children = create_children(learner_parents, reproducer, state)
     return learner_population, learner_children
 end
@@ -135,9 +149,21 @@ function initialize_tests(
         reproducer, 
         state
     )
-    test_parents = sample(
-        test_population, eco_creator.n_test_children, replace = true
-    )
+    if eco_creator.test_algorithm == "p_phc_uni"
+        for individual in test_population
+            n_states = rand(state.rng, 1:8)
+            new_genotype = create_random_fsm_genotype(n_states, state.gene_id_counter, state.rng)
+            individual.genotype = new_genotype
+            individual.phenotype = create_phenotype(DefaultPhenotypeCreator(), individual.id, individual.genotype)
+        end
+    end
+    if eco_creator.test_algorithm in ["p_phc", "p_phc_uni", "p_phc_p_frs", "p_phc_p_uhs"]
+        test_parents = test_population
+    else
+        test_parents = sample(
+            test_population, eco_creator.n_test_children, replace = true
+        )
+    end
     test_children = create_children(test_parents, reproducer, state; use_crossover=false)
     return test_population, test_children
 end
@@ -240,8 +266,8 @@ function update_ecosystem!(
     reproducers = state.reproducers
     learner_evaluation = first(state.evaluations)
 
-    if ecosystem_creator.learner_algorithm == "disco"
-        new_learner_population, new_learner_children = update_learners_disco(
+    if ecosystem_creator.learner_algorithm == "doc"
+        new_learner_population, new_learner_children = update_learners_doc(
             reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
         )
     elseif ecosystem_creator.learner_algorithm == "tourn"
@@ -256,6 +282,18 @@ function update_ecosystem!(
         new_learner_population, new_learner_children = update_learners_control(
             reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
         )
+    elseif ecosystem_creator.learner_algorithm in ["p_phc", "p_phc_uni"]
+        new_learner_population, new_learner_children = update_learners_p_phc(
+            reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+        )   
+    elseif ecosystem_creator.learner_algorithm == "p_phc_p_frs"
+        new_learner_population, new_learner_children = update_learners_p_phc_p_frs(
+            reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+        )   
+    elseif ecosystem_creator.learner_algorithm == "p_phc_p_uhs"
+        new_learner_population, new_learner_children = update_learners_p_phc_p_uhs(
+            reproducers[1], learner_evaluation, ecosystem, ecosystem_creator, state
+        )   
     else
         error("Invalid learner algorithm: $(ecosystem_creator.learner_algorithm)")
     end
@@ -273,12 +311,16 @@ function update_ecosystem!(
         new_test_population, new_test_children = update_tests_advanced(
             reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
         )
-    elseif ecosystem_creator.test_algorithm == "qmeu"
-        new_test_population, new_test_children = update_tests_regularized(
+    elseif ecosystem_creator.test_algorithm == "qmeu_alpha"
+        new_test_population, new_test_children = update_tests_qmeu_alpha(
             reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
         )
-    elseif ecosystem_creator.test_algorithm == "qmeu-immigrant"
-        new_test_population, new_test_children = update_tests_qmeu_immigrant(
+    elseif ecosystem_creator.test_algorithm == "qmeu-beta"
+        new_test_population, new_test_children = update_tests_qmeu_beta(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
+    elseif ecosystem_creator.test_algorithm == "qmeu-gamma"
+        new_test_population, new_test_children = update_tests_qmeu_gamma(
             reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
         )
     elseif ecosystem_creator.test_algorithm == "roulette"
@@ -287,6 +329,18 @@ function update_ecosystem!(
         )
     elseif ecosystem_creator.test_algorithm == "control"
         new_test_population, new_test_children = update_tests_control(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
+    elseif ecosystem_creator.test_algorithm in ["p_phc", "p_phc_uni"]
+        new_test_population, new_test_children = update_tests_p_phc(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
+    elseif ecosystem_creator.test_algorithm == "p_phc_p_frs"
+        new_test_population, new_test_children = update_tests_p_phc_p_frs(
+            reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
+        )
+    elseif ecosystem_creator.test_algorithm == "p_phc_p_uhs"
+        new_test_population, new_test_children = update_tests_p_phc_p_uhs(
             reproducers[2], test_evaluation, ecosystem, ecosystem_creator, state
         )
     else

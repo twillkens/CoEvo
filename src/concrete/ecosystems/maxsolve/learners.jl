@@ -1,4 +1,9 @@
+export update_learners_p_phc, update_learners_p_phc_p_frs, update_learners_p_phc_p_uhs
+export update_learners, update_learners_roulette, update_learners_control, update_learners_tourn
+export update_learners_sus
+
 using ....Abstract
+using ...Evaluators.NSGAII: dominates 
 
 function run_tournament(contenders::Array{<:NewDodoRecord}, rng::AbstractRNG) 
     function get_winner(record_1::NewDodoRecord, record_2::NewDodoRecord)
@@ -20,7 +25,87 @@ function run_tournament(contenders::Array{<:NewDodoRecord}, rng::AbstractRNG)
     return winner
 end
 
-function update_learners_disco(
+
+function update_learners_p_phc(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    new_population = copy(ecosystem.learner_population)
+    for parent in ecosystem.learner_population
+        children = [child for child in ecosystem.learner_children if child.parent_id == parent.id]
+        if length(children) != 1
+            error("length(children) = $(length(children))")
+        end
+        child = first(children)
+        parent_outcomes = evaluation.payoff_matrix[parent.id, :]
+        child_outcomes = evaluation.payoff_matrix[child.id, :]
+        child_dominates_parent = dominates(child_outcomes, parent_outcomes)
+        if child_dominates_parent
+            new_population = [indiv for indiv in new_population if indiv != parent]
+            push!(new_population, child)
+        end
+    end
+    new_children = create_children(new_population, reproducer, state)
+    return new_population, new_children
+end
+
+function update_learners_p_phc_p_frs(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    new_population = copy(ecosystem.learner_population)
+    for parent in ecosystem.learner_population
+        children = [child for child in ecosystem.learner_children if child.parent_id == parent.id]
+        if length(children) != 1
+            error("length(children) = $(length(children))")
+        end
+        child = first(children)
+        parent_outcomes = evaluation.payoff_matrix[parent.id, :]
+        child_outcomes = evaluation.payoff_matrix[child.id, :]
+        parent_dominates_child = dominates(parent_outcomes, child_outcomes)
+        if !parent_dominates_child
+            new_population = [indiv for indiv in new_population if indiv != parent]
+            push!(new_population, child)
+        end
+    end
+    new_children = create_children(new_population, reproducer, state)
+    return new_population, new_children
+end
+
+function update_learners_p_phc_p_uhs(
+    reproducer::Reproducer, 
+    evaluation::MaxSolveEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    new_population = copy(ecosystem.learner_population)
+    for parent in ecosystem.learner_population
+        children = [child for child in ecosystem.learner_children if child.parent_id == parent.id]
+        if length(children) != 1
+            error("length(children) = $(length(children))")
+        end
+        child = first(children)
+        parent_outcomes = evaluation.payoff_matrix[parent.id, :]
+        child_outcomes = evaluation.payoff_matrix[child.id, :]
+        parent_dominates_child = dominates(parent_outcomes, child_outcomes)
+        child_at_same_or_higher_level = sum(child_outcomes) >= sum(parent_outcomes)
+        if !parent_dominates_child && child_at_same_or_higher_level
+            new_population = [indiv for indiv in new_population if indiv != parent]
+            push!(new_population, child)
+        end
+    end
+    new_children = create_children(new_population, reproducer, state)
+    return new_population, new_children
+end
+
+function update_learners_doc(
     reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,
     ecosystem::MaxSolveEcosystem, 
@@ -52,86 +137,6 @@ function update_learners_disco(
     return new_learner_population, new_learner_children
 end
 
-function update_learners_nu_disco(
-    reproducer::Reproducer, 
-    evaluation::MaxSolveEvaluation,
-    ecosystem::MaxSolveEcosystem, 
-    ecosystem_creator::MaxSolveEcosystemCreator,
-    state::State
-)
-
-
-    #rank_one_records = [record for record in evaluation.payoff_dodo_evaluation.records if record.rank == 1]
-    #elites = sample(rank_one_records, 1)
-    indivs = [record.individual for record in evaluation.payoff_dodo_evaluation.records]
-    #elites = [record.individual for record in evaluation.payoff_dodo_evaluation.records[1:5]]
-
-    #other_ids = farthest_first_traversal(evaluation.payoff_matrix, [elite.id for elite in elites], 5)
-    #others = [indiv for indiv in indivs if indiv.id in other_ids]
-    #for elite in [elites ; others]
-    #        #elite = elite.individual
-    #    filter!(learner -> learner != elite, ecosystem.learner_archive)
-    #    push!(ecosystem.learner_archive, elite)
-    #    if length(ecosystem.learner_archive) > 1000
-    #    	popfirst!(ecosystem.learner_archive)
-    #    end
-    #end
-
-    new_learner_population_records = evaluation.payoff_dodo_evaluation.records[
-        1:ecosystem_creator.n_learner_population
-    ]
-    new_learner_population = [record.individual for record in new_learner_population_records]
-    archive_sample_candidates = [
-        learner for learner in ecosystem.learner_archive if !(learner in new_learner_population)
-    ]
-    n_archive_samples = min(length(archive_sample_candidates), 25)
-    println("N_SAMPLES = ", n_archive_samples)
-    archive_samples = sample(
-        archive_sample_candidates, n_archive_samples, replace = false
-    )
-    n_archive_parents = min(length(archive_sample_candidates), 25)
-    archive_parents = sample(
-        archive_sample_candidates, n_archive_parents, replace = false
-    )
-    new_archive_children = create_children(archive_parents, reproducer, state; use_crossover = false)
-    append!(archive_samples, new_archive_children)
-    println("LEARNER_DISCO_RECORDS = ", [
-        (record.rank, round(record.crowding; digits=3)) 
-        for record in new_learner_population_records]
-    )
-    tournament_samples = [
-        sample(new_learner_population_records, 5, replace = false) 
-	for _ in 1:ecosystem_creator.n_learner_children - length(archive_samples)
-    ]
-    learner_records = [
-        run_tournament(samples, state.rng) for samples in tournament_samples
-    ]
-    println("SELECTED_LEARNER_RECORDS = ", [
-        (record.rank, round(record.crowding; digits=3)) 
-        for record in learner_records]
-    )   
-    learner_parents = [record.individual for record in learner_records]
-    #
-    #n_learner_parents = ecosystem_creator.n_learner_children - length(archive_samples)
-    #learner_parents = sample(
-    #    new_learner_population, n_learner_parents, replace = true
-    #)
-    I = typeof(first(learner_parents))
-    #append!(learner_parents, archive_samples)
-    new_learner_children = create_children(learner_parents, reproducer, state; use_crossover = false)
-    #append!(new_learner_children, archive_samples)
-    #random_immigrants = create_children(
-    #    sample(new_learner_children, 1, replace = true), reproducer, state; use_crossover = false
-    #)
-    #for immigrant in random_immigrants
-    #    for i in eachindex(immigrant.genotype.genes)
-    #        immigrant.genotype.genes[i] = rand(0:1)
-    #    end
-    #end
-    #append!(new_learner_children, random_immigrants)
-    #popfirst!(new_learner_children)
-    return new_learner_population, new_learner_children
-end
 
 
 function update_learners(
@@ -242,68 +247,6 @@ function update_learners_tourn(
 end
 
 
-function update_learners_no_elites(
-    reproducer::Reproducer, 
-    evaluation::MaxSolveEvaluation,
-    ecosystem::MaxSolveEcosystem, 
-    ecosystem_creator::MaxSolveEcosystemCreator,
-    state::State
-)
-    new_learner_population = select_individuals_aggregate(
-        ecosystem, evaluation.learner_score_matrix, ecosystem_creator.n_learner_population
-    )
-    #n_sample_archive = min(length(ecosystem.learner_archive), 10)
-    n_sample_archive = length(ecosystem.learner_archive)
-    archive_parents = sample(
-        ecosystem.learner_archive, n_sample_archive, replace = true
-    )
-    new_archive_children = create_children(archive_parents, reproducer, state)
-    n_sample_population = ecosystem_creator.n_learner_children + ecosystem_creator.n_learner_population - n_sample_archive
-    learner_parents = sample(
-        new_learner_population, n_sample_population, replace = true
-    )
-    new_learner_children = create_children(learner_parents, reproducer, state)
-    I = typeof(first(new_learner_population))
-    return I[], [new_archive_children ; new_learner_children]
-    #return new_learner_population, new_learner_children
-end
-
-function update_learners_regularized(
-    reproducer::Reproducer, 
-    evaluation::MaxSolveEvaluation,
-    ecosystem::MaxSolveEcosystem, 
-    ecosystem_creator::MaxSolveEcosystemCreator,
-    state::State
-)
-    new_learner_population = copy(ecosystem.learner_population)
-    append!(new_learner_population, ecosystem.learner_children)
-    #push!(new_learner_population, first(ecosystem.learner_children))
-    I = typeof(first(new_learner_population))
-    parents = I[]
-    for _ in 1:5
-        competitors = sample(new_learner_population, 3, replace = false)
-        id_scores = [
-            learner => sum(evaluation.learner_score_matrix[learner.id, :]) 
-            for learner in competitors
-        ]
-        parent = first(reduce(
-            (id_score_1, id_score_2) -> id_score_1[2] > id_score_2[2] ? 
-            id_score_1 : id_score_2, 
-            id_scores
-        ))
-        push!(parents, parent)
-    end
-    new_learner_children = create_children(parents, reproducer, state)
-    for _ in 1:5
-        popfirst!(new_learner_population)
-    end
-    #I = typeof(first(new_learner_population))
-    #return I[], [new_archive_children ; new_learner_children]
-    if length(ecosystem.learner_population) != length(new_learner_population)
-        error("length(ecosystem.learner_population) = $(length(ecosystem.learner_population)), length(new_learner_population) = $(length(new_learner_population))")
-    end
-    return new_learner_population, new_learner_children
-end
 
 # Function to perform Stochastic Universal Sampling
 function stochastic_universal_sampling(evaluation_scores, population_size, rng)

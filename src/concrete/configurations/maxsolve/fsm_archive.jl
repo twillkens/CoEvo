@@ -7,6 +7,7 @@ using ....Interfaces
 using Serialization
 using Random
 using StatsBase
+using ...Genotypes.FiniteStateMachines: create_random_fsm_genotype
 
 
 mutable struct FSMArchiver <: Archiver 
@@ -53,41 +54,41 @@ Base.@kwdef mutable struct ModesPruner{E <: Ecosystem, G <: Genotype, P <: Pheno
     random_128::Vector{P}
 end
 
-function create_random_fsm_genotype(
-    n_states::Int,
-    gene_id_counter::Counter = BasicCounter(),
-    rng::AbstractRNG = Random.GLOBAL_RNG,
-)
-    # Generate state IDs
-    state_ids = [step!(gene_id_counter) for _ in 1:n_states]
-
-    # Randomly assign labels to states
-    ones = Set{Int}()
-    zeros = Set{Int}()
-    for state_id in state_ids
-        if rand(rng, Bool)
-            push!(ones, state_id)
-        else
-            push!(zeros, state_id)
-        end
-    end
-
-    # Create random transitions
-    links = Dict{Tuple{Int, Bool}, Int}()
-    for state_id in state_ids
-        for bit in [true, false]
-            next_state = rand(rng, state_ids)
-            links[(state_id, bit)] = next_state
-        end
-    end
-
-    # Select a random start state
-    start_state = rand(rng, state_ids)
-
-    # Create the FiniteStateMachineGenotype
-    genotype = FiniteStateMachineGenotype(start_state, ones, zeros, links)
-    return genotype
-end
+#function create_random_fsm_genotype(
+#    n_states::Int,
+#    gene_id_counter::Counter = BasicCounter(),
+#    rng::AbstractRNG = Random.GLOBAL_RNG,
+#)
+#    # Generate state IDs
+#    state_ids = [step!(gene_id_counter) for _ in 1:n_states]
+#
+#    # Randomly assign labels to states
+#    ones = Set{Int}()
+#    zeros = Set{Int}()
+#    for state_id in state_ids
+#        if rand(rng, Bool)
+#            push!(ones, state_id)
+#        else
+#            push!(zeros, state_id)
+#        end
+#    end
+#
+#    # Create random transitions
+#    links = Dict{Tuple{Int, Bool}, Int}()
+#    for state_id in state_ids
+#        for bit in [true, false]
+#            next_state = rand(rng, state_ids)
+#            links[(state_id, bit)] = next_state
+#        end
+#    end
+#
+#    # Select a random start state
+#    start_state = rand(rng, state_ids)
+#
+#    # Create the FiniteStateMachineGenotype
+#    genotype = FiniteStateMachineGenotype(start_state, ones, zeros, links)
+#    return genotype
+#end
 
 function create_fsm_phenotypes(n_states::Int, n_phenotypes::Int)
     phenotype_creator = DefaultPhenotypeCreator()
