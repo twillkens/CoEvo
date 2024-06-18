@@ -171,21 +171,29 @@ function update_learners_roulette(
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
-    #new_learner_population = select_individuals_aggregate(
-    #    ecosystem, evaluation.advanced_score_matrix, ecosystem_creator.n_learner_population
-    #)
-    new_learner_population = [ecosystem.learner_population ; ecosystem.learner_children]
-    n_sample_population = ecosystem_creator.n_learner_population + ecosystem_creator.n_learner_children
+    all_learners = [ecosystem.learner_population ; ecosystem.learner_children]
     id_scores = [
-        learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
+        learner => sum(evaluation.payoff_matrix[learner.id, :]) 
+        for learner in all_learners
+    ]
+    #println("LEARNERS_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
+    indices = roulette(
+        state.rng, ecosystem_creator.n_learner_population, 
+        [id_score[2] + 0.00001 for id_score in id_scores] 
+    )
+    #println("indices = ", indices)
+    new_learner_population = [first(id_score) for id_score in id_scores[indices]]
+    id_scores = [
+        learner => sum(evaluation.payoff_matrix[learner.id, :]) 
         for learner in new_learner_population
     ]
     #println("LEARNERS_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
-    indices = roulette(state.rng, n_sample_population, [id_score[2] + 0.00001 for id_score in id_scores] )
-    #println("indices = ", indices)
+    indices = roulette(
+        state.rng, ecosystem_creator.n_learner_children, 
+        [id_score[2] + 0.00001 for id_score in id_scores] 
+    )
     learner_parents = [first(id_score) for id_score in id_scores[indices]]
     new_learner_children = create_children(learner_parents, reproducer, state)
-    new_learner_population, new_learner_children = new_learner_children[1:100],  new_learner_children[101:200]
     return new_learner_population, new_learner_children
 end
 
@@ -198,18 +206,16 @@ function update_learners_control(
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
-    new_learner_population = [ecosystem.learner_population ; ecosystem.learner_children]
-    n_sample_population = ecosystem_creator.n_learner_population + ecosystem_creator.n_learner_children
-    id_scores = [
-        learner => sum(evaluation.advanced_score_matrix[learner.id, :]) 
-        for learner in new_learner_population
-    ]
-    #println("LEARNERS_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
-    indices = rand(state.rng, 1:length(id_scores), n_sample_population)
-    #println("indices = ", indices)
-    learner_parents = [first(id_score) for id_score in id_scores[indices]]
+    new_learner_population = sample(
+        state.rng, 
+        [ecosystem.learner_population ; ecosystem.learner_children], 
+        ecosystem_creator.n_learner_population, 
+        replace = false
+    )
+    learner_parents = sample(
+        state.rng, new_learner_population, ecosystem_creator.n_learner_children, replace = false
+    )
     new_learner_children = create_children(learner_parents, reproducer, state)
-    new_learner_population, new_learner_children = new_learner_children[1:100], new_learner_children[101:200]
     return new_learner_population, new_learner_children
 end
 

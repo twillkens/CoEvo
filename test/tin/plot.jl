@@ -5,6 +5,7 @@ using Statistics
 using Bootstrap
 using Bootstrap: bootstrap, BasicSampling, BasicConfInt, confint as bootstrap_confint
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
+using Glob
 
 # Define a struct to hold file details
 struct FileDetail
@@ -82,12 +83,14 @@ function plot_fitnesses(files::Vector{FileDetail})
     savefig(p, "Fitnesses.png")
     display(p)
 end
+
 function plot_scores(
     files::Vector{FileDetail}; 
     title::String="Density Classification Task: Accuracy",
     legend::Symbol=:bottomright,
     ylabel::String="Accuracy",
-    filename::String="dct"
+    filename::String="dct",
+    ycolumn::String="score"
 )
     p = plot(legend=legend, xlabel="Generation", ylabel=ylabel, title=title)
     for file in files
@@ -105,7 +108,7 @@ function plot_scores(
 
         for group in grouped
             gen = group[1, :generation]  # Extracting the generation value
-            group_scores = group[:, :score]  # Extracting scores for this generation
+            group_scores = group[:, Symbol(ycolumn)]  # Extracting scores for this generation
 
             push!(generations, gen)
             push!(means, mean(group_scores))
@@ -120,7 +123,7 @@ function plot_scores(
               label=file.label, color=file.color)
     end
 
-    savefig(p, "$LOG_DIR/$filename-scores.png")
+    savefig(p, "$filename.png")
     display(p)
 end
 
@@ -179,6 +182,31 @@ function combine_files(filepaths::Vector{String}, output_filepath::String)
         if !isempty(df)
             all_data = vcat(all_data, df)
             trial_offset = maximum(df.trial)
+        end
+    end
+
+    # Save only if we have data to save
+    if !isempty(all_data)
+        CSV.write(output_filepath, all_data)
+        println("Combined data saved to $output_filepath")
+    else
+        println("No data was combined; the output file was not created.")
+    end
+end
+
+function combine_files(dirpath::String, output_filepath::String, max_generation::Int = 10_000)
+    filepaths = glob("*.csv", dirpath)
+    all_data = DataFrame()
+    trial_offset = 0
+
+    for filepath in filepaths
+        df = load_and_adjust_trials(filepath, trial_offset)
+        df = filter(row -> row.generation <= max_generation, df)
+
+        # Only combine if the dataframe is not empty (which happens if there's no 'trial' column)
+        if !isempty(df)
+            all_data = vcat(all_data, df)
+            #trial_offset = maximum(df.trial)
         end
     end
 
@@ -362,20 +390,98 @@ fsm_simple_files = [
     FileDetail("$LOG_DIR/fsm-qmeu.csv", "QueMEU", :green),
 ]
 
-plot_scores(dct_files, title="Density Classification Task: N = 149", ylabel="Accuracy", filename="dct")
-plot_scores(coa_files, legend=:topleft, title="Compare-on-All: Five Dimensions", ylabel="Minimum Dimension Value", filename="coa")
-plot_scores(coo_files, legend=:topleft, title="Compare-on-One: Five Dimensions", ylabel="Minimum Dimension Value", filename="coo")
+fsm_all_files = [
+    FileDetail("doc_std.csv", "Standard", :red),
+    FileDetail("doc_adv.csv", "Advanced", :blue),
+    FileDetail("qmeu_alpha.csv", "QueMEU-Alpha", :green),
+    FileDetail("qmeu_beta.csv", "QueMEU-Beta", :orange),
+    #FileDetail("qmeu_gamma.csv", "QueMEU-Gamma", :purple),
+]
+
+#plot_scores(dct_files, title="Density Classification Task: N = 149", ylabel="Accuracy", filename="dct")
+#plot_scores(coa_files, legend=:topleft, title="Compare-on-All: Five Dimensions", ylabel="Minimum Dimension Value", filename="coa")
+#plot_scores(coo_files, legend=:topleft, title="Compare-on-One: Five Dimensions", ylabel="Minimum Dimension Value", filename="coo")
+#plot_scores(
+#    fsm_files, 
+#    legend=:topleft, title="Linguistic Prediction Game: Two-Species Competitive", 
+#    ylabel="Elite Learner/Evader Hopcroft Complexity", 
+#    filename="fsm"
+#)
+#plot_scores(
+#    fsm_simple_files, 
+#    legend=:topleft, title="Linguistic Prediction Game: Two-Species Competitive", 
+#    ylabel="Elite Learner/Evader Hopcroft Complexity", 
+#    filename="fsm_simple"
+#)
 plot_scores(
-    fsm_files, 
-    legend=:topleft, title="Linguistic Prediction Game: Two-Species Competitive", 
-    ylabel="Elite Learner/Evader Hopcroft Complexity", 
-    filename="fsm"
+    fsm_all_files, 
+    legend=:topleft, title="Linguistic Prediction Game: Adaptive Complexity", 
+    ylabel="Adaptive Complexity", 
+    filename="fsm_acg",
+    ycolumn="modes_complexity"
+)
+
+plot_scores(
+    fsm_all_files, 
+    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility", 
+    ylabel="Expected Utility", 
+    filename="fsm_utility",
+    ycolumn="utility_all"
 )
 plot_scores(
-    fsm_simple_files, 
-    legend=:topleft, title="Linguistic Prediction Game: Two-Species Competitive", 
-    ylabel="Elite Learner/Evader Hopcroft Complexity", 
-    filename="fsm_simple"
+    fsm_all_files, 
+    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility 16", 
+    ylabel="Expected Utility 16", 
+    filename="fsm_utility_16",
+    ycolumn="utility_16"
+)
+
+plot_scores(
+    fsm_all_files, 
+    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility 128", 
+    ylabel="Expected Utility 128", 
+    filename="fsm_utility_128",
+    ycolumn="utility_128"
+)
+plot_scores(
+    fsm_all_files, 
+    legend=:topleft,
+    title="Linguistic Prediction Game: Full Complexity", 
+    ylabel="Full Complexity", 
+    filename="fsm_full",
+    ycolumn="full_complexity"
+)
+plot_scores(
+    fsm_all_files, 
+    legend=:topleft,
+    title="Linguistic Prediction Game: Hopcroft Complexity", 
+    ylabel="Hopcroft Complexity", 
+    filename="fsm_hop",
+    ycolumn="hopcroft_complexity"
+)
+plot_scores(
+    fsm_all_files, 
+    legend=:bottomright,
+    title="Linguistic Prediction Game: Change", 
+    ylabel="Change", 
+    filename="fsm_change",
+    ycolumn="change"
+)
+plot_scores(
+    fsm_all_files, 
+    legend=:bottomright,
+    title="Linguistic Prediction Game: Novelty", 
+    ylabel="Novelty", 
+    filename="fsm_novelty",
+    ycolumn="novelty"
+)
+plot_scores(
+    fsm_all_files, 
+    legend=:bottomright,
+    title="Linguistic Prediction Game: Two-Species Competitive", 
+    ylabel="Ecology", 
+    filename="fsm_ecology",
+    ycolumn="ecology"
 )
 
 #plot_heatmap(dct_files)

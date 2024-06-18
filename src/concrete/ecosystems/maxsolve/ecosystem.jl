@@ -133,7 +133,7 @@ function initialize_learners(
         learner_parents = learner_population
     else
         learner_parents = sample(
-            learner_population, eco_creator.n_learner_children, replace = true
+            state.rng, learner_population, eco_creator.n_learner_children, replace = true
         )
     end
     learner_children = create_children(learner_parents, reproducer, state)
@@ -154,14 +154,16 @@ function initialize_tests(
             n_states = rand(state.rng, 1:8)
             new_genotype = create_random_fsm_genotype(n_states, state.gene_id_counter, state.rng)
             individual.genotype = new_genotype
-            individual.phenotype = create_phenotype(DefaultPhenotypeCreator(), individual.id, individual.genotype)
+            individual.phenotype = create_phenotype(
+                DefaultPhenotypeCreator(), individual.id, individual.genotype
+            )
         end
     end
     if eco_creator.test_algorithm in ["p_phc", "p_phc_uni", "p_phc_p_frs", "p_phc_p_uhs"]
         test_parents = test_population
     else
         test_parents = sample(
-            test_population, eco_creator.n_test_children, replace = true
+            state.rng, test_population, eco_creator.n_test_children, replace = true
         )
     end
     test_children = create_children(test_parents, reproducer, state; use_crossover=false)

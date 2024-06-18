@@ -479,24 +479,22 @@ end
 export update_tests_control
 
 function update_tests_control(
-    reproducer::Reproducer,
+    reproducer::Reproducer, 
     evaluation::MaxSolveEvaluation,
-    ecosystem::MaxSolveEcosystem,
+    ecosystem::MaxSolveEcosystem, 
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
-    new_test_population = [ecosystem.test_population ; ecosystem.test_children]
-    n_sample_population = ecosystem_creator.n_test_population + ecosystem_creator.n_test_children
-    id_scores = [
-        test => sum(evaluation.payoff_matrix[test.id, :])
-        for test in new_test_population
-    ]
-    #println("TEST_id_scores = ", round.([id_score[2] for id_score in id_scores]; digits = 3))
-    indices = rand(state.rng, 1:length(id_scores), n_sample_population)
-    #println("indices = ", indices)
-    test_parents = [first(id_score) for id_score in id_scores[indices]]
-    new_test_children = create_children(test_parents, reproducer, state)
-    new_test_population, new_test_children = new_test_children[1:100], new_test_children[101:200]
+    new_test_population = sample(
+        state.rng, 
+        [ecosystem.test_population ; ecosystem.test_children], 
+        ecosystem_creator.n_test_population, 
+        replace = false
+    )
+    parents = sample(
+        state.rng, new_test_population, ecosystem_creator.n_test_children, replace = false
+    )
+    new_test_children = create_children(parents, reproducer, state)
     return new_test_population, new_test_children
 end
 
