@@ -35,9 +35,9 @@ function run_trial(trial_id)
         tag = trial_id,
         seed = seed,
         n_mutations = 1,
-        learner_algorithm = "control",
-        test_algorithm = "control",
-        domain = "PreyPredator",
+        learner_algorithm = "tourn",
+        test_algorithm = "qmeu-beta",
+        domain = "DCT",
         n_learner_population = N_LEARNER_POP, 
         n_learner_children = N_LEARNER_CHILDREN, 
         n_test_population = N_TEST_POP, 
@@ -45,7 +45,7 @@ function run_trial(trial_id)
         max_learner_archive_size = N_ARCHIVE,
         n_generations = N_GENERATIONS,
         n_workers = 1,  # Using 1 worker per trial
-        task = "fsm"
+        task = "dct"
     )
 
     state = BasicEvolutionaryState(config)

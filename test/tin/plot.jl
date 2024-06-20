@@ -6,7 +6,9 @@ using Bootstrap
 using Bootstrap: bootstrap, BasicSampling, BasicConfInt, confint as bootstrap_confint
 using StatsBase: nquantile, skewness, kurtosis, mode, mean, var, std
 using Glob
+using Plots.PlotMeasures
 
+gr()
 # Define a struct to hold file details
 struct FileDetail
     filepath::String
@@ -81,49 +83,6 @@ function plot_fitnesses(files::Vector{FileDetail})
     end
 
     savefig(p, "Fitnesses.png")
-    display(p)
-end
-
-function plot_scores(
-    files::Vector{FileDetail}; 
-    title::String="Density Classification Task: Accuracy",
-    legend::Symbol=:bottomright,
-    ylabel::String="Accuracy",
-    filename::String="dct",
-    ycolumn::String="score"
-)
-    p = plot(legend=legend, xlabel="Generation", ylabel=ylabel, title=title)
-    for file in files
-        # Read the CSV file
-        data = CSV.read(file.filepath, DataFrame)
-
-        # Process the dataset
-        grouped = groupby(data, :generation)
-        
-        # Initialize vectors for generations, means, and confidence intervals
-        generations = Int[]
-        means = Float64[]
-        lower_cis = Float64[]
-        upper_cis = Float64[]
-
-        for group in grouped
-            gen = group[1, :generation]  # Extracting the generation value
-            group_scores = group[:, Symbol(ycolumn)]  # Extracting scores for this generation
-
-            push!(generations, gen)
-            push!(means, mean(group_scores))
-
-            ci = get_bootstrapped_confidence_intervals(group_scores, DEFAULT_CONFIDENCE)
-            push!(lower_cis, ci["lower_confidence"])
-            push!(upper_cis, ci["upper_confidence"])
-        end
-
-        # Plotting data from the current file
-        plot!(p, generations, means, ribbon = (means .- lower_cis, upper_cis .- means), fillalpha = 0.35, 
-              label=file.label, color=file.color)
-    end
-
-    savefig(p, "$filename.png")
     display(p)
 end
 
@@ -218,6 +177,7 @@ function combine_files(dirpath::String, output_filepath::String, max_generation:
         println("No data was combined; the output file was not created.")
     end
 end
+
 
 using CSV
 using DataFrames
@@ -358,43 +318,86 @@ function run_file_analysis(file_details::Vector{FileDetail}, generation::Int, co
     return results
 end
 
-dct_files = [
-    FileDetail("$LOG_DIR/dct-standard.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/dct-advanced.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/dct-qmeu.csv", "QueMEU", :green),
-]
+#dct_files = [
+#    FileDetail("$LOG_DIR/dct-standard.csv", "Standard", :red),
+#    FileDetail("$LOG_DIR/dct-advanced.csv", "Advanced", :blue),
+#    FileDetail("$LOG_DIR/dct-qmeu.csv", "QueMEU", :green),
+#]
+#
+#coa_files = [
+#    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnAll.csv", "Standard", :red),
+#    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnAll.csv", "Advanced", :blue),
+#    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnAll.csv", "QueMEU", :green),
+#]
+#
+#coo_files = [
+#    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnOne.csv", "Standard", :red),
+#    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnOne.csv", "Advanced", :blue),
+#    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnOne.csv", "QueMEU", :green),
+#]
+#
+#fsm_files = [
+#    FileDetail("$LOG_DIR/fsm-control.csv", "Control", :orange),
+#    FileDetail("$LOG_DIR/fsm-roulette.csv", "Roulette", :purple),
+#    FileDetail("$LOG_DIR/fsm-standard.csv", "Standard", :red),
+#    FileDetail("$LOG_DIR/fsm-advanced.csv", "Advanced", :blue),
+#    FileDetail("$LOG_DIR/fsm-qmeu.csv", "QueMEU", :green),
+#]
+#
+#fsm_simple_files = [
+#    FileDetail("$LOG_DIR/fsm-standard.csv", "Standard", :red),
+#    FileDetail("$LOG_DIR/fsm-advanced.csv", "Advanced", :blue),
+#    FileDetail("$LOG_DIR/fsm-qmeu.csv", "QueMEU", :green),
+#]
 
-coa_files = [
-    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnAll.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnAll.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnAll.csv", "QueMEU", :green),
-]
-
-coo_files = [
-    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnOne.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnOne.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnOne.csv", "QueMEU", :green),
-]
-
-fsm_files = [
-    FileDetail("$LOG_DIR/fsm-control.csv", "Control", :orange),
-    FileDetail("$LOG_DIR/fsm-roulette.csv", "Roulette", :purple),
-    FileDetail("$LOG_DIR/fsm-standard.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/fsm-advanced.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/fsm-qmeu.csv", "QueMEU", :green),
-]
-
-fsm_simple_files = [
-    FileDetail("$LOG_DIR/fsm-standard.csv", "Standard", :red),
-    FileDetail("$LOG_DIR/fsm-advanced.csv", "Advanced", :blue),
-    FileDetail("$LOG_DIR/fsm-qmeu.csv", "QueMEU", :green),
-]
+combine_files("all_fsm_trials/control", "logs/fsm/control.csv")
+combine_files("all_fsm_trials/doc_adv", "logs/fsm/doc_adv.csv")
+combine_files("all_fsm_trials/doc_qmeu_alpha", "logs/fsm/doc_qmeu_alpha.csv")
+combine_files("all_fsm_trials/doc_qmeu_beta", "logs/fsm/doc_qmeu_beta.csv")
+combine_files("all_fsm_trials/doc_std", "logs/fsm/doc_std.csv")
+combine_files("all_fsm_trials/p_phc", "logs/fsm/p_phc.csv")
+combine_files("all_fsm_trials/p_phc_frs", "logs/fsm/p_phc_frs.csv")
+combine_files("all_fsm_trials/p_phc_uhs", "logs/fsm/p_phc_uhs.csv")
+combine_files("all_fsm_trials/roulette", "logs/fsm/roulette.csv")
+combine_files("all_fsm_trials/cfs_qmeu_alpha", "logs/fsm/cfs_qmeu_alpha.csv")
+combine_files("all_fsm_trials/cfs_qmeu_beta", "logs/fsm/cfs_qmeu_beta.csv")
+combine_files("all_fsm_trials/cfs_qmeu_gamma", "logs/fsm/cfs_qmeu_gamma.csv")
 
 fsm_all_files = [
-    FileDetail("doc_std.csv", "Standard", :red),
-    FileDetail("doc_adv.csv", "Advanced", :blue),
-    FileDetail("qmeu_alpha.csv", "QueMEU-Alpha", :green),
-    FileDetail("qmeu_beta.csv", "QueMEU-Beta", :orange),
+    FileDetail("logs/fsm/control.csv", "CTRL", :red),
+    FileDetail("logs/fsm/roulette.csv", "ROUL", :blue),
+    FileDetail("logs/fsm/doc_std.csv", "DOC-STD", :green),
+    FileDetail("logs/fsm/doc_adv.csv", "DOC-ADV", :brown),
+    FileDetail("logs/fsm/doc_qmeu_alpha.csv", "DOC-QMEU-A", :purple),
+    FileDetail("logs/fsm/doc_qmeu_beta.csv", "DOC-QMEU-B", :orange),
+    FileDetail("logs/fsm/cfs_qmeu_beta.csv", "CFS-QMEU-B", :grey),
+    FileDetail("logs/fsm/p_phc.csv", "P-PHC", :black),
+    FileDetail("logs/fsm/p_phc_frs.csv", "P-PHC-P-FRS", :cyan),
+    FileDetail("logs/fsm/p_phc_uhs.csv", "P-PHC-P-UHS", :violet),
+    #FileDetail("qmeu_gamma.csv", "QueMEU-Gamma", :purple),
+]
+
+fsm_files_doc = [
+    FileDetail("logs/fsm/control.csv", "CTRL", :red),
+    FileDetail("logs/fsm/roulette.csv", "ROUL", :blue),
+    FileDetail("logs/fsm/doc_std.csv", "DOC-STD", :green),
+    FileDetail("logs/fsm/doc_adv.csv", "DOC-ADV", :brown),
+]
+
+fsm_files_phc = [
+    FileDetail("logs/fsm/control.csv", "CTRL", :red),
+    FileDetail("logs/fsm/p_phc.csv", "P-PHC", :black),
+    FileDetail("logs/fsm/p_phc_frs.csv", "P-PHC-P-FRS", :cyan),
+    FileDetail("logs/fsm/p_phc_uhs.csv", "P-PHC-P-UHS", :violet),
+]
+
+fsm_files_qmeu = [
+    FileDetail("logs/fsm/control.csv", "CTRL", :red),
+    FileDetail("logs/fsm/doc_qmeu_alpha.csv", "DOC-QMEU-A", :purple),
+    FileDetail("logs/fsm/doc_qmeu_beta.csv", "DOC-QMEU-B", :orange),
+    FileDetail("logs/fsm/cfs_qmeu_alpha.csv", "CFS-QMEU-A", :grey),
+    FileDetail("logs/fsm/cfs_qmeu_beta.csv", "CFS-QMEU-B", :blue),
+    FileDetail("logs/fsm/cfs_qmeu_gamma.csv", "CFS-QMEU-G", :green),
     #FileDetail("qmeu_gamma.csv", "QueMEU-Gamma", :purple),
 ]
 
@@ -413,75 +416,288 @@ fsm_all_files = [
 #    ylabel="Elite Learner/Evader Hopcroft Complexity", 
 #    filename="fsm_simple"
 #)
+function plot_scores(
+    files::Vector{FileDetail}; 
+    title::String="Density Classification Task: Accuracy",
+    legend::Symbol=:bottomright,
+    ylabel::String="Accuracy",
+    filename::String="dct",
+    ycolumn::String="score",
+    ylims::Tuple{Float64, Float64}=(-1.0, -1.0),
+)
+    p = plot(legend=legend, xlabel="Generation", ylabel=ylabel, title=title)
+    for file in files
+        # Read the CSV file
+        data = CSV.read(file.filepath, DataFrame)
+         if ylims ==  (-1.0, -1.0)
+            ylims = nothing
+         end
+
+        # Process the dataset
+        grouped = groupby(data, :generation)
+        
+        # Initialize vectors for generations, means, and confidence intervals
+        generations = Int[]
+        means = Float64[]
+        lower_cis = Float64[]
+        upper_cis = Float64[]
+
+        for group in grouped
+            gen = group[1, :generation]  # Extracting the generation value
+            group_scores = group[:, Symbol(ycolumn)]  # Extracting scores for this generation
+
+            push!(generations, gen)
+            push!(means, mean(group_scores))
+
+            ci = get_bootstrapped_confidence_intervals(group_scores, DEFAULT_CONFIDENCE)
+            push!(lower_cis, ci["lower_confidence"])
+            push!(upper_cis, ci["upper_confidence"])
+        end
+
+        # Plotting data from the current file
+        plot!(p, generations, means, ribbon = (means .- lower_cis, upper_cis .- means), fillalpha = 0.35, 
+              label=file.label, color=file.color, size=(900, 500), 
+              leftmargin=10mm, bottommargin=10mm, rightmargin=10mm, topmargin=10mm,
+                ylims=ylims
+        )
+    end
+
+    savefig(p, "$filename.png")
+    display(p)
+end
+
 plot_scores(
     fsm_all_files, 
-    legend=:topleft, title="Linguistic Prediction Game: Adaptive Complexity", 
+    legend=:outertopright, title="LPG: Adaptive Complexity", 
     ylabel="Adaptive Complexity", 
-    filename="fsm_acg",
-    ycolumn="modes_complexity"
+    filename="fsm_acg_all",
+    ycolumn="modes_complexity",
+    ylims=(0.0, 400.0)
 )
 
 plot_scores(
-    fsm_all_files, 
-    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility", 
+    fsm_files_doc, 
+    legend=:outertopright, title="LPG: Adaptive Complexity with Baselines + DOC", 
+    ylabel="Adaptive Complexity", 
+    filename="fsm_acg_doc",
+    ycolumn="modes_complexity",
+    ylims=(0.0, 400.0)
+
+)
+
+plot_scores(
+    fsm_files_phc, 
+    legend=:outertopright, title="LPG: Adaptive Complexity with P-PHC", 
+    ylabel="Adaptive Complexity", 
+    filename="fsm_acg_phc",
+    ycolumn="modes_complexity",
+    ylims=(0.0, 400.0)
+)
+
+plot_scores(
+    fsm_files_qmeu, 
+    legend=:outertopright, title="LPG: Adaptive Complexity with QueMEU", 
+    ylabel="Adaptive Complexity", 
+    filename="fsm_acg_qmeu",
+    ycolumn="modes_complexity",
+    ylims=(0.0, 400.0)
+)
+
+plot_scores(
+    fsm_files_doc, 
+    legend=:outertopright, title="LPG: Full Complexity with Baselines + DOC", 
+    ylabel="Full Genotype Size", 
+    filename="fsm_full_doc",
+    ycolumn="full_complexity",
+    ylims=(0.0, 400.0)
+
+)
+
+plot_scores(
+    fsm_files_phc, 
+    legend=:outertopright, title="LPG: Full Complexity with P-PHC", 
+    ylabel="Full Genotype Size", 
+    filename="fsm_full_phc",
+    ycolumn="full_complexity",
+    ylims=(0.0, 400.0)
+)
+
+plot_scores(
+    fsm_files_qmeu, 
+    legend=:outertopright, title="LPG: Full Complexity with QueMEU", 
+    ylabel="Full Genotype Size", 
+    filename="fsm_full_qmeu",
+    ycolumn="full_complexity",
+    ylims=(0.0, 400.0)
+)
+
+
+plot_scores(
+    fsm_files_doc, 
+    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with Baselines + DOC", 
     ylabel="Expected Utility", 
-    filename="fsm_utility",
-    ycolumn="utility_all"
-)
-plot_scores(
-    fsm_all_files, 
-    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility 16", 
-    ylabel="Expected Utility 16", 
-    filename="fsm_utility_16",
-    ycolumn="utility_16"
+    filename="fsm_eu_doc",
+    ycolumn="utility_128",
+    ylims=(0.35, 0.66)
 )
 
 plot_scores(
-    fsm_all_files, 
-    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility 128", 
-    ylabel="Expected Utility 128", 
-    filename="fsm_utility_128",
-    ycolumn="utility_128"
+    fsm_files_phc, 
+    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with P-PHC", 
+    ylabel="Expected Utility", 
+    filename="fsm_eu_phc",
+    ycolumn="utility_128",
+    ylims=(0.35, 0.66)
 )
+
 plot_scores(
-    fsm_all_files, 
-    legend=:topleft,
-    title="Linguistic Prediction Game: Full Complexity", 
-    ylabel="Full Complexity", 
-    filename="fsm_full",
-    ycolumn="full_complexity"
+    fsm_files_qmeu, 
+    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with QueMEU", 
+    ylabel="Expected Utility", 
+    filename="fsm_eu_qmeu",
+    ycolumn="utility_128",
+    ylims=(0.35, 0.66)
 )
+
+
 plot_scores(
-    fsm_all_files, 
-    legend=:topleft,
-    title="Linguistic Prediction Game: Hopcroft Complexity", 
-    ylabel="Hopcroft Complexity", 
-    filename="fsm_hop",
-    ycolumn="hopcroft_complexity"
-)
-plot_scores(
-    fsm_all_files, 
-    legend=:bottomright,
-    title="Linguistic Prediction Game: Change", 
+    fsm_files_doc, 
+    legend=:outertopright, title="LPG: Change with Baselines + DOC", 
     ylabel="Change", 
-    filename="fsm_change",
-    ycolumn="change"
+    filename="fsm_change_doc",
+    ycolumn="change",
+    ylims = (0.0, 4.0)
 )
+
 plot_scores(
-    fsm_all_files, 
-    legend=:bottomright,
-    title="Linguistic Prediction Game: Novelty", 
+    fsm_files_phc, 
+    legend=:outertopright, title="LPG: Change with P-PHC", 
+    ylabel="Change", 
+    filename="fsm_change_phc",
+    ycolumn="change",
+)
+
+plot_scores(
+    fsm_files_qmeu, 
+    legend=:outertopright, title="LPG: Change with QueMEU", 
+    ylabel="Change", 
+    filename="fsm_change_qmeu",
+    ycolumn="change",
+    ylims = (0.0, 4.0)
+)
+
+plot_scores(
+    fsm_files_doc, 
+    legend=:outertopright, title="LPG: Novelty with Baselines + DOC", 
     ylabel="Novelty", 
-    filename="fsm_novelty",
-    ycolumn="novelty"
+    filename="fsm_novelty_doc",
+    ycolumn="novelty",
+    ylims = (0.0, 4.0)
 )
+
 plot_scores(
-    fsm_all_files, 
-    legend=:bottomright,
-    title="Linguistic Prediction Game: Two-Species Competitive", 
-    ylabel="Ecology", 
-    filename="fsm_ecology",
-    ycolumn="ecology"
+    fsm_files_phc, 
+    legend=:outertopright, title="LPG: Novelty with P-PHC", 
+    ylabel="Novelty", 
+    filename="fsm_novelty_phc",
+    ycolumn="novelty",
 )
+
+plot_scores(
+    fsm_files_qmeu, 
+    legend=:outertopright, title="LPG: Novelty with QueMEU", 
+    ylabel="Novelty", 
+    filename="fsm_novelty_qmeu",
+    ycolumn="novelty",
+    ylims = (0.0, 4.0)
+)
+
+plot_scores(
+    fsm_files_doc, 
+    legend=:outertopright, title="LPG: Ecology with Baselines + DOC", 
+    ylabel="Ecology", 
+    filename="fsm_ecology_doc",
+    ycolumn="ecology",
+    #ylims = (0.0, 4.0)
+)
+
+plot_scores(
+    fsm_files_phc, 
+    legend=:outertopright, title="LPG: Ecology with P-PHC", 
+    ylabel="Ecology", 
+    filename="fsm_ecology_phc",
+    ycolumn="ecology",
+)
+
+plot_scores(
+    fsm_files_qmeu, 
+    legend=:outertopright, title="LPG: Ecology with QueMEU", 
+    ylabel="Ecology", 
+    filename="fsm_ecology_qmeu",
+    ycolumn="ecology",
+    #ylims = (0.0, 4.0)
+)
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility", 
+#    ylabel="Expected Utility", 
+#    filename="fsm_utility",
+#    ycolumn="utility_all"
+#)
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility 16", 
+#    ylabel="Expected Utility 16", 
+#    filename="fsm_utility_16",
+#    ycolumn="utility_16"
+#)
+#
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs", 
+#    ylabel="Expected Utility", 
+#    filename="fsm_utility_128",
+#    ycolumn="utility_128"
+#)
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:topleft,
+#    title="Linguistic Prediction Game: Full Complexity", 
+#    ylabel="Full Complexity", 
+#    filename="fsm_full",
+#    ycolumn="full_complexity"
+#)
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:topleft,
+#    title="Linguistic Prediction Game: Hopcroft Complexity", 
+#    ylabel="Hopcroft Complexity", 
+#    filename="fsm_hop",
+#    ycolumn="hopcroft_complexity"
+#)
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:bottomright,
+#    title="Linguistic Prediction Game: Change", 
+#    ylabel="Change", 
+#    filename="fsm_change",
+#    ycolumn="change"
+#)
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:bottomright,
+#    title="Linguistic Prediction Game: Novelty", 
+#    ylabel="Novelty", 
+#    filename="fsm_novelty",
+#    ycolumn="novelty"
+#)
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:bottomright,
+#    title="Linguistic Prediction Game: Two-Species Competitive", 
+#    ylabel="Ecology", 
+#    filename="fsm_ecology",
+#    ycolumn="ecology"
+#)
 
 #plot_heatmap(dct_files)

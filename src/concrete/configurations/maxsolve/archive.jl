@@ -14,11 +14,14 @@ struct DensityClassificationArchiver <: Archiver
 end
 
 function get_dct_save_file(configuration::MaxSolveConfiguration)
+    trial = configuration.id
     task = configuration.task
-    algo = configuration.test_algorithm
-    domain = configuration.domain
-    tag = configuration.tag
-    file = "$(task)-$(algo)-$(domain)-$(tag).csv"
+    learner_algo = configuration.learner_algorithm
+    test_algo = configuration.test_algorithm
+    #domain = configuration.domain
+    #tag = configuration.tag
+    #file = "$(task)-$(algo)-$(domain)-$(tag)-$(trial).csv"
+    file = "$(task)-$(learner_algo)-$(test_algo)-$(trial).csv"
     return file
 end
 
@@ -41,7 +44,7 @@ end
 
 
 using Random
-using StatsBase
+using StatsBase: mean
 using ...Matrices.Outcome
 using Serialization
 
@@ -85,10 +88,12 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
         println("rule =", elite_rule.genotype.genes)
         println("FITNESS: ", elite_fitness, " out of ", length(all_tests))
         ics = [test.genotype.genes for test in all_tests]
-	    results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
+	    #results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
+	    results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
         println("REPLAYED_SCORE_VS_TESTS: ", sum(results), " out of ", length(results))
         ics = generate_unbiased_ICs(149, 10_000)
-	    results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
+	    #results = pmap(ic -> covered_improved(elite_rule.genotype.genes, ic, 320), ics)
+	    results = [covered_improved(elite_rule.genotype.genes, ic, 320) for ic in ics]
         score = mean(results)
         println("\n#*****SCORE vs RANDOM*****\n\n", score)
         println()
@@ -111,7 +116,9 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
     
         file = get_dct_save_file(state.configuration)
         # Optionally, save the DataFrame to a CSV file every generation
+        println("SAVING SAVING to $file")
         CSV.write(file, archiver.data)
+        println("DONE SAVING to $file")
     end
 end
 
