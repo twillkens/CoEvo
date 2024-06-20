@@ -12,14 +12,12 @@ end
 
 function get_save_file(configuration::MaxSolveConfiguration, extra::String = "")
     task = configuration.task
-    algo = configuration.test_algorithm
+    trial = configuration.id
+    learner_algo = configuration.learner_algorithm
+    test_algo = configuration.test_algorithm
     domain = configuration.domain
-    tag = configuration.tag
-    if extra == ""
-        file = "$(task)-$(algo)-$(domain)-$(tag).csv"
-    else
-        file = "$(task)-$(algo)-$(domain)-$(tag)-$(extra).csv"
-    end
+    #tag = configuration.tag
+    file = "$(task)-$(learner_algo)-$(test_algo)-$(domain)-$(trial).csv"
     return file
 end
 
