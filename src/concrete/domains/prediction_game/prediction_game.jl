@@ -35,12 +35,11 @@ end
 end
 
 function measure(::PredictionGameDomain{PredatorPrey}, distance_score::Float64)
-
-    outcome_set = [1 - distance_score, distance_score]
-    if distance_score > 0.5
-        outcome_set = [0.0, 1.0]
-    else
+    #outcome_set = [1 - distance_score, distance_score]
+    if distance_score < 0.5
         outcome_set = [1.0, 0.0]
+    else
+        outcome_set = [0.0, 1.0]
     end
     return outcome_set
 end

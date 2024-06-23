@@ -184,7 +184,7 @@ end
 
             # Problem
             task = "fsm",
-            domain = "lpg",
+            domain = "PredatorPrey",
             n_mutations = 1,
         )
 

@@ -5,7 +5,7 @@ using Distributed
 using Random
 
 # Number of trials you want to run
-const N_TRIALS = 60
+const N_TRIALS = 1
 
 # Initialize required number of worker processes
 addprocs(N_TRIALS)
@@ -24,9 +24,9 @@ end
     const N_TEST_POP = 100
     const N_TEST_CHILDREN = 100
     const N_ARCHIVE = 1000
-    const N_COO_GENERATIONS = 500
-    const N_DCT_GENERATIONS = 200
-    const N_FSM_GENERATIONS = 10_000
+    const N_COO_GENERATIONS = 5
+    const N_DCT_GENERATIONS = 3
+    const N_FSM_GENERATIONS = 100
 
     Base.@kwdef struct AlgorithmSpecification
         id::Int
@@ -167,7 +167,7 @@ end
         config = MaxSolveConfiguration(
             # General
             id = spec.id,
-            archive_directory = "data/fsm/$(spec.name)",
+            archive_directory = archive_path,
             seed = seed,
             n_generations = N_FSM_GENERATIONS,
             n_workers = 1,  # Using 1 worker per trial
@@ -184,7 +184,7 @@ end
 
             # Problem
             task = "fsm",
-            domain = "lpg",
+            domain = "PredatorPrey",
             n_mutations = 1,
         )
 
@@ -329,7 +329,8 @@ all_specs = [
 ]
 
 #runners = [run_ng_easy_trial, run_ng_hard_trial, run_dct_trial, run_fsm_trial]
-runners = [run_ng_easy_trial, run_ng_hard_trial, run_fsm_trial]
+#runners = [run_ng_easy_trial, run_ng_hard_trial, run_fsm_trial]
+runners = [run_fsm_trial]
 #runners = [run_ng_easy_trial,]
     
 for runner in runners

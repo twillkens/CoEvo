@@ -245,7 +245,7 @@ using ...Performers.Cache: CachePerformer
 
 
 function create_fsm_simulator(config::MaxSolveConfiguration) 
-    domain = PredictionGameDomain("PredatorPrey")
+    domain = PredictionGameDomain(config.domain)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     simulator = BasicSimulator(
         interactions = [

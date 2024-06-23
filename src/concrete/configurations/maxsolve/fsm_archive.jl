@@ -17,7 +17,7 @@ mutable struct FSMArchiver <: Archiver
 end
 
 function FSMArchiver(configuration::MaxSolveConfiguration)
-    save_file = get_save_file(configuration)
+    save_file = "$(configuration.archive_directory)/data.csv"
     if isfile(save_file)
         data = CSV.read(save_file, DataFrame)
     else
@@ -128,9 +128,10 @@ end
 using ...Phenotypes.FiniteStateMachines
 
 function get_fitness(
-    learner::FiniteStateMachinePhenotype, tests::Vector{<:FiniteStateMachinePhenotype}
+    learner::FiniteStateMachinePhenotype, tests::Vector{<:FiniteStateMachinePhenotype},
+    domain_name::String
 )
-    domain = PredictionGameDomain("PredatorPrey")
+    domain = PredictionGameDomain(domain_name)
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     fitness = 0.0
     for test in tests
@@ -147,8 +148,10 @@ function get_fitness(
     return fitness
 end
 
-function get_fitness(learner::Individual, tests::Vector{<:FiniteStateMachinePhenotype})
-    return get_fitness(learner.phenotype, tests)
+function get_fitness(
+    learner::Individual, tests::Vector{<:FiniteStateMachinePhenotype}, domain_name::String
+)
+    return get_fitness(learner.phenotype, tests, domain_name)
 end
 
 using ...Mutators.FiniteStateMachines
@@ -173,7 +176,9 @@ function get_genes_to_check(individual::Individual)
     return genes_to_check
 end
 
-function prune_individual(individual::Individual, tests::Vector{<:FiniteStateMachinePhenotype})
+function prune_individual(
+    individual::Individual, tests::Vector{<:FiniteStateMachinePhenotype}, domain_name::String
+)
     full_individual = deepcopy(individual)
     hopcroft_individual = minimize_fsm_indiv(full_individual)
     if length(hopcroft_individual.genotype) > length(full_individual.genotype)
@@ -181,7 +186,7 @@ function prune_individual(individual::Individual, tests::Vector{<:FiniteStateMac
     end
     current_individual = deepcopy(individual)
     genes_to_check = get_genes_to_check(current_individual)
-    orig_fitness = get_fitness(current_individual, tests)
+    orig_fitness = get_fitness(current_individual, tests, domain_name)
     phenotype_creator = DefaultPhenotypeCreator()
 
     for gene in genes_to_check
@@ -190,7 +195,7 @@ function prune_individual(individual::Individual, tests::Vector{<:FiniteStateMac
         candidate_phenotype = create_phenotype(
             phenotype_creator, candidate_genotype, current_individual.id
         )
-        current_fitness = get_fitness(candidate_phenotype, tests)
+        current_fitness = get_fitness(candidate_phenotype, tests, domain_name)
         if current_fitness == orig_fitness
             current_individual.genotype = candidate_genotype
             current_individual.phenotype = candidate_phenotype
@@ -318,10 +323,11 @@ function ModesData(pruner::ModesPruner, pruning_results::Vector{<:PruningResult}
     #println("pruned_genotypes = ", pruned_genotypes)
     change = compute_difference(pruned_genotypes, pruner.previous_pruned)
     novelty = compute_difference(pruned_genotypes, pruner.all_pruned)
-    fitness_16 = get_fitness(elite.full, pruner.random_16)
-    fitness_32 = get_fitness(elite.full, pruner.random_32)
-    fitness_64 = get_fitness(elite.full, pruner.random_64)
-    fitness_128 = get_fitness(elite.full, pruner.random_128)
+    domain_name = state.configuration.domain
+    fitness_16 = get_fitness(elite.full, pruner.random_16, domain_name)
+    fitness_32 = get_fitness(elite.full, pruner.random_32, domain_name)
+    fitness_64 = get_fitness(elite.full, pruner.random_64, domain_name)
+    fitness_128 = get_fitness(elite.full, pruner.random_128, domain_name)
     fitness_all = fitness_16 + fitness_32 + fitness_64 + fitness_128
 
     data = ModesData(
@@ -356,7 +362,8 @@ function update!(pruner::ModesPruner, state::State)
     tests = [pruner.previous_ecosystem.test_population ; pruner.previous_ecosystem.test_children]
     tests = [test.phenotype for test in tests]
     pruning_results = [
-        prune_individual(individual, tests) for individual in persistent_individuals
+        prune_individual(individual, tests, state.configuration.domain) 
+        for individual in persistent_individuals
     ]
     modes_data = ModesData(pruner, pruning_results, state)
     pruner.all_pruned = deepcopy(union(pruner.all_pruned, modes_data.pruned_genotypes, pruner.previous_pruned))
@@ -386,7 +393,7 @@ function update_pruner!(archiver::FSMArchiver, state::State)
         archiver.pruner = ModesPruner(state)
         data = nothing
     #elseif state.generation % archiver.pruner.checkpoint_interval == 0
-    elseif state.generation % 100 == 0
+    elseif state.generation % 10 == 0
         data = update!(archiver.pruner, state)
     else 
         data = nothing
