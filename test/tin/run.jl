@@ -41,7 +41,8 @@ end
         Random.seed!(seed)
         archive_path = "data/coo_easy/$(spec.name)/$(spec.id)"
         mkpath(archive_path)
-        mkpath("$archive_path/population")
+        mkpath("$archive_path/learner_population")
+        mkpath("$archive_path/test_population")
 
         config = MaxSolveConfiguration(
             # General
@@ -83,7 +84,8 @@ end
         Random.seed!(seed)
         archive_path = "data/coo_hard/$(spec.name)/$(spec.id)"
         mkpath(archive_path)
-        mkpath("$archive_path/population")
+        mkpath("$archive_path/learner_population")
+        mkpath("$archive_path/test_population")
 
         config = MaxSolveConfiguration(
             # General
@@ -125,7 +127,8 @@ end
         Random.seed!(seed)
         archive_path = "data/dct/$(spec.name)/$(spec.id)"
         mkpath(archive_path)
-        mkpath("$archive_path/population")
+        mkpath("$archive_path/learner_population")
+        mkpath("$archive_path/test_population")
 
         config = MaxSolveConfiguration(
             # General
@@ -162,7 +165,8 @@ end
         Random.seed!(seed)
         archive_path = "data/fsm/$(spec.name)/$(spec.id)"
         mkpath(archive_path)
-        mkpath("$archive_path/population")
+        mkpath("$archive_path/learner_population")
+        mkpath("$archive_path/test_population")
 
         config = MaxSolveConfiguration(
             # General
@@ -186,6 +190,7 @@ end
             task = "fsm",
             domain = "PredatorPrey",
             n_mutations = 1,
+            checkpoint_interval = 100
         )
 
         state = BasicEvolutionaryState(config)

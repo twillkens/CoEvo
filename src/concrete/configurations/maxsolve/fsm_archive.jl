@@ -14,6 +14,7 @@ using ...Genotypes.FiniteStateMachines: create_random_fsm_genotype
 mutable struct FSMArchiver <: Archiver 
     data::DataFrame
     pruner::Any
+    checkpoint_interval::Int
 end
 
 function FSMArchiver(configuration::MaxSolveConfiguration)
@@ -44,7 +45,7 @@ function FSMArchiver(configuration::MaxSolveConfiguration)
             seed = Int[]
         )
     end
-    return FSMArchiver(data, nothing)
+    return FSMArchiver(data, nothing, configuration.checkpoint_interval)
 end
 
 Base.@kwdef mutable struct ModesPruner{E <: Ecosystem, G <: Genotype, P <: Phenotype}
@@ -392,8 +393,8 @@ function update_pruner!(archiver::FSMArchiver, state::State)
         end
         archiver.pruner = ModesPruner(state)
         data = nothing
-    #elseif state.generation % archiver.pruner.checkpoint_interval == 0
-    elseif state.generation % 10 == 0
+    elseif state.generation % archiver.checkpoint_interval == 0
+    #elseif state.generation % 10 == 0
         data = update!(archiver.pruner, state)
     else 
         data = nothing
@@ -441,7 +442,11 @@ function archive!(archiver::FSMArchiver, state::State)
     println("save_file = ", save_file)
     CSV.write(save_file, archiver.data)
     #CSV.write(get_save_file(state.configuration), archiver.data)
-    population_path = "$(state.configuration.archive_directory)/population/all_pruned.jls"
+    pruned_path = "$(state.configuration.archive_directory)/all_pruned.jls"
     all_pruned_vec = archiver.pruner.all_pruned_vec
-    serialize(population_path, all_pruned_vec)
+    serialize(pruned_path, all_pruned_vec)
+    learner_population_path = "$(state.configuration.archive_directory)/learner_population/$(state.generation).jls"
+    serialize(learner_population_path, state.ecosystem.learner_population)
+    test_population_path = "$(state.configuration.archive_directory)/test_population/$(state.generation).jls"
+    serialize(test_population_path, state.ecosystem.test_population)
 end

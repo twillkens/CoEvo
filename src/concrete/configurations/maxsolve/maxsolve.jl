@@ -42,6 +42,7 @@ Base.@kwdef struct MaxSolveConfiguration <: Configuration
     # Problem
     task::String = "numbers_game"
     domain::String = "CompareOnAll"
+
     # NG specific
     n_dimensions::Int = 5
     init_range::Tuple{Float64, Float64} = (0.0, 0.1)
@@ -55,6 +56,9 @@ Base.@kwdef struct MaxSolveConfiguration <: Configuration
     # DCT specific
     learner_flip_chance::Float64 = 0.02
     test_flip_chance::Float64 = 0.05
+
+    # FSM specific
+    checkpoint_interval::Int = 100
 end
 
 function get_ecosystem_creator(config::MaxSolveConfiguration)

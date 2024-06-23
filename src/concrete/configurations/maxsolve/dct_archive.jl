@@ -110,7 +110,9 @@ function archive!(archiver::DensityClassificationArchiver, state::State)
 
     file = "$(state.configuration.archive_directory)/data.csv"
     CSV.write(file, archiver.data)
-    population_path = "$(state.configuration.archive_directory)/population/$(state.generation).jls"
-    serialize(population_path, state.ecosystem.learner_population)
+    learner_population_path = "$(state.configuration.archive_directory)/learner_population/$(state.generation).jls"
+    serialize(learner_population_path, state.ecosystem.learner_population)
+    test_population_path = "$(state.configuration.archive_directory)/test_population/$(state.generation).jls"
+    serialize(test_population_path, state.ecosystem.test_population)
 end
 
