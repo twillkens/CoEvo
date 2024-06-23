@@ -22,31 +22,39 @@ using ....Abstract
 include("imports.jl")
 
 Base.@kwdef struct MaxSolveConfiguration <: Configuration
+    # General
     id::Int = 1
-    tag::Int = 1
+    archive_directory::String = "."
     seed::Int = 42
     n_generations::Int = 5
     n_workers::Int = 1
-    learner_algorithm::String = "disco"
-    test_algorithm::String = "standard"
-    n_learner_population::Int = 20
-    n_learner_children::Int = 20
-    n_test_population::Int = 20
-    n_test_children::Int = 20
-    max_learner_archive_size::Int = 10
-    n_dimensions::Int = 2
-    init_range::Tuple{Float64, Float64} = (0.0, 0.1)
+
+    # Algorithm
+    algorithm::String = "control"
+    learner_algorithm::String = "control"
+    test_algorithm::String = "control"
+    n_learner_population::Int = 100
+    n_learner_children::Int = 100
+    n_test_population::Int = 100
+    n_test_children::Int = 100
+    max_learner_archive_size::Int = 1_000
+
+    # Problem
+    task::String = "numbers_game"
     domain::String = "CompareOnAll"
+    # NG specific
+    n_dimensions::Int = 5
+    init_range::Tuple{Float64, Float64} = (0.0, 0.1)
     use_delta::Bool = false
     delta::Float64 = 0.25
     n_mutations::Int = 1
-    min_mutation::Float64 = -0.1
+    min_mutation::Float64 = -0.15
     max_mutation::Float64 = 0.1
     mutation_granularity::Float64 = 0.01
-    task::String = "dct"
+
+    # DCT specific
     learner_flip_chance::Float64 = 0.02
     test_flip_chance::Float64 = 0.05
-    algorithm::String = "dodo"
 end
 
 function get_ecosystem_creator(config::MaxSolveConfiguration)
@@ -142,8 +150,8 @@ function create_evaluators(::MaxSolveConfiguration)
     return [evaluator]
 end
 
-include("archive.jl")
 include("numbers_game_archive.jl")
+include("dct_archive.jl")
 include("fsm_archive.jl")
 
 function create_archivers(config::MaxSolveConfiguration)
@@ -237,7 +245,7 @@ using ...Performers.Cache: CachePerformer
 
 
 function create_fsm_simulator(config::MaxSolveConfiguration) 
-    domain = PredictionGameDomain("PreyPredator")
+    domain = PredictionGameDomain("PredatorPrey")
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     simulator = BasicSimulator(
         interactions = [

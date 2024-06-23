@@ -74,7 +74,7 @@ function evaluate_advanced(
     #println("Competitive distinction matrix = ", competitive_distinction_matrix)
     sum_competitive_distinction_matrix = make_sum_scalar_matrix(competitive_distinction_matrix)
     #println("Sum competitive distinction matrix = ", sum_competitive_distinction_matrix)
-    scores = Pair{U, Float64}[]
+    #scores = Pair{U, Float64}[]
     advanced_matrix = OutcomeMatrix{Float64}(matrix.id, matrix.row_ids, ["advanced_score"])
     for id in matrix.row_ids
         outcome_score = sum_competitive_matrix[id, "sum"] * outcome_weight
@@ -82,7 +82,7 @@ function evaluate_advanced(
         score = outcome_score + distinction_score
         advanced_matrix[id, "advanced_score"] = score
     end
-    sort!(scores, by=x->x[2], rev=true)
+    #sort!(scores, by=x->x[2], rev=true)
     return advanced_matrix
 end
 
@@ -118,6 +118,13 @@ function evaluate_dodo(
     )
     #print_info(raw_matrix, filtered_matrix, derived_matrix, records, all_cluster_ids)
     return evaluation
+end
+
+function get_doc_records(
+    ecosystem::Ecosystem, raw_matrix::OutcomeMatrix, state::State, species_id::String
+)
+
+
 end
 
 function farthest_first_traversal(

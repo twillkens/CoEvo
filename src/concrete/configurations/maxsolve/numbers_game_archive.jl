@@ -1,6 +1,8 @@
 export create_archivers, NumbersGameArchiver, archive!, collect_species_data, append_to_csv
 export calculate_average_minimum_gene, calculate_num_max_gene_at_index, calculate_average_gene_value_at_index
 
+
+import ....Interfaces: archive!
 using DataFrames
 using CSV
 using ....Abstract
@@ -11,13 +13,7 @@ struct NumbersGameArchiver <: Archiver
 end
 
 function get_save_file(configuration::MaxSolveConfiguration, extra::String = "")
-    task = configuration.task
-    trial = configuration.id
-    learner_algo = configuration.learner_algorithm
-    test_algo = configuration.test_algorithm
-    domain = configuration.domain
-    #tag = configuration.tag
-    file = "$(task)-$(learner_algo)-$(test_algo)-$(domain)-$(trial).csv"
+    file = "$(configuration.archive_directory)/data.csv"
     return file
 end
 
@@ -27,11 +23,15 @@ function NumbersGameArchiver(configuration::MaxSolveConfiguration)
         data = CSV.read(save_file, DataFrame)
     else
         data = DataFrame(
+            task = String[],
+            domain = String[],
             trial = Int[], 
             algorithm = String[],
+            learner_algorithm = String[],
+            test_algorithm = String[],
             generation = Int[], 
             fitness = Float64[], 
-            score = Float64[], 
+            utility = Float64[], 
             seed = Int[]
         )
     end
@@ -123,13 +123,20 @@ function archive!(archiver::NumbersGameArchiver, state::State)
     end
     elite_minimum_gene = minimum(elite.genotype.genes)
     info = (
+        task = state.configuration.task, 
+        domain = state.configuration.domain,
         trial = state.configuration.id, 
-        algorithm = state.configuration.test_algorithm,
+        algorithm = state.configuration.algorithm,
+        learner_algorithm = state.configuration.learner_algorithm,
+        test_algorithm = state.configuration.test_algorithm,
         generation = state.generation, 
         fitness = elite_fitness,
-        score = elite_minimum_gene,
+        utility = elite_minimum_gene,
         seed = state.configuration.seed
     )
     push!(archiver.data, info)
-    CSV.write(get_save_file(state.configuration), archiver.data)
+    save_file = "$(state.configuration.archive_directory)/data.csv"
+    CSV.write(save_file, archiver.data)
+    population_path = "$(state.configuration.archive_directory)/population/$(state.generation).jls"
+    serialize(population_path, state.ecosystem.learner_population)
 end

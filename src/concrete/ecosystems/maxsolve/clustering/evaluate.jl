@@ -1,3 +1,5 @@
+export create_doc_records, reconstruct_matrix, get_high_rank_records, get_cluster_leader_id, get_cluster_leader_ids, print_info
+
 using ....Abstract
 using ...Matrices.Outcome
 using ...Evaluators.NSGAII
@@ -15,7 +17,7 @@ function Base.getproperty(record::NewDodoRecord, name::Symbol)
     return getfield(record, name)
 end
 
-function create_records(
+function create_doc_records(
     ecosystem::MaxSolveEcosystem,
     raw_matrix::OutcomeMatrix,
     filtered_matrix::OutcomeMatrix,

@@ -1,5 +1,6 @@
 export FSMArchiver
 
+import ....Interfaces: archive!
 using DataFrames
 using CSV
 using ....Abstract
@@ -21,8 +22,12 @@ function FSMArchiver(configuration::MaxSolveConfiguration)
         data = CSV.read(save_file, DataFrame)
     else
         data = DataFrame(
+            task = String[],
+            domain = String[],
             trial = Int[], 
             algorithm = String[],
+            learner_algorithm = String[],
+            test_algorithm = String[],
             generation = Int[], 
             subjective_fitness = Float64[], 
             utility_16 = Float64[], 
@@ -125,7 +130,7 @@ using ...Phenotypes.FiniteStateMachines
 function get_fitness(
     learner::FiniteStateMachinePhenotype, tests::Vector{<:FiniteStateMachinePhenotype}
 )
-    domain = PredictionGameDomain("PreyPredator")
+    domain = PredictionGameDomain("PredatorPrey")
     environment_creator = LinguisticPredictionGameEnvironmentCreator(domain)
     fitness = 0.0
     for test in tests
@@ -399,8 +404,12 @@ function archive!(archiver::FSMArchiver, state::State)
     
     # Define the fields to be archived
     info = (
+        task = state.configuration.task,
+        domain = state.configuration.domain,
         trial = state.configuration.id, 
-        algorithm = state.configuration.test_algorithm,
+        algorithm = state.configuration.algorithm,
+        learner_algorithm = state.configuration.learner_algorithm,
+        test_algorithm = state.configuration.test_algorithm,
         generation = state.generation, 
         subjective_fitness = data.utility_subjective,
         utility_16 = data.utility_16,
@@ -421,5 +430,11 @@ function archive!(archiver::FSMArchiver, state::State)
     push!(archiver.data, info)
     
     # Save the updated data to a CSV file
-    CSV.write(get_save_file(state.configuration), archiver.data)
+    save_file = "$(state.configuration.archive_directory)/data.csv"
+    println("save_file = ", save_file)
+    CSV.write(save_file, archiver.data)
+    #CSV.write(get_save_file(state.configuration), archiver.data)
+    population_path = "$(state.configuration.archive_directory)/population/all_pruned.jls"
+    all_pruned_vec = archiver.pruner.all_pruned_vec
+    serialize(population_path, all_pruned_vec)
 end

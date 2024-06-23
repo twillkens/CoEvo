@@ -318,6 +318,34 @@ function run_file_analysis(file_details::Vector{FileDetail}, generation::Int, co
     return results
 end
 
+
+function process_directory(src_base::String, dst_base::String)
+    for (root, dirs, files) in walkdir(src_base)
+        println("root = ", root)
+        println("dirs = ", dirs)
+        println("files = ", files)
+        if any(isfile("$root/$file") for file in files)
+            # Determine the relative path from the source base
+            rel_path = relative_path(root, src_base)
+            # Construct the corresponding destination directory
+            dest_dir = joinpath(dst_base, dirname(rel_path))
+            # Ensure the destination directory exists
+            mkpath(dest_dir)
+            # Construct the destination file path
+            base = basename(root)
+            dest_file = joinpath(dest_dir, "$base.csv")
+            # Call combine_files for this directory
+            combine_files(root, dest_file)
+        end
+    end
+end
+
+function relative_path(path::String, base::String)
+    base_len = length(base) + 1
+    return path[base_len:end]
+end
+
+
 #dct_files = [
 #    FileDetail("$LOG_DIR/dct-standard.csv", "Standard", :red),
 #    FileDetail("$LOG_DIR/dct-advanced.csv", "Advanced", :blue),
@@ -330,11 +358,6 @@ end
 #    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnAll.csv", "QueMEU", :green),
 #]
 #
-#coo_files = [
-#    FileDetail("$LOG_DIR/numbers_game-standard-CompareOnOne.csv", "Standard", :red),
-#    FileDetail("$LOG_DIR/numbers_game-advanced-CompareOnOne.csv", "Advanced", :blue),
-#    FileDetail("$LOG_DIR/numbers_game-qmeu-CompareOnOne.csv", "QueMEU", :green),
-#]
 #
 #fsm_files = [
 #    FileDetail("$LOG_DIR/fsm-control.csv", "Control", :orange),
@@ -350,60 +373,56 @@ end
 #    FileDetail("$LOG_DIR/fsm-qmeu.csv", "QueMEU", :green),
 #]
 
-combine_files("all_fsm_trials/control", "logs/fsm/control.csv")
-combine_files("all_fsm_trials/doc_adv", "logs/fsm/doc_adv.csv")
-combine_files("all_fsm_trials/doc_qmeu_alpha", "logs/fsm/doc_qmeu_alpha.csv")
-combine_files("all_fsm_trials/doc_qmeu_beta", "logs/fsm/doc_qmeu_beta.csv")
-combine_files("all_fsm_trials/doc_std", "logs/fsm/doc_std.csv")
-combine_files("all_fsm_trials/p_phc", "logs/fsm/p_phc.csv")
-combine_files("all_fsm_trials/p_phc_frs", "logs/fsm/p_phc_frs.csv")
-combine_files("all_fsm_trials/p_phc_uhs", "logs/fsm/p_phc_uhs.csv")
-combine_files("all_fsm_trials/roulette", "logs/fsm/roulette.csv")
-combine_files("all_fsm_trials/cfs_qmeu_alpha", "logs/fsm/cfs_qmeu_alpha.csv")
-combine_files("all_fsm_trials/cfs_qmeu_beta", "logs/fsm/cfs_qmeu_beta.csv")
-combine_files("all_fsm_trials/cfs_qmeu_gamma", "logs/fsm/cfs_qmeu_gamma.csv")
-
-fsm_all_files = [
-    FileDetail("logs/fsm/control.csv", "CTRL", :red),
-    FileDetail("logs/fsm/roulette.csv", "ROUL", :blue),
-    FileDetail("logs/fsm/doc_std.csv", "DOC-STD", :green),
-    FileDetail("logs/fsm/doc_adv.csv", "DOC-ADV", :brown),
-    FileDetail("logs/fsm/doc_qmeu_alpha.csv", "DOC-QMEU-A", :purple),
-    FileDetail("logs/fsm/doc_qmeu_beta.csv", "DOC-QMEU-B", :orange),
-    FileDetail("logs/fsm/cfs_qmeu_beta.csv", "CFS-QMEU-B", :grey),
-    FileDetail("logs/fsm/p_phc.csv", "P-PHC", :black),
-    FileDetail("logs/fsm/p_phc_frs.csv", "P-PHC-P-FRS", :cyan),
-    FileDetail("logs/fsm/p_phc_uhs.csv", "P-PHC-P-UHS", :violet),
-    #FileDetail("qmeu_gamma.csv", "QueMEU-Gamma", :purple),
+coo_files = [
+    FileDetail("logs/coo/doc-std.csv", "Standard", :red),
+    FileDetail("logs/coo/doc-adv.csv", "Advanced", :blue),
+    FileDetail("logs/coo/doc-qmeu_alpha.csv", "QueMEU-A", :green),
+    FileDetail("logs/coo/p_phc.csv", "P-PHC", :orange),
+    FileDetail("logs/coo/p_phc_p_frs.csv", "P-PHC-P-FRS", :purple),
+    FileDetail("logs/coo/p_phc_p_uhs.csv", "P-PHC-P-UHS", :violet),
 ]
 
-fsm_files_doc = [
-    FileDetail("logs/fsm/control.csv", "CTRL", :red),
-    FileDetail("logs/fsm/roulette.csv", "ROUL", :blue),
-    FileDetail("logs/fsm/doc_std.csv", "DOC-STD", :green),
-    FileDetail("logs/fsm/doc_adv.csv", "DOC-ADV", :brown),
-]
 
-fsm_files_phc = [
-    FileDetail("logs/fsm/control.csv", "CTRL", :red),
-    FileDetail("logs/fsm/p_phc.csv", "P-PHC", :black),
-    FileDetail("logs/fsm/p_phc_frs.csv", "P-PHC-P-FRS", :cyan),
-    FileDetail("logs/fsm/p_phc_uhs.csv", "P-PHC-P-UHS", :violet),
-]
-
-fsm_files_qmeu = [
-    FileDetail("logs/fsm/control.csv", "CTRL", :red),
-    FileDetail("logs/fsm/doc_qmeu_alpha.csv", "DOC-QMEU-A", :purple),
-    FileDetail("logs/fsm/doc_qmeu_beta.csv", "DOC-QMEU-B", :orange),
-    FileDetail("logs/fsm/cfs_qmeu_alpha.csv", "CFS-QMEU-A", :grey),
-    FileDetail("logs/fsm/cfs_qmeu_beta.csv", "CFS-QMEU-B", :blue),
-    FileDetail("logs/fsm/cfs_qmeu_gamma.csv", "CFS-QMEU-G", :green),
-    #FileDetail("qmeu_gamma.csv", "QueMEU-Gamma", :purple),
-]
+#fsm_all_files = [
+#    FileDetail("logs/fsm/control.csv", "CTRL", :red),
+#    FileDetail("logs/fsm/roulette.csv", "ROUL", :blue),
+#    FileDetail("logs/fsm/doc_std.csv", "DOC-STD", :green),
+#    FileDetail("logs/fsm/doc_adv.csv", "DOC-ADV", :brown),
+#    FileDetail("logs/fsm/doc_qmeu_alpha.csv", "DOC-QMEU-A", :purple),
+#    FileDetail("logs/fsm/doc_qmeu_beta.csv", "DOC-QMEU-B", :orange),
+#    FileDetail("logs/fsm/cfs_qmeu_beta.csv", "CFS-QMEU-B", :grey),
+#    FileDetail("logs/fsm/p_phc.csv", "P-PHC", :black),
+#    FileDetail("logs/fsm/p_phc_frs.csv", "P-PHC-P-FRS", :cyan),
+#    FileDetail("logs/fsm/p_phc_uhs.csv", "P-PHC-P-UHS", :violet),
+#    #FileDetail("qmeu_gamma.csv", "QueMEU-Gamma", :purple),
+#]
+#
+#fsm_files_doc = [
+#    FileDetail("logs/fsm/control.csv", "CTRL", :red),
+#    FileDetail("logs/fsm/roulette.csv", "ROUL", :blue),
+#    FileDetail("logs/fsm/doc_std.csv", "DOC-STD", :green),
+#    FileDetail("logs/fsm/doc_adv.csv", "DOC-ADV", :brown),
+#]
+#
+#fsm_files_phc = [
+#    FileDetail("logs/fsm/control.csv", "CTRL", :red),
+#    FileDetail("logs/fsm/p_phc.csv", "P-PHC", :black),
+#    FileDetail("logs/fsm/p_phc_frs.csv", "P-PHC-P-FRS", :cyan),
+#    FileDetail("logs/fsm/p_phc_uhs.csv", "P-PHC-P-UHS", :violet),
+#]
+#
+#fsm_files_qmeu = [
+#    FileDetail("logs/fsm/control.csv", "CTRL", :red),
+#    FileDetail("logs/fsm/doc_qmeu_alpha.csv", "DOC-QMEU-A", :purple),
+#    FileDetail("logs/fsm/doc_qmeu_beta.csv", "DOC-QMEU-B", :orange),
+#    FileDetail("logs/fsm/cfs_qmeu_alpha.csv", "CFS-QMEU-A", :grey),
+#    FileDetail("logs/fsm/cfs_qmeu_beta.csv", "CFS-QMEU-B", :blue),
+#    FileDetail("logs/fsm/cfs_qmeu_gamma.csv", "CFS-QMEU-G", :green),
+#    #FileDetail("qmeu_gamma.csv", "QueMEU-Gamma", :purple),
+#]
 
 #plot_scores(dct_files, title="Density Classification Task: N = 149", ylabel="Accuracy", filename="dct")
 #plot_scores(coa_files, legend=:topleft, title="Compare-on-All: Five Dimensions", ylabel="Minimum Dimension Value", filename="coa")
-#plot_scores(coo_files, legend=:topleft, title="Compare-on-One: Five Dimensions", ylabel="Minimum Dimension Value", filename="coo")
 #plot_scores(
 #    fsm_files, 
 #    legend=:topleft, title="Linguistic Prediction Game: Two-Species Competitive", 
@@ -424,6 +443,7 @@ function plot_scores(
     filename::String="dct",
     ycolumn::String="score",
     ylims::Tuple{Float64, Float64}=(-1.0, -1.0),
+    xlims::Tuple{Float64, Float64}=(-1.0, -1.0)
 )
     p = plot(legend=legend, xlabel="Generation", ylabel=ylabel, title=title)
     for file in files
@@ -431,6 +451,9 @@ function plot_scores(
         data = CSV.read(file.filepath, DataFrame)
          if ylims ==  (-1.0, -1.0)
             ylims = nothing
+         end
+         if xlims ==  (-1.0, -1.0)
+            xlims = nothing
          end
 
         # Process the dataset
@@ -458,7 +481,8 @@ function plot_scores(
         plot!(p, generations, means, ribbon = (means .- lower_cis, upper_cis .- means), fillalpha = 0.35, 
               label=file.label, color=file.color, size=(900, 500), 
               leftmargin=10mm, bottommargin=10mm, rightmargin=10mm, topmargin=10mm,
-                ylims=ylims
+                ylims=ylims,
+                xlims=xlims
         )
     end
 
@@ -466,177 +490,234 @@ function plot_scores(
     display(p)
 end
 
-plot_scores(
-    fsm_all_files, 
-    legend=:outertopright, title="LPG: Adaptive Complexity", 
-    ylabel="Adaptive Complexity", 
-    filename="fsm_acg_all",
-    ycolumn="modes_complexity",
-    ylims=(0.0, 400.0)
-)
+COO_EZ = "logs/final_agg/coo/easy"
+
+coo_ez_files = [
+    FileDetail("$COO_EZ/doc-standard.csv", "Standard", :red),
+    FileDetail("$COO_EZ/doc-advanced.csv", "Advanced", :blue),
+    FileDetail("$COO_EZ/doc-qmeu_alpha.csv", "DOC-QMEU-A", :green),
+    FileDetail("$COO_EZ/doc-qmeu_beta.csv", "DOC-QMEU-B", :grey),
+    FileDetail("$COO_EZ/tourn-qmeu_alpha.csv", "CFS-QMEU-A", :teal),
+    FileDetail("$COO_EZ/tourn-qmeu_beta.csv", "CFS-QMEU-B", :black),
+    FileDetail("$COO_EZ/p_phc.csv", "P-PHC", :orange),
+    FileDetail("$COO_EZ/p_phc_p_frs.csv", "P-PHC-P-FRS", :purple),
+    FileDetail("$COO_EZ/p_phc_p_uhs.csv", "P-PHC-P-UHS", :violet),
+]
 
 plot_scores(
-    fsm_files_doc, 
-    legend=:outertopright, title="LPG: Adaptive Complexity with Baselines + DOC", 
-    ylabel="Adaptive Complexity", 
-    filename="fsm_acg_doc",
-    ycolumn="modes_complexity",
-    ylims=(0.0, 400.0)
-
+    coo_ez_files, 
+    legend=:topleft, 
+    title="Compare-on-One Easy: Two Dimensions", 
+    ylabel="Minimum Dimension Value", 
+    filename="coo_ez",
+    ylims=(-1.0, -1.0),
+    xlims=(0.0, 500.0)
 )
+
+COO_HARD = "logs/final_agg/coo/hard"
+
+coo_hard_files = [
+    FileDetail("$COO_HARD/doc-standard.csv", "Standard", :red),
+    FileDetail("$COO_HARD/doc-advanced.csv", "Advanced", :blue),
+    FileDetail("$COO_HARD/doc-qmeu_alpha.csv", "DOC-QMEU-A", :green),
+    FileDetail("$COO_HARD/doc-qmeu_beta.csv", "DOC-QMEU-B", :grey),
+    FileDetail("$COO_HARD/tourn-qmeu_alpha.csv", "CFS-QMEU-A", :teal),
+    FileDetail("$COO_HARD/tourn-qmeu_beta.csv", "CFS-QMEU-B", :black),
+    FileDetail("$COO_HARD/p_phc.csv", "P-PHC", :orange),
+    FileDetail("$COO_HARD/p_phc_p_frs.csv", "P-PHC-P-FRS", :purple),
+    FileDetail("$COO_HARD/p_phc_p_uhs.csv", "P-PHC-P-UHS", :violet),
+]
 
 plot_scores(
-    fsm_files_phc, 
-    legend=:outertopright, title="LPG: Adaptive Complexity with P-PHC", 
-    ylabel="Adaptive Complexity", 
-    filename="fsm_acg_phc",
-    ycolumn="modes_complexity",
-    ylims=(0.0, 400.0)
+    coo_hard_files, 
+    legend=:topleft, 
+    title="Compare-on-One Hard: Five Dimensions", 
+    ylabel="Minimum Dimension Value", 
+    filename="coo_hard",
+    ylims=(-1.0, -1.0),
+    xlims=(0.0, 500.0)
 )
+#plot_scores(
+#    coo_files, 
+#    legend=:topleft, 
+#    title="Compare-on-One: Five Dimensions", 
+#    ylabel="Minimum Dimension Value", 
+#    filename="coo",
+#    ylims=(-1.0, -1.0),
+#    xlims=(0.0, 500.0)
+#)
 
-plot_scores(
-    fsm_files_qmeu, 
-    legend=:outertopright, title="LPG: Adaptive Complexity with QueMEU", 
-    ylabel="Adaptive Complexity", 
-    filename="fsm_acg_qmeu",
-    ycolumn="modes_complexity",
-    ylims=(0.0, 400.0)
-)
-
-plot_scores(
-    fsm_files_doc, 
-    legend=:outertopright, title="LPG: Full Complexity with Baselines + DOC", 
-    ylabel="Full Genotype Size", 
-    filename="fsm_full_doc",
-    ycolumn="full_complexity",
-    ylims=(0.0, 400.0)
-
-)
-
-plot_scores(
-    fsm_files_phc, 
-    legend=:outertopright, title="LPG: Full Complexity with P-PHC", 
-    ylabel="Full Genotype Size", 
-    filename="fsm_full_phc",
-    ycolumn="full_complexity",
-    ylims=(0.0, 400.0)
-)
-
-plot_scores(
-    fsm_files_qmeu, 
-    legend=:outertopright, title="LPG: Full Complexity with QueMEU", 
-    ylabel="Full Genotype Size", 
-    filename="fsm_full_qmeu",
-    ycolumn="full_complexity",
-    ylims=(0.0, 400.0)
-)
-
-
-plot_scores(
-    fsm_files_doc, 
-    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with Baselines + DOC", 
-    ylabel="Expected Utility", 
-    filename="fsm_eu_doc",
-    ycolumn="utility_128",
-    ylims=(0.35, 0.66)
-)
-
-plot_scores(
-    fsm_files_phc, 
-    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with P-PHC", 
-    ylabel="Expected Utility", 
-    filename="fsm_eu_phc",
-    ycolumn="utility_128",
-    ylims=(0.35, 0.66)
-)
-
-plot_scores(
-    fsm_files_qmeu, 
-    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with QueMEU", 
-    ylabel="Expected Utility", 
-    filename="fsm_eu_qmeu",
-    ycolumn="utility_128",
-    ylims=(0.35, 0.66)
-)
-
-
-plot_scores(
-    fsm_files_doc, 
-    legend=:outertopright, title="LPG: Change with Baselines + DOC", 
-    ylabel="Change", 
-    filename="fsm_change_doc",
-    ycolumn="change",
-    ylims = (0.0, 4.0)
-)
-
-plot_scores(
-    fsm_files_phc, 
-    legend=:outertopright, title="LPG: Change with P-PHC", 
-    ylabel="Change", 
-    filename="fsm_change_phc",
-    ycolumn="change",
-)
-
-plot_scores(
-    fsm_files_qmeu, 
-    legend=:outertopright, title="LPG: Change with QueMEU", 
-    ylabel="Change", 
-    filename="fsm_change_qmeu",
-    ycolumn="change",
-    ylims = (0.0, 4.0)
-)
-
-plot_scores(
-    fsm_files_doc, 
-    legend=:outertopright, title="LPG: Novelty with Baselines + DOC", 
-    ylabel="Novelty", 
-    filename="fsm_novelty_doc",
-    ycolumn="novelty",
-    ylims = (0.0, 4.0)
-)
-
-plot_scores(
-    fsm_files_phc, 
-    legend=:outertopright, title="LPG: Novelty with P-PHC", 
-    ylabel="Novelty", 
-    filename="fsm_novelty_phc",
-    ycolumn="novelty",
-)
-
-plot_scores(
-    fsm_files_qmeu, 
-    legend=:outertopright, title="LPG: Novelty with QueMEU", 
-    ylabel="Novelty", 
-    filename="fsm_novelty_qmeu",
-    ycolumn="novelty",
-    ylims = (0.0, 4.0)
-)
-
-plot_scores(
-    fsm_files_doc, 
-    legend=:outertopright, title="LPG: Ecology with Baselines + DOC", 
-    ylabel="Ecology", 
-    filename="fsm_ecology_doc",
-    ycolumn="ecology",
-    #ylims = (0.0, 4.0)
-)
-
-plot_scores(
-    fsm_files_phc, 
-    legend=:outertopright, title="LPG: Ecology with P-PHC", 
-    ylabel="Ecology", 
-    filename="fsm_ecology_phc",
-    ycolumn="ecology",
-)
-
-plot_scores(
-    fsm_files_qmeu, 
-    legend=:outertopright, title="LPG: Ecology with QueMEU", 
-    ylabel="Ecology", 
-    filename="fsm_ecology_qmeu",
-    ycolumn="ecology",
-    #ylims = (0.0, 4.0)
-)
+#plot_scores(
+#    fsm_all_files, 
+#    legend=:outertopright, title="LPG: Adaptive Complexity", 
+#    ylabel="Adaptive Complexity", 
+#    filename="fsm_acg_all",
+#    ycolumn="modes_complexity",
+#    ylims=(0.0, 400.0)
+#)
+#
+#plot_scores(
+#    fsm_files_doc, 
+#    legend=:outertopright, title="LPG: Adaptive Complexity with Baselines + DOC", 
+#    ylabel="Adaptive Complexity", 
+#    filename="fsm_acg_doc",
+#    ycolumn="modes_complexity",
+#    ylims=(0.0, 400.0)
+#
+#)
+#
+#plot_scores(
+#    fsm_files_phc, 
+#    legend=:outertopright, title="LPG: Adaptive Complexity with P-PHC", 
+#    ylabel="Adaptive Complexity", 
+#    filename="fsm_acg_phc",
+#    ycolumn="modes_complexity",
+#    ylims=(0.0, 400.0)
+#)
+#
+#plot_scores(
+#    fsm_files_qmeu, 
+#    legend=:outertopright, title="LPG: Adaptive Complexity with QueMEU", 
+#    ylabel="Adaptive Complexity", 
+#    filename="fsm_acg_qmeu",
+#    ycolumn="modes_complexity",
+#    ylims=(0.0, 400.0)
+#)
+#
+#plot_scores(
+#    fsm_files_doc, 
+#    legend=:outertopright, title="LPG: Full Complexity with Baselines + DOC", 
+#    ylabel="Full Genotype Size", 
+#    filename="fsm_full_doc",
+#    ycolumn="full_complexity",
+#    ylims=(0.0, 400.0)
+#
+#)
+#
+#plot_scores(
+#    fsm_files_phc, 
+#    legend=:outertopright, title="LPG: Full Complexity with P-PHC", 
+#    ylabel="Full Genotype Size", 
+#    filename="fsm_full_phc",
+#    ycolumn="full_complexity",
+#    ylims=(0.0, 400.0)
+#)
+#
+#plot_scores(
+#    fsm_files_qmeu, 
+#    legend=:outertopright, title="LPG: Full Complexity with QueMEU", 
+#    ylabel="Full Genotype Size", 
+#    filename="fsm_full_qmeu",
+#    ycolumn="full_complexity",
+#    ylims=(0.0, 400.0)
+#)
+#
+#
+#plot_scores(
+#    fsm_files_doc, 
+#    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with Baselines + DOC", 
+#    ylabel="Expected Utility", 
+#    filename="fsm_eu_doc",
+#    ycolumn="utility_128",
+#    ylims=(0.35, 0.66)
+#)
+#
+#plot_scores(
+#    fsm_files_phc, 
+#    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with P-PHC", 
+#    ylabel="Expected Utility", 
+#    filename="fsm_eu_phc",
+#    ycolumn="utility_128",
+#    ylims=(0.35, 0.66)
+#)
+#
+#plot_scores(
+#    fsm_files_qmeu, 
+#    legend=:outertopright, title="LPG: Expected Utility vs. 10k Size 128 FSMs with QueMEU", 
+#    ylabel="Expected Utility", 
+#    filename="fsm_eu_qmeu",
+#    ycolumn="utility_128",
+#    ylims=(0.35, 0.66)
+#)
+#
+#
+#plot_scores(
+#    fsm_files_doc, 
+#    legend=:outertopright, title="LPG: Change with Baselines + DOC", 
+#    ylabel="Change", 
+#    filename="fsm_change_doc",
+#    ycolumn="change",
+#    ylims = (0.0, 4.0)
+#)
+#
+#plot_scores(
+#    fsm_files_phc, 
+#    legend=:outertopright, title="LPG: Change with P-PHC", 
+#    ylabel="Change", 
+#    filename="fsm_change_phc",
+#    ycolumn="change",
+#)
+#
+#plot_scores(
+#    fsm_files_qmeu, 
+#    legend=:outertopright, title="LPG: Change with QueMEU", 
+#    ylabel="Change", 
+#    filename="fsm_change_qmeu",
+#    ycolumn="change",
+#    ylims = (0.0, 4.0)
+#)
+#
+#plot_scores(
+#    fsm_files_doc, 
+#    legend=:outertopright, title="LPG: Novelty with Baselines + DOC", 
+#    ylabel="Novelty", 
+#    filename="fsm_novelty_doc",
+#    ycolumn="novelty",
+#    ylims = (0.0, 4.0)
+#)
+#
+#plot_scores(
+#    fsm_files_phc, 
+#    legend=:outertopright, title="LPG: Novelty with P-PHC", 
+#    ylabel="Novelty", 
+#    filename="fsm_novelty_phc",
+#    ycolumn="novelty",
+#)
+#
+#plot_scores(
+#    fsm_files_qmeu, 
+#    legend=:outertopright, title="LPG: Novelty with QueMEU", 
+#    ylabel="Novelty", 
+#    filename="fsm_novelty_qmeu",
+#    ycolumn="novelty",
+#    ylims = (0.0, 4.0)
+#)
+#
+#plot_scores(
+#    fsm_files_doc, 
+#    legend=:outertopright, title="LPG: Ecology with Baselines + DOC", 
+#    ylabel="Ecology", 
+#    filename="fsm_ecology_doc",
+#    ycolumn="ecology",
+#    #ylims = (0.0, 4.0)
+#)
+#
+#plot_scores(
+#    fsm_files_phc, 
+#    legend=:outertopright, title="LPG: Ecology with P-PHC", 
+#    ylabel="Ecology", 
+#    filename="fsm_ecology_phc",
+#    ycolumn="ecology",
+#)
+#
+#plot_scores(
+#    fsm_files_qmeu, 
+#    legend=:outertopright, title="LPG: Ecology with QueMEU", 
+#    ylabel="Ecology", 
+#    filename="fsm_ecology_qmeu",
+#    ycolumn="ecology",
+#    #ylims = (0.0, 4.0)
+#)
 #plot_scores(
 #    fsm_all_files, 
 #    legend=:bottomright, title="Linguistic Prediction Game: Expected Utility", 

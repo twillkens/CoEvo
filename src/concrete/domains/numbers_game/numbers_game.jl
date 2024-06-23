@@ -117,8 +117,10 @@ function NumbersGameDomain(metric_string::String)
         "Focusing" => Focusing,
         "Relativism" => Relativism,
         "CompareOnAll" => CompareOnAll,
+        "coa" => CompareOnAll,
         "CompareOnAllSymmetric" => CompareOnAllSymmetric,
         "CompareOnOne" => CompareOnOne,
+        "coo" => CompareOnOne,
         "CompareOnOneSymmetric" => CompareOnOneSymmetric
     )
     outcome_metric = string_to_metric[metric_string]()
