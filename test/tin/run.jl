@@ -216,7 +216,7 @@ end
         config = MaxSolveConfiguration(
             # General
             id = spec.id,
-            archive_directory = "data/fsm/$(spec.name)",
+            archive_directory = archive_path,
             seed = seed,
             n_generations = N_FSM_GENERATIONS,
             n_workers = 1,  # Using 1 worker per trial
