@@ -5,14 +5,12 @@ using Test
 using CoEvo
 
 using Random
-using .Counters.Basic: BasicCounter
-using .Genotypes: create_genotypes, get_size, minimize
-using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
-using .Genotypes.GnarlNetworks: NodeGene, ConnectionGene, get_required_nodes, get_neuron_positions
-using .Phenotypes: create_phenotype
-using .Mutators.GnarlNetworks: mutate_weights, add_node, remove_node, add_connection
-using .Mutators.GnarlNetworks: remove_connection, mutate 
-using .Mutators.GnarlNetworks: GnarlNetworkMutator
+using CoEvo.Abstract
+using CoEvo.Interfaces
+using CoEvo.Concrete.Counters.Basic: BasicCounter
+using CoEvo.Concrete.Genotypes.GnarlNetworks
+using CoEvo.Concrete.Phenotypes.GnarlNetworks
+using CoEvo.Concrete.Mutators.GnarlNetworks
 
 
 using StableRNGs

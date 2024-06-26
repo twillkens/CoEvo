@@ -1,14 +1,12 @@
 @testset "CollisionGame" begin
 
 # Mock the necessary parts
-using CoEvo
-using .Domains.PredictionGame: PredictionGameDomain, Affinitive, Adversarial, Avoidant, Control
-using .Genotypes.GnarlNetworks: GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
-using .Genotypes.GnarlNetworks: NodeGene, ConnectionGene, get_required_nodes
-using .Phenotypes: create_phenotype
-using .Phenotypes.Defaults: DefaultPhenotypeCreator
-using .Environments: create_environment, is_active, step!, get_outcome_set
-using .Environments.CollisionGame: CollisionGameEnvironmentCreator
+using CoEvo.Abstract
+using CoEvo.Interfaces
+using CoEvo.Concrete.Domains.PredictionGame
+using CoEvo.Concrete.Genotypes.GnarlNetworks
+using CoEvo.Concrete.Phenotypes.Defaults
+using CoEvo.Concrete.Environments.CollisionGame
 
 # Always Moving Forward Genotype
 forward_genotype = GnarlNetworkGenotype(

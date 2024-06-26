@@ -1,5 +1,7 @@
 module ContinuousPredictionGame
 
+export ContinuousPredictionGameEnvironmentCreator, ContinuousPredictionGameEnvironment
+
 import ....Interfaces: get_outcome_set, step!, is_active, create_environment, get_phenotypes
 
 using ....Abstract

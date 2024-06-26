@@ -1,7 +1,7 @@
 module MaxSolve
 
-export MaxSolveConfiguration, get_ecosystem_creator, create_reproducer, create_reproducers
-export create_simulator, create_evaluator, create_archivers
+export MaxSolveConfiguration, get_ecosystem_creator, create_reproducers
+export create_simulator, create_archivers
 export create_numbers_game_reproducer, create_numbers_game_simulator
 export create_fsm_simulator, create_learner_fsm_reproducer, create_test_fsm_reproducer
 
@@ -59,6 +59,11 @@ Base.@kwdef struct MaxSolveConfiguration <: Configuration
 
     # FSM specific
     checkpoint_interval::Int = 100
+
+    # GNARL specific
+    n_input_nodes::Int = 2
+    n_output_nodes::Int = 1
+    episode_length::Int = 32
 end
 
 function get_ecosystem_creator(config::MaxSolveConfiguration)
@@ -112,6 +117,9 @@ function create_reproducers(config::MaxSolveConfiguration)
     elseif config.task == "fsm"
         learner_reproducer = create_learner_fsm_reproducer(config)
         test_reproducer = create_test_fsm_reproducer(config)
+    elseif config.task == "cpt"
+        learner_reproducer = create_learner_cpt_reproducer(config)
+        test_reproducer = create_test_cpt_reproducer(config)
     else
         error("Invalid task: $(config.task)")
     end
@@ -144,6 +152,8 @@ function create_simulator(config::MaxSolveConfiguration)
         simulator = create_dct_simulator(config)
     elseif config.task == "fsm"
         simulator = create_fsm_simulator(config)
+    elseif config.task == "cpt"
+        simulator = create_cpt_simulator(config)
     else
         error("Invalid task: $(config.task)")
     end
@@ -157,6 +167,7 @@ end
 include("numbers_game_archive.jl")
 include("dct_archive.jl")
 include("fsm_archive.jl")
+include("cpt_archive.jl")
 
 function create_archivers(config::MaxSolveConfiguration)
     if config.task == "numbers_game"
@@ -165,6 +176,8 @@ function create_archivers(config::MaxSolveConfiguration)
         archivers = [DensityClassificationArchiver(config)]
     elseif config.task == "fsm"
         archivers = [FSMArchiver(config)]
+    elseif config.task == "cpt"
+        archivers = [CPTArchiver(config)]
     else
         error("Invalid task: $(config.task)")
     end
@@ -293,6 +306,68 @@ function create_test_fsm_reproducer(config::MaxSolveConfiguration)
         selector = IdentitySelector(),
         recombiner = CloneRecombiner(),
         mutator = FiniteStateMachineMutator(n_changes = 1)
+    )
+    return reproducer
+end
+
+#------------------------------- CPT
+#using ...Environments.ElementaryCellularAutomata: ElementaryCellularAutomataEnvironmentCreator
+using ...Environments.ContinuousPredictionGame: ContinuousPredictionGameEnvironmentCreator
+using ...Domains.PredictionGame: PredictionGameDomain
+using ...Phenotypes.Defaults: DefaultPhenotypeCreator
+using ...Genotypes.GnarlNetworks: GnarlNetworkGenotypeCreator
+using ...Mutators.GnarlNetworks: GnarlNetworkMutator
+using ...Individuals.Modes: ModesIndividualCreator
+
+function create_cpt_simulator(config::MaxSolveConfiguration) 
+    domain = PredictionGameDomain(config.domain)
+    environment_creator = ContinuousPredictionGameEnvironmentCreator(
+        domain, config.episode_length, 0
+    )
+    simulator = BasicSimulator(
+        interactions = [
+            BasicInteraction(
+                id = "A",
+                environment_creator = environment_creator,
+                species_ids = ["L", "T"],
+            )
+        ],
+        matchmaker = AllVersusAllMatchMaker(),
+        job_creator = SimpleJobCreator(n_workers = config.n_workers),
+        performer = CachePerformer(n_workers = config.n_workers),
+    )
+    return simulator
+end
+
+
+function create_learner_cpt_reproducer(config::MaxSolveConfiguration)
+    reproducer = BasicReproducer(
+        id = "L",
+        genotype_creator = GnarlNetworkGenotypeCreator(n_input_nodes = 2, n_output_nodes = 1),
+        phenotype_creator = GnarlNetworkPhenotypeCreator(
+            hidden_function = scaled_tanh, output_function = x -> x
+        ),
+        individual_creator = ModesIndividualCreator(),
+        species_creator = dummy_species_creator(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(),
+        mutator = GnarlNetworkMutator()
+    )
+    return reproducer
+end
+
+function create_test_cpt_reproducer(config::MaxSolveConfiguration)
+    reproducer = BasicReproducer(
+        id = "T",
+        genotype_creator = GnarlNetworkGenotypeCreator(n_input_nodes = 2, n_output_nodes = 1),
+        phenotype_creator = GnarlNetworkPhenotypeCreator(
+            hidden_function = scaled_tanh, output_function = x -> x
+        ),
+        individual_creator = ModesIndividualCreator(),
+        species_creator = dummy_species_creator(),
+        selector = IdentitySelector(),
+        recombiner = CloneRecombiner(),
+        mutator = GnarlNetworkMutator()
     )
     return reproducer
 end

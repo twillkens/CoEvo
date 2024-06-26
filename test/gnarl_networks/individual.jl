@@ -3,10 +3,14 @@ using Test
 @testset "Individual" begin
 
 using Random
-using StableRNGs: StableRNG
-using CoEvo.Names
-using CoEvo.Genotypes.GnarlNetworks
-using CoEvo.Mutators.GnarlNetworks
+using StableRNGs
+using CoEvo.Abstract
+using CoEvo.Interfaces
+using CoEvo.Concrete.Genotypes.GnarlNetworks
+using CoEvo.Concrete.Mutators.GnarlNetworks
+using CoEvo.Concrete.Phenotypes.GnarlNetworks
+using CoEvo.Concrete.Counters.Basic
+using CoEvo.Concrete.Phenotypes.Defaults
 
 # Create a basic genotype to work with
 basic_genotype() = GnarlNetworkGenotype(
@@ -56,10 +60,10 @@ basic_genotype() = GnarlNetworkGenotype(
 
     @testset "mutate" begin
         genotype = basic_genotype()
-        create_phenotype(DefaultPhenotypeCreator(), genotype)
+        create_phenotype(DefaultPhenotypeCreator(), 1, genotype)
         for i in 1:1000
             genotype = mutate(mutator, random_number_generator, counter, genotype)
-            phenotype = create_phenotype(DefaultPhenotypeCreator(), genotype)
+            phenotype = create_phenotype(DefaultPhenotypeCreator(), 1, genotype)
         end
     end
 
@@ -106,11 +110,10 @@ basic_genotype2() = GnarlNetworkGenotype(
     ]
 )
 @testset "GnarlNetworks Phenotype Tests" begin
-    using .Phenotypes.GnarlNetworks: set_output!, get_output, reset!, act!
 
     genotype = basic_genotype2()
     phenotype_creator = DefaultPhenotypeCreator()
-    phenotype = create_phenotype(phenotype_creator, genotype)
+    phenotype = create_phenotype(phenotype_creator, 1, genotype)
 
     @testset "Phenotype structure" begin
         @test phenotype.n_input_nodes == 2
@@ -189,6 +192,24 @@ end
 
         @test g2.hidden_nodes == [NodeGene(5, 0.2), NodeGene(6, 0.3)]
         @test length(g2.connections) == 5
+    end
+    @testset "minimize_bias" begin
+        g = GnarlNetworkGenotype(
+            1,
+            1,
+            [
+                NodeGene(1, 0.1), 
+            ],
+            [
+                ConnectionGene(2, 0.0, 0.1, 0.9), 
+                ConnectionGene(3, 0.1, 1.0, 0.9), 
+            ]
+        )
+
+        g2 = minimize(g)
+
+        @test g2.hidden_nodes == [NodeGene(1, 0.1)]
+        @test length(g2.connections) == 2
     end
 
 end

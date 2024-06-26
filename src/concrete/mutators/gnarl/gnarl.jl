@@ -3,7 +3,7 @@ module GnarlNetworks
 export mutate_weight, GnarlNetworkMutator, mutate_weights, add_node, remove_node
 export add_connection, remove_connection, find_valid_connection_positions
 
-import ....Interfaces: mutate
+import ....Interfaces: mutate, mutate!
 
 using StatsBase: Weights, sample
 using Random: AbstractRNG, shuffle!
@@ -29,7 +29,7 @@ end
 function mutate_weights(rng::AbstractRNG, geno::GnarlNetworkGenotype, weight_factor::Float64)
     connections = mutate_weight.(rng, geno.connections, weight_factor)
     geno = GnarlNetworkGenotype(
-        geno.n_input_nodes, geno.n_output_nodes, geno.hidden_nodes,  connections
+        geno.n_input_nodes, geno.n_output_nodes, geno.hidden_nodes, connections
     )
     return geno
 end
@@ -261,6 +261,27 @@ function mutate(
         end
     end
     return geno
+end
+
+function mutate!(
+    mutator::GnarlNetworkMutator, 
+    rng::AbstractRNG, 
+    gene_id_counter::Counter, 
+    geno::GnarlNetworkGenotype
+)
+    new_geno = mutate(mutator, rng, gene_id_counter, geno)
+    geno.connections = new_geno.connections
+    geno.hidden_nodes = new_geno.hidden_nodes
+    return geno
+end
+
+function mutate!(
+    mutator::GnarlNetworkMutator,
+    genotype::GnarlNetworkGenotype,
+    state::State
+)
+    genotype = mutate!(mutator, state.rng, state.gene_id_counter, genotype)
+    return genotype
 end
 
 end

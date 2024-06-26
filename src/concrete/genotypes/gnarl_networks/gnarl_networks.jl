@@ -1,5 +1,7 @@
 module GnarlNetworks
 
+export GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
+
 include("genotype.jl")
 
 include("equals.jl")

@@ -1,8 +1,10 @@
 export NodeGene, ConnectionGene
 export GnarlNetworkGenotype, GnarlNetworkGenotypeCreator
+export RandomFCGnarlNetworkGenotypeCreator, create_genotypes, create_random_fc_genotype
 
 import ....Interfaces: create_genotypes
-using ....Abstract: Gene, Genotype, GenotypeCreator, Counter, AbstractRNG
+using ....Abstract
+using ....Interfaces
 #using ....Interfaces: step!
 
 """
@@ -53,7 +55,7 @@ the number of input and output nodes, hidden nodes, and their connections.
 - `hidden_nodes`: A vector of `NodeGene` representing hidden nodes in the network.
 - `connections`: A vector of `ConnectionGene` representing connections between nodes.
 """
-Base.@kwdef struct GnarlNetworkGenotype <: Genotype
+Base.@kwdef mutable struct GnarlNetworkGenotype <: Genotype
     n_input_nodes::Int
     n_output_nodes::Int
     hidden_nodes::Vector{NodeGene}
@@ -78,8 +80,6 @@ end
 
 function create_genotypes(
     genotype_creator::GnarlNetworkGenotypeCreator,
-    ::AbstractRNG,
-    ::Counter,
     n_population::Int
 )
     genotypes = [
@@ -93,3 +93,65 @@ function create_genotypes(
 
     return genotypes
 end
+
+function create_genotypes(genotype_creator::GnarlNetworkGenotypeCreator, n_genotype::Int, ::State)
+    genotypes = create_genotypes(genotype_creator, n_genotype)
+end
+
+Base.@kwdef struct RandomFCGnarlNetworkGenotypeCreator <: GenotypeCreator
+    n_input_nodes::Int
+    n_hidden_nodes::Int
+    n_output_nodes::Int
+end
+
+using ...Counters.Basic
+using Random
+using ....Interfaces
+
+function create_random_fc_genotype(
+    genotype_creator::RandomFCGnarlNetworkGenotypeCreator,
+    gene_id_counter::Counter = BasicCounter(1),
+    rng::AbstractRNG = Random.GLOBAL_RNG,
+)
+    hidden_nodes = [
+        NodeGene(id=i, position=rand(rng, Float32)) for i in 1:genotype_creator.n_hidden_nodes
+    ]
+    input_and_bias_positions = [float(-i) for i in 0:genotype_creator.n_input_nodes]
+    hidden_node_positions = [node.position for node in hidden_nodes]
+    output_node_positions = [float(i) for i in 1:genotype_creator.n_output_nodes]
+    origin_positions = vcat(input_and_bias_positions, hidden_node_positions)
+    destination_positions = vcat(hidden_node_positions, output_node_positions)
+    connections = ConnectionGene[]
+    for origin_position in origin_positions
+        for destination_position in destination_positions
+            connection = ConnectionGene(
+                id = step!(gene_id_counter),
+                origin = origin_position,
+                destination = destination_position,
+                weight = (rand(rng) - 0.5) * 5
+            )
+            push!(connections, connection)
+        end
+    end
+    genotype = GnarlNetworkGenotype(
+        genotype_creator.n_input_nodes,
+        genotype_creator.n_output_nodes,
+        hidden_nodes,
+        connections
+    )
+    return genotype
+end
+
+function create_genotypes(
+    genotype_creator::RandomFCGnarlNetworkGenotypeCreator,
+    rng::AbstractRNG,
+    counter::Counter,
+    n_population::Int
+)
+    genotypes = [
+        create_random_fc_genotype(genotype_creator, counter, rng) for i in 1:n_population
+    ]
+    return genotypes
+end
+
+

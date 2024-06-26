@@ -5,7 +5,7 @@ using Distributed
 using Random
 
 # Number of trials you want to run
-const N_TRIALS = 60
+const N_TRIALS = 1
 
 # Initialize required number of worker processes
 addprocs(N_TRIALS)
@@ -78,6 +78,51 @@ end
         evolve!(state)
         println("Trial $(spec.id) done")
     end
+
+    function run_ng_med_trial(spec::AlgorithmSpecification)
+        seed = abs(rand(Int))
+        Random.seed!(seed)
+        archive_path = "data/coo_med/$(spec.name)/$(spec.id)"
+        println("archive_path = ", archive_path)
+        mkpath(archive_path)
+        mkpath("$archive_path/learner_population")
+        mkpath("$archive_path/test_population")
+
+        config = MaxSolveConfiguration(
+            # General
+            id = spec.id,
+            archive_directory = archive_path,
+            seed = seed,
+            n_generations = N_COO_GENERATIONS,
+            n_workers = 1,  # Using 1 worker per trial
+
+            # Algorithm
+            algorithm = spec.name,
+            learner_algorithm = spec.learner_algorithm,
+            test_algorithm = spec.test_algorithm,
+            n_learner_population = N_LEARNER_POP, 
+            n_learner_children = N_LEARNER_CHILDREN, 
+            n_test_population = N_TEST_POP, 
+            n_test_children = N_TEST_CHILDREN,
+            max_learner_archive_size = N_ARCHIVE,
+
+            # Problem
+            task = "numbers_game",
+            domain = "coo",
+            n_dimensions = 3,
+            min_mutation = -0.15,
+            max_mutation = 0.1,
+            init_range = (0.0, 0.1),
+            use_delta = false,
+            delta = 0.0,
+            mutation_granularity = 0.001
+        )
+
+        state = BasicEvolutionaryState(config)
+        evolve!(state)
+        println("Trial $(spec.id) done")
+    end
+
     
     function run_ng_hard_trial(spec::AlgorithmSpecification)
         seed = abs(rand(Int))
@@ -197,6 +242,7 @@ end
         evolve!(state)
         println("Trial $(spec.id) done")
     end
+
 end
 
 control_specs = [
@@ -333,16 +379,12 @@ all_specs = [
     doc_qmeu_fast_specs
 ]
 
-#runners = [run_ng_easy_trial, run_ng_hard_trial, run_dct_trial, run_fsm_trial]
-runners = [run_ng_easy_trial, run_ng_hard_trial, run_fsm_trial]
-#runners = [run_ng_easy_trial,]
+
+
+runners = [run_ng_easy_trial, run_ng_hard_trial]
     
 for runner in runners
     for specs in all_specs
         pmap(runner, specs)
     end
 end
-
-
-# Running the trials in parallel
-#pmap(run_trial, 1:N_TRIALS)

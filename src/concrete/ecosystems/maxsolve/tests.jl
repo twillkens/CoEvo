@@ -133,11 +133,7 @@ function update_tests_p_phc_p_frs!(
 )
     new_population = copy(ecosystem.test_population)
     for parent in ecosystem.test_population
-        children = [child for child in ecosystem.test_children if child.parent_id == parent.id]
-        if length(children) != 1
-            error("length(children) = $(length(children))")
-        end
-        child = first(children)
+        child = get_child(parent, ecosystem.test_children)
         parent_outcomes = evaluation.payoff_matrix[parent.id, :]
         child_outcomes = evaluation.payoff_matrix[child.id, :]
         parent_dominates_child = dominates(parent_outcomes, child_outcomes)
@@ -160,11 +156,7 @@ function update_tests_p_phc_p_uhs!(
 )
     new_population = copy(ecosystem.test_population)
     for parent in ecosystem.test_population
-        children = [child for child in ecosystem.test_children if child.parent_id == parent.id]
-        if length(children) != 1
-            error("length(children) = $(length(children))")
-        end
-        child = first(children)
+        child = get_child(parent, ecosystem.test_children)
         parent_outcomes = evaluation.payoff_matrix[parent.id, :]
         child_outcomes = evaluation.payoff_matrix[child.id, :]
         parent_dominates_child = dominates(parent_outcomes, child_outcomes)

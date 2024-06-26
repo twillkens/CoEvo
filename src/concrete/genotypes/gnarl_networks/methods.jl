@@ -1,5 +1,7 @@
 export get_neuron_positions, get_inputs, get_outputs, get_required_nodes
 
+import ....Interfaces: minimize
+
 """
     get_neuron_positions(genotype::GnarlNetworkGenotype)
 
