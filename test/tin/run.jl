@@ -5,7 +5,7 @@ using Distributed
 using Random
 
 # Number of trials you want to run
-const N_TRIALS = 1
+const N_TRIALS = 60
 
 # Initialize required number of worker processes
 addprocs(N_TRIALS)
@@ -197,7 +197,7 @@ end
             task = "dct",
             domain = "n_149",
             learner_flip_chance = 0.02,
-            test_flip_chance = 0.05
+            test_flip_chance = 0.04
         )
 
         state = BasicEvolutionaryState(config)
@@ -247,73 +247,49 @@ end
 
 control_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "control",
-        learner_algorithm = "control",
-        test_algorithm = "control"
+        id = i, name = "control", learner_algorithm = "control", test_algorithm = "control"
     ) for i in 1:N_TRIALS
 ]
 
 roulette_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "roulette",
-        learner_algorithm = "roulette",
-        test_algorithm = "roulette"
+        id = i, name = "roulette", learner_algorithm = "roulette", test_algorithm = "roulette"
     ) for i in 1:N_TRIALS
 ]
 
 cfs_std_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "cfs_std",
-        learner_algorithm = "cfs",
-        test_algorithm = "standard"
+        id = i, name = "cfs_std", learner_algorithm = "cfs", test_algorithm = "standard"
     ) for i in 1:N_TRIALS
 ]
 
 cfs_adv_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "cfs_adv",
-        learner_algorithm = "cfs",
-        test_algorithm = "advanced"
+        id = i, name = "cfs_adv", learner_algorithm = "cfs", test_algorithm = "advanced"
     ) for i in 1:N_TRIALS
 ]
 
 doc_std_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "doc_std",
-        learner_algorithm = "doc",
-        test_algorithm = "standard"
+        id = i, name = "doc_std", learner_algorithm = "doc", test_algorithm = "standard"
     ) for i in 1:N_TRIALS
 ]
 
 doc_adv_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "doc_adv",
-        learner_algorithm = "doc",
-        test_algorithm = "advanced"
+        id = i, name = "doc_adv", learner_algorithm = "doc", test_algorithm = "advanced"
     ) for i in 1:N_TRIALS
 ]
 
 p_phc_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "p_phc",
-        learner_algorithm = "p_phc",
-        test_algorithm = "p_phc"
+        id = i, name = "p_phc", learner_algorithm = "p_phc", test_algorithm = "p_phc"
     ) for i in 1:N_TRIALS
 ]
 
 p_phc_p_frs_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "p_phc_p_frs",
-        learner_algorithm = "p_phc_p_frs",
-        test_algorithm = "p_phc_p_frs"
+        id = i, name = "p_phc_p_frs", learner_algorithm = "p_phc_p_frs", test_algorithm = "p_phc_p_frs"
     ) for i in 1:N_TRIALS
 ]
 
@@ -346,19 +322,31 @@ cfs_qmeu_fast_specs = [
 
 doc_qmeu_slow_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "doc_qmeu_slow",
-        learner_algorithm = "doc",
-        test_algorithm = "qmeu_slow"
+        id = i, name = "doc_qmeu_slow", learner_algorithm = "doc", test_algorithm = "qmeu_slow"
     ) for i in 1:N_TRIALS
 ]
 
 doc_qmeu_fast_specs = [
     AlgorithmSpecification(
-        id = i,
-        name = "doc_qmeu_fast",
-        learner_algorithm = "doc",
-        test_algorithm = "qmeu_fast"
+        id = i, name = "doc_qmeu_fast", learner_algorithm = "doc", test_algorithm = "qmeu_fast"
+    ) for i in 1:N_TRIALS
+]
+
+doc_qmeu_beta_specs = [
+    AlgorithmSpecification(
+        id = i, name = "doc_qmeu_beta", learner_algorithm = "doc", test_algorithm = "qmeu_beta"
+    ) for i in 1:N_TRIALS
+]
+
+cfs_qmeu_beta_specs = [
+    AlgorithmSpecification(
+        id = i, name = "cfs_qmeu_beta", learner_algorithm = "cfs", test_algorithm = "qmeu_beta"
+    ) for i in 1:N_TRIALS
+]
+
+cfs_qmeu_gamma_specs = [
+    AlgorithmSpecification(
+        id = i, name = "cfs_qmeu_gamma", learner_algorithm = "cfs", test_algorithm = "qmeu_gamma"
     ) for i in 1:N_TRIALS
 ]
 
@@ -376,12 +364,15 @@ all_specs = [
     cfs_qmeu_slow_specs,
     cfs_qmeu_fast_specs,
     doc_qmeu_slow_specs,
-    doc_qmeu_fast_specs
+    doc_qmeu_fast_specs, 
+    doc_qmeu_beta_specs,
+    cfs_qmeu_beta_specs,
+    cfs_qmeu_gamma_specs
 ]
 
 
 
-runners = [run_ng_easy_trial, run_ng_hard_trial]
+runners = [run_dct_trial]
     
 for runner in runners
     for specs in all_specs

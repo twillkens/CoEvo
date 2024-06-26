@@ -293,6 +293,9 @@ const TEST_ALGORITHM_DICT = Dict(
     "p_phc_p_uhs" => update_tests_p_phc_p_uhs!,
     "qmeu_slow" => update_tests_qmeu_slow!,
     "qmeu_fast" => update_tests_qmeu_fast!,
+    "qmeu_alpha" => update_tests_qmeu_alpha!,
+    "qmeu_beta" => update_tests_qmeu_beta!,
+    "qmeu_gamma" => update_tests_qmeu_gamma!,
 )
 
 function print_lengths(ecosystem::MaxSolveEcosystem)

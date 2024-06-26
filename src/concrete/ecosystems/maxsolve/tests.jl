@@ -1,7 +1,7 @@
 export update_tests_control!, update_tests_roulette!, update_tests_standard_distinctions!
 export update_tests_advanced!, update_tests_p_phc!, update_tests_p_phc_p_frs!
 export update_tests_p_phc_p_uhs!, add_winners!, get_active_retirees, update_tests_qmeu_slow!
-export update_tests_qmeu_fast!
+export update_tests_qmeu_fast!, update_tests_qmeu_alpha!, update_tests_qmeu_beta!
 
 using ....Abstract
 using StatsBase
@@ -193,6 +193,9 @@ function add_winners!(
     end
 end
 
+using ...Genotypes.FiniteStateMachines
+using ...Genotypes.Vectors
+
 function get_active_retirees(
     retirees::Vector{<:Individual}, 
     population::Vector{<:Individual}, 
@@ -204,7 +207,24 @@ function get_active_retirees(
     return active_retirees
 end
 
-function update_tests_qmeu_slow!(
+function shuffle_genotype!(genotype::FiniteStateMachineGenotype, rng::AbstractRNG)
+    n_states = length(genotype)
+    new_genotype = create_random_fsm_genotype(n_states, rng)
+    genotype.start = new_genotype.start
+    genotype.ones = new_genotype.ones
+    genotype.zeros = new_genotype.zeros
+    genotype.links = new_genotype.links
+end
+
+function shuffle_genotype!(genotype::BasicVectorGenotype, rng::AbstractRNG)
+    shuffle!(rng, genotype.genes)
+end
+
+function update_tests_qmeu!(
+    n_winners::Int,
+    max_active_retirees::Int,
+    n_children_to_shuffle::Int,
+    max_archive_size::Int,
     reproducer::Reproducer, 
     evaluation::SimpleEvaluation,
     ecosystem::MaxSolveEcosystem, 
@@ -213,21 +233,26 @@ function update_tests_qmeu_slow!(
 )
     new_test_population = copy(ecosystem.test_population)
     new_test_retirees = copy(ecosystem.test_retirees)
-    N_WINNERS = 1
-    MAX_ACTIVE_RETIREES = 50
-    MAX_ARCHIVE_SIZE = 1000
     distinction_matrix = make_full_distinction_matrix(evaluation.payoff_matrix)
     cfs_distinction_matrix = perform_competitive_fitness_sharing(distinction_matrix)
     sum_cfs_distinction_matrix = make_sum_scalar_matrix(cfs_distinction_matrix)
     winners = select_individuals_aggregate(
-        ecosystem, sum_cfs_distinction_matrix, N_WINNERS, state.rng
+        ecosystem, sum_cfs_distinction_matrix, n_winners, state.rng
     )
-    add_winners!(new_test_population, new_test_retirees, winners, MAX_ARCHIVE_SIZE)
-    active_retirees = get_active_retirees(new_test_retirees, new_test_population, MAX_ACTIVE_RETIREES)
+    add_winners!(new_test_population, new_test_retirees, winners, max_archive_size)
+    active_retirees = get_active_retirees(new_test_retirees, new_test_population, max_active_retirees)
 
     n_parents = length(new_test_population) - length(active_retirees)
     parents = sample(new_test_population, n_parents, replace = false)
     new_test_children = create_children(parents, reproducer, state; use_crossover = false)
+    shuffle!(state.rng, new_test_children)
+    for i in 1:n_children_to_shuffle
+        child_to_shuffle = new_test_children[i]
+        shuffle_genotype!(child_to_shuffle.genotype, state.rng)
+        child_to_shuffle.phenotype = create_phenotype(
+            reproducer.phenotype_creator, child_to_shuffle.id, child_to_shuffle.genotype
+        )
+    end
     println("len new_test_children = ", length(new_test_children))
     println("len new_test_population = ", length(new_test_population))
     println("len active_retirees = ", length(active_retirees))
@@ -242,6 +267,19 @@ function update_tests_qmeu_slow!(
     ecosystem.test_retirees = new_test_retirees
 end
 
+function update_tests_qmeu_slow!(
+    reproducer::Reproducer, 
+    evaluation::SimpleEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+
+    update_tests_qmeu!(
+        1, 50, 0, 1000, reproducer, evaluation, ecosystem, ecosystem_creator, state
+    )
+end
+
 function update_tests_qmeu_fast!(
     reproducer::Reproducer, 
     evaluation::SimpleEvaluation,
@@ -249,35 +287,45 @@ function update_tests_qmeu_fast!(
     ecosystem_creator::MaxSolveEcosystemCreator,
     state::State
 )
-    new_test_population = copy(ecosystem.test_population)
-    new_test_retirees = copy(ecosystem.test_retirees)
-    N_WINNERS = 2
-    MAX_ACTIVE_RETIREES = 50
-    MAX_ARCHIVE_SIZE = 1000
-    distinction_matrix = make_full_distinction_matrix(evaluation.payoff_matrix)
-    cfs_distinction_matrix = perform_competitive_fitness_sharing(distinction_matrix)
-    sum_cfs_distinction_matrix = make_sum_scalar_matrix(cfs_distinction_matrix)
-    winners = select_individuals_aggregate(
-        ecosystem, sum_cfs_distinction_matrix, N_WINNERS, state.rng
+    update_tests_qmeu!(
+        2, 50, 0, 1000, reproducer, evaluation, ecosystem, ecosystem_creator, state
     )
-    add_winners!(new_test_population, new_test_retirees, winners, MAX_ARCHIVE_SIZE)
-    active_retirees = get_active_retirees(new_test_retirees, new_test_population, MAX_ACTIVE_RETIREES)
+end
 
-    n_parents = length(new_test_population) - length(active_retirees)
-    parents = sample(new_test_population, n_parents, replace = false)
-    new_test_children = create_children(parents, reproducer, state; use_crossover = false)
-    println("len new_test_children = ", length(new_test_children))
-    println("len new_test_population = ", length(new_test_population))
-    println("len active_retirees = ", length(active_retirees))
+function update_tests_qmeu_alpha!(
+    reproducer::Reproducer, 
+    evaluation::SimpleEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    update_tests_qmeu!(
+        2, 10, 0, 1000, reproducer, evaluation, ecosystem, ecosystem_creator, state
+    )
+end
 
-    misc_tests = [active_retirees ; new_test_children]
+function update_tests_qmeu_beta!(
+    reproducer::Reproducer, 
+    evaluation::SimpleEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    update_tests_qmeu!(
+        1, 80, 0, 1000, reproducer, evaluation, ecosystem, ecosystem_creator, state
+    )
+end
 
-    if length(new_test_population) != length(ecosystem.test_population)
-        error("LENGTHS = ", length(new_test_population), " ", length(ecosystem.test_population))
-    end
-    ecosystem.test_population = new_test_population
-    ecosystem.test_children = misc_tests
-    ecosystem.test_retirees = new_test_retirees
+function update_tests_qmeu_gamma!(
+    reproducer::Reproducer, 
+    evaluation::SimpleEvaluation,
+    ecosystem::MaxSolveEcosystem, 
+    ecosystem_creator::MaxSolveEcosystemCreator,
+    state::State
+)
+    update_tests_qmeu!(
+        1, 80, 10, 1000, reproducer, evaluation, ecosystem, ecosystem_creator, state
+    )
 end
 # 
 # function update_tests_qmeu_alpha(
